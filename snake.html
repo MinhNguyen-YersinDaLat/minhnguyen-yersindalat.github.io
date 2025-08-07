@@ -1,197 +1,201 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>Rắn Săn Mồi Cấp Số Nhân</title>
+  <meta charset="UTF-8">
+  <title>Rắn Săn Mồi Cấp Số Nhân 🐍</title>
   <style>
     body {
-      font-family: "Comic Sans MS", cursive;
-      background-color: #ffeef2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0;
+      font-family: 'Comic Sans MS', cursive;
+      background-color: #ffe6eb;
+      text-align: center;
     }
-    canvas {
-      background-color: #fff8f0;
-      border: 4px solid #ff8ab6;
+
+    h1 {
+      font-size: 32px;
+      color: #000;
+    }
+
+    #gameContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       margin-top: 20px;
     }
-    #info {
-      margin-top: 10px;
-      text-align: center;
-      color: #444;
+
+    #chibiLeft, #chibiRight {
+      font-size: 48px;
+      animation: jump 1s infinite alternate;
     }
-    #restartBtn {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #ff91a4;
-      border: none;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
+
+    @keyframes jump {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-15px); }
+    }
+
+    #gameBoard {
+      background-color: #fffaf0;
+      border: 5px solid pink;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      background-color: #fffaf0;
+    }
+
+    .info {
+      margin-top: 15px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <h1>🐍 Rắn Săn Mồi Cấp Số Nhân 🧮</h1>
-  <canvas id="game" width="400" height="400"></canvas>
-  <div id="info">
-    <p>🍬 <strong>Điểm:</strong> <span id="score">0</span> | 🏆 <strong>Kỷ lục:</strong> <span id="highscore">0</span></p>
-    <p>📌 <strong>Số đầu tiên:</strong> <span id="firstTerm"></span> | ✖️ <strong>Công bội:</strong> <span id="ratio"></span></p>
-    <p>👉 <strong>Số cần ăn tiếp theo:</strong> <span id="nextTarget"></span></p>
-    <p>📜 <strong>Các số đã ăn:</strong> <span id="eatenList">[]</span></p>
-  </div>
-  <button id="restartBtn">🔄 Chơi lại</button>
+  <h1>🐍 Rắn Săn Mồi Cấp Số Nhân 📐</h1>
 
-  <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2022/03/11/audio_b7f2563b14.mp3?filename=pixel-adventure-8946.mp3" loop></audio>
-  <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_1fa3126c02.mp3?filename=correct-2-46134.mp3"></audio>
-  <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/11/audio_776c7bdb33.mp3?filename=wrong-47985.mp3"></audio>
+  <div id="gameContainer">
+    <div id="chibiLeft">🐷</div>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    <div id="chibiRight">🐰</div>
+  </div>
+
+  <div class="info">
+    🍓 Điểm: <span id="score">0</span> |
+    📚 Kỷ lục: <span id="highscore">0</span><br>
+    📌 Số đầu tiên: <span id="start">1</span> |
+    ✖ Công bội: <span id="ratio">2</span><br>
+    📒 Các số đã ăn: <span id="eaten">[]</span>
+  </div>
+
+  <!-- Âm thanh -->
+  <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_6cc41e7f63.mp3?filename=correct-2-46134.mp3"></audio>
+  <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_66fc64a7a3.mp3?filename=wrong-2-46127.mp3"></audio>
 
   <script>
-    const canvas = document.getElementById("game");
+    const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-    const box = 20;
-    const canvasSize = 400;
-    const totalBoxes = canvasSize / box;
 
-    let snake = [{ x: 9 * box, y: 9 * box }];
-    let direction = "RIGHT";
+    const gridSize = 20;
+    let snake = [{ x: 5, y: 5 }];
+    let direction = "down";
+    let foodItems = [];
+    let interval;
     let score = 0;
+    let highscore = 0;
     let eatenNumbers = [];
 
-    let firstTerm = Math.floor(Math.random() * 5 + 1);
-    let ratio = Math.floor(Math.random() * 3 + 2);
-    let nextExpected = firstTerm;
-    document.getElementById("firstTerm").textContent = firstTerm;
+    // Cấp số nhân
+    const first = Math.floor(Math.random() * 5 + 1);  // 1 đến 5
+    const ratio = Math.floor(Math.random() * 3 + 2);  // 2 đến 4
+
+    let current = first;
+
+    document.getElementById("start").textContent = first;
     document.getElementById("ratio").textContent = ratio;
-    document.getElementById("nextTarget").textContent = nextExpected;
 
-    let food = generateFood();
-    let highscore = localStorage.getItem("highscore") || 0;
-    document.getElementById("highscore").textContent = highscore;
-
-    let bgMusic = document.getElementById("bgMusic");
-    let correctSound = document.getElementById("correctSound");
-    let wrongSound = document.getElementById("wrongSound");
-
-    document.getElementById("restartBtn").onclick = () => location.reload();
-    document.addEventListener("keydown", changeDirection);
-    window.onload = () => {
-      bgMusic.play();
-      bgMusic.volume = 0.4;
-    };
-
-    function changeDirection(e) {
-      const key = e.keyCode;
-      if (key === 37 && direction !== "RIGHT") direction = "LEFT";
-      else if (key === 38 && direction !== "DOWN") direction = "UP";
-      else if (key === 39 && direction !== "LEFT") direction = "RIGHT";
-      else if (key === 40 && direction !== "UP") direction = "DOWN";
+    function playSound(isCorrect) {
+      const correct = document.getElementById("correctSound");
+      const wrong = document.getElementById("wrongSound");
+      isCorrect ? correct.play() : wrong.play();
     }
 
-    function drawSnakeGame() {
+    function drawSnake() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Rắn
-      for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? "#34c759" : "#a3e635";
-        ctx.fillRect(snake[i].x, snake[i].y, box, box);
-        ctx.strokeStyle = "#444";
-        ctx.strokeRect(snake[i].x, snake[i].y, box, box);
-      }
-
-      // Vẽ các số (mồi)
-      food.forEach(f => {
-        ctx.fillStyle = "#fdba74";
-        ctx.beginPath();
-        ctx.arc(f.x + box / 2, f.y + box / 2, box / 2 - 2, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.fillStyle = "#000";
-        ctx.font = "14px Comic Sans MS";
-        ctx.textAlign = "center";
-        ctx.fillText(f.value, f.x + box / 2, f.y + box / 2 + 5);
+      ctx.fillStyle = "limegreen";
+      snake.forEach((segment) => {
+        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
       });
 
-      // Di chuyển
-      let headX = snake[0].x;
-      let headY = snake[0].y;
-      if (direction === "LEFT") headX -= box;
-      if (direction === "UP") headY -= box;
-      if (direction === "RIGHT") headX += box;
-      if (direction === "DOWN") headY += box;
-
-      // Game over nếu đụng tường hoặc chính mình
-      if (
-        headX < 0 || headX >= canvasSize ||
-        headY < 0 || headY >= canvasSize ||
-        snake.some(segment => segment.x === headX && segment.y === headY)
-      ) {
-        bgMusic.pause();
-        clearInterval(game);
-        alert("🛑 Game Over!");
-        return;
-      }
-
-      let ateFood = false;
-      for (let i = 0; i < food.length; i++) {
-        if (headX === food[i].x && headY === food[i].y) {
-          if (food[i].value === nextExpected) {
-            score += nextExpected;
-            eatenNumbers.push(nextExpected);
-            document.getElementById("score").textContent = score;
-            document.getElementById("eatenList").textContent = "[" + eatenNumbers.join(", ") + "]";
-            nextExpected *= ratio;
-            document.getElementById("nextTarget").textContent = nextExpected;
-            correctSound.play();
-            food = generateFood();
-            ateFood = true;
-          } else {
-            wrongSound.play();
-            bgMusic.pause();
-            clearInterval(game);
-            alert("Sai số! 🧨 Bạn đã ăn nhầm!");
-            return;
-          }
-        }
-      }
-
-      const newHead = { x: headX, y: headY };
-      snake.unshift(newHead);
-      if (!ateFood) snake.pop();
-
-      if (score > highscore) {
-        highscore = score;
-        document.getElementById("highscore").textContent = highscore;
-        localStorage.setItem("highscore", highscore);
-      }
+      ctx.fillStyle = "black";
+      foodItems.forEach((item) => {
+        ctx.fillText(item.value, item.x * gridSize + 4, item.y * gridSize + 15);
+      });
     }
 
     function generateFood() {
-      const foods = [];
-      const validValues = [];
-      for (let i = 0; i < 4; i++) {
-        // Một số đúng, ba số nhiễu nhưng > số cần ăn
-        const isCorrect = i === 0;
-        const value = isCorrect ? nextExpected : Math.floor(Math.random() * (nextExpected * 2 - nextExpected + 1) + nextExpected + 1);
-        validValues.push(value);
-        let position;
-        do {
-          position = {
-            x: Math.floor(Math.random() * totalBoxes) * box,
-            y: Math.floor(Math.random() * totalBoxes) * box
-          };
-        } while (
-          snake.some(s => s.x === position.x && s.y === position.y) ||
-          foods.some(f => f.x === position.x && f.y === position.y)
-        );
-        foods.push({ ...position, value });
+      foodItems = [];
+      const correctFood = {
+        x: Math.floor(Math.random() * (canvas.width / gridSize)),
+        y: Math.floor(Math.random() * (canvas.height / gridSize)),
+        value: current * ratio
+      };
+      foodItems.push(correctFood);
+
+      while (foodItems.length < 4) {
+        const noise = Math.floor((Math.random() * 10 + 1) * current); // gây nhiễu cùng bậc độ lớn
+        if (noise !== correctFood.value && !foodItems.find(f => f.value === noise)) {
+          foodItems.push({
+            x: Math.floor(Math.random() * (canvas.width / gridSize)),
+            y: Math.floor(Math.random() * (canvas.height / gridSize)),
+            value: noise
+          });
+        }
       }
-      return foods;
     }
 
-    const game = setInterval(drawSnakeGame, 180);
+    function moveSnake() {
+      let head = { ...snake[0] };
+      if (direction === "right") head.x++;
+      if (direction === "left") head.x--;
+      if (direction === "up") head.y--;
+      if (direction === "down") head.y++;
+
+      // va chạm
+      if (
+        head.x < 0 || head.x >= canvas.width / gridSize ||
+        head.y < 0 || head.y >= canvas.height / gridSize ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        clearInterval(interval);
+        alert("💀 Game Over! Điểm: " + score);
+        location.reload();
+        return;
+      }
+
+      snake.unshift(head);
+
+      const food = foodItems.find(item => item.x === head.x && item.y === head.y);
+      if (food) {
+        if (food.value === current * ratio) {
+          current *= ratio;
+          score += current;
+          eatenNumbers.push(current);
+          playSound(true);
+          document.getElementById("score").textContent = score;
+          if (score > highscore) {
+            highscore = score;
+            document.getElementById("highscore").textContent = highscore;
+          }
+        } else {
+          playSound(false);
+          clearInterval(interval);
+          alert("🥺 Sai rồi! Đó không phải số tiếp theo.");
+          location.reload();
+          return;
+        }
+        generateFood();
+      } else {
+        snake.pop(); // di chuyển bình thường
+      }
+
+      document.getElementById("eaten").textContent = JSON.stringify(eatenNumbers);
+      drawSnake();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key;
+      if (key === "ArrowUp" && direction !== "down") direction = "up";
+      if (key === "ArrowDown" && direction !== "up") direction = "down";
+      if (key === "ArrowLeft" && direction !== "right") direction = "left";
+      if (key === "ArrowRight" && direction !== "left") direction = "right";
+    });
+
+    function startGame() {
+      generateFood();
+      drawSnake();
+      interval = setInterval(moveSnake, 250);
+    }
+
+    startGame();
   </script>
 </body>
 </html>
