@@ -1,199 +1,147 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <title>Rắn săn số (Cấp số nhân)</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 30px;
-    }
-    h1 {
-      font-size: 28px;
-    }
-    canvas {
-      border: 1px solid #ccc;
-      margin-top: 10px;
-    }
-    #scoreBoard {
-      margin-top: 10px;
-      font-size: 18px;
-    }
-    #gameOver {
-      color: red;
-      margin-top: 15px;
-      font-size: 20px;
-      display: none;
-    }
-    #restartBtn {
-      display: none;
-      padding: 8px 16px;
-      font-size: 16px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <h1>🐍 Rắn săn số (Cấp số nhân)</h1>
-  <canvas id="game" width="400" height="400"></canvas>
-  <div id="scoreBoard">
-    🔢 Điểm: <span id="score">1</span> |
-    🏆 Điểm cao nhất: <span id="highScore">1</span>
-  </div>
-  <div id="gameOver">💀 Game Over!</div>
-  <button id="restartBtn">🔁 Chơi lại</button>
+import React, { useEffect, useState } from "react";
 
-  <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    const scale = 20;
-    const rows = canvas.height / scale;
-    const columns = canvas.width / scale;
+export default function SnakeMathGame() {
+  const [snake, setSnake] = useState([{ x: 5, y: 5 }]);
+  const [food, setFood] = useState([]);
+  const [dir, setDir] = useState({ x: 0, y: 0 });
+  const [gameOver, setGameOver] = useState(false);
+  const [expected, setExpected] = useState(2);
+  const [ratio, setRatio] = useState(2);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    return parseInt(localStorage.getItem("highScore")) || 0;
+  });
 
-    let snake;
-    let correctNumber = 1;
-    let food;
-    let decoys = [];
-    let score = 1;
-    let highScore = localStorage.getItem("highScore") || 1;
-    let direction = { x: 1, y: 0 };
-    let gameInterval;
-    const scoreEl = document.getElementById("score");
-    const highScoreEl = document.getElementById("highScore");
-    const gameOverEl = document.getElementById("gameOver");
-    const restartBtn = document.getElementById("restartBtn");
+  useEffect(() => {
+    const start = Math.floor(Math.random() * 4 + 2); // từ 2 đến 5
+    const r = Math.floor(Math.random() * 3 + 2); // từ 2 đến 4
+    setExpected(start);
+    setRatio(r);
+    setScore(0);
+    setSnake([{ x: 5, y: 5 }]);
+    spawnFoods(start * r, r);
+  }, []);
 
-    function randomPosition() {
-      return {
-        x: Math.floor(Math.random() * columns),
-        y: Math.floor(Math.random() * rows)
+  const spawnFoods = (correctValue, ratio) => {
+    const foodItems = [];
+    const correct = {
+      x: Math.floor(Math.random() * 20),
+      y: Math.floor(Math.random() * 20),
+      value: correctValue,
+      isCorrect: true,
+    };
+    foodItems.push(correct);
+
+    while (foodItems.length < 5) {
+      const value = Math.floor(Math.random() * 30) + 1;
+      const pos = {
+        x: Math.floor(Math.random() * 20),
+        y: Math.floor(Math.random() * 20),
+        value,
+        isCorrect: false,
       };
-    }
-
-    function Snake() {
-      this.body = [{ x: 5, y: 5 }];
-      this.draw = function () {
-        ctx.fillStyle = "#006400";
-        this.body.forEach(part => {
-          ctx.fillRect(part.x * scale, part.y * scale, scale, scale);
-        });
-      };
-      this.update = function () {
-        const head = { x: this.body[0].x + direction.x, y: this.body[0].y + direction.y };
-        this.body.unshift(head);
-        if (head.x === food.x && head.y === food.y) {
-          score += food.value;
-          correctNumber = food.value * 2;
-          spawnFood();
-        } else if (decoys.some(d => d.x === head.x && d.y === head.y)) {
-          endGame();
-        } else {
-          this.body.pop();
-        }
-        // Check wall collision
-        if (head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows ||
-          this.body.slice(1).some(part => part.x === head.x && part.y === head.y)) {
-          endGame();
-        }
-      };
-    }
-
-    function drawCell(x, y, value) {
-      ctx.fillStyle = "#ffff99"; // màu dịu vàng nhạt
-      ctx.fillRect(x * scale, y * scale, scale, scale);
-      ctx.fillStyle = "black";
-      ctx.font = "14px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(value, x * scale + scale / 2, y * scale + scale / 2);
-    }
-
-    function spawnFood() {
-      let newFood;
-      do {
-        newFood = randomPosition();
-      } while (snake.body.some(part => part.x === newFood.x && part.y === newFood.y));
-      food = { ...newFood, value: correctNumber };
-
-      decoys = [];
-      while (decoys.length < 3) {
-        let decoy;
-        do {
-          decoy = randomPosition();
-        } while (
-          (decoy.x === food.x && decoy.y === food.y) ||
-          snake.body.some(part => part.x === decoy.x && part.y === decoy.y) ||
-          decoys.some(d => d.x === decoy.x && d.y === decoy.y)
-        );
-        const value = correctNumber + Math.floor(Math.random() * 10 + 1) * (Math.random() < 0.5 ? -1 : 1);
-        decoys.push({ ...decoy, value });
+      if (!foodItems.some(f => f.x === pos.x && f.y === pos.y)) {
+        foodItems.push(pos);
       }
     }
+    setFood(foodItems);
+  };
 
-    function drawGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      snake.draw();
-      drawCell(food.x, food.y, food.value);
-      decoys.forEach(d => drawCell(d.x, d.y, d.value));
-    }
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case "ArrowUp": setDir({ x: 0, y: -1 }); break;
+        case "ArrowDown": setDir({ x: 0, y: 1 }); break;
+        case "ArrowLeft": setDir({ x: -1, y: 0 }); break;
+        case "ArrowRight": setDir({ x: 1, y: 0 }); break;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-    function updateGame() {
-      snake.update();
-      drawGame();
-      scoreEl.textContent = score;
+  useEffect(() => {
+    if (gameOver) return;
+    const interval = setInterval(() => {
+      const head = { ...snake[0] };
+      head.x += dir.x;
+      head.y += dir.y;
+      const newSnake = [head, ...snake];
+
+      const eaten = food.find(f => f.x === head.x && f.y === head.y);
+      if (eaten) {
+        if (!eaten.isCorrect || eaten.value !== expected) {
+          setGameOver(true);
+          return;
+        }
+        const next = expected * ratio;
+        setExpected(next);
+        setScore(prev => prev + next);
+        spawnFoods(next, ratio);
+      } else {
+        newSnake.pop();
+      }
+
+      if (head.x < 0 || head.y < 0 || head.x >= 20 || head.y >= 20 || snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        setGameOver(true);
+        return;
+      }
+
+      setSnake(newSnake);
+    }, 200);
+    return () => clearInterval(interval);
+  }, [snake, dir, food, expected, gameOver]);
+
+  useEffect(() => {
+    if (gameOver) {
       if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("highScore", highScore);
-        highScoreEl.textContent = highScore;
+        localStorage.setItem("highScore", score);
+        setHighScore(score);
       }
     }
+  }, [gameOver]);
 
-    function endGame() {
-      clearInterval(gameInterval);
-      gameOverEl.style.display = "block";
-      restartBtn.style.display = "inline-block";
-    }
+  const resetGame = () => {
+    const start = Math.floor(Math.random() * 4 + 2);
+    const r = Math.floor(Math.random() * 3 + 2);
+    setExpected(start);
+    setRatio(r);
+    setScore(0);
+    setSnake([{ x: 5, y: 5 }]);
+    setDir({ x: 0, y: 0 });
+    setGameOver(false);
+    spawnFoods(start * r, r);
+  };
 
-    function startGame() {
-      snake = new Snake();
-      direction = { x: 1, y: 0 };
-      score = 1;
-      correctNumber = 1;
-      gameOverEl.style.display = "none";
-      restartBtn.style.display = "none";
-      scoreEl.textContent = score;
-      highScoreEl.textContent = highScore;
-      spawnFood();
-      gameInterval = setInterval(updateGame, 150);
-    }
-
-    window.addEventListener("keydown", e => {
-      const keyMap = {
-        ArrowUp: { x: 0, y: -1 },
-        ArrowDown: { x: 0, y: 1 },
-        ArrowLeft: { x: -1, y: 0 },
-        ArrowRight: { x: 1, y: 0 }
-      };
-      const newDir = keyMap[e.key];
-      if (newDir) {
-        // Không cho quay đầu ngược hướng
-        if (
-          (newDir.x === -direction.x && newDir.y === 0) ||
-          (newDir.y === -direction.y && newDir.x === 0)
-        ) return;
-        direction = newDir;
-      }
-    });
-
-    restartBtn.addEventListener("click", startGame);
-    window.onload = startGame;
-  </script>
-</body>
-</html>
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">🐍 Rắn săn số (Cấp số nhân)</h1>
+      <p className="mb-2">🎯 Số đầu tiên cần ăn: <strong>{expected / ratio}</strong> | Công bội: <strong>{ratio}</strong></p>
+      <p className="mb-2">⭐ Điểm: {score} | 🏆 Kỷ lục: {highScore}</p>
+      {gameOver && (
+        <>
+          <div className="text-red-500 font-bold mb-2">💀 Game Over!</div>
+          <button
+            onClick={resetGame}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Chơi lại
+          </button>
+        </>
+      )}
+      <div className="grid grid-cols-20 gap-1 mt-4">
+        {Array.from({ length: 20 * 20 }).map((_, i) => {
+          const x = i % 20;
+          const y = Math.floor(i / 20);
+          const isSnake = snake.some(seg => seg.x === x && seg.y === y);
+          const foodItem = food.find(f => f.x === x && f.y === y);
+          return (
+            <div key={i} className={`w-5 h-5 border text-xs flex items-center justify-center ${isSnake ? "bg-green-600" : foodItem ? "bg-gray-300" : ""}`}>
+              {foodItem ? foodItem.value : ""}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
