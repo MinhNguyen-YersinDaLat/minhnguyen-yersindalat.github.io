@@ -2,171 +2,143 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🐍 Rắn săn số (Cấp số nhân)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🐍 Rắn săn số học</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       text-align: center;
-      background-color: #f9f9f9;
-    }
-    h1 {
-      margin-top: 10px;
-    }
-    #hint {
-      margin: 5px;
-      font-size: 16px;
-    }
-    #score {
-      font-size: 18px;
-      margin: 5px;
+      background-color: #fdfdfd;
+      margin: 0;
+      padding: 20px;
     }
     #game-board {
       display: grid;
-      grid-template-columns: repeat(20, 30px);
-      grid-template-rows: repeat(20, 30px);
-      gap: 2px;
-      justify-content: center;
-      margin: 10px auto;
+      grid-template-columns: repeat(20, 25px);
+      grid-template-rows: repeat(20, 25px);
+      margin: 20px auto;
+      gap: 1px;
+      background-color: #ccc;
     }
     .cell {
-      width: 30px;
-      height: 30px;
-      background-color: #eee;
-      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      background-color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: bold;
       font-size: 14px;
+      border-radius: 4px;
+      color: #333;
     }
     .snake {
-      background-color: #70c67c;
-      border: 2px solid #4c9f5d;
+      background-color: #66bb6a;
+      border: 1px solid #388e3c;
     }
-    .number {
-      background-color: #fefefe;
-      border: 1px solid #ccc;
-      color: #333;
-      font-weight: bold;
+    .food {
+      background-color: #90caf9;
     }
-    #game-over {
-      color: red;
-      font-weight: bold;
+    #hint, #score, #game-over {
       margin-top: 10px;
-    }
-    #restart {
-      margin-top: 10px;
-      padding: 8px 16px;
       font-size: 16px;
+    }
+    #restart-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ffcc80;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
-      display: none;
+    }
+    #restart-button:hover {
+      background-color: #ffb74d;
     }
   </style>
 </head>
 <body>
   <h1>🐍 Rắn săn số (Cấp số nhân)</h1>
-  <div id="hint"></div>
+  <div id="hint">Bắt đầu từ <b>a = ?</b>, công bội <b>q = ?</b></div>
   <div id="score">Điểm: 0 | Kỷ lục: 0</div>
   <div id="game-board"></div>
   <div id="game-over"></div>
-  <button id="restart" onclick="location.reload()">🔄 Chơi lại</button>
+  <button id="restart-button" style="display:none; margin-top: 10px;">🔁 Chơi lại</button>
 
   <script>
-    const boardSize = 20;
     const board = document.getElementById("game-board");
     const scoreDisplay = document.getElementById("score");
     const gameOverDisplay = document.getElementById("game-over");
-    const hintDisplay = document.getElementById("hint");
-    const restartButton = document.getElementById("restart");
 
+    const width = 20;
+    const height = 20;
     let snake = [{ x: 10, y: 10 }];
-    let direction = { x: 0, y: 0 };
-    let a = Math.floor(Math.random() * 4) + 1;
-    let q = Math.floor(Math.random() * 3) + 2;
-    let nextExpected = a;
-    let food = {};
-    let wrongNumbers = [];
+    let direction = { x: 1, y: 0 };
+    let nextExpected = 1;
+    let foodItems = [];
     let score = 0;
     let highScore = localStorage.getItem("highScore") || 0;
-    let game;
 
-    hintDisplay.innerText = `👉 Số đầu tiên: ${a} | Công bội: ${q}`;
+    let a = Math.floor(Math.random() * 4) + 1;
+    let q = Math.floor(Math.random() * 3) + 2;
 
-    function initBoard() {
+    document.getElementById("hint").innerHTML = `Bắt đầu từ <b>a = ${a}</b>, công bội <b>q = ${q}</b>`;
+    nextExpected = a;
+
+    document.getElementById("restart-button").addEventListener("click", () => {
+      location.reload();
+    });
+
+    function drawBoard() {
       board.innerHTML = "";
-      for (let i = 0; i < boardSize * boardSize; i++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        board.appendChild(cell);
-      }
-    }
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
 
-    function draw() {
-      initBoard();
-      const cells = document.querySelectorAll(".cell");
+          // Snake body
+          if (snake.some(s => s.x === x && s.y === y)) {
+            cell.classList.add("snake");
+          }
 
-      snake.forEach(part => {
-        const index = part.y * boardSize + part.x;
-        if (cells[index]) cells[index].classList.add("snake");
-      });
+          // Food
+          let food = foodItems.find(f => f.x === x && f.y === y);
+          if (food) {
+            cell.classList.add("food");
+            cell.textContent = food.value;
+          }
 
-      const foodIndex = food.y * boardSize + food.x;
-      if (cells[foodIndex]) {
-        cells[foodIndex].classList.add("number");
-        cells[foodIndex].innerText = food.value;
-      }
-
-      wrongNumbers.forEach(num => {
-        const idx = num.y * boardSize + num.x;
-        if (cells[idx]) {
-          cells[idx].classList.add("number");
-          cells[idx].innerText = num.value;
+          board.appendChild(cell);
         }
-      });
-
-      scoreDisplay.innerText = `Điểm: ${score} | Kỷ lục: ${highScore}`;
-    }
-
-    function placeFood() {
-      let valid = false;
-      while (!valid) {
-        food = {
-          x: Math.floor(Math.random() * boardSize),
-          y: Math.floor(Math.random() * boardSize),
-          value: nextExpected,
-        };
-        valid = !snake.some(s => s.x === food.x && s.y === food.y);
       }
     }
 
-    function placeWrongNumbers() {
-      wrongNumbers = [];
-      for (let i = 0; i < 3; i++) {
-        let wrong;
-        let isValid = false;
-        while (!isValid) {
-          wrong = {
-            x: Math.floor(Math.random() * boardSize),
-            y: Math.floor(Math.random() * boardSize),
-            value: Math.floor(Math.random() * 100) + 1
-          };
-          isValid =
-            wrong.value !== nextExpected &&
-            !snake.some(s => s.x === wrong.x && s.y === wrong.y) &&
-            (wrong.x !== food.x || wrong.y !== food.y);
+    function spawnFood() {
+      foodItems = [];
+      let correctPlaced = false;
+      while (foodItems.length < 5) {
+        let fx = Math.floor(Math.random() * width);
+        let fy = Math.floor(Math.random() * height);
+        let value;
+
+        if (!correctPlaced) {
+          value = nextExpected;
+          correctPlaced = true;
+        } else {
+          let offset = Math.floor(Math.random() * 20) + 1;
+          value = nextExpected + offset;
         }
-        wrongNumbers.push(wrong);
+
+        if (!snake.some(s => s.x === fx && s.y === fy)) {
+          foodItems.push({ x: fx, y: fy, value });
+        }
       }
     }
 
-    function moveSnake() {
+    function move() {
       const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
       if (
-        head.x < 0 ||
-        head.y < 0 ||
-        head.x >= boardSize ||
-        head.y >= boardSize ||
+        head.x < 0 || head.x >= width || head.y < 0 || head.y >= height ||
         snake.some(s => s.x === head.x && s.y === head.y)
       ) {
         gameOver();
@@ -175,24 +147,30 @@
 
       snake.unshift(head);
 
-      if (head.x === food.x && head.y === food.y) {
-        score += food.value;
-        nextExpected *= q;
-        placeFood();
-        placeWrongNumbers();
-      } else if (wrongNumbers.some(n => n.x === head.x && n.y === head.y)) {
-        gameOver();
-        return;
+      let eatenIndex = foodItems.findIndex(f => f.x === head.x && f.y === head.y);
+      if (eatenIndex !== -1) {
+        let food = foodItems[eatenIndex];
+        if (food.value === nextExpected) {
+          score += food.value;
+          nextExpected *= q;
+          spawnFood();
+        } else {
+          gameOver();
+          return;
+        }
       } else {
         snake.pop();
       }
-      draw();
+
+      scoreDisplay.innerHTML = `Điểm: ${score} | Kỷ lục: ${highScore}`;
+      drawBoard();
     }
 
     function gameOver() {
       clearInterval(game);
       gameOverDisplay.innerHTML = "💀 <b>Game Over!</b>";
-      restartButton.style.display = "inline-block";
+      document.getElementById("restart-button").style.display = "inline-block";
+
       if (score > highScore) {
         highScore = score;
         localStorage.setItem("highScore", highScore);
@@ -201,29 +179,17 @@
 
     document.addEventListener("keydown", e => {
       switch (e.key) {
-        case "ArrowUp":
-          if (direction.y !== 1) direction = { x: 0, y: -1 };
-          break;
-        case "ArrowDown":
-          if (direction.y !== -1) direction = { x: 0, y: 1 };
-          break;
-        case "ArrowLeft":
-          if (direction.x !== 1) direction = { x: -1, y: 0 };
-          break;
-        case "ArrowRight":
-          if (direction.x !== -1) direction = { x: 1, y: 0 };
-          break;
+        case "ArrowUp": if (direction.y !== 1) direction = { x: 0, y: -1 }; break;
+        case "ArrowDown": if (direction.y !== -1) direction = { x: 0, y: 1 }; break;
+        case "ArrowLeft": if (direction.x !== 1) direction = { x: -1, y: 0 }; break;
+        case "ArrowRight": if (direction.x !== -1) direction = { x: 1, y: 0 }; break;
       }
     });
 
-    function startGame() {
-      placeFood();
-      placeWrongNumbers();
-      draw();
-      game = setInterval(moveSnake, 200);
-    }
-
-    startGame();
+    direction = { x: 1, y: 0 };
+    spawnFood();
+    drawBoard();
+    const game = setInterval(move, 200);
   </script>
 </body>
 </html>
