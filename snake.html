@@ -1,128 +1,199 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Rắn săn số</title>
+  <meta charset="UTF-8" />
+  <title>Rắn săn số (Cấp số nhân)</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-top: 30px;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(20, 20px);
-      gap: 1px;
-      margin-top: 20px;
+    h1 {
+      font-size: 28px;
     }
-    .cell {
-      width: 20px;
-      height: 20px;
+    canvas {
       border: 1px solid #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-    }
-    .snake {
-      background-color: green;
-    }
-    .food {
-      background-color: yellow;
-    }
-    .game-over {
-      color: red;
-      font-weight: bold;
       margin-top: 10px;
+    }
+    #scoreBoard {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+    #gameOver {
+      color: red;
+      margin-top: 15px;
+      font-size: 20px;
+      display: none;
+    }
+    #restartBtn {
+      display: none;
+      padding: 8px 16px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <h1>🐍 Rắn săn số (Cấp số nhân)</h1>
-  <div id="info"></div>
-  <div class="grid" id="grid"></div>
-  <div class="game-over" id="game-over"></div>
+  <canvas id="game" width="400" height="400"></canvas>
+  <div id="scoreBoard">
+    🔢 Điểm: <span id="score">1</span> |
+    🏆 Điểm cao nhất: <span id="highScore">1</span>
+  </div>
+  <div id="gameOver">💀 Game Over!</div>
+  <button id="restartBtn">🔁 Chơi lại</button>
 
   <script>
-    const gridEl = document.getElementById("grid");
-    const infoEl = document.getElementById("info");
-    const gameOverEl = document.getElementById("game-over");
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const scale = 20;
+    const rows = canvas.height / scale;
+    const columns = canvas.width / scale;
 
-    const gridSize = 20;
-    let snake = [{ x: 5, y: 5 }];
-    let dir = { x: 0, y: 0 };
-    let gameOver = false;
+    let snake;
+    let correctNumber = 1;
+    let food;
+    let decoys = [];
+    let score = 1;
+    let highScore = localStorage.getItem("highScore") || 1;
+    let direction = { x: 1, y: 0 };
+    let gameInterval;
+    const scoreEl = document.getElementById("score");
+    const highScoreEl = document.getElementById("highScore");
+    const gameOverEl = document.getElementById("gameOver");
+    const restartBtn = document.getElementById("restartBtn");
 
-    const start = Math.floor(Math.random() * 4 + 2); // 2 - 5
-    const ratio = Math.floor(Math.random() * 3 + 2); // 2 - 4
-    let expected = start;
+    function randomPosition() {
+      return {
+        x: Math.floor(Math.random() * columns),
+        y: Math.floor(Math.random() * rows)
+      };
+    }
 
-    let food = { x: 10, y: 10, value: start };
-
-    function drawGrid() {
-      gridEl.innerHTML = "";
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          const cell = document.createElement("div");
-          cell.className = "cell";
-          if (snake.some(s => s.x === x && s.y === y)) {
-            cell.classList.add("snake");
-          } else if (food.x === x && food.y === y) {
-            cell.classList.add("food");
-            cell.textContent = food.value;
-          }
-          gridEl.appendChild(cell);
+    function Snake() {
+      this.body = [{ x: 5, y: 5 }];
+      this.draw = function () {
+        ctx.fillStyle = "#006400";
+        this.body.forEach(part => {
+          ctx.fillRect(part.x * scale, part.y * scale, scale, scale);
+        });
+      };
+      this.update = function () {
+        const head = { x: this.body[0].x + direction.x, y: this.body[0].y + direction.y };
+        this.body.unshift(head);
+        if (head.x === food.x && head.y === food.y) {
+          score += food.value;
+          correctNumber = food.value * 2;
+          spawnFood();
+        } else if (decoys.some(d => d.x === head.x && d.y === head.y)) {
+          endGame();
+        } else {
+          this.body.pop();
         }
+        // Check wall collision
+        if (head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows ||
+          this.body.slice(1).some(part => part.x === head.x && part.y === head.y)) {
+          endGame();
+        }
+      };
+    }
+
+    function drawCell(x, y, value) {
+      ctx.fillStyle = "#ffff99"; // màu dịu vàng nhạt
+      ctx.fillRect(x * scale, y * scale, scale, scale);
+      ctx.fillStyle = "black";
+      ctx.font = "14px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(value, x * scale + scale / 2, y * scale + scale / 2);
+    }
+
+    function spawnFood() {
+      let newFood;
+      do {
+        newFood = randomPosition();
+      } while (snake.body.some(part => part.x === newFood.x && part.y === newFood.y));
+      food = { ...newFood, value: correctNumber };
+
+      decoys = [];
+      while (decoys.length < 3) {
+        let decoy;
+        do {
+          decoy = randomPosition();
+        } while (
+          (decoy.x === food.x && decoy.y === food.y) ||
+          snake.body.some(part => part.x === decoy.x && part.y === decoy.y) ||
+          decoys.some(d => d.x === decoy.x && d.y === decoy.y)
+        );
+        const value = correctNumber + Math.floor(Math.random() * 10 + 1) * (Math.random() < 0.5 ? -1 : 1);
+        decoys.push({ ...decoy, value });
       }
     }
 
-    function update() {
-      if (gameOver) return;
-      const head = { ...snake[0] };
-      head.x += dir.x;
-      head.y += dir.y;
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      snake.draw();
+      drawCell(food.x, food.y, food.value);
+      decoys.forEach(d => drawCell(d.x, d.y, d.value));
+    }
 
-      if (head.x < 0 || head.y < 0 || head.x >= gridSize || head.y >= gridSize ||
-        snake.some(seg => seg.x === head.x && seg.y === head.y)) {
-        gameOver = true;
-        gameOverEl.textContent = "💀 Game Over! Nhấn F5 để chơi lại!";
-        return;
+    function updateGame() {
+      snake.update();
+      drawGame();
+      scoreEl.textContent = score;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+        highScoreEl.textContent = highScore;
       }
+    }
 
-      snake.unshift(head);
+    function endGame() {
+      clearInterval(gameInterval);
+      gameOverEl.style.display = "block";
+      restartBtn.style.display = "inline-block";
+    }
 
-      if (head.x === food.x && head.y === food.y) {
-        if (food.value !== expected) {
-          gameOver = true;
-          gameOverEl.textContent = "💀 Sai số! Game Over!";
-          return;
-        }
-        expected *= ratio;
-        food = {
-          x: Math.floor(Math.random() * gridSize),
-          y: Math.floor(Math.random() * gridSize),
-          value: expected
-        };
-      } else {
-        snake.pop();
-      }
-
-      drawGrid();
-      infoEl.textContent = `🎯 Quy luật: cấp số nhân bắt đầu từ ${start}, công bội ${ratio}`;
+    function startGame() {
+      snake = new Snake();
+      direction = { x: 1, y: 0 };
+      score = 1;
+      correctNumber = 1;
+      gameOverEl.style.display = "none";
+      restartBtn.style.display = "none";
+      scoreEl.textContent = score;
+      highScoreEl.textContent = highScore;
+      spawnFood();
+      gameInterval = setInterval(updateGame, 150);
     }
 
     window.addEventListener("keydown", e => {
-      switch (e.key) {
-        case "ArrowUp": dir = { x: 0, y: -1 }; break;
-        case "ArrowDown": dir = { x: 0, y: 1 }; break;
-        case "ArrowLeft": dir = { x: -1, y: 0 }; break;
-        case "ArrowRight": dir = { x: 1, y: 0 }; break;
+      const keyMap = {
+        ArrowUp: { x: 0, y: -1 },
+        ArrowDown: { x: 0, y: 1 },
+        ArrowLeft: { x: -1, y: 0 },
+        ArrowRight: { x: 1, y: 0 }
+      };
+      const newDir = keyMap[e.key];
+      if (newDir) {
+        // Không cho quay đầu ngược hướng
+        if (
+          (newDir.x === -direction.x && newDir.y === 0) ||
+          (newDir.y === -direction.y && newDir.x === 0)
+        ) return;
+        direction = newDir;
       }
     });
 
-    drawGrid();
-    setInterval(update, 200);
+    restartBtn.addEventListener("click", startGame);
+    window.onload = startGame;
   </script>
 </body>
 </html>
