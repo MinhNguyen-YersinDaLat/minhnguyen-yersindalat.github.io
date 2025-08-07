@@ -1,176 +1,140 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Rắn Săn Mồi Cấp Số Nhân</title>
   <style>
     body {
       margin: 0;
-      background-color: #fff9f0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      text-align: center;
-    }
-    canvas {
-      border: 4px solid #ff69b4;
-      background-color: #fff;
-      display: block;
-      margin: auto;
-    }
-    #icons {
+      background-color: #f0f8ff;
       display: flex;
-      justify-content: space-between;
-      width: 900px;
-      margin: 10px auto;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: "Comic Sans MS", cursive;
+    }
+    .container {
+      display: flex;
+      align-items: center;
     }
     .side-icon {
-      width: 120px;
-      height: 120px;
+      width: 160px;
+      height: 160px;
+      margin: 20px;
+    }
+    canvas {
+      border: 8px solid #4caf50;
+      background-color: #ffffff;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div id="icons">
-    <img class="side-icon" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Heo">
-    <img class="side-icon" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Heo">
+  <div class="container">
+    <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Heo chibi" class="side-icon">
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Thỏ chibi" class="side-icon">
   </div>
 
-  <canvas id="gameCanvas" width="900" height="600"></canvas>
-
-  <audio id="correctSound" src="https://cdn.jsdelivr.net/gh/jonobr1/tone-audio/correct.mp3"></audio>
-  <audio id="wrongSound" src="https://cdn.jsdelivr.net/gh/jonobr1/tone-audio/wrong.mp3"></audio>
-  <audio autoplay loop>
-    <source src="https://cdn.pixabay.com/download/audio/2022/11/03/audio_90d0f67dbe.mp3?filename=video-game-arcade-116447.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Âm thanh -->
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const box = 30;
-    let snake = [{ x: 9 * box, y: 10 * box }];
+    const box = 20;
+    const canvasSize = 600;
     let direction = "RIGHT";
 
-    document.addEventListener("keydown", directionControl);
+    let snake = [{ x: 9 * box, y: 10 * box }];
+    let score = 1;
+    let currentNumber = 1;
+    const maxNumber = 999;
 
-    function directionControl(event) {
-      if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-      else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-      else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-      else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+    function randomPosition() {
+      return {
+        x: Math.floor(Math.random() * (canvasSize / box)) * box,
+        y: Math.floor(Math.random() * (canvasSize / box)) * box
+      };
     }
 
-    let current = 2;
-    let ratio = 2;
-    let score = 0;
+    function generateNumbers(correctNum) {
+      let numbers = [correctNum];
+      while (numbers.length < 4) {
+        let offset = Math.pow(10, Math.floor(Math.log10(correctNum)));
+        let fake = correctNum + (Math.floor(Math.random() * 5) + 1) * offset * (Math.random() < 0.5 ? -1 : 1);
+        fake = Math.abs(Math.round(fake));
+        if (!numbers.includes(fake) && fake > 0 && fake < maxNumber) {
+          numbers.push(fake);
+        }
+      }
+      return numbers.sort(() => Math.random() - 0.5).map(n => ({ ...randomPosition(), value: n }));
+    }
+
+    let food = generateNumbers(currentNumber);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+      if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+    });
 
     const correctSound = document.getElementById("correctSound");
     const wrongSound = document.getElementById("wrongSound");
 
-    let food = [];
-    function spawnFood() {
-      food = [];
-      let correctFood = {
-        x: Math.floor(Math.random() * 27 + 1) * box,
-        y: Math.floor(Math.random() * 17 + 3) * box,
-        value: current * ratio,
-        correct: true,
-      };
-      food.push(correctFood);
-
-      while (food.length < 5) {
-        let value = Math.floor(Math.random() * 30) + 1;
-        if (value !== correctFood.value) {
-          food.push({
-            x: Math.floor(Math.random() * 27 + 1) * box,
-            y: Math.floor(Math.random() * 17 + 3) * box,
-            value,
-            correct: false,
-          });
-        }
-      }
-    }
-
-    spawnFood();
-
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-      // Draw snake
-      for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? "#ff69b4" : "#ffa07a";
-        ctx.fillRect(snake[i].x, snake[i].y, box, box);
-        ctx.strokeStyle = "#fff";
-        ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+      for (let segment of snake) {
+        ctx.fillStyle = "#4caf50";
+        ctx.fillRect(segment.x, segment.y, box, box);
       }
 
-      // Draw food
-      for (let i = 0; i < food.length; i++) {
-        ctx.fillStyle = food[i].correct ? "#90ee90" : "#ffcccb";
-        ctx.beginPath();
-        ctx.arc(food[i].x + box / 2, food[i].y + box / 2, box / 2 - 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#000";
-        ctx.font = "18px Arial";
-        ctx.fillText(food[i].value, food[i].x + 6, food[i].y + 20);
+      ctx.fillStyle = "#000";
+      ctx.font = "16px Arial";
+      for (let f of food) {
+        ctx.fillText(f.value, f.x + 5, f.y + 15);
       }
 
-      // Move snake
-      let headX = snake[0].x;
-      let headY = snake[0].y;
+      let head = { ...snake[0] };
+      if (direction === "LEFT") head.x -= box;
+      if (direction === "RIGHT") head.x += box;
+      if (direction === "UP") head.y -= box;
+      if (direction === "DOWN") head.y += box;
 
-      if (direction === "LEFT") headX -= box;
-      if (direction === "UP") headY -= box;
-      if (direction === "RIGHT") headX += box;
-      if (direction === "DOWN") headY += box;
-
-      let newHead = { x: headX, y: headY };
-
-      // Check collision with wall
       if (
-        headX < 0 ||
-        headX >= canvas.width ||
-        headY < 0 ||
-        headY >= canvas.height ||
-        collision(newHead, snake)
+        head.x < 0 || head.x >= canvasSize || head.y < 0 || head.y >= canvasSize ||
+        snake.some(seg => seg.x === head.x && seg.y === head.y)
       ) {
         clearInterval(game);
         alert("Game Over!");
         return;
       }
 
-      // Check if food eaten
-      let ate = false;
+      let eaten = false;
       for (let i = 0; i < food.length; i++) {
-        if (headX === food[i].x && headY === food[i].y) {
-          if (food[i].correct) {
+        if (head.x === food[i].x && head.y === food[i].y) {
+          if (food[i].value === currentNumber) {
             score++;
-            current *= ratio;
+            currentNumber *= 2;
             correctSound.play();
-            spawnFood();
-            ate = true;
           } else {
             wrongSound.play();
           }
+          food = generateNumbers(currentNumber);
+          eaten = true;
+          break;
         }
       }
 
-      if (!ate) snake.pop();
-      snake.unshift(newHead);
-
-      // Draw score
-      ctx.fillStyle = "#000";
-      ctx.font = "20px Comic Sans MS";
-      ctx.fillText("Điểm: " + score, box, box);
+      snake.unshift(head);
+      if (!eaten) snake.pop();
     }
 
-    function collision(head, array) {
-      for (let i = 0; i < array.length; i++) {
-        if (head.x === array[i].x && head.y === array[i].y) return true;
-      }
-      return false;
-    }
-
-    let game = setInterval(draw, 180);
+    let game = setInterval(draw, 200);
   </script>
 </body>
 </html>
