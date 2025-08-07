@@ -36,6 +36,7 @@
 
     .food {
       background-color: #ffe0b2;
+      font-weight: bold;
     }
 
     #info {
@@ -62,7 +63,7 @@
 </head>
 <body>
 
-  <h1>🐍 Rắn Săn Số - Cấp Số Nhân</h1>
+  <h1>🐍 Rắn Săn Mồi – Cấp Số Nhân</h1>
 
   <div id="info">
     🎯 Quy luật: số đầu tiên <span id="startVal"></span>, công bội <span id="ratioVal"></span><br />
@@ -75,8 +76,9 @@
 
   <button onclick="restartGame()">🔁 Bắt đầu lại</button>
 
-  <audio id="bgMusic" loop autoplay>
+  <audio id="bgMusic" autoplay loop>
     <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_50f6ac506e.mp3" type="audio/mpeg">
+    Trình duyệt của bạn không hỗ trợ audio.
   </audio>
 
   <script>
@@ -87,15 +89,7 @@
     const ratioValEl = document.getElementById("ratioVal");
     const statusEl = document.getElementById("status");
 
-    let snake = [{ x: 5, y: 5 }];
-    let dir = { x: 0, y: 0 };
-    let food = [];
-    let startValue = Math.floor(Math.random() * 4) + 2;
-    let ratio = Math.floor(Math.random() * 3) + 2;
-    let expected = startValue;
-    let score = 0;
-    let highScore = localStorage.getItem("snakeHigh") || 0;
-    let interval;
+    let snake, dir, food, startValue, ratio, expected, score, highScore, interval;
 
     function drawBoard() {
       board.innerHTML = "";
@@ -111,7 +105,7 @@
           const foodHere = food.find(f => f.x === x && f.y === y);
           if (foodHere) {
             cell.classList.add("food");
-            cell.innerHTML = `🍬<span style="font-size:9px">${foodHere.value}</span>`;
+            cell.textContent = foodHere.value;
           }
 
           board.appendChild(cell);
@@ -124,7 +118,6 @@
       head.x += dir.x;
       head.y += dir.y;
 
-      // Game over check
       if (
         head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 ||
         snake.some(seg => seg.x === head.x && seg.y === head.y)
@@ -140,7 +133,7 @@
 
       if (eaten) {
         if (eaten.value !== expected) {
-          statusEl.textContent = "😵 Sai số! Game over!";
+          statusEl.textContent = `😵 Sai số! Bạn đã ăn ${eaten.value} thay vì ${expected}!`;
           clearInterval(interval);
           return;
         }
@@ -155,7 +148,7 @@
       scoreEl.textContent = score;
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem("snakeHigh", score);
+        localStorage.setItem("snakeHigh", highScore);
         highScoreEl.textContent = highScore;
       }
 
@@ -165,16 +158,16 @@
     function generateFood() {
       food = [];
 
-      // Food đúng
+      // số đúng
       food.push({
         x: Math.floor(Math.random() * 20),
         y: Math.floor(Math.random() * 20),
         value: expected
       });
 
-      // Nhiễu
-      for (let i = 0; i < 3; i++) {
-        let val = expected + (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+      // số gây nhiễu
+      while (food.length < 4) {
+        const val = expected + (Math.floor(Math.random() * 6) + 1) * (Math.random() > 0.5 ? 1 : -1);
         food.push({
           x: Math.floor(Math.random() * 20),
           y: Math.floor(Math.random() * 20),
@@ -184,22 +177,25 @@
     }
 
     function restartGame() {
-      snake = [{ x: 5, y: 5 }];
+      snake = [{ x: 10, y: 10 }];
       dir = { x: 0, y: 0 };
       startValue = Math.floor(Math.random() * 4) + 2;
       ratio = Math.floor(Math.random() * 3) + 2;
       expected = startValue;
       score = 0;
+      highScore = localStorage.getItem("snakeHigh") || 0;
+
       scoreEl.textContent = score;
       highScoreEl.textContent = highScore;
       startValEl.textContent = startValue;
       ratioValEl.textContent = ratio;
       statusEl.textContent = "";
+
       generateFood();
       drawBoard();
 
       clearInterval(interval);
-      interval = setInterval(move, 200);
+      interval = setInterval(move, 150);
     }
 
     window.addEventListener("keydown", (e) => {
@@ -209,6 +205,12 @@
         case "ArrowLeft": if (dir.x !== 1) dir = { x: -1, y: 0 }; break;
         case "ArrowRight": if (dir.x !== -1) dir = { x: 1, y: 0 }; break;
       }
+    });
+
+    // Phát nhạc sau tương tác đầu tiên nếu bị chặn autoplay
+    document.addEventListener("click", () => {
+      const music = document.getElementById("bgMusic");
+      if (music.paused) music.play();
     });
 
     restartGame();
