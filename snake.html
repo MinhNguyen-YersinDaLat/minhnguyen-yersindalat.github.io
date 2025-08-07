@@ -1,147 +1,229 @@
-import React, { useEffect, useState } from "react";
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐍 Rắn săn số (Cấp số nhân)</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      margin-top: 10px;
+    }
+    #hint {
+      margin: 5px;
+      font-size: 16px;
+    }
+    #score {
+      font-size: 18px;
+      margin: 5px;
+    }
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(20, 30px);
+      grid-template-rows: repeat(20, 30px);
+      gap: 2px;
+      justify-content: center;
+      margin: 10px auto;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      background-color: #eee;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .snake {
+      background-color: #70c67c;
+      border: 2px solid #4c9f5d;
+    }
+    .number {
+      background-color: #fefefe;
+      border: 1px solid #ccc;
+      color: #333;
+      font-weight: bold;
+    }
+    #game-over {
+      color: red;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    #restart {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐍 Rắn săn số (Cấp số nhân)</h1>
+  <div id="hint"></div>
+  <div id="score">Điểm: 0 | Kỷ lục: 0</div>
+  <div id="game-board"></div>
+  <div id="game-over"></div>
+  <button id="restart" onclick="location.reload()">🔄 Chơi lại</button>
 
-export default function SnakeMathGame() {
-  const [snake, setSnake] = useState([{ x: 5, y: 5 }]);
-  const [food, setFood] = useState([]);
-  const [dir, setDir] = useState({ x: 0, y: 0 });
-  const [gameOver, setGameOver] = useState(false);
-  const [expected, setExpected] = useState(2);
-  const [ratio, setRatio] = useState(2);
-  const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    return parseInt(localStorage.getItem("highScore")) || 0;
-  });
+  <script>
+    const boardSize = 20;
+    const board = document.getElementById("game-board");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverDisplay = document.getElementById("game-over");
+    const hintDisplay = document.getElementById("hint");
+    const restartButton = document.getElementById("restart");
 
-  useEffect(() => {
-    const start = Math.floor(Math.random() * 4 + 2); // từ 2 đến 5
-    const r = Math.floor(Math.random() * 3 + 2); // từ 2 đến 4
-    setExpected(start);
-    setRatio(r);
-    setScore(0);
-    setSnake([{ x: 5, y: 5 }]);
-    spawnFoods(start * r, r);
-  }, []);
+    let snake = [{ x: 10, y: 10 }];
+    let direction = { x: 0, y: 0 };
+    let a = Math.floor(Math.random() * 4) + 1;
+    let q = Math.floor(Math.random() * 3) + 2;
+    let nextExpected = a;
+    let food = {};
+    let wrongNumbers = [];
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    let game;
 
-  const spawnFoods = (correctValue, ratio) => {
-    const foodItems = [];
-    const correct = {
-      x: Math.floor(Math.random() * 20),
-      y: Math.floor(Math.random() * 20),
-      value: correctValue,
-      isCorrect: true,
-    };
-    foodItems.push(correct);
+    hintDisplay.innerText = `👉 Số đầu tiên: ${a} | Công bội: ${q}`;
 
-    while (foodItems.length < 5) {
-      const value = Math.floor(Math.random() * 30) + 1;
-      const pos = {
-        x: Math.floor(Math.random() * 20),
-        y: Math.floor(Math.random() * 20),
-        value,
-        isCorrect: false,
-      };
-      if (!foodItems.some(f => f.x === pos.x && f.y === pos.y)) {
-        foodItems.push(pos);
+    function initBoard() {
+      board.innerHTML = "";
+      for (let i = 0; i < boardSize * boardSize; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        board.appendChild(cell);
       }
     }
-    setFood(foodItems);
-  };
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch (e.key) {
-        case "ArrowUp": setDir({ x: 0, y: -1 }); break;
-        case "ArrowDown": setDir({ x: 0, y: 1 }); break;
-        case "ArrowLeft": setDir({ x: -1, y: 0 }); break;
-        case "ArrowRight": setDir({ x: 1, y: 0 }); break;
+    function draw() {
+      initBoard();
+      const cells = document.querySelectorAll(".cell");
+
+      snake.forEach(part => {
+        const index = part.y * boardSize + part.x;
+        if (cells[index]) cells[index].classList.add("snake");
+      });
+
+      const foodIndex = food.y * boardSize + food.x;
+      if (cells[foodIndex]) {
+        cells[foodIndex].classList.add("number");
+        cells[foodIndex].innerText = food.value;
       }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
-  useEffect(() => {
-    if (gameOver) return;
-    const interval = setInterval(() => {
-      const head = { ...snake[0] };
-      head.x += dir.x;
-      head.y += dir.y;
-      const newSnake = [head, ...snake];
-
-      const eaten = food.find(f => f.x === head.x && f.y === head.y);
-      if (eaten) {
-        if (!eaten.isCorrect || eaten.value !== expected) {
-          setGameOver(true);
-          return;
+      wrongNumbers.forEach(num => {
+        const idx = num.y * boardSize + num.x;
+        if (cells[idx]) {
+          cells[idx].classList.add("number");
+          cells[idx].innerText = num.value;
         }
-        const next = expected * ratio;
-        setExpected(next);
-        setScore(prev => prev + next);
-        spawnFoods(next, ratio);
-      } else {
-        newSnake.pop();
-      }
+      });
 
-      if (head.x < 0 || head.y < 0 || head.x >= 20 || head.y >= 20 || snake.some(seg => seg.x === head.x && seg.y === head.y)) {
-        setGameOver(true);
+      scoreDisplay.innerText = `Điểm: ${score} | Kỷ lục: ${highScore}`;
+    }
+
+    function placeFood() {
+      let valid = false;
+      while (!valid) {
+        food = {
+          x: Math.floor(Math.random() * boardSize),
+          y: Math.floor(Math.random() * boardSize),
+          value: nextExpected,
+        };
+        valid = !snake.some(s => s.x === food.x && s.y === food.y);
+      }
+    }
+
+    function placeWrongNumbers() {
+      wrongNumbers = [];
+      for (let i = 0; i < 3; i++) {
+        let wrong;
+        let isValid = false;
+        while (!isValid) {
+          wrong = {
+            x: Math.floor(Math.random() * boardSize),
+            y: Math.floor(Math.random() * boardSize),
+            value: Math.floor(Math.random() * 100) + 1
+          };
+          isValid =
+            wrong.value !== nextExpected &&
+            !snake.some(s => s.x === wrong.x && s.y === wrong.y) &&
+            (wrong.x !== food.x || wrong.y !== food.y);
+        }
+        wrongNumbers.push(wrong);
+      }
+    }
+
+    function moveSnake() {
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      if (
+        head.x < 0 ||
+        head.y < 0 ||
+        head.x >= boardSize ||
+        head.y >= boardSize ||
+        snake.some(s => s.x === head.x && s.y === head.y)
+      ) {
+        gameOver();
         return;
       }
 
-      setSnake(newSnake);
-    }, 200);
-    return () => clearInterval(interval);
-  }, [snake, dir, food, expected, gameOver]);
+      snake.unshift(head);
 
-  useEffect(() => {
-    if (gameOver) {
+      if (head.x === food.x && head.y === food.y) {
+        score += food.value;
+        nextExpected *= q;
+        placeFood();
+        placeWrongNumbers();
+      } else if (wrongNumbers.some(n => n.x === head.x && n.y === head.y)) {
+        gameOver();
+        return;
+      } else {
+        snake.pop();
+      }
+      draw();
+    }
+
+    function gameOver() {
+      clearInterval(game);
+      gameOverDisplay.innerHTML = "💀 <b>Game Over!</b>";
+      restartButton.style.display = "inline-block";
       if (score > highScore) {
-        localStorage.setItem("highScore", score);
-        setHighScore(score);
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
       }
     }
-  }, [gameOver]);
 
-  const resetGame = () => {
-    const start = Math.floor(Math.random() * 4 + 2);
-    const r = Math.floor(Math.random() * 3 + 2);
-    setExpected(start);
-    setRatio(r);
-    setScore(0);
-    setSnake([{ x: 5, y: 5 }]);
-    setDir({ x: 0, y: 0 });
-    setGameOver(false);
-    spawnFoods(start * r, r);
-  };
+    document.addEventListener("keydown", e => {
+      switch (e.key) {
+        case "ArrowUp":
+          if (direction.y !== 1) direction = { x: 0, y: -1 };
+          break;
+        case "ArrowDown":
+          if (direction.y !== -1) direction = { x: 0, y: 1 };
+          break;
+        case "ArrowLeft":
+          if (direction.x !== 1) direction = { x: -1, y: 0 };
+          break;
+        case "ArrowRight":
+          if (direction.x !== -1) direction = { x: 1, y: 0 };
+          break;
+      }
+    });
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">🐍 Rắn săn số (Cấp số nhân)</h1>
-      <p className="mb-2">🎯 Số đầu tiên cần ăn: <strong>{expected / ratio}</strong> | Công bội: <strong>{ratio}</strong></p>
-      <p className="mb-2">⭐ Điểm: {score} | 🏆 Kỷ lục: {highScore}</p>
-      {gameOver && (
-        <>
-          <div className="text-red-500 font-bold mb-2">💀 Game Over!</div>
-          <button
-            onClick={resetGame}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Chơi lại
-          </button>
-        </>
-      )}
-      <div className="grid grid-cols-20 gap-1 mt-4">
-        {Array.from({ length: 20 * 20 }).map((_, i) => {
-          const x = i % 20;
-          const y = Math.floor(i / 20);
-          const isSnake = snake.some(seg => seg.x === x && seg.y === y);
-          const foodItem = food.find(f => f.x === x && f.y === y);
-          return (
-            <div key={i} className={`w-5 h-5 border text-xs flex items-center justify-center ${isSnake ? "bg-green-600" : foodItem ? "bg-gray-300" : ""}`}>
-              {foodItem ? foodItem.value : ""}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+    function startGame() {
+      placeFood();
+      placeWrongNumbers();
+      draw();
+      game = setInterval(moveSnake, 200);
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
