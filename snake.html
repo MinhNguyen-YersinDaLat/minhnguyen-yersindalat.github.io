@@ -1,208 +1,217 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rắn Toán Cấp Số Nhân</title>
+  <title>🐍 Rắn Săn Mồi - Cấp Số Nhân</title>
   <style>
-    * { box-sizing: border-box; }
     body {
-      font-family: 'Comic Sans MS', sans-serif;
-      background-color: #fff8f0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 1rem;
+      font-family: 'Segoe UI', sans-serif;
+      background: #fdf6e3;
+      text-align: center;
     }
-    h1 {
-      color: #e6739f;
-      margin-bottom: 10px;
-    }
-    #game {
+
+    .game-board {
       display: grid;
-      grid-template-columns: repeat(20, 24px);
-      grid-template-rows: repeat(20, 24px);
-      gap: 2px;
-      margin-top: 10px;
+      grid-template-columns: repeat(20, 20px);
+      grid-template-rows: repeat(20, 20px);
+      gap: 1px;
+      justify-content: center;
+      margin: 20px auto;
     }
+
     .cell {
-      width: 24px;
-      height: 24px;
-      border-radius: 5px;
-      background-color: #fff3;
+      width: 20px;
+      height: 20px;
+      background-color: #fff8dc;
+      border: 1px solid #f0e68c;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 12px;
     }
+
     .snake {
-      background-color: #63d471;
+      background-color: #66bb6a;
     }
+
     .food {
-      background-color: #ffc3a0;
-      border: 1px dashed #ff77aa;
-      font-weight: bold;
+      background-color: #ffe0b2;
     }
-    .info {
+
+    #info {
       margin-top: 10px;
-      font-size: 14px;
-      text-align: center;
-      color: #444;
+      font-size: 16px;
     }
+
     button {
       margin-top: 10px;
-      padding: 6px 16px;
-      font-size: 14px;
-      background-color: #ff92b2;
+      padding: 6px 12px;
+      font-size: 16px;
+      background-color: #ffca28;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #ff6f9c;
+
+    .game-over {
+      color: red;
+      font-size: 18px;
+      font-weight: bold;
     }
-    audio { display: none; }
   </style>
 </head>
 <body>
 
-<h1>🐍 Rắn Toán Học - Cấp số nhân 🍬</h1>
-<div class="info">
-  <div id="rule"></div>
-  <div>🎯 Điểm: <span id="score">0</span> | 🏆 Kỷ lục: <span id="highscore">0</span></div>
-</div>
-<div id="game"></div>
-<div class="info" id="gameOver" style="display: none; color: red;">💀 Game Over! Nhấn nút để chơi lại.</div>
-<button onclick="restart()">🔁 Chơi lại</button>
-<audio autoplay loop>
-  <source src="https://files.codingninjas.in/background-music-10859.mp3" type="audio/mpeg">
-</audio>
+  <h1>🐍 Rắn Săn Số - Cấp Số Nhân</h1>
 
-<script>
-  const game = document.getElementById("game");
-  const scoreEl = document.getElementById("score");
-  const highEl = document.getElementById("highscore");
-  const ruleEl = document.getElementById("rule");
-  const gameOverEl = document.getElementById("gameOver");
+  <div id="info">
+    🎯 Quy luật: số đầu tiên <span id="startVal"></span>, công bội <span id="ratioVal"></span><br />
+    💯 Điểm: <span id="score">0</span> | 🔥 Kỷ lục: <span id="highScore">0</span>
+  </div>
 
-  const gridSize = 20;
-  let snake = [{ x: 5, y: 5 }];
-  let dir = { x: 0, y: 0 };
-  let interval;
-  let expected = 2;
-  let ratio = 2;
-  let food = { x: 10, y: 10, value: 2 };
-  let score = 0;
-  let highscore = localStorage.getItem("highscore") || 0;
-  highEl.textContent = highscore;
+  <div class="game-board" id="board"></div>
 
-  function getRandomInt(n) {
-    return Math.floor(Math.random() * n);
-  }
+  <div id="status" class="game-over"></div>
 
-  function placeFood() {
-    const good = { x: getRandomInt(gridSize), y: getRandomInt(gridSize), value: expected };
-    const bads = [];
-    while (bads.length < 3) {
-      const val = expected + getRandomInt(5) + 1;
-      bads.push({
-        x: getRandomInt(gridSize),
-        y: getRandomInt(gridSize),
-        value: val
-      });
-    }
-    return [good, ...bads];
-  }
+  <button onclick="restartGame()">🔁 Bắt đầu lại</button>
 
-  let foods = placeFood();
+  <audio id="bgMusic" loop autoplay>
+    <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_50f6ac506e.mp3" type="audio/mpeg">
+  </audio>
 
-  function drawGrid() {
-    game.innerHTML = "";
-    for (let y = 0; y < gridSize; y++) {
-      for (let x = 0; x < gridSize; x++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        if (snake.some(s => s.x === x && s.y === y)) {
-          cell.classList.add("snake");
+  <script>
+    const board = document.getElementById("board");
+    const scoreEl = document.getElementById("score");
+    const highScoreEl = document.getElementById("highScore");
+    const startValEl = document.getElementById("startVal");
+    const ratioValEl = document.getElementById("ratioVal");
+    const statusEl = document.getElementById("status");
+
+    let snake = [{ x: 5, y: 5 }];
+    let dir = { x: 0, y: 0 };
+    let food = [];
+    let startValue = Math.floor(Math.random() * 4) + 2;
+    let ratio = Math.floor(Math.random() * 3) + 2;
+    let expected = startValue;
+    let score = 0;
+    let highScore = localStorage.getItem("snakeHigh") || 0;
+    let interval;
+
+    function drawBoard() {
+      board.innerHTML = "";
+      for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 20; x++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+
+          if (snake.some(s => s.x === x && s.y === y)) {
+            cell.classList.add("snake");
+          }
+
+          const foodHere = food.find(f => f.x === x && f.y === y);
+          if (foodHere) {
+            cell.classList.add("food");
+            cell.innerHTML = `🍬<span style="font-size:9px">${foodHere.value}</span>`;
+          }
+
+          board.appendChild(cell);
         }
-        const found = foods.find(f => f.x === x && f.y === y);
-        if (found) {
-          cell.classList.add("food");
-          cell.textContent = found.value;
-        }
-        game.appendChild(cell);
       }
     }
-  }
 
-  function gameLoop() {
-    const head = { ...snake[0] };
-    head.x += dir.x;
-    head.y += dir.y;
+    function move() {
+      const head = { ...snake[0] };
+      head.x += dir.x;
+      head.y += dir.y;
 
-    if (
-      head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize ||
-      snake.some(s => s.x === head.x && s.y === head.y)
-    ) {
-      clearInterval(interval);
-      gameOverEl.style.display = "block";
-      return;
-    }
-
-    snake.unshift(head);
-    const index = foods.findIndex(f => f.x === head.x && f.y === head.y);
-
-    if (index > -1) {
-      const item = foods[index];
-      if (item.value !== expected) {
+      // Game over check
+      if (
+        head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 ||
+        snake.some(seg => seg.x === head.x && seg.y === head.y)
+      ) {
+        statusEl.textContent = "💀 Thua rồi! Nhấn Bắt đầu lại!";
         clearInterval(interval);
-        gameOverEl.style.display = "block";
         return;
       }
-      score += expected;
-      expected *= ratio;
-      foods = placeFood();
-      scoreEl.textContent = score;
-      if (score > highscore) {
-        highscore = score;
-        localStorage.setItem("highscore", score);
-        highEl.textContent = highscore;
+
+      snake.unshift(head);
+
+      const eaten = food.find(f => f.x === head.x && f.y === head.y);
+
+      if (eaten) {
+        if (eaten.value !== expected) {
+          statusEl.textContent = "😵 Sai số! Game over!";
+          clearInterval(interval);
+          return;
+        }
+
+        score += expected;
+        expected *= ratio;
+        generateFood();
+      } else {
+        snake.pop();
       }
-    } else {
-      snake.pop();
+
+      scoreEl.textContent = score;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("snakeHigh", score);
+        highScoreEl.textContent = highScore;
+      }
+
+      drawBoard();
     }
 
-    drawGrid();
-    ruleEl.textContent = `🧠 Bắt đầu từ ${expected / ratio}, công bội ${ratio}`;
-  }
+    function generateFood() {
+      food = [];
 
-  function restart() {
-    snake = [{ x: 5, y: 5 }];
-    dir = { x: 0, y: 0 };
-    const start = getRandomInt(4) + 2;
-    const r = getRandomInt(3) + 2;
-    expected = start;
-    ratio = r;
-    foods = placeFood();
-    score = 0;
-    scoreEl.textContent = "0";
-    gameOverEl.style.display = "none";
-    clearInterval(interval);
-    interval = setInterval(gameLoop, 180);
-  }
+      // Food đúng
+      food.push({
+        x: Math.floor(Math.random() * 20),
+        y: Math.floor(Math.random() * 20),
+        value: expected
+      });
 
-  document.addEventListener("keydown", (e) => {
-    switch (e.key) {
-      case "ArrowUp": if (dir.y === 0) dir = { x: 0, y: -1 }; break;
-      case "ArrowDown": if (dir.y === 0) dir = { x: 0, y: 1 }; break;
-      case "ArrowLeft": if (dir.x === 0) dir = { x: -1, y: 0 }; break;
-      case "ArrowRight": if (dir.x === 0) dir = { x: 1, y: 0 }; break;
+      // Nhiễu
+      for (let i = 0; i < 3; i++) {
+        let val = expected + (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        food.push({
+          x: Math.floor(Math.random() * 20),
+          y: Math.floor(Math.random() * 20),
+          value: val
+        });
+      }
     }
-  });
 
-  restart(); // khởi động game lần đầu
-</script>
+    function restartGame() {
+      snake = [{ x: 5, y: 5 }];
+      dir = { x: 0, y: 0 };
+      startValue = Math.floor(Math.random() * 4) + 2;
+      ratio = Math.floor(Math.random() * 3) + 2;
+      expected = startValue;
+      score = 0;
+      scoreEl.textContent = score;
+      highScoreEl.textContent = highScore;
+      startValEl.textContent = startValue;
+      ratioValEl.textContent = ratio;
+      statusEl.textContent = "";
+      generateFood();
+      drawBoard();
+
+      clearInterval(interval);
+      interval = setInterval(move, 200);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowUp": if (dir.y !== 1) dir = { x: 0, y: -1 }; break;
+        case "ArrowDown": if (dir.y !== -1) dir = { x: 0, y: 1 }; break;
+        case "ArrowLeft": if (dir.x !== 1) dir = { x: -1, y: 0 }; break;
+        case "ArrowRight": if (dir.x !== -1) dir = { x: 1, y: 0 }; break;
+      }
+    });
+
+    restartGame();
+  </script>
 </body>
 </html>
