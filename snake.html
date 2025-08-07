@@ -3,214 +3,200 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🐍 Rắn săn số - Cấp số nhân</title>
+  <title>Rắn Săn Mồi Toán Học - Cấp Số Nhân</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #fffbe6;
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f9ff;
       text-align: center;
-      color: #444;
       margin: 0;
       padding: 0;
     }
 
     h1 {
-      margin-top: 20px;
-      color: #2d6a4f;
+      margin: 15px;
+      color: #2c3e50;
     }
 
     #gameCanvas {
-      background-color: #fff;
-      border: 2px solid #b08968;
-      margin-top: 10px;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
+      background-color: #d1f0ff;
+      border: 4px solid #3498db;
     }
 
     #info {
-      margin: 15px 0;
+      margin: 10px;
       font-size: 18px;
     }
 
-    #gameOverMessage {
-      color: red;
-      font-weight: bold;
-      font-size: 20px;
-    }
-
-    button {
-      padding: 8px 16px;
-      margin-top: 10px;
+    .btn {
+      padding: 10px 20px;
       font-size: 16px;
-      background-color: #52b788;
+      background-color: #3498db;
+      color: white;
       border: none;
       border-radius: 5px;
-      color: white;
       cursor: pointer;
+      margin: 10px;
     }
 
-    button:hover {
-      background-color: #40916c;
+    .btn:hover {
+      background-color: #2980b9;
+    }
+
+    audio {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>🐍 Rắn săn số - Cấp số nhân</h1>
-  <canvas id="gameCanvas" width="600" height="600"></canvas>
+  <h1>🐍 Rắn Săn Mồi Cấp Số Nhân 🧮</h1>
   <div id="info">
-    🌟 Số đầu tiên: <span id="firstNumber">1</span> |
-    🌀 Công bội: <span id="ratio">2</span> |
-    🎯 Điểm: <span id="score">0</span> |
-    🏆 Kỷ lục: <span id="highScore">0</span>
+    <p><strong>Quy luật:</strong> Cấp số nhân với số đầu là <span id="startTerm"></span>, công bội là <span id="ratio"></span></p>
+    <p>Điểm: <span id="score">0</span> | Kỷ lục: <span id="highScore">0</span></p>
+    <button class="btn" onclick="startGame()">🔄 Chơi lại</button>
   </div>
-  <div id="gameOverMessage" style="display: none;">
-    💀 Game Over! Nhấn 'Chơi lại'
-    <br />
-    <button onclick="location.reload()">Chơi lại</button>
-  </div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+
   <audio id="bgMusic" autoplay loop>
-    <source src="https://cdn.pixabay.com/download/audio/2023/03/28/audio_e9657304e4.mp3?filename=arcade-puzzler-143104.mp3" type="audio/mpeg" />
+    <source src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_456ba5626d.mp3?filename=arcade-funk-11276.mp3" type="audio/mpeg">
   </audio>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const gridSize = 20;
-    const tileSize = canvas.width / gridSize;
+    const box = 20;
+    const canvasSize = 400;
+    const totalBox = canvasSize / box;
 
-    let snake = [{ x: 10, y: 10 }];
-    let dx = 1, dy = 0;
-    let gameOver = false;
-
-    let firstNumber = 1;
-    let multiplier = 2;
-    let expectedNumber = firstNumber;
+    let snake = [{x: 5, y: 5}];
+    let direction = "RIGHT";
     let score = 0;
     let highScore = localStorage.getItem("highScore") || 0;
+    let start = Math.floor(Math.random() * 4) + 2; // 2–5
+    let ratio = Math.floor(Math.random() * 3) + 2; // 2–4
+    let expected = start;
+    let food = generateNumber();
+    let interval;
 
-    let grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
+    document.getElementById("startTerm").innerText = start;
+    document.getElementById("ratio").innerText = ratio;
+    document.getElementById("highScore").innerText = highScore;
 
-    function drawGrid() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#e5b37a";
-      for (let i = 0; i <= gridSize; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * tileSize, 0);
-        ctx.lineTo(i * tileSize, canvas.height);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, i * tileSize);
-        ctx.lineTo(canvas.width, i * tileSize);
-        ctx.stroke();
-      }
+    document.addEventListener("keydown", changeDirection);
+
+    function changeDirection(event) {
+      if (event.keyCode === 37 && direction !== "RIGHT") direction = "LEFT";
+      else if (event.keyCode === 38 && direction !== "DOWN") direction = "UP";
+      else if (event.keyCode === 39 && direction !== "LEFT") direction = "RIGHT";
+      else if (event.keyCode === 40 && direction !== "UP") direction = "DOWN";
     }
 
-    function drawSnake() {
-      ctx.fillStyle = "#588157";
-      for (let part of snake) {
-        ctx.fillRect(part.x * tileSize, part.y * tileSize, tileSize, tileSize);
+    function generateNumber() {
+      let numbers = [];
+      // Tạo 1 số đúng
+      numbers.push({x: randomCoord(), y: randomCoord(), value: expected});
+      // Tạo 3 số nhiễu
+      for (let i = 0; i < 3; i++) {
+        let val;
+        do {
+          val = Math.floor(Math.random() * 50) + 1;
+        } while (val === expected);
+        numbers.push({x: randomCoord(), y: randomCoord(), value: val});
       }
+      return numbers;
     }
 
-    function drawNumbers() {
-      ctx.fillStyle = "#6a040f";
-      ctx.font = "16px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          let val = grid[y][x];
-          if (val !== null && val > 0) {
-            ctx.fillText(val, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2);
-          }
-        }
-      }
+    function randomCoord() {
+      return Math.floor(Math.random() * totalBox);
     }
 
     function drawGame() {
-      drawGrid();
-      drawSnake();
-      drawNumbers();
-      updateInfo();
-    }
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-    function updateInfo() {
-      document.getElementById("firstNumber").textContent = firstNumber;
-      document.getElementById("ratio").textContent = multiplier;
-      document.getElementById("score").textContent = score;
-      document.getElementById("highScore").textContent = highScore;
-    }
-
-    function updateHighScore() {
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("highScore", highScore);
+      // Rắn
+      for (let part of snake) {
+        ctx.fillStyle = "#2ecc71";
+        ctx.fillRect(part.x * box, part.y * box, box, box);
+        ctx.strokeStyle = "#27ae60";
+        ctx.strokeRect(part.x * box, part.y * box, box, box);
       }
-    }
 
-    function placeRandomNumber(number) {
-      let x, y;
-      do {
-        x = Math.floor(Math.random() * gridSize);
-        y = Math.floor(Math.random() * gridSize);
-      } while (grid[y][x] !== null || snake.some(s => s.x === x && s.y === y));
-      grid[y][x] = number;
-    }
-
-    function placeRandomDistractors() {
-      for (let i = 0; i < 5; i++) {
-        let distractor;
-        do {
-          distractor = Math.floor(Math.random() * 10 + 1);
-        } while (distractor === expectedNumber);
-        placeRandomNumber(distractor);
+      // Số
+      ctx.fillStyle = "#34495e";
+      ctx.font = "16px Arial";
+      for (let f of food) {
+        ctx.fillText(f.value, f.x * box + 5, f.y * box + 15);
       }
-    }
 
-    function moveSnake() {
-      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+      // Di chuyển rắn
+      let head = {x: snake[0].x, y: snake[0].y};
 
-      if (
-        head.x < 0 || head.x >= gridSize ||
-        head.y < 0 || head.y >= gridSize ||
-        snake.some(segment => segment.x === head.x && segment.y === head.y)
-      ) {
-        gameOver = true;
-        document.getElementById("gameOverMessage").style.display = "block";
-        updateHighScore();
+      if (direction === "LEFT") head.x--;
+      else if (direction === "UP") head.y--;
+      else if (direction === "RIGHT") head.x++;
+      else if (direction === "DOWN") head.y++;
+
+      // Game over nếu va vào tường
+      if (head.x < 0 || head.y < 0 || head.x >= totalBox || head.y >= totalBox || collision(head, snake)) {
+        clearInterval(interval);
+        alert("💥 Bạn thua! Điểm: " + score);
         return;
       }
 
+      // Ăn đúng số
+      let ate = false;
+      for (let i = 0; i < food.length; i++) {
+        if (head.x === food[i].x && head.y === food[i].y) {
+          if (food[i].value === expected) {
+            score += expected;
+            expected *= ratio;
+            food = generateNumber();
+            ate = true;
+            break;
+          } else {
+            clearInterval(interval);
+            alert("💥 Ăn sai số rồi! Game over.");
+            return;
+          }
+        }
+      }
+
       snake.unshift(head);
+      if (!ate) snake.pop();
 
-      const cellValue = grid[head.y][head.x];
-      if (cellValue === expectedNumber) {
-        score++;
-        expectedNumber *= multiplier;
-        placeRandomNumber(expectedNumber);
-        placeRandomDistractors();
-      } else {
-        snake.pop();
+      document.getElementById("score").innerText = score;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+        document.getElementById("highScore").innerText = highScore;
       }
-
-      drawGame();
     }
 
-    function gameLoop() {
-      if (!gameOver) {
-        moveSnake();
+    function collision(head, arr) {
+      for (let part of arr) {
+        if (part.x === head.x && part.y === head.y) return true;
       }
-      setTimeout(gameLoop, 300);
+      return false;
     }
 
-    // Khởi tạo game
-    placeRandomNumber(expectedNumber);
-    placeRandomDistractors();
-    drawGame();
-    gameLoop();
+    function startGame() {
+      snake = [{x: 5, y: 5}];
+      direction = "RIGHT";
+      score = 0;
+      start = Math.floor(Math.random() * 4) + 2;
+      ratio = Math.floor(Math.random() * 3) + 2;
+      expected = start;
+      food = generateNumber();
+      document.getElementById("startTerm").innerText = start;
+      document.getElementById("ratio").innerText = ratio;
+      document.getElementById("score").innerText = score;
+      clearInterval(interval);
+      interval = setInterval(drawGame, 200);
+    }
+
+    // Khởi động game tự động
+    startGame();
   </script>
 </body>
 </html>
