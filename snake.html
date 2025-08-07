@@ -1,0 +1,86 @@
+import React, { useEffect, useState } from "react";
+
+export default function SnakeMathGame() {
+  const [snake, setSnake] = useState([{ x: 5, y: 5 }]);
+  const [food, setFood] = useState({ x: 10, y: 10, value: 2 });
+  const [dir, setDir] = useState({ x: 0, y: 0 });
+  const [gameOver, setGameOver] = useState(false);
+  const [expected, setExpected] = useState(2);
+  const [ratio, setRatio] = useState(2);
+
+  useEffect(() => {
+    const start = Math.floor(Math.random() * 4 + 2); // từ 2 đến 5
+    const r = Math.floor(Math.random() * 3 + 2); // từ 2 đến 4
+    setExpected(start);
+    setRatio(r);
+    setFood({ x: 10, y: 10, value: start });
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case "ArrowUp": setDir({ x: 0, y: -1 }); break;
+        case "ArrowDown": setDir({ x: 0, y: 1 }); break;
+        case "ArrowLeft": setDir({ x: -1, y: 0 }); break;
+        case "ArrowRight": setDir({ x: 1, y: 0 }); break;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (gameOver) return;
+    const interval = setInterval(() => {
+      const head = { ...snake[0] };
+      head.x += dir.x;
+      head.y += dir.y;
+      const newSnake = [head, ...snake];
+
+      if (head.x === food.x && head.y === food.y) {
+        if (food.value !== expected) {
+          setGameOver(true);
+          return;
+        }
+        const next = expected * ratio;
+        setExpected(next);
+        setFood({
+          x: Math.floor(Math.random() * 20),
+          y: Math.floor(Math.random() * 20),
+          value: next,
+        });
+      } else {
+        newSnake.pop();
+      }
+
+      if (head.x < 0 || head.y < 0 || head.x >= 20 || head.y >= 20 || snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        setGameOver(true);
+        return;
+      }
+
+      setSnake(newSnake);
+    }, 200);
+    return () => clearInterval(interval);
+  }, [snake, dir, food, expected, gameOver]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">🐍 Rắn săn số (Cấp số nhân)</h1>
+      {gameOver && <div className="text-red-500 font-bold">💀 Game Over! Nhấn F5 để chơi lại!</div>}
+      <div className="grid grid-cols-20 gap-1">
+        {Array.from({ length: 20 * 20 }).map((_, i) => {
+          const x = i % 20;
+          const y = Math.floor(i / 20);
+          const isSnake = snake.some(seg => seg.x === x && seg.y === y);
+          const isFood = food.x === x && food.y === y;
+          return (
+            <div key={i} className={`w-5 h-5 border ${isSnake ? "bg-green-600" : isFood ? "bg-yellow-300 text-xs flex items-center justify-center" : ""}`}>
+              {isFood ? food.value : ""}
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-4">🎯 Quy luật: cấp số nhân bắt đầu từ {expected / ratio}, công bội {ratio}</p>
+    </div>
+  );
+}
