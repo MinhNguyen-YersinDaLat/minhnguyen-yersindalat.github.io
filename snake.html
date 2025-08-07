@@ -1,228 +1,188 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🐍 Rắn săn số học (Cấp số nhân)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rắn Săn Mồi Cấp Số Nhân</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #fefbd8;
-      text-align: center;
+      font-family: sans-serif;
+      background-color: #fdf6e3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 10px;
     }
     h1 {
-      font-size: 28px;
-      margin: 15px;
+      margin-bottom: 5px;
     }
-    #info {
-      font-size: 16px;
-      margin: 10px;
-    }
-    #game-board {
+    #board {
       display: grid;
-      grid-template-columns: repeat(20, 25px);
-      grid-template-rows: repeat(20, 25px);
+      grid-template-columns: repeat(20, 20px);
+      grid-template-rows: repeat(20, 20px);
       gap: 1px;
-      justify-content: center;
-      margin: 20px auto;
+      margin-top: 10px;
     }
     .cell {
-      width: 25px;
-      height: 25px;
-      background-color: #fffbe6;
+      width: 20px;
+      height: 20px;
+      border: 1px solid #ddd;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 12px;
+      background-color: #fff;
     }
     .snake {
-      background-color: #fff;
-      font-size: 18px;
+      background-color: #4caf50;
     }
-    .correct, .wrong {
-      font-size: 18px;
+    .food {
+      background-color: #fce4ec;
+      font-weight: bold;
     }
-    #score {
-      font-size: 18px;
-      margin: 10px;
+    .info {
+      margin-top: 10px;
     }
     #game-over {
       color: red;
       font-weight: bold;
       margin-top: 10px;
     }
-    #restart-btn {
+    button {
       margin-top: 10px;
-      padding: 8px 16px;
-      font-size: 16px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      cursor: pointer;
+      padding: 6px 12px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h1>🐍 Rắn săn số học (Cấp số nhân)</h1>
-  <div id="info"></div>
-  <div id="score">Điểm: 0 | Kỷ lục: 0</div>
-  <div id="game-board"></div>
+  <h1>🐍 Rắn Săn Mồi Số Học</h1>
+  <div class="info">
+    📍 Số đầu tiên: <span id="start"></span> | Công bội: <span id="ratio"></span><br/>
+    🎯 Điểm: <span id="score">0</span> | 🏆 Kỷ lục: <span id="highscore">0</span>
+  </div>
+  <div id="board"></div>
   <div id="game-over"></div>
-  <button id="restart-btn" style="display:none;" onclick="location.reload()">🔁 Chơi lại</button>
+  <button onclick="location.reload()">🔁 Chơi lại</button>
 
   <script>
-    const boardSize = 20;
-    const board = document.getElementById("game-board");
+    const board = document.getElementById("board");
     const scoreDisplay = document.getElementById("score");
+    const highscoreDisplay = document.getElementById("highscore");
     const gameOverDisplay = document.getElementById("game-over");
-    const infoDisplay = document.getElementById("info");
-    const restartBtn = document.getElementById("restart-btn");
+    const startDisplay = document.getElementById("start");
+    const ratioDisplay = document.getElementById("ratio");
 
-    const fruitIcons = ["🍒", "🍓", "🍇", "🍉", "🌻", "🌸", "🌼", "🌞", "🌷"];
-    const snakeEmoji = "🍬";
-
-    let snake = [{ x: 10, y: 10 }];
-    let direction = { x: 0, y: 0 };
-    let a = Math.floor(Math.random() * 4) + 1;
-    let q = Math.floor(Math.random() * 3) + 2;
-    let nextExpected = a;
-    let food = {};
-    let wrongNumbers = [];
+    const gridSize = 20;
+    let snake = [{ x: 5, y: 5 }];
+    let dir = { x: 0, y: 0 };
+    let interval;
     let score = 0;
-    let highScore = localStorage.getItem("highScore") || 0;
+    let highscore = localStorage.getItem("highscore") || 0;
+    highscoreDisplay.textContent = highscore;
 
-    infoDisplay.innerText = `⚙️ Số đầu: ${a} | Công bội: ${q}`;
+    let ratio = Math.floor(Math.random() * 3) + 2; // 2 đến 4
+    let expected = Math.floor(Math.random() * 4) + 2; // 2 đến 5
+    startDisplay.textContent = expected;
+    ratioDisplay.textContent = ratio;
 
-    function initBoard() {
-      board.innerHTML = "";
-      for (let i = 0; i < boardSize * boardSize; i++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        board.appendChild(cell);
+    let foodItems = [];
+
+    function placeFoods() {
+      foodItems = [];
+      const correctFood = {
+        x: Math.floor(Math.random() * gridSize),
+        y: Math.floor(Math.random() * gridSize),
+        value: expected
+      };
+      foodItems.push(correctFood);
+
+      // Thêm số nhiễu
+      while (foodItems.length < 3) {
+        let fakeVal = Math.floor(Math.random() * 50 + 2);
+        if (fakeVal !== expected) {
+          foodItems.push({
+            x: Math.floor(Math.random() * gridSize),
+            y: Math.floor(Math.random() * gridSize),
+            value: fakeVal
+          });
+        }
       }
     }
 
     function draw() {
-      initBoard();
-      const cells = document.querySelectorAll(".cell");
-
-      snake.forEach(part => {
-        const index = part.y * boardSize + part.x;
-        if (cells[index]) {
-          cells[index].classList.add("snake");
-          cells[index].innerText = snakeEmoji;
+      board.innerHTML = "";
+      for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          const isSnake = snake.some(seg => seg.x === x && seg.y === y);
+          const food = foodItems.find(f => f.x === x && f.y === y);
+          if (isSnake) {
+            cell.classList.add("snake");
+          } else if (food) {
+            cell.classList.add("food");
+            cell.textContent = food.value;
+          }
+          board.appendChild(cell);
         }
-      });
-
-      const foodIndex = food.y * boardSize + food.x;
-      if (cells[foodIndex]) {
-        cells[foodIndex].classList.add("correct");
-        cells[foodIndex].innerText = food.value;
-      }
-
-      wrongNumbers.forEach(num => {
-        const idx = num.y * boardSize + num.x;
-        if (cells[idx]) {
-          cells[idx].classList.add("wrong");
-          cells[idx].innerText = fruitIcons[Math.floor(Math.random() * fruitIcons.length)];
-        }
-      });
-
-      scoreDisplay.innerText = `Điểm: ${score} | Kỷ lục: ${highScore}`;
-    }
-
-    function placeFood() {
-      let valid = false;
-      while (!valid) {
-        food = {
-          x: Math.floor(Math.random() * boardSize),
-          y: Math.floor(Math.random() * boardSize),
-          value: nextExpected,
-        };
-        valid = !snake.some(s => s.x === food.x && s.y === food.y);
       }
     }
 
-    function placeWrongNumbers() {
-      wrongNumbers = [];
-      for (let i = 0; i < 3; i++) {
-        let wrong;
-        let isValid = false;
-        while (!isValid) {
-          wrong = {
-            x: Math.floor(Math.random() * boardSize),
-            y: Math.floor(Math.random() * boardSize),
-            value: Math.floor(Math.random() * 100) + 1
-          };
-          isValid =
-            wrong.value !== nextExpected &&
-            !snake.some(s => s.x === wrong.x && s.y === wrong.y) &&
-            (wrong.x !== food.x || wrong.y !== food.y);
-        }
-        wrongNumbers.push(wrong);
-      }
-    }
-
-    function moveSnake() {
-      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+    function move() {
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
 
       if (
         head.x < 0 || head.y < 0 ||
-        head.x >= boardSize || head.y >= boardSize ||
-        snake.some(s => s.x === head.x && s.y === head.y)
+        head.x >= gridSize || head.y >= gridSize ||
+        snake.some(seg => seg.x === head.x && seg.y === head.y)
       ) {
-        gameOver();
+        clearInterval(interval);
+        gameOverDisplay.textContent = "💀 Game Over! Nhấn nút để chơi lại.";
         return;
       }
 
       snake.unshift(head);
 
-      if (head.x === food.x && head.y === food.y) {
-        score += 10;
-        nextExpected *= q;
-        placeFood();
-        placeWrongNumbers();
-      } else if (wrongNumbers.some(n => n.x === head.x && n.y === head.y)) {
-        gameOver();
-        return;
+      const eaten = foodItems.find(f => f.x === head.x && f.y === head.y);
+      if (eaten) {
+        if (eaten.value !== expected) {
+          clearInterval(interval);
+          gameOverDisplay.textContent = `💥 Ăn sai số (${eaten.value})! Game Over.`;
+          return;
+        }
+        score += expected;
+        expected *= ratio;
+        scoreDisplay.textContent = score;
+        if (score > highscore) {
+          localStorage.setItem("highscore", score);
+          highscoreDisplay.textContent = score;
+        }
+        placeFoods();
       } else {
         snake.pop();
       }
+
       draw();
     }
 
-    function gameOver() {
-      clearInterval(game);
-      gameOverDisplay.innerHTML = "💀 <b>Game Over!</b>";
-      restartBtn.style.display = "inline-block";
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("highScore", highScore);
-      }
+    function startGame() {
+      placeFoods();
+      draw();
+      interval = setInterval(move, 200);
     }
 
-    document.addEventListener("keydown", e => {
+    document.addEventListener("keydown", (e) => {
       switch (e.key) {
-        case "ArrowUp":
-          if (direction.y !== 1) direction = { x: 0, y: -1 };
-          break;
-        case "ArrowDown":
-          if (direction.y !== -1) direction = { x: 0, y: 1 };
-          break;
-        case "ArrowLeft":
-          if (direction.x !== 1) direction = { x: -1, y: 0 };
-          break;
-        case "ArrowRight":
-          if (direction.x !== -1) direction = { x: 1, y: 0 };
-          break;
+        case "ArrowUp": if (dir.y === 0) dir = { x: 0, y: -1 }; break;
+        case "ArrowDown": if (dir.y === 0) dir = { x: 0, y: 1 }; break;
+        case "ArrowLeft": if (dir.x === 0) dir = { x: -1, y: 0 }; break;
+        case "ArrowRight": if (dir.x === 0) dir = { x: 1, y: 0 }; break;
       }
     });
 
-    placeFood();
-    placeWrongNumbers();
-    draw();
-    const game = setInterval(moveSnake, 200);
+    startGame();
   </script>
 </body>
 </html>
