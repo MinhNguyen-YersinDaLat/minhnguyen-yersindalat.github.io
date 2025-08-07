@@ -5,15 +5,9 @@
   <title>Rắn Săn Mồi Cấp Số Nhân 🐍</title>
   <style>
     body {
-      background-color: #ffe6eb;
+      background-color: #fff0f5;
       font-family: 'Comic Sans MS', cursive;
       text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      margin-top: 20px;
-      font-size: 32px;
     }
     .container {
       display: flex;
@@ -26,30 +20,16 @@
       animation: jump 1s infinite alternate;
     }
     @keyframes jump {
-      to { transform: translateY(-15px); }
+      to { transform: translateY(-10px); }
     }
     canvas {
-      background: #fffaf0;
-      border: 5px solid #ff91a4;
-      display: block;
+      background: #fff;
+      border: 4px solid #ff91a4;
+      margin: 10px;
     }
     #info {
-      margin-top: 15px;
       font-size: 18px;
-      line-height: 1.5;
-    }
-    button {
-      margin: 10px;
-      padding: 8px 16px;
-      font-size: 16px;
-      background-color: #ff91a4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #ff6f91;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -62,12 +42,11 @@
   </div>
 
   <div id="info">
+    📌 Số đầu: <span id="startNumber"></span> | ✖ Công bội: <span id="ratio"></span><br>
     🍓 Điểm: <span id="score">0</span> | 🏆 Kỷ lục: <span id="highscore">0</span><br>
-    📌 Số đầu tiên: <span id="startNumber"></span> | ✖ Công bội: <span id="ratio"></span><br>
-    📜 Các số đã ăn: <span id="eatenList">[]</span>
+    ✅ Đã ăn: <span id="eatenList">[]</span>
   </div>
 
-  <!-- Nhạc và âm thanh -->
   <audio id="bgMusic" src="background.mp3" loop></audio>
   <audio id="correctSound" src="correct.mp3"></audio>
   <audio id="wrongSound" src="wrong.mp3"></audio>
@@ -89,10 +68,13 @@
 
     document.getElementById("startNumber").textContent = start;
     document.getElementById("ratio").textContent = ratio;
+    document.getElementById("highscore").textContent = highscore;
 
     const bgMusic = document.getElementById("bgMusic");
     const correctSound = document.getElementById("correctSound");
     const wrongSound = document.getElementById("wrongSound");
+
+    let foods = [];
 
     document.addEventListener('keydown', e => {
       switch(e.key) {
@@ -101,83 +83,117 @@
         case 'ArrowLeft': if (dir !== 'RIGHT') dir = 'LEFT'; break;
         case 'ArrowRight': if (dir !== 'LEFT') dir = 'RIGHT'; break;
       }
-      bgMusic.play().catch(()=>{}); // bật nhạc khi tương tác lần đầu
+      bgMusic.play().catch(()=>{});
     });
+
+    function getRandomEmptyPosition() {
+      let pos;
+      do {
+        pos = {
+          x: Math.floor(Math.random() * (canvas.width / box)),
+          y: Math.floor(Math.random() * (canvas.height / box))
+        };
+      } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+      return pos;
+    }
+
+    function generateFoods() {
+      foods = [];
+
+      // số đúng
+      foods.push({
+        value: target,
+        pos: getRandomEmptyPosition(),
+        correct: true
+      });
+
+      // số gây nhiễu
+      while (foods.length < 4) {
+        let fakeValue;
+        do {
+          fakeValue = target + Math.floor((Math.random() - 0.5) * target);
+        } while (
+          fakeValue <= 0 ||
+          fakeValue === target ||
+          foods.some(f => f.value === fakeValue)
+        );
+
+        foods.push({
+          value: fakeValue,
+          pos: getRandomEmptyPosition(),
+          correct: false
+        });
+      }
+    }
+
+    generateFoods();
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // vẽ snake
-      snake.forEach((seg, idx) => {
-        ctx.fillStyle = idx === 0 ? 'green' : 'lightgreen';
-        ctx.fillRect(seg.x * box, seg.y * box, box-1, box-1);
+      // Vẽ rắn
+      snake.forEach((s, i) => {
+        ctx.fillStyle = i === 0 ? 'green' : 'lightgreen';
+        ctx.fillRect(s.x * box, s.y * box, box - 1, box - 1);
       });
 
-      // vẽ food và nhiễu
-      [target, ...generateNoises()].forEach(num => {
-        const pos = getRandomEmptyPosition();
-        ctx.fillStyle = '#000';
-        ctx.font = '18px Arial';
-        ctx.fillText(num, pos.x * box + 5, pos.y * box + 18);
-        num.pos = pos;
+      // Vẽ các số (food + nhiễu)
+      foods.forEach(f => {
+        ctx.fillStyle = f.correct ? "#000" : "#666";
+        ctx.font = "18px Arial";
+        ctx.fillText(f.value, f.pos.x * box + 5, f.pos.y * box + 18);
       });
 
+      // Di chuyển rắn
       let head = { x: snake[0].x, y: snake[0].y };
       if (dir === 'LEFT') head.x--;
       if (dir === 'RIGHT') head.x++;
       if (dir === 'UP') head.y--;
       if (dir === 'DOWN') head.y++;
 
-      if (head.x < 0 || head.x >= canvas.width/box || head.y < 0 || head.y >= canvas.height/box ||
-          snake.some(s => s.x === head.x && s.y === head.y)) {
+      // Kiểm tra thua
+      if (
+        head.x < 0 || head.x >= canvas.width / box ||
+        head.y < 0 || head.y >= canvas.height / box ||
+        snake.some(s => s.x === head.x && s.y === head.y)
+      ) {
         wrongSound.play();
-        alert('Game Over! Điểm: ' + score);
+        alert("Game Over! Điểm: " + score);
         location.reload();
         return;
       }
 
       snake.unshift(head);
 
-      if (head.x === target.pos.x && head.y === target.pos.y) {
-        eaten.push(target);
-        score += target;
-        correctSound.play();
-        target *= ratio;
-        document.getElementById('score').textContent = score;
-        document.getElementById('eatenList').textContent = JSON.stringify(eaten);
-        if (score > highscore) {
-          highscore = score;
-          localStorage.setItem('highscore', score);
-          document.getElementById('highscore').textContent = highscore;
+      // Kiểm tra va chạm với số
+      const eatenFood = foods.find(f => f.pos.x === head.x && f.pos.y === head.y);
+      if (eatenFood) {
+        if (eatenFood.correct) {
+          eaten.push(eatenFood.value);
+          score += eatenFood.value;
+          correctSound.play();
+          target *= ratio;
+          generateFoods();
+        } else {
+          wrongSound.play();
+          alert("Sai rồi! Bạn đã ăn nhầm số.");
+          location.reload();
+          return;
         }
       } else {
         snake.pop();
       }
-    }
 
-    function getRandomEmptyPosition() {
-      let pos;
-      let collisions;
-      do {
-        pos = { x: Math.floor(Math.random() * (canvas.width/box)), y: Math.floor(Math.random() * (canvas.height/box)) };
-        collisions = snake.some(s => s.x === pos.x && s.y === pos.y);
-      } while(collisions);
-      return pos;
-    }
-
-    function generateNoises() {
-      const noises = [];
-      for (let i=0; i<3; i++) {
-        let val;
-        do {
-          val = Math.floor(target * (0.5 + Math.random())) + 1;
-        } while(val === target || noises.includes(val));
-        noises.push(val);
+      // Update UI
+      document.getElementById("score").textContent = score;
+      document.getElementById("eatenList").textContent = JSON.stringify(eaten);
+      if (score > highscore) {
+        highscore = score;
+        localStorage.setItem('highscore', score);
+        document.getElementById('highscore').textContent = highscore;
       }
-      return noises;
     }
 
-    bgMusic.volume = 0.3;
     setInterval(draw, 200);
   </script>
 </body>
