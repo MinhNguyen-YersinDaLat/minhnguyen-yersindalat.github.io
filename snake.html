@@ -3,46 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rắn Săn Mồi Toán Học - Cấp Số Nhân</title>
+  <title>🐍 Rắn Săn Mồi Cấp Số Nhân</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f0f9ff;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: #fff9f0;
       text-align: center;
       margin: 0;
       padding: 0;
     }
-
     h1 {
       margin: 15px;
-      color: #2c3e50;
+      color: #2d3436;
     }
-
     #gameCanvas {
-      background-color: #d1f0ff;
-      border: 4px solid #3498db;
+      background-color: #e3f2fd;
+      border: 5px solid #00bcd4;
     }
-
-    #info {
-      margin: 10px;
+    #info, #history {
       font-size: 18px;
+      margin: 10px auto;
+      max-width: 600px;
     }
-
     .btn {
       padding: 10px 20px;
       font-size: 16px;
-      background-color: #3498db;
+      background-color: #00bcd4;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 10px;
       cursor: pointer;
-      margin: 10px;
     }
-
     .btn:hover {
-      background-color: #2980b9;
+      background-color: #0288d1;
     }
-
+    #history {
+      color: #6a1b9a;
+      font-weight: bold;
+      font-size: 16px;
+    }
     audio {
       display: none;
     }
@@ -51,20 +50,29 @@
 <body>
   <h1>🐍 Rắn Săn Mồi Cấp Số Nhân 🧮</h1>
   <div id="info">
-    <p><strong>Quy luật:</strong> Cấp số nhân với số đầu là <span id="startTerm"></span>, công bội là <span id="ratio"></span></p>
+    <p>Quy luật: Cấp số nhân với số đầu là <span id="startTerm"></span>, công bội là <span id="ratio"></span></p>
     <p>Điểm: <span id="score">0</span> | Kỷ lục: <span id="highScore">0</span></p>
     <button class="btn" onclick="startGame()">🔄 Chơi lại</button>
   </div>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div id="history">Dãy số đã ăn: <span id="eatenSequence"></span></div>
 
+  <!-- Nhạc nền -->
   <audio id="bgMusic" autoplay loop>
     <source src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_456ba5626d.mp3?filename=arcade-funk-11276.mp3" type="audio/mpeg">
+  </audio>
+  <!-- Âm thanh ăn đúng -->
+  <audio id="eatSound">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c2d91cf14e.mp3?filename=correct-2-46134.mp3" type="audio/mpeg">
+  </audio>
+  <!-- Âm thanh thua -->
+  <audio id="failSound">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8dfb5b82ce.mp3?filename=wrong-2-46099.mp3" type="audio/mpeg">
   </audio>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-
     const box = 20;
     const canvasSize = 400;
     const totalBox = canvasSize / box;
@@ -73,11 +81,15 @@
     let direction = "RIGHT";
     let score = 0;
     let highScore = localStorage.getItem("highScore") || 0;
-    let start = Math.floor(Math.random() * 4) + 2; // 2–5
-    let ratio = Math.floor(Math.random() * 3) + 2; // 2–4
+    let start = Math.floor(Math.random() * 4) + 2;
+    let ratio = Math.floor(Math.random() * 3) + 2;
     let expected = start;
-    let food = generateNumber();
+    let food = [];
     let interval;
+    let eaten = [];
+
+    const eatSound = document.getElementById("eatSound");
+    const failSound = document.getElementById("failSound");
 
     document.getElementById("startTerm").innerText = start;
     document.getElementById("ratio").innerText = ratio;
@@ -86,77 +98,73 @@
     document.addEventListener("keydown", changeDirection);
 
     function changeDirection(event) {
-      if (event.keyCode === 37 && direction !== "RIGHT") direction = "LEFT";
-      else if (event.keyCode === 38 && direction !== "DOWN") direction = "UP";
-      else if (event.keyCode === 39 && direction !== "LEFT") direction = "RIGHT";
-      else if (event.keyCode === 40 && direction !== "UP") direction = "DOWN";
-    }
-
-    function generateNumber() {
-      let numbers = [];
-      // Tạo 1 số đúng
-      numbers.push({x: randomCoord(), y: randomCoord(), value: expected});
-      // Tạo 3 số nhiễu
-      for (let i = 0; i < 3; i++) {
-        let val;
-        do {
-          val = Math.floor(Math.random() * 50) + 1;
-        } while (val === expected);
-        numbers.push({x: randomCoord(), y: randomCoord(), value: val});
-      }
-      return numbers;
+      const key = event.keyCode;
+      if (key === 37 && direction !== "RIGHT") direction = "LEFT";
+      else if (key === 38 && direction !== "DOWN") direction = "UP";
+      else if (key === 39 && direction !== "LEFT") direction = "RIGHT";
+      else if (key === 40 && direction !== "UP") direction = "DOWN";
     }
 
     function randomCoord() {
       return Math.floor(Math.random() * totalBox);
     }
 
+    function generateNumber() {
+      let numbers = [];
+      numbers.push({x: randomCoord(), y: randomCoord(), value: expected});
+      while (numbers.length < 4) {
+        let val = Math.floor(Math.random() * 50) + 1;
+        if (val !== expected) {
+          numbers.push({x: randomCoord(), y: randomCoord(), value: val});
+        }
+      }
+      return numbers;
+    }
+
     function drawGame() {
       ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-      // Rắn
       for (let part of snake) {
-        ctx.fillStyle = "#2ecc71";
+        ctx.fillStyle = "#81c784";
         ctx.fillRect(part.x * box, part.y * box, box, box);
-        ctx.strokeStyle = "#27ae60";
+        ctx.strokeStyle = "#388e3c";
         ctx.strokeRect(part.x * box, part.y * box, box, box);
       }
 
-      // Số
-      ctx.fillStyle = "#34495e";
+      ctx.fillStyle = "#6d4c41";
       ctx.font = "16px Arial";
       for (let f of food) {
         ctx.fillText(f.value, f.x * box + 5, f.y * box + 15);
       }
 
-      // Di chuyển rắn
       let head = {x: snake[0].x, y: snake[0].y};
-
       if (direction === "LEFT") head.x--;
       else if (direction === "UP") head.y--;
       else if (direction === "RIGHT") head.x++;
       else if (direction === "DOWN") head.y++;
 
-      // Game over nếu va vào tường
       if (head.x < 0 || head.y < 0 || head.x >= totalBox || head.y >= totalBox || collision(head, snake)) {
         clearInterval(interval);
+        failSound.play();
         alert("💥 Bạn thua! Điểm: " + score);
         return;
       }
 
-      // Ăn đúng số
       let ate = false;
       for (let i = 0; i < food.length; i++) {
         if (head.x === food[i].x && head.y === food[i].y) {
           if (food[i].value === expected) {
+            eatSound.play();
             score += expected;
+            eaten.push(expected);
             expected *= ratio;
             food = generateNumber();
             ate = true;
             break;
           } else {
             clearInterval(interval);
-            alert("💥 Ăn sai số rồi! Game over.");
+            failSound.play();
+            alert("💥 Sai số! Game Over.");
             return;
           }
         }
@@ -166,6 +174,8 @@
       if (!ate) snake.pop();
 
       document.getElementById("score").innerText = score;
+      document.getElementById("eatenSequence").innerText = eaten.join(" → ");
+
       if (score > highScore) {
         highScore = score;
         localStorage.setItem("highScore", highScore);
@@ -188,14 +198,15 @@
       ratio = Math.floor(Math.random() * 3) + 2;
       expected = start;
       food = generateNumber();
+      eaten = [];
       document.getElementById("startTerm").innerText = start;
       document.getElementById("ratio").innerText = ratio;
-      document.getElementById("score").innerText = score;
+      document.getElementById("score").innerText = 0;
+      document.getElementById("eatenSequence").innerText = '';
       clearInterval(interval);
       interval = setInterval(drawGame, 200);
     }
 
-    // Khởi động game tự động
     startGame();
   </script>
 </body>
