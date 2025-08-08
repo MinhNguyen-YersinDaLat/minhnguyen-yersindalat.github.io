@@ -108,24 +108,23 @@
     animation-delay: 0.3s;
   }
   .animal-icon {
-    font-size: 4.5rem; /* giảm size icon */
+    font-size: 5rem;
     line-height: 1;
     user-select: none;
-    z-index: 1;
+    pointer-events: none;
   }
   .animal-name {
-    margin-top: 10px; /* tăng khoảng cách */
+    margin-top: 5px;
     font-weight: 900;
-    font-size: 1.1rem;
-    color: #222;
+    font-size: 1.05rem;
+    color: #444;
     user-select: text;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 90%;
-    z-index: 5;
-    position: relative;
+    pointer-events: none;
   }
   /* Highlight khi chọn */
   .highlighted {
@@ -160,6 +159,7 @@
     animation: spinAndGlow 3s linear infinite;
     filter: drop-shadow(0 0 15px #ff4081);
     user-select: none;
+    pointer-events: none;
   }
   .winner-name {
     position: fixed;
@@ -174,6 +174,7 @@
     letter-spacing: 4px;
     text-transform: uppercase;
     z-index: 9999;
+    pointer-events: none;
   }
   /* Mờ các icon còn lại */
   .dimmed {
@@ -279,10 +280,10 @@
       height: 75px;
     }
     .animal-icon {
-      font-size: 3.8rem;
+      font-size: 4rem;
     }
     .animal-name {
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
     .winner {
       width: 280px !important;
@@ -313,10 +314,10 @@
       height: 65px;
     }
     .animal-icon {
-      font-size: 3.2rem;
+      font-size: 3.5rem;
     }
     .animal-name {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
     .winner {
       width: 220px !important;
@@ -380,17 +381,22 @@
   const audioJump = new Audio('https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_roll.ogg');
   const audioWin = new Audio('https://actions.google.com/sounds/v1/celebration/party_horn.ogg');
 
-  // Lấy từ cuối tên viết hoa
-  function getLastName(name) {
-    const parts = name.trim().split(/\s+/);
-    return parts[parts.length - 1].toUpperCase();
+  // Định dạng tên in hoa, đầy đủ
+  function formatName(name) {
+    return name.trim().toUpperCase();
+  }
+
+  // Lấy tên cuối trong dãy họ tên (tên gọi tắt)
+  function getLastName(fullName) {
+    const parts = fullName.trim().split(/\s+/);
+    return parts.length > 0 ? parts[parts.length - 1].toUpperCase() : '';
   }
 
   // Tạo thẻ thú + tên
   function createAnimalCard(player, index) {
     const card = document.createElement('div');
     card.className = 'animal-card';
-    card.style.animationDelay = (Math.random()*1.5) + 's';
+    card.style.animationDelay = (Math.random() * 1.5) + 's';
 
     const iconSpan = document.createElement('div');
     iconSpan.className = 'animal-icon';
@@ -418,7 +424,7 @@
   // Mờ tất cả ngoại trừ winner
   function dimAllExcept(winnerIdx) {
     [...gameArea.children].forEach((card, idx) => {
-      if(idx !== winnerIdx) card.classList.add('dimmed');
+      if (idx !== winnerIdx) card.classList.add('dimmed');
       else card.classList.remove('dimmed');
     });
   }
@@ -430,14 +436,14 @@
 
   // Bấm Start
   btnStart.onclick = () => {
-    if(isRunning) return;
+    if (isRunning) return;
     const rawNames = inputNames.value.trim();
-    if(!rawNames) {
+    if (!rawNames) {
       alert('Vui lòng nhập tên học sinh!');
       return;
     }
     players = rawNames.split('\n').map(s => s.trim()).filter(s => s).slice(0, maxPlayers);
-    if(players.length === 0) {
+    if (players.length === 0) {
       alert('Danh sách trống!');
       return;
     }
@@ -452,12 +458,12 @@
 
   // Bấm Tiếp tục
   btnNext.onclick = () => {
-    if(isRunning) return;
-    if(winnerIndex < 0) return;
+    if (isRunning) return;
+    if (winnerIndex < 0) return;
     // loại bỏ người thắng
-    players.splice(winnerIndex,1);
+    players.splice(winnerIndex, 1);
     winnerIndex = -1;
-    if(players.length === 0) {
+    if (players.length === 0) {
       alert('Đã hết học sinh để chọn!');
       resetGame();
       return;
@@ -483,19 +489,117 @@
   // Random chọn học sinh
   async function startRandomSelection() {
     isRunning = true;
-    let cycles = 40 + Math.floor(Math.random()*20); // số lần nhảy icon
+    let cycles = 40 + Math.floor(Math.random() * 20); // số lần nhảy icon
     let currentIndex = 0;
-    if(soundOn) audioJump.play();
+    if (soundOn) audioJump.play();
 
-    while(cycles > 0) {
+    while (cycles > 0) {
       highlightCard(currentIndex);
-      await sleep(80 + Math.random()*40);
+      await sleep(80 + Math.random() * 40);
       currentIndex = (currentIndex + 1) % players.length;
       cycles--;
     }
-    if(soundOn) {
+    if (soundOn) {
       audioJump.pause();
       audioJump.currentTime = 0;
     }
 
-   
+    // Winner là người trước currentIndex vì currentIndex đã tăng 1 vòng cuối
+    winnerIndex = (currentIndex === 0) ? players.length - 1 : currentIndex - 1;
+    await showWinner(winnerIndex);
+    isRunning = false;
+  }
+
+  // Nhấn card đang highlight
+  function highlightCard(index) {
+    [...gameArea.children].forEach((card, idx) => {
+      card.classList.remove('highlighted');
+      if (idx === index) card.classList.add('highlighted');
+    });
+  }
+
+  // Hiển thị người thắng
+  async function showWinner(idx) {
+    dimAllExcept(idx);
+    const winnerCard = gameArea.children[idx];
+    winnerCard.classList.remove('highlighted');
+    winnerCard.classList.add('winner');
+
+    // Nhạc thắng
+    if (soundOn) audioWin.play();
+
+    // Hiệu ứng phóng to xoay chớp chớp
+    await sleep(100);
+
+    winnerNameDisplay.textContent = getLastName(players[idx]);
+    winnerNameDisplay.style.display = 'block';
+
+    // Hiệu ứng xoay to chớp
+    let spins = 6;
+    for (let i = 0; i < spins; i++) {
+      winnerCard.style.transform = `scale(4) rotate(${360 * i}deg)`;
+      await sleep(500);
+    }
+    winnerCard.style.transform = 'scale(4) rotate(0deg)';
+
+    // Hiệu ứng mờ các con khác
+    dimAllExcept(idx);
+
+    // Nhỏ lại winner một chút (theo yêu cầu)
+    winnerCard.style.transform = 'scale(3) rotate(0deg)';
+
+    // Cập nhật lịch sử
+    addHistory(getLastName(players[idx]));
+  }
+
+  // Thêm lịch sử chọn
+  function addHistory(winner) {
+    history.unshift(`${new Date().toLocaleString()}: ${winner}`);
+    if (history.length > 20) history.pop();
+    localStorage.setItem('selectionHistory', JSON.stringify(history));
+    updateHistory();
+  }
+
+  // Cập nhật hiển thị lịch sử
+  function updateHistory() {
+    if (history.length === 0) {
+      historyArea.textContent = 'Lịch sử kết quả: (chưa có)';
+      return;
+    }
+    historyArea.innerHTML = 'Lịch sử kết quả:<br/>' + history.join('<br/>');
+  }
+
+  // Hàm delay tiện lợi
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Bật tắt âm thanh
+  soundToggle.onclick = () => {
+    soundOn = !soundOn;
+    audioJump.muted = !soundOn;
+    audioWin.muted = !soundOn;
+    soundToggle.textContent = soundOn ? '🔊' : '🔈';
+  };
+
+  // Khởi tạo hiển thị lịch sử
+  updateHistory();
+
+  // --- Icon toán học bay bay 3D ---
+  const mathSymbols = ['➕','➖','✖️','➗','√','π','∑','∞','θ','∆'];
+  function spawnMathIcons() {
+    for(let i=0; i<12; i++) {
+      const icon = document.createElement('div');
+      icon.className = 'math-icon';
+      icon.style.left = `${Math.random()*100}vw`;
+      icon.style.top = `${100 + Math.random()*150}vh`;
+      icon.style.animationDelay = `${Math.random()*10}s`;
+      icon.textContent = mathSymbols[Math.floor(Math.random()*mathSymbols.length)];
+      document.body.appendChild(icon);
+    }
+  }
+  spawnMathIcons();
+</script>
+
+</body>
+</html>
