@@ -2,161 +2,134 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Toán & Ứng Dụng - MinhNguyen</title>
+  <title>Trang Toán của Minh Nguyên</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(120deg, #fef9f9, #f9f9ff);
+      background-color: #fff8f0;
       margin: 0;
       padding: 0;
       text-align: center;
     }
-
     header {
+      background-color: #ffb347;
       padding: 20px;
+      position: relative;
+      overflow: hidden;
     }
-
-    header img {
+    header h1 {
+      margin: 10px 0;
+      font-size: 2em;
+    }
+    #intro-img {
       width: 300px;
-      height: 300px;
-      border-radius: 50%;
-      object-fit: cover;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-
-    h1 {
-      font-size: 2.5em;
-      color: #333;
-      margin-top: 10px;
-    }
-
-    p {
-      font-size: 1.2em;
-      color: #555;
-      max-width: 800px;
-      margin: auto;
-    }
-
-    .button-container {
-      margin: 40px 0;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-    }
-
-    .game-btn {
-      background: #ffb347;
-      color: #fff;
-      font-size: 1.2em;
-      padding: 15px 25px;
       border-radius: 15px;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-
+    /* Icon toán bay bay */
+    .math-icon {
+      position: absolute;
+      font-size: 24px;
+      animation: float 8s infinite linear;
+      opacity: 0.8;
+    }
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); }
+      100% { transform: translateY(-100vh) rotate(360deg); }
+    }
+    /* Nút chơi game */
+    .game-btn {
+      display: inline-block;
+      margin: 20px;
+      padding: 15px 25px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 1.2em;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
     .game-btn:hover {
-      background: #ff9800;
-      transform: translateY(-3px);
+      background-color: #45a049;
     }
-
-    .material-icons {
-      font-size: 1.5em;
+    /* Danh sách tài liệu */
+    #docs {
+      margin-top: 30px;
+      padding: 10px;
     }
-
-    h2 {
-      color: #444;
-      margin-top: 50px;
+    #docs h2 {
+      color: #333;
     }
-
-    ul {
+    #doc-list {
       list-style: none;
       padding: 0;
     }
-
-    li {
-      background: #fff;
-      margin: 8px auto;
-      padding: 10px 20px;
-      border-radius: 10px;
-      max-width: 500px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    #doc-list li {
+      margin: 8px 0;
     }
-
-    li a {
-      text-decoration: none;
+    #doc-list a {
       color: #0077cc;
-      font-weight: bold;
+      text-decoration: none;
+    }
+    #doc-list a:hover {
+      text-decoration: underline;
     }
   </style>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
 <header>
-  <img src="anh.jpg" alt="Ảnh cá nhân">
-  <h1>Chào mừng đến với Thế giới Toán & Ứng dụng</h1>
-  <p>Toán học không chỉ là con số và công thức khô khan, mà còn là nghệ thuật tư duy, là ngôn ngữ chung của vũ trụ. Tại đây, bạn sẽ khám phá những trò chơi toán học thú vị, những ứng dụng bất ngờ, và kho tài liệu hữu ích để nâng cao kỹ năng.</p>
+  <h1>Chào mừng đến với thế giới Toán học 🎓</h1>
+  <img id="intro-img" src="ảnh.jpg" alt="Giới thiệu Toán học">
+  <!-- Icon toán bay bay -->
+  <div class="math-icon" style="left:10%;">➗</div>
+  <div class="math-icon" style="left:30%;">➕</div>
+  <div class="math-icon" style="left:50%;">✖️</div>
+  <div class="math-icon" style="left:70%;">√</div>
+  <div class="math-icon" style="left:90%;">∑</div>
 </header>
 
-<section>
-  <h2>🎮 Chọn Game</h2>
-  <div class="button-container">
-    <button class="game-btn" onclick="location.href='snake.html'">
-      <span class="material-icons">calculate</span> Rắn Săn Mồi Cấp Số Nhân
-    </button>
-    <button class="game-btn" onclick="location.href='game2.html'">
-      <span class="material-icons">functions</span> Thử Thách Giải Nhanh
-    </button>
-    <button class="game-btn" onclick="location.href='game3.html'">
-      <span class="material-icons">extension</span> Logic Toán Học
-    </button>
-  </div>
-</section>
+<main>
+  <!-- Nút vào game -->
+  <a class="game-btn" href="snake.html">🎮 Chơi game Rắn Săn Mồi Cấp Số Nhân</a>
 
-<section>
-  <h2>📚 Tài liệu</h2>
-  <ul id="file-list">
-    <li>Đang tải danh sách...</li>
-  </ul>
-</section>
+  <!-- Danh sách tài liệu -->
+  <section id="docs">
+    <h2>📚 Tài liệu ôn thi THPT môn Toán</h2>
+    <ul id="doc-list">
+      <li>Đang tải danh sách...</li>
+    </ul>
+  </section>
+</main>
 
 <script>
-  const username = "MinhNguyen-YersinDaLat";
-  const repo = "minhnguyen-yersindalat.github.io";
-  const folderPath = "tai-lieu";
+// Lấy danh sách PDF trong thư mục "tai-lieu" từ GitHub API
+const username = "MinhNguyen-YersinDaLat";
+const repo = "minhnguyen-yersindalat.github.io";
+const folder = "tai-lieu";
 
-  async function loadFiles() {
-    try {
-      const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${folderPath}`);
-      if (!res.ok) throw new Error("Không thể tải danh sách");
-      const data = await res.json();
-      const fileList = document.getElementById("file-list");
-      fileList.innerHTML = "";
-      data.forEach(file => {
-        if (file.name.endsWith(".pdf") || file.name.endsWith(".docx")) {
-          const li = document.createElement("li");
-          const link = document.createElement("a");
-          link.href = file.download_url;
-          link.textContent = file.name;
-          link.target = "_blank";
-          li.appendChild(link);
-          fileList.appendChild(li);
-        }
-      });
-    } catch (error) {
-      console.error(error);
-      document.getElementById("file-list").innerHTML = "<li>Lỗi tải tài liệu</li>";
-    }
-  }
-
-  loadFiles();
+fetch(`https://api.github.com/repos/${username}/${repo}/contents/${folder}`)
+  .then(response => response.json())
+  .then(files => {
+    const list = document.getElementById("doc-list");
+    list.innerHTML = ""; // Xóa dòng "Đang tải..."
+    files.forEach(file => {
+      if (file.name.endsWith(".pdf")) {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        // Xem trực tiếp bằng Google Docs Viewer
+        link.href = `https://docs.google.com/viewer?url=${encodeURIComponent(file.download_url)}&embedded=true`;
+        link.target = "_blank";
+        link.textContent = file.name;
+        li.appendChild(link);
+        list.appendChild(li);
+      }
+    });
+  })
+  .catch(err => {
+    document.getElementById("doc-list").innerHTML = "<li>Lỗi tải tài liệu.</li>";
+    console.error(err);
+  });
 </script>
 
 </body>
