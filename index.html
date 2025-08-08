@@ -1,155 +1,92 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Toán & Ứng Dụng</title>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang tài liệu</title>
+  <style>
     body {
-        font-family: Arial, sans-serif;
-        background-color: #fff0f5;
-        margin: 0;
-        padding: 0;
-        text-align: center;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
     }
-
     header {
-        padding: 20px;
-        background-color: #ffb6c1;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      text-align: center;
     }
-
-    h1 {
-        margin: 10px 0;
-        color: #d63384;
+    section {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
     }
-
-    /* Ảnh giới thiệu */
-    .profile-pic {
-        max-width: 200px;
-        width: 100%;
-        height: auto;
-        border-radius: 15px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
-        animation: float 3s ease-in-out infinite;
+    h2 {
+      color: #333;
     }
-
-    /* Hiệu ứng bay nhẹ */
-    @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-5px); }
-        100% { transform: translateY(0px); }
+    ul {
+      list-style-type: none;
+      padding: 0;
     }
-
-    /* Icon toán học bay */
-    .math-icon {
-        position: absolute;
-        font-size: 24px;
-        animation: fly 8s linear infinite;
-        opacity: 0.8;
+    li {
+      background: white;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-
-    @keyframes fly {
-        0% { transform: translateY(100vh) rotate(0deg); }
-        100% { transform: translateY(-10vh) rotate(360deg); }
+    a {
+      text-decoration: none;
+      color: #4CAF50;
+      font-weight: bold;
     }
-
-    /* Nút game */
-    .game-button {
-        display: inline-block;
-        margin: 10px;
-        padding: 12px 20px;
-        background-color: #ff69b4;
-        color: white;
-        border: none;
-        border-radius: 25px;
-        font-size: 16px;
-        text-decoration: none;
-        transition: background-color 0.3s;
+    a:hover {
+      text-decoration: underline;
     }
-
-    .game-button:hover {
-        background-color: #ff1493;
-    }
-
-    /* Khu vực tài liệu */
-    #documents {
-        padding: 20px;
-        text-align: left;
-        max-width: 600px;
-        margin: auto;
-    }
-
-    #documents ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    #documents li {
-        margin: 5px 0;
-    }
-
-    #documents a {
-        text-decoration: none;
-        color: #0077cc;
-    }
-</style>
+  </style>
 </head>
 <body>
+  <header>
+    <h1>📚 Kho Tài Liệu</h1>
+  </header>
 
-<header>
-    <img src="ảnh.jpg" alt="Ảnh của tôi" class="profile-pic">
-    <h1>Chào mừng đến với Thế giới Toán & Ứng dụng</h1>
-    <p>Nơi bạn tìm thấy những trò chơi toán học, tài liệu, và ứng dụng thú vị để khám phá!</p>
-</header>
+  <section id="tai-lieu">
+    <h2>Danh sách tài liệu</h2>
+    <ul id="danh-sach-tai-lieu">
+      <li>Đang tải danh sách tài liệu...</li>
+    </ul>
+  </section>
 
-<!-- Nút game -->
-<section>
-    <h2>Trò chơi Toán học</h2>
-    <a href="snake.html" class="game-button">🐍 Rắn Săn Mồi Cấp Số Nhân</a>
-    <a href="game2.html" class="game-button">📐 Game Toán 2</a>
-    <a href="game3.html" class="game-button">➗ Game Toán 3</a>
-</section>
+  <script>
+    const username = "MinhNguyen-YersinDaLat";
+    const repo = "minhnguyen-yersindalat.github.io";
+    const folderPath = "tai-lieu";
 
-<!-- Danh sách tài liệu -->
-<section id="documents">
-    <h2>📚 Tài liệu / Bài tập</h2>
-  <ul>
-  <li><a href="tai-lieu/dethitnthpt2025.pdf" target="_blank">Đề thi TN THPT 2025 (PDF)</a></li>
-</ul>
-</section>
-
-<!-- Icon toán học bay -->
-<span class="math-icon" style="left:10%;">➕</span>
-<span class="math-icon" style="left:30%;">✖️</span>
-<span class="math-icon" style="left:50%;">➗</span>
-<span class="math-icon" style="left:70%;">√</span>
-<span class="math-icon" style="left:90%;">π</span>
-
-<script>
-// Lấy danh sách file từ folder "docs" trên GitHub
-async function loadDocuments() {
-    const repoOwner = "YOUR_USERNAME"; // đổi thành tên GitHub của bạn
-    const repoName = "YOUR_REPO";      // đổi thành tên repo
-    const folderPath = "docs";         // thư mục chứa tài liệu
-
-    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${folderPath}`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    let list = document.getElementById("doc-list");
-    list.innerHTML = "";
-    data.forEach(file => {
-        if (file.type === "file") {
-            let li = document.createElement("li");
-            li.innerHTML = `<a href="${file.download_url}" target="_blank">${file.name}</a>`;
+    fetch(`https://api.github.com/repos/${username}/${repo}/contents/${folderPath}`)
+      .then(response => response.json())
+      .then(files => {
+        const list = document.getElementById("danh-sach-tai-lieu");
+        list.innerHTML = ""; // Xóa dòng "Đang tải..."
+        files.forEach(file => {
+          if (file.name.match(/\.(pdf|doc|docx)$/i)) {
+            const li = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = file.download_url;
+            link.textContent = file.name;
+            link.target = "_blank";
+            li.appendChild(link);
             list.appendChild(li);
+          }
+        });
+        if (list.innerHTML.trim() === "") {
+          list.innerHTML = "<li>Không có tài liệu nào.</li>";
         }
-    });
-}
-
-loadDocuments();
-</script>
-
+      })
+      .catch(error => {
+        console.error("Lỗi tải danh sách tài liệu:", error);
+        document.getElementById("danh-sach-tai-lieu").innerHTML = "<li>Không thể tải tài liệu.</li>";
+      });
+  </script>
 </body>
 </html>
