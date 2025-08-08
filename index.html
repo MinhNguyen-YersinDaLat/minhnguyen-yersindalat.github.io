@@ -1,290 +1,153 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Thầy Nguyên — Toán Học & Ứng Dụng</title>
-  <style>
-    :root{
-      --accent:#ff6fa3;
-      --accent-2:#6f42c1;
-      --bg1:#f8fbff;
-      --card:#ffffff;
-      --muted:#555;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%; margin:0; font-family: "Segoe UI", Roboto, Arial, sans-serif; background:linear-gradient(135deg,var(--bg1),#f0f7ff);}
-    /* ---------- floating icons layer ---------- */
-    .float-layer{
-      position:fixed;
-      inset:0;
-      pointer-events:none; /* don't block clicks */
-      overflow:hidden;
-      z-index:0;
-    }
-    .math-icon{
-      position:absolute;
-      font-size:22px;
-      opacity:0.85;
-      will-change: transform, opacity;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-      color: #0b3d91;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toán & Ứng Dụng</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #fff0f5;
+        margin: 0;
+        padding: 0;
+        text-align: center;
     }
 
-    /* ---------- main container ---------- */
-    .wrap{
-      position:relative;
-      z-index:2;
-      width:100%;
-      max-width:1100px;
-      margin:0 auto;
-      padding:24px;
+    header {
+        padding: 20px;
+        background-color: #ffb6c1;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    /* ---------- banner ---------- */
-    .banner{
-      width:100%;
-      border-radius:14px;
-      overflow:hidden;
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.12);
-      position:relative;
-      background:#eee;
-    }
-    .banner img{
-      display:block;
-      width:100%;
-      height:260px;
-      object-fit:cover;
-    }
-    .banner .headline{
-      position:absolute;
-      left:28px;
-      bottom:22px;
-      color:white;
-      text-shadow:0 4px 18px rgba(0,0,0,0.45);
-    }
-    .banner h1{
-      margin:0;
-      font-size:28px;
-      letter-spacing:0.2px;
-    }
-    .banner p{margin:6px 0 0; font-size:15px; opacity:0.95}
-
-    /* ---------- intro + actions ---------- */
-    .content{
-      display:flex;
-      gap:20px;
-      margin-top:18px;
-      align-items:flex-start;
-    }
-    .intro{
-      flex:1;
-      background:var(--card);
-      border-radius:12px;
-      padding:18px;
-      box-shadow:0 6px 20px rgba(15,23,42,0.06);
-    }
-    .intro h2{margin:0 0 8px; color:var(--accent-2)}
-    .intro p{margin:0 0 12px; color:var(--muted); line-height:1.5}
-    .badges{display:flex; gap:8px; flex-wrap:wrap;}
-    .badge{
-      background:linear-gradient(90deg,#fff,#ffeff7);
-      color:var(--accent);
-      padding:6px 10px;
-      border-radius:999px;
-      font-weight:600;
-      font-size:14px;
-      box-shadow:0 2px 8px rgba(111,66,193,0.06);
+    h1 {
+        margin: 10px 0;
+        color: #d63384;
     }
 
-    .actions{
-      width:320px;
-      min-width:220px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+    /* Ảnh giới thiệu */
+    .profile-pic {
+        max-width: 200px;
+        width: 100%;
+        height: auto;
+        border-radius: 15px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+        animation: float 3s ease-in-out infinite;
     }
 
-    /* ---------- games grid ---------- */
-    .games-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px;
-      margin-top:12px;
+    /* Hiệu ứng bay nhẹ */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0px); }
     }
-    .game-card{
-      background:linear-gradient(180deg,#fff,#fffefc);
-      border-radius:12px;
-      padding:14px;
-      display:flex;
-      gap:12px;
-      align-items:center;
-      text-decoration:none;
-      color:var(--muted);
-      box-shadow:0 6px 18px rgba(15,23,42,0.06);
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .game-card:hover{
-      transform:translateY(-6px) scale(1.02);
-      box-shadow:0 14px 40px rgba(15,23,42,0.12);
-    }
-    .game-thumb{
-      width:64px;
-      height:64px;
-      border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      color:white;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:30px;
-      box-shadow:inset 0 -6px 18px rgba(0,0,0,0.08);
-    }
-    .game-info h3{margin:0; font-size:16px; color:#111}
-    .game-info p{margin:4px 0 0; font-size:13px; color:#666}
 
-    /* ---------- footer ---------- */
-    footer{margin-top:20px; text-align:center; color:#666; font-size:13px; opacity:0.95;}
+    /* Icon toán học bay */
+    .math-icon {
+        position: absolute;
+        font-size: 24px;
+        animation: fly 8s linear infinite;
+        opacity: 0.8;
+    }
 
-    /* ---------- responsive ---------- */
-    @media (max-width:880px){
-      .content{flex-direction:column}
-      .actions{width:100%}
-      .games-grid{grid-template-columns:repeat(2,1fr)}
-      .banner img{height:200px}
+    @keyframes fly {
+        0% { transform: translateY(100vh) rotate(0deg); }
+        100% { transform: translateY(-10vh) rotate(360deg); }
     }
-    @media (max-width:540px){
-      .game-card{padding:10px}
-      .game-thumb{width:52px;height:52px;font-size:26px}
-      .banner img{height:160px}
-      .banner .headline{left:16px;bottom:14px}
-      .banner h1{font-size:20px}
+
+    /* Nút game */
+    .game-button {
+        display: inline-block;
+        margin: 10px;
+        padding: 12px 20px;
+        background-color: #ff69b4;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        text-decoration: none;
+        transition: background-color 0.3s;
     }
-  </style>
+
+    .game-button:hover {
+        background-color: #ff1493;
+    }
+
+    /* Khu vực tài liệu */
+    #documents {
+        padding: 20px;
+        text-align: left;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    #documents ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    #documents li {
+        margin: 5px 0;
+    }
+
+    #documents a {
+        text-decoration: none;
+        color: #0077cc;
+    }
+</style>
 </head>
 <body>
-  <!-- floating icons -->
-  <div class="float-layer" id="floatLayer" aria-hidden="true"></div>
 
-  <div class="wrap">
-    <div class="banner" role="banner" aria-label="Banner Thầy Nguyên">
-      <!-- banner image: đặt 'ảnh.jpg' vào cùng repo -->
-      <img src="ảnh.jpg" alt="Ảnh banner của Thầy Nguyên" />
-      <div class="headline" aria-hidden="true">
-        <h1>Thầy Nguyên — Toán Học & Ứng Dụng</h1>
-        <p>Học Toán thú vị — Hiểu sâu, ứng dụng đời thực</p>
-      </div>
-    </div>
+<header>
+    <img src="ảnh.jpg" alt="Ảnh của tôi" class="profile-pic">
+    <h1>Chào mừng đến với Thế giới Toán & Ứng dụng</h1>
+    <p>Nơi bạn tìm thấy những trò chơi toán học, tài liệu, và ứng dụng thú vị để khám phá!</p>
+</header>
 
-    <div class="content" role="main">
-      <section class="intro" aria-labelledby="introTitle">
-        <h2 id="introTitle">Giới thiệu</h2>
-        <p><strong>Xin chào — Thầy Nguyên đây!</strong> Mình là giáo viên toán THPT, thích biến những khái niệm khô khan thành trò chơi, thử thách và ứng dụng thực tế. Trên trang này bạn sẽ tìm thấy bộ sưu tập trò chơi toán, tài liệu ôn luyện, và các ví dụ ứng dụng từ đời sống — tất cả được thiết kế để vừa học vừa vui.</p>
-        <div class="badges" aria-hidden="true">
-          <div class="badge">Luyện thi Tốt nghiệp</div>
-          <div class="badge">Trò chơi Toán</div>
-          <div class="badge">Ứng dụng thực tế</div>
-          <div class="badge">Mẹo Casio</div>
-        </div>
+<!-- Nút game -->
+<section>
+    <h2>Trò chơi Toán học</h2>
+    <a href="game1.html" class="game-button">🐍 Rắn Săn Mồi Cấp Số Nhân</a>
+    <a href="game2.html" class="game-button">📐 Game Toán 2</a>
+    <a href="game3.html" class="game-button">➗ Game Toán 3</a>
+</section>
 
-        <h3 style="margin-top:12px;color:#333">Tại sao nên học bằng trò chơi?</h3>
-        <p style="color:#444">Vì trò chơi giúp học sinh <em>tập trung</em>, <em>tư duy phản xạ</em> và nhớ lâu hơn. Mình thiết kế các trò chơi để rèn: logic, kiến thức, và tốc độ làm bài — rất hợp cho ôn thi và giải nhanh.</p>
-      </section>
+<!-- Danh sách tài liệu -->
+<section id="documents">
+    <h2>📚 Tài liệu / Bài tập</h2>
+    <ul id="doc-list"></ul>
+</section>
 
-      <aside class="actions" aria-label="Hành động nhanh">
-        <div style="display:flex; gap:10px; align-items:center;">
-          <a href="snake.html" class="play-button" style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:12px 16px; border-radius:12px; background:linear-gradient(90deg,#ff9ab8,#ff6fa3); color:white; font-weight:700; box-shadow:0 8px 30px rgba(255,111,163,0.18);">
-            <span style="font-size:20px">🐍</span>
-            <span>Chơi: Rắn Cấp Số Nhân</span>
-          </a>
-        </div>
+<!-- Icon toán học bay -->
+<span class="math-icon" style="left:10%;">➕</span>
+<span class="math-icon" style="left:30%;">✖️</span>
+<span class="math-icon" style="left:50%;">➗</span>
+<span class="math-icon" style="left:70%;">√</span>
+<span class="math-icon" style="left:90%;">π</span>
 
-        <h3 style="margin:6px 0 0;color:#333">Các trò chơi</h3>
-        <div class="games-grid" id="gamesGrid">
-          <!-- MẪU game card - copy để thêm game mới -->
-          <a class="game-card" href="snake.html" title="Rắn Săn Mồi Cấp Số Nhân">
-            <div class="game-thumb">🐷</div>
-            <div class="game-info">
-              <h3>Rắn — Cấp số nhân</h3>
-              <p>Rèn tốc độ & tư duy cấp số nhân (bắt đầu bằng 1 → nhân 2/3/...)</p>
-            </div>
-          </a>
+<script>
+// Lấy danh sách file từ folder "docs" trên GitHub
+async function loadDocuments() {
+    const repoOwner = "YOUR_USERNAME"; // đổi thành tên GitHub của bạn
+    const repoName = "YOUR_REPO";      // đổi thành tên repo
+    const folderPath = "docs";         // thư mục chứa tài liệu
 
-          <a class="game-card" href="#" title="Sắp ra mắt">
-            <div class="game-thumb">∑</div>
-            <div class="game-info">
-              <h3>Sắp ra mắt</h3>
-              <p>Game toán logic — coming soon</p>
-            </div>
-          </a>
-          <!-- kết thúc mẫu -->
-        </div>
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${folderPath}`;
+    const response = await fetch(url);
+    const data = await response.json();
 
-        <p style="font-size:13px; color:#666; margin-top:6px;">Muốn thêm game? Chỉ cần thêm một thẻ &lt;a class="game-card" href="LINK"&gt;...</p>
-      </aside>
-    </div>
-
-    <footer>
-      <p>© <span id="year"></span> Thầy Nguyên — Toán Học & Ứng Dụng · Liên hệ: <a href="mailto:thaynguyen@example.com">thaynguyen@example.com</a></p>
-    </footer>
-  </div>
-
-  <script>
-    // ---------------- Floating icons (ngẫu nhiên toàn màn hình) ----------------
-    (function createFloatingIcons(){
-      const ICONS = ["π","√","∑","∫","≈","∞","∆","σ","α","β","x²","y'","∠","⊥","⌊ ⌋","→"];
-      const layer = document.getElementById('floatLayer');
-      const COUNT = Math.min(Math.floor(window.innerWidth * window.innerHeight / 40000), 45); // number based on screen size
-      const rand = (a,b)=> Math.random()*(b-a)+a;
-
-      for(let i=0;i<COUNT;i++){
-        const el = document.createElement('div');
-        el.className = 'math-icon';
-        el.textContent = ICONS[Math.floor(Math.random()*ICONS.length)];
-        // random start pos
-        const left = rand(-5, 105);
-        const top = rand(-10, 90);
-        el.style.left = left + '%';
-        el.style.top = top + '%';
-        // random size & opacity
-        const size = Math.round(rand(18,34));
-        el.style.fontSize = size + 'px';
-        el.style.opacity = rand(0.18, 0.9).toFixed(2);
-        // animation via JS: vertical float and slight horizontal drift + rotation
-        const duration = rand(6,20);
-        el.animate([
-          { transform: `translateY(0px) translateX(0px) rotate(0deg)` },
-          { transform: `translateY(${rand(-40,40)}px) translateX(${rand(-20,20)}px) rotate(${rand(-20,20)}deg)` },
-          { transform: `translateY(0px) translateX(0px) rotate(0deg)` }
-        ], {
-          duration: duration*1000,
-          iterations: Infinity,
-          direction: 'alternate',
-          easing: 'ease-in-out',
-          delay: Math.random()*2000
-        });
-        layer.appendChild(el);
-      }
-
-      // refresh on resize (throttled)
-      let to;
-      window.addEventListener('resize', ()=>{
-        clearTimeout(to);
-        to = setTimeout(()=>{ layer.innerHTML=''; createFloatingIcons(); }, 300);
-      });
-    })();
-
-    // ---------------- helper: set year ----------------
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // ---------------- optional: keyboard shortcut to open first game (nice to have) ----------------
-    window.addEventListener('keydown', (e)=>{
-      // press G to open first game quickly
-      if(e.key.toLowerCase() === 'g'){
-        const first = document.querySelector('#gamesGrid .game-card');
-        if(first) first.click();
-      }
+    let list = document.getElementById("doc-list");
+    list.innerHTML = "";
+    data.forEach(file => {
+        if (file.type === "file") {
+            let li = document.createElement("li");
+            li.innerHTML = `<a href="${file.download_url}" target="_blank">${file.name}</a>`;
+            list.appendChild(li);
+        }
     });
-  </script>
+}
+
+loadDocuments();
+</script>
+
 </body>
 </html>
