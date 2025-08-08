@@ -28,65 +28,58 @@
   }
   .animal {
     position: absolute;
-    width: 240px; height: 240px; /* phóng to gấp 4 lần */
+    width: 70px; height: 70px;
     text-align: center;
     cursor: default;
     user-select: none;
     transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
   }
   .animal img, .animal .icon {
-    width: 220px;
-    height: 220px;
-    border-radius: 25px;
-    box-shadow: 0 0 18px rgba(214, 51, 132, 0.8);
-    filter: drop-shadow(0 0 6px #d63384);
-    font-size: 220px;
-    line-height: 220px;
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    box-shadow: 0 0 8px rgba(214, 51, 132, 0.6);
+    filter: drop-shadow(0 0 4px #d63384);
+    font-size: 60px;
+    line-height: 60px;
     user-select: none;
     display: inline-block;
   }
   .animal .name {
-    font-size: 24px; /* to hơn */
-    font-weight: 900; /* chữ đậm */
+    font-size: 12px;
+    font-weight: 900;
     color: #d63384;
-    margin-top: 6px;
+    margin-top: 4px;
     user-select: none;
-    width: 240px;
+    width: 70px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    text-transform: uppercase; /* in hoa toàn bộ */
+    text-transform: uppercase;
   }
 
-  /* Animation glow + zoom + twinkle cho thú được chọn */
-  @keyframes glowPulse {
-    0% { box-shadow: 0 0 15px 6px #ff69b4; }
-    50% { box-shadow: 0 0 45px 14px #ff1493; }
-    100% { box-shadow: 0 0 15px 6px #ff69b4; }
-  }
-  @keyframes sparkle {
-    0%, 100% { text-shadow: 0 0 12px #ff8fc9, 0 0 20px #ff0080; }
-    50% { text-shadow: 0 0 40px #ff9ad0, 0 0 50px #ff33a6; }
-  }
-  @keyframes zoomInOut {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(2.4) rotate(15deg); }
-  }
-  /* Hiệu ứng người thắng */
+  /* Hiệu ứng người thắng phóng to */
   @keyframes winnerZoom {
-    0%, 100% { transform: scale(2.4); }
-    50% { transform: scale(3) rotate(20deg); }
+    0%, 100% { transform: scale(4) rotate(0deg); }
+    50% { transform: scale(4.3) rotate(15deg); }
+  }
+  /* Hiệu ứng lấp lánh tên thắng */
+  @keyframes sparkle {
+    0%, 100% { text-shadow: 0 0 8px #ff8fc9, 0 0 12px #ff0080; }
+    50% { text-shadow: 0 0 20px #ff9ad0, 0 0 30px #ff33a6; }
   }
 
   .selected {
-    animation: glowPulse 2s infinite, sparkle 2s infinite, zoomInOut 2s infinite;
-    transform-origin: center center;
     z-index: 1000 !important;
     cursor: default;
   }
   .winner {
-    animation: winnerZoom 2s infinite;
+    animation: winnerZoom 1.5s infinite ease-in-out;
     z-index: 2000 !important;
+  }
+  .winner .name {
+    animation: sparkle 2s infinite ease-in-out;
+    font-size: 20px;
   }
   .faded {
     opacity: 0.25;
@@ -96,15 +89,15 @@
   /* Nhảy nhót, lộn xộn */
   @keyframes jitterX {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(8px); }
-    50% { transform: translateX(-8px); }
-    75% { transform: translateX(5px); }
+    25% { transform: translateX(5px); }
+    50% { transform: translateX(-5px); }
+    75% { transform: translateX(3px); }
   }
   @keyframes jitterY {
     0%, 100% { transform: translateY(0); }
-    25% { transform: translateY(8px); }
-    50% { transform: translateY(-8px); }
-    75% { transform: translateY(5px); }
+    25% { transform: translateY(5px); }
+    50% { transform: translateY(-5px); }
+    75% { transform: translateY(3px); }
   }
 
   #btnRandom, #btnContinue, #btnLoadList {
@@ -125,7 +118,7 @@
   }
   #result {
     margin-top: 10px;
-    font-size: 32px;
+    font-size: 28px;
     color: #d63384;
     font-weight: bold;
     min-height: 90px;
@@ -229,8 +222,8 @@
     activeStudents.forEach(stu => {
       const div = document.createElement("div");
       div.classList.add("animal");
-      div.style.left = Math.random() * (container.clientWidth - 240) + "px";
-      div.style.top = Math.random() * (container.clientHeight - 240) + "px";
+      div.style.left = Math.random() * (container.clientWidth - 70) + "px";
+      div.style.top = Math.random() * (container.clientHeight - 70) + "px";
       const icon = animalIcons[Math.floor(Math.random() * animalIcons.length)];
       stu.icon = icon;
       div.innerHTML = `<div class="icon">${icon}</div><div class="name" title="${stu.name}">${shortenName(stu.name)}</div>`;
@@ -247,12 +240,12 @@
     jitterIntervals = activeStudents.map(stu => {
       return setInterval(() => {
         if(stu.element.classList.contains('selected') || stu.element.classList.contains('winner')) return;
-        const maxX = container.clientWidth - 240;
-        const maxY = container.clientHeight - 240;
+        const maxX = container.clientWidth - 70;
+        const maxY = container.clientHeight - 70;
         let currentX = parseFloat(stu.element.style.left);
         let currentY = parseFloat(stu.element.style.top);
-        let newX = Math.min(maxX, Math.max(0, currentX + (Math.random() * 60 - 30)));
-        let newY = Math.min(maxY, Math.max(0, currentY + (Math.random() * 60 - 30)));
+        let newX = Math.min(maxX, Math.max(0, currentX + (Math.random() * 20 - 10)));
+        let newY = Math.min(maxY, Math.max(0, currentY + (Math.random() * 20 - 10)));
         stu.element.style.left = newX + "px";
         stu.element.style.top = newY + "px";
       }, 80);
@@ -292,12 +285,12 @@
     let jumpCount = 0;
     const jumpInterval = setInterval(() => {
       activeStudents.forEach(stu => {
-        const maxX = container.clientWidth - 240;
-        const maxY = container.clientHeight - 240;
+        const maxX = container.clientWidth - 70;
+        const maxY = container.clientHeight - 70;
         let currentX = parseFloat(stu.element.style.left);
         let currentY = parseFloat(stu.element.style.top);
-        let newX = Math.min(maxX, Math.max(0, currentX + (Math.random() * 60 - 30)));
-        let newY = Math.min(maxY, Math.max(0, currentY + (Math.random() * 60 - 30)));
+        let newX = Math.min(maxX, Math.max(0, currentX + (Math.random() * 20 - 10)));
+        let newY = Math.min(maxY, Math.max(0, currentY + (Math.random() * 20 - 10)));
         stu.element.style.left = newX + "px";
         stu.element.style.top = newY + "px";
       });
