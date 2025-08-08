@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Random Học Sinh - Đua Thú Dễ Thương</title>
+<title>Random Học Sinh - Đua Thú 5 Hàng 50 Em</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,19 +32,22 @@
     background: #fff0f5;
     border-radius: 15px;
     padding: 20px;
-    min-height: 300px;
-    max-height: 600px;
+    min-height: 360px;
+    max-height: 700px;
     overflow-y: auto;
     box-shadow: 0 0 15px rgba(255,105,180,0.3);
     position: relative;
-    overflow-x: hidden;
   }
-  .runnerRow {
+  .lane {
     display: flex;
+    justify-content: flex-start;
     align-items: center;
-    margin-bottom: 14px;
+    height: 70px;
+    margin-bottom: 10px;
     position: relative;
-    height: 60px;
+    background: #ffe1f3;
+    border-radius: 12px;
+    padding-left: 160px;
   }
   .runnerName {
     width: 150px;
@@ -53,12 +56,23 @@
     font-size: 1.1rem;
     color: #bf2e74;
     user-select: none;
+    position: absolute;
+    left: 10px;
   }
   .runnerEmoji {
-    position: absolute;
-    left: 0;
     font-size: 40px;
+    filter: drop-shadow(2px 4px 3px rgba(255, 105, 180, 0.4));
+    position: relative;
     transition: transform 0.05s linear;
+  }
+  /* Rung lắc animation khi về đích */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    20%, 60% { transform: translateX(-5px) rotate(-10deg); }
+    40%, 80% { transform: translateX(5px) rotate(10deg); }
+  }
+  .shake {
+    animation: shake 0.5s ease-in-out 4;
   }
   #buttons {
     margin-top: 20px;
@@ -82,14 +96,37 @@
     background: #ffc1dc;
     cursor: default;
   }
-  /* Cute animal emojis for runners */
-  /* Will pick randomly from this list */
+  #history {
+    margin-top: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #fff0f5;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(255,105,180,0.25);
+    color: #a12e62;
+    font-size: 1rem;
+    max-height: 180px;
+    overflow-y: auto;
+    text-align: left;
+  }
+  #history h2 {
+    margin-top: 0;
+  }
+  #history ul {
+    padding-left: 20px;
+    margin: 0;
+  }
+  #history li {
+    margin-bottom: 6px;
+  }
 </style>
 </head>
 <body>
 
-<h1>🎉 Gọi Ngẫu Nhiên Học Sinh Bằng Đua Thú Cưng 🐰🐷🐨</h1>
-<p>Nhập danh sách tên học sinh, mỗi tên một dòng (tối đa 50). Bấm "Bắt đầu" để xem thú cưng nào về đích trước nhé!</p>
+<h1>🎉 Gọi Ngẫu Nhiên Học Sinh Bằng Đua Thú 5 Hàng 🐰🐷🐨</h1>
+<p>Nhập danh sách tối đa 50 học sinh, mỗi tên một dòng. Học sinh sẽ được chia đều vào 5 hàng, mỗi hàng 10 bạn chạy đua song song.</p>
 
 <textarea id="namesInput" placeholder="Nhập tên học sinh vào đây, mỗi tên trên 1 dòng..."></textarea>
 
@@ -101,6 +138,13 @@
 
 <div id="raceArea" aria-live="polite" aria-atomic="true" aria-relevant="additions"></div>
 
+<section id="history" aria-live="polite" aria-atomic="true">
+  <h2>Lịch sử kết quả</h2>
+  <ul id="historyList"></ul>
+</section>
+
+<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+
 <script>
   const animalEmojis = ['🐰','🐷','🐨','🐼','🐸','🐯','🦊','🐵','🐶','🐱','🦄','🐭','🐹','🐻','🐔','🐴','🐗','🐝','🐬','🐢'];
   const namesInput = document.getElementById('namesInput');
@@ -108,39 +152,36 @@
   const startBtn = document.getElementById('startBtn');
   const pauseBtn = document.getElementById('pauseBtn');
   const resetBtn = document.getElementById('resetBtn');
+  const historyList = document.getElementById('historyList');
+  const winSound = document.getElementById('winSound');
 
-  let runners = [];
+  let lanes = [];
   let raceInterval = null;
   let paused = false;
+  let finished = false;
 
-  function createRunner(name, index) {
-    const row = document.createElement('div');
-    row.className = 'runnerRow';
+  function createRunner(name, emoji, laneDiv) {
+    const runnerDiv = document.createElement('div');
+    runnerDiv.className = 'runnerEmoji';
+    runnerDiv.textContent = emoji;
+    runnerDiv.style.transform = 'translateX(0)';
+    laneDiv.appendChild(runnerDiv);
 
-    const nameLabel = document.createElement('div');
-    nameLabel.className = 'runnerName';
-    nameLabel.textContent = name;
-    row.appendChild(nameLabel);
-
-    const emoji = document.createElement('div');
-    emoji.className = 'runnerEmoji';
-    emoji.style.top = '10px';
-    // random animal emoji by cycling through the list with index
-    emoji.textContent = animalEmojis[index % animalEmojis.length];
-    row.appendChild(emoji);
-
-    raceArea.appendChild(row);
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'runnerName';
+    nameDiv.textContent = name;
+    laneDiv.appendChild(nameDiv);
 
     return {
-      name: name,
-      runnerEmoji: emoji,
+      name,
+      runnerDiv,
       position: 0,
-      speed: 2 + Math.random() * 2 // speed random từ 2 đến 4 px mỗi tick
+      speed: 2 + Math.random() * 2 // px per tick
     };
   }
 
   function startRace() {
-    if (raceInterval) return; // tránh start liên tục
+    if (raceInterval) return;
 
     let names = namesInput.value.trim().split('\n').map(n => n.trim()).filter(n => n !== '');
     if (names.length === 0) {
@@ -153,31 +194,65 @@
     }
 
     raceArea.innerHTML = '';
-    runners = names.map(createRunner);
+    lanes = [];
 
+    // Tạo 5 lanes
+    for(let i=0; i<5; i++) {
+      const laneDiv = document.createElement('div');
+      laneDiv.className = 'lane';
+      raceArea.appendChild(laneDiv);
+      lanes.push({ laneDiv, runners: [] });
+    }
+
+    // Chia đều học sinh cho 5 lanes
+    for (let i=0; i<names.length; i++) {
+      const laneIndex = Math.floor(i / 10);
+      if(laneIndex >= 5) break; // chỉ 5 lane thôi
+      const emoji = animalEmojis[i % animalEmojis.length];
+      const runner = createRunner(names[i], emoji, lanes[laneIndex].laneDiv);
+      lanes[laneIndex].runners.push(runner);
+    }
+
+    finished = false;
     paused = false;
+
     startBtn.disabled = true;
     pauseBtn.disabled = false;
     resetBtn.disabled = false;
+    pauseBtn.textContent = '⏸️ Tạm dừng';
 
     raceInterval = setInterval(() => {
-      if (!paused) {
-        runners.forEach(runner => {
+      if(paused || finished) return;
+
+      lanes.forEach(lane => {
+        lane.runners.forEach(runner => {
           runner.position += runner.speed;
-          if (runner.position > raceArea.clientWidth - 70) {
-            runner.position = raceArea.clientWidth - 70;
+          const finishLine = raceArea.clientWidth - 70;
+          if(runner.position >= finishLine && !finished) {
+            runner.position = finishLine;
             finishRace(runner);
           }
-          runner.runnerEmoji.style.transform = `translateX(${runner.position}px)`;
+          runner.runnerDiv.style.transform = `translateX(${runner.position}px)`;
         });
-      }
+      });
     }, 50);
   }
 
   function finishRace(winner) {
+    finished = true;
     clearInterval(raceInterval);
     raceInterval = null;
+
+    // Rung lắc thú cưng về đích
+    winner.runnerDiv.classList.add('shake');
+
+    // Phát âm thanh chiến thắng
+    winSound.currentTime = 0;
+    winSound.play();
+
     alert(`🎉 Chúc mừng học sinh được chọn: ${winner.name}! 🏆`);
+    addToHistory(winner.name);
+
     startBtn.disabled = false;
     pauseBtn.disabled = true;
   }
@@ -188,15 +263,41 @@
   }
 
   function resetRace() {
-    if (raceInterval) clearInterval(raceInterval);
+    if(raceInterval) clearInterval(raceInterval);
     raceInterval = null;
     paused = false;
-    runners = [];
+    finished = false;
+    lanes = [];
     raceArea.innerHTML = '';
     startBtn.disabled = false;
     pauseBtn.disabled = true;
     resetBtn.disabled = true;
   }
+
+  function addToHistory(name) {
+    let history = JSON.parse(localStorage.getItem('raceHistory') || '[]');
+    const timeStr = new Date().toLocaleString('vi-VN');
+    history.unshift(`${timeStr}: ${name}`);
+    if(history.length > 20) history.pop();
+    localStorage.setItem('raceHistory', JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    let history = JSON.parse(localStorage.getItem('raceHistory') || '[]');
+    historyList.innerHTML = '';
+    if(history.length === 0) {
+      historyList.innerHTML = '<li>Chưa có kết quả nào.</li>';
+      return;
+    }
+    history.forEach(entry => {
+      const li = document.createElement('li');
+      li.textContent = entry;
+      historyList.appendChild(li);
+    });
+  }
+
+  renderHistory();
 
   startBtn.addEventListener('click', startRace);
   pauseBtn.addEventListener('click', pauseRace);
