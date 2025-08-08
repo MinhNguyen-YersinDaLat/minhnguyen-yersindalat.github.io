@@ -32,7 +32,7 @@
     text-align: center;
     cursor: default;
     user-select: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
   }
   .animal img, .animal .icon {
     width: 60px;
@@ -72,12 +72,25 @@
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.8) rotate(15deg); }
   }
+  /* Hiệu ứng người thắng */
+  @keyframes winnerZoom {
+    0%, 100% { transform: scale(1.8); }
+    50% { transform: scale(2.2) rotate(20deg); }
+  }
 
   .selected {
-    animation: glowPulse 2s infinite, zoomInOut 2s infinite, sparkle 2s infinite;
+    animation: glowPulse 2s infinite, sparkle 2s infinite, zoomInOut 2s infinite;
     transform-origin: center center;
     z-index: 1000 !important;
     cursor: default;
+  }
+  .winner {
+    animation: winnerZoom 2s infinite;
+    z-index: 2000 !important;
+  }
+  .faded {
+    opacity: 0.3;
+    transition: opacity 0.5s ease;
   }
 
   #btnRandom, #btnContinue, #btnLoadList {
@@ -131,7 +144,6 @@
     border-bottom: 1px solid #ffa3cc;
   }
 
-  /* Textarea nhập danh sách */
   #nameList {
     margin: 10px auto 0 auto;
     width: 90vw; max-width: 900px;
@@ -189,6 +201,15 @@
   let selectedStudent = null;
   let history = [];
 
+  // Hàm rút gọn tên: "Võ Minh Thịnh" -> "VM Thịnh"
+  function shortenName(fullName) {
+    const parts = fullName.trim().split(/\s+/);
+    if(parts.length === 1) return fullName;
+    const lastName = parts.pop();
+    const initials = parts.map(p => p[0].toUpperCase()).join('');
+    return initials + ' ' + lastName;
+  }
+
   function createAnimals() {
     container.innerHTML = "";
     activeStudents.forEach(stu => {
@@ -198,7 +219,7 @@
       div.style.top = Math.random() * (container.clientHeight - 70) + "px";
       const icon = animalIcons[Math.floor(Math.random() * animalIcons.length)];
       stu.icon = icon;
-      div.innerHTML = `<div class="icon">${icon}</div><div class="name" title="${stu.name}">${stu.name}</div>`;
+      div.innerHTML = `<div class="icon">${icon}</div><div class="name" title="${stu.name}">${shortenName(stu.name)}</div>`;
       container.appendChild(div);
       stu.element = div;
     });
@@ -243,13 +264,24 @@
       btnRandom.disabled = true;
       return;
     }
-    activeStudents.forEach(s => s.element.classList.remove('selected'));
+    activeStudents.forEach(s => {
+      s.element.classList.remove('selected', 'winner', 'faded');
+      s.element.style.opacity = '1';
+    });
     result.textContent = "Đang chọn...";
     animateAnimals(4000);
     setTimeout(() => {
       const idx = Math.floor(Math.random() * activeStudents.length);
       selectedStudent = activeStudents[idx];
-      selectedStudent.element.classList.add('selected');
+      selectedStudent.element.classList.add('selected', 'winner');
+
+      // Mờ đi các thú khác
+      activeStudents.forEach(s => {
+        if(s !== selectedStudent) {
+          s.element.classList.add('faded');
+        }
+      });
+
       result.textContent = `🎉 Đã chọn: ${selectedStudent.icon} ${selectedStudent.name} 🎉`;
       updateHistory(selectedStudent.name, selectedStudent.icon);
 
