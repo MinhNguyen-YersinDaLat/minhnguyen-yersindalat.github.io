@@ -151,13 +151,33 @@
     </div>
 
     <div class="card" aria-labelledby="videoTitle">
-      <h2 id="videoTitle">🎥 Video minh họa</h2>
-      <p class="small-muted">Khu vực để nhúng YouTube / Vimeo clip ngắn (bài giảng, mẹo Casio).</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <a class="btn" href="#" onclick="alert('Tính năng chèn video: thêm link YouTube')">Thêm video</a>
-      </div>
-    </div>
-  </section>
+  <h2 id="videoTitle">🎥 Playlist Toán Vật Lý Chill</h2>
+  <p class="small-muted">Các video YouTube chọn lọc từ kênh Vật Lý Chill.</p>
+  <div id="videoList" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px;"></div>
+</div>
+
+<script>
+  const videoIDs = [
+    'sn-WWZGkJQw',
+    'v4M0LUTNlJg',
+    'mVQ8C_GVXbs',
+    'XbU2sPdnrMw',
+    'H9ij9xXl48I'
+  ];
+
+  const container = document.getElementById('videoList');
+  videoIDs.forEach(id => {
+    const iframe = document.createElement('iframe');
+    iframe.width = '320';
+    iframe.height = '180';
+    iframe.src = `https://www.youtube.com/embed/${id}`;
+    iframe.frameBorder = '0';
+    iframe.allowFullscreen = true;
+    iframe.style.borderRadius = '8px';
+    container.appendChild(iframe);
+  });
+</script>
+
 
   <!-- right column -->
   <aside class="side">
