@@ -3,352 +3,274 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🎲 Gọi ngẫu nhiên học sinh - Dự án Thầy Nguyên</title>
+<title>Vòng Quay Vui Vẻ - Chọn ngẫu nhiên học sinh</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-    margin: 0; padding: 0;
-    display: flex; flex-direction: column;
-    align-items: center;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+    margin: 0; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
     min-height: 100vh;
-    user-select: none;
-  }
-  h1 {
-    margin-top: 30px;
     color: #333;
-    font-weight: 700;
   }
-  #inputArea {
-    margin: 20px 0 10px 0;
+
+  h1 {
+    margin-bottom: 12px;
+    color: #d6336c;
+    font-weight: 900;
+    text-shadow: 1px 1px 2px #fff;
+  }
+
+  #input-area {
+    width: 100%;
     max-width: 600px;
-    width: 90%;
-    text-align: center;
+    margin-bottom: 20px;
   }
-  #inputHint {
-    color: #666;
-    font-style: italic;
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-  }
-  textarea {
+  #input-area textarea {
     width: 100%;
     height: 100px;
-    font-size: 1rem;
-    padding: 10px;
     border-radius: 10px;
-    border: 1.5px solid #aaa;
+    border: 2px solid #ff77aa;
+    font-size: 16px;
+    padding: 10px;
     resize: vertical;
-    box-sizing: border-box;
-    font-family: monospace;
-    transition: border-color 0.3s;
   }
-  textarea:focus {
-    border-color: #ff69b4;
-    outline: none;
-  }
-  button {
-    margin-top: 12px;
-    padding: 10px 30px;
-    font-size: 1.1rem;
-    background: #ff69b4;
+  #input-area button {
+    margin-top: 10px;
+    background-color: #ff4b81;
     color: white;
     border: none;
-    border-radius: 30px;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 16px;
     cursor: pointer;
-    box-shadow: 0 5px 15px rgba(255,105,180,0.4);
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
   }
-  button:hover {
-    background: #e04893;
+  #input-area button:hover {
+    background-color: #d62e5a;
   }
-  #animalContainer {
-    margin-top: 25px;
-    max-width: 980px;
-    width: 95%;
+
+  #animal-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    max-width: 900px;
     gap: 15px;
-  }
-  .animal-card {
-    position: relative;
-    width: 90px;
-    height: 130px;
-    background: white;
-    border-radius: 30px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding-top: 10px;
-    gap: 6px;
-    user-select: none;
-    cursor: default;
-    transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.3s ease;
-    will-change: transform, filter;
-    animation: gentleJump 1.5s ease-in-out infinite;
-  }
-  .animal-card:hover {
-    box-shadow: 0 10px 30px rgba(255,105,180,0.6);
-  }
-  .animal-icon {
-    font-size: 4.5rem;
-    line-height: 1;
-    width: 80px;
-    height: 80px;
-    text-align: center;
-    user-select: none;
-    pointer-events: none;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
-    border-radius: 50%;
-    background: #fff0f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    animation: floatIcon 4s ease-in-out infinite;
-  }
-  @keyframes floatIcon {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-  }
-  .animal-name {
-    margin: 0;
-    font-weight: 900;
-    font-size: 1rem;
-    color: #444;
-    user-select: text;
-    text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 85px;
-    text-align: center;
+    margin-bottom: 30px;
   }
 
-  @keyframes gentleJump {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+  .animal-card {
+    width: 60px;
+    height: 90px;
+    background: #fff0f5;
+    border-radius: 15px;
+    box-shadow: 0 3px 7px rgba(214, 50, 90, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s ease;
+    position: relative;
+    cursor: default;
+    user-select: none;
   }
+
+  .animal-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    user-select: none;
+    transition: transform 0.4s ease;
+    filter: drop-shadow(1px 2px 1px rgba(214, 50, 90, 0.7));
+  }
+  .animal-name {
+    font-size: 0.9rem;
+    margin-top: 6px;
+    color: #d6336c;
+    font-weight: 600;
+    user-select: none;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .dimmed {
+    opacity: 0.3;
+    filter: grayscale(100%);
+  }
+
   .winner {
-    animation: winnerScaleRotate 4s ease forwards, blink 1.2s linear infinite;
-    z-index: 10;
-    filter: drop-shadow(0 0 15px #ff1493);
-    box-shadow: 0 0 30px 5px #ff69b4 inset;
+    position: fixed !important;
+    top: 50%; left: 50%;
+    transform-origin: center center;
+    z-index: 1000 !important;
+    box-shadow: 0 0 40px 10px #ff2e8c inset;
+    border-radius: 50%;
+    width: 150px !important;
+    height: 210px !important;
+    font-size: 7rem !important;
+    background: #fff0f5;
+    animation: winnerRotate 3s linear forwards;
+    cursor: default !important;
   }
-  @keyframes winnerScaleRotate {
-    0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(4) rotate(720deg); }
-    100% { transform: scale(3) rotate(1440deg); }
+
+  .winner .animal-name {
+    font-size: 2.8rem !important;
+    margin-top: 10px;
+    color: #ff2e8c;
+    font-weight: 900;
+    text-shadow: 0 0 4px #ff75b1;
   }
+
+  #winner-display {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+
+  #next-btn {
+    display: none;
+    background-color: #ff2e8c;
+    color: white;
+    border: none;
+    padding: 14px 30px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 4px 8px rgba(255, 46, 140, 0.5);
+    transition: background-color 0.3s ease;
+  }
+  #next-btn:hover {
+    background-color: #d1236a;
+  }
+
+  #history {
+    max-width: 600px;
+    width: 90%;
+    background: #fff0f5;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(214, 50, 90, 0.2);
+    padding: 15px 20px;
+    margin-top: auto;
+    text-align: left;
+    font-weight: 600;
+    color: #c40a66;
+  }
+  #history h3 {
+    margin-top: 0;
+    font-weight: 900;
+    font-size: 1.4rem;
+  }
+  #history ul {
+    padding-left: 20px;
+    margin: 5px 0 0 0;
+  }
+  #history li {
+    list-style-type: disc;
+    margin-bottom: 6px;
+    font-size: 1rem;
+  }
+
+  /* Hiệu ứng xoay cho người thắng */
+  @keyframes winnerRotate {
+    0% { transform: rotate(0deg) scale(1); }
+    100% { transform: rotate(360deg) scale(2.5); }
+  }
+
+  /* Hiệu ứng nhấp nháy */
   @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
   }
-  .dimmed {
-    filter: brightness(0.6);
-    transition: filter 0.4s ease;
+  .blink {
+    animation: blink 1s infinite;
   }
-  .winner::after {
-    content: '';
-    position: absolute;
-    top: 5px; left: 5px; right: 5px; bottom: 5px;
-    border-radius: 30px;
-    box-shadow: 0 0 20px 8px #ff69b4;
-    animation: sparkle 1.2s infinite;
-    pointer-events: none;
-    z-index: 20;
-  }
-  @keyframes sparkle {
-    0%, 100% { box-shadow: 0 0 15px 5px #ff69b4; }
-    50% { box-shadow: 0 0 30px 10px #ff1493; }
-  }
-  #resultArea {
-    margin-top: 25px;
-    max-width: 600px;
-    width: 90%;
-    text-align: center;
-  }
-  #resultArea h2 {
-    color: #d63384;
-    margin-bottom: 10px;
-  }
-  #historyList {
-    max-height: 180px;
-    overflow-y: auto;
-    background: white;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    font-family: monospace;
-    color: #222;
-  }
-  #historyList li {
-    margin-bottom: 5px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 3px;
-  }
-  #winnerDisplay {
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 100;
-    text-align: center;
-  }
-  #winnerDisplay .animal-icon {
-    font-size: 10rem !important;
-    filter: drop-shadow(0 0 25px #ff1493);
-    border-radius: 50% !important;
-    background: #fff0f5 !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-  }
-  #winnerDisplay .animal-name {
-    font-size: 3.5rem !important;
-    color: #ff1493;
-    text-transform: uppercase;
-    font-weight: 900;
-    margin-top: 12px;
-    user-select: text;
-  }
-  #downloadSampleBtn {
-    background: #6b4c9a;
-    margin-left: 10px;
-  }
+
 </style>
 </head>
 <body>
 
-<h1>🎉 Gọi ngẫu nhiên học sinh dễ thương 🎉</h1>
+<h1>🎉 Vòng Quay Vui Vẻ</h1>
 
-<div id="inputArea">
-  <div id="inputHint">Nhập tên học sinh, mỗi tên một dòng (tối đa 50). Ví dụ: Võ Minh Thịnh</div>
-  <textarea id="namesInput" placeholder="Nhập danh sách tên học sinh..."></textarea>
-  <br />
-  <button id="startBtn">🎬 Bắt đầu cuộc đua thú!</button>
-  <button id="nextBtn" style="display:none; margin-left:15px; background:#ff1493;">➡ Tiếp tục (loại người thắng)</button>
-  <button id="downloadSampleBtn" title="Tải mẫu danh sách" style="background:#6b4c9a;">📥 Tải danh sách mẫu</button>
+<div id="input-area">
+  <textarea id="names-input" placeholder="Nhập danh sách tên học sinh, mỗi tên một dòng (tối đa 50)"></textarea>
+  <button id="start-btn">Bắt đầu chọn</button>
 </div>
 
-<div id="animalContainer"></div>
+<div id="animal-container"></div>
 
-<div id="winnerDisplay" style="display:none;"></div>
+<div id="winner-display"></div>
 
-<div id="resultArea">
-  <h2>📋 Lịch sử kết quả</h2>
-  <ul id="historyList"></ul>
+<button id="next-btn">Chọn tiếp</button>
+
+<div id="history">
+  <h3>Lịch sử kết quả</h3>
+  <ul id="history-list"></ul>
 </div>
 
-<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
 
 <script>
-  const animalIcons = [
-    '🐰','🐷','🐸','🐵','🐼','🐨','🦊','🐯','🐮','🐔',
-    '🦄','🐭','🐹','🐻','🐤','🦉','🐙','🦀','🐢','🦋',
-    '🐝','🐞','🦆','🐧','🦔','🐴','🦌','🐺','🐗','🦉',
-    '🐬','🐠','🐡','🦢','🐓','🦝','🐕','🐩','🐈','🦜',
-    '🐇','🦥','🦨','🐦','🦚','🐿️','🦥','🦦','🐉','🦄'
-  ];
+  const maxStudents = 50;
+  const animalIcons = ['🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱'];
+  
+  const namesInput = document.getElementById('names-input');
+  const startBtn = document.getElementById('start-btn');
+  const animalContainer = document.getElementById('animal-container');
+  const winnerDisplay = document.getElementById('winner-display');
+  const nextBtn = document.getElementById('next-btn');
+  const historyList = document.getElementById('history-list');
+  const winSound = document.getElementById('win-sound');
 
   let animals = [];
   let winner = null;
   let history = [];
 
-  const container = document.getElementById('animalContainer');
-  const startBtn = document.getElementById('startBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const namesInput = document.getElementById('namesInput');
-  const winnerDisplay = document.getElementById('winnerDisplay');
-  const historyList = document.getElementById('historyList');
-  const winSound = document.getElementById('winSound');
-  const downloadSampleBtn = document.getElementById('downloadSampleBtn');
-
-  function normalizeName(name) {
-    name = name.trim();
-    if (name.length === 0) return null;
-    // lấy chữ cuối và in hoa
-    const parts = name.split(/\s+/);
-    return parts[parts.length-1].toUpperCase();
+  // Xử lý tên theo format: lấy chữ cuối, in hoa
+  function formatName(fullName) {
+    let parts = fullName.trim().split(/\s+/);
+    if(parts.length === 0) return '';
+    let lastName = parts[parts.length-1];
+    return lastName.toUpperCase();
   }
 
+  // Tạo thẻ thú với tên
   function createAnimalCard(name, icon) {
     const card = document.createElement('div');
     card.classList.add('animal-card');
-
-    const iconEl = document.createElement('div');
-    iconEl.classList.add('animal-icon');
-    iconEl.textContent = icon;
-
-    const nameEl = document.createElement('p');
-    nameEl.classList.add('animal-name');
-    nameEl.textContent = name;
-
-    card.appendChild(iconEl);
-    card.appendChild(nameEl);
-
+    card.innerHTML = `
+      <div class="animal-icon">${icon}</div>
+      <div class="animal-name">${name}</div>
+    `;
     return card;
   }
 
-  function shuffleArray(arr) {
-    for(let i = arr.length -1; i > 0; i--){
-      const j = Math.floor(Math.random()*(i+1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
+  // Hiển thị danh sách thú
+  function displayAnimals(){
+    animalContainer.innerHTML = '';
+    animals.forEach(({name, icon}) => {
+      const card = createAnimalCard(name, icon);
+      animalContainer.appendChild(card);
+      // lưu phần tử card vào mảng để tiện xử lý sau
+      animals.find(a => a.name === name).card = card;
+    });
   }
 
-  function startRace() {
-    const namesRaw = namesInput.value.split('\n');
-    let cleanNames = namesRaw.map(normalizeName).filter(n => n !== null);
-    if(cleanNames.length === 0){
-      alert("Vui lòng nhập ít nhất một tên học sinh.");
-      return;
-    }
-    if(cleanNames.length > 50){
-      alert("Tối đa 50 học sinh thôi nha!");
-      cleanNames = cleanNames.slice(0, 50);
-    }
-    animals = [];
-    container.innerHTML = '';
-    winnerDisplay.style.display = 'none';
-    winner = null;
-
-    for(let i = 0; i < cleanNames.length; i++){
-      const icon = animalIcons[i % animalIcons.length];
-      const card = createAnimalCard(cleanNames[i], icon);
-      container.appendChild(card);
-      animals.push({name: cleanNames[i], icon, card});
-    }
-
-    nextBtn.style.display = 'none';
-
-    animateRace();
+  // Cập nhật lịch sử
+  function updateHistory(){
+    historyList.innerHTML = '';
+    history.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      historyList.appendChild(li);
+    });
   }
 
-  // Nhảy nhót lộn xộn, nhiều hơn
-  function animateRace(){
-    let moves = 120;
-    let interval = 70;
-
-    let count = 0;
-    const moveInterval = setInterval(() => {
-      animals.forEach(({card}) => {
-        const dx = (Math.random()-0.5)*30;
-        const dy = (Math.random()-0.5)*25;
-        card.style.transform = `translate(${dx}px, ${dy}px)`;
-      });
-      count++;
-      if(count >= moves){
-        clearInterval(moveInterval);
-        chooseWinner();
-      }
-    }, interval);
-  }
-
+  // Bắt đầu chọn người thắng
   function chooseWinner(){
+    if(animals.length === 0) return;
     const winnerIndex = Math.floor(Math.random() * animals.length);
     winner = animals[winnerIndex];
 
@@ -356,38 +278,38 @@
       if(idx === winnerIndex){
         card.classList.add('winner');
         card.style.transform = 'translate(0,0)';
-        card.style.zIndex = '100';
+        card.style.zIndex = '1000';
+        card.classList.add('blink');
       } else {
         card.classList.add('dimmed');
         card.style.transform = 'none';
       }
     });
 
-    winnerDisplay.style.display = 'block';
+    winnerDisplay.style.display = 'flex';
     winnerDisplay.innerHTML = '';
 
     const winnerCard = createAnimalCard(winner.name, winner.icon);
-    winnerCard.style.width = '220px';
-    winnerCard.style.height = '300px';
-    winnerCard.style.fontSize = '10rem';
+    winnerCard.classList.add('winner');
+    winnerCard.style.width = '150px';
+    winnerCard.style.height = '210px';
+    winnerCard.style.fontSize = '7rem';
     winnerCard.style.borderRadius = '50%';
-    winnerCard.style.boxShadow = '0 0 40px #ff1493 inset';
-    winnerCard.style.animation = 'winnerScaleRotate 4s ease forwards, blink 1.2s linear infinite';
+    winnerCard.style.boxShadow = '0 0 25px #ff1493 inset';
+    winnerCard.style.animation = 'winnerRotate 3s linear forwards';
 
     winnerDisplay.appendChild(winnerCard);
 
-    // Hiển thị tên to rõ ở dưới icon
     const winnerName = document.createElement('p');
     winnerName.textContent = winner.name;
     winnerName.style.color = '#ff1493';
-    winnerName.style.fontSize = '3.5rem';
+    winnerName.style.fontSize = '2.5rem';
     winnerName.style.fontWeight = '900';
     winnerName.style.textTransform = 'uppercase';
     winnerName.style.marginTop = '12px';
     winnerName.style.userSelect = 'text';
     winnerDisplay.appendChild(winnerName);
 
-    // Phát âm thanh vui nhộn
     winSound.currentTime = 0;
     winSound.play();
 
@@ -395,60 +317,47 @@
     if(history.length > 20) history.pop();
     updateHistory();
 
-    nextBtn.style.display = 'inline-block';
-  }
-
-  function updateHistory(){
-    historyList.innerHTML = '';
-    history.forEach((name, idx) => {
-      const li = document.createElement('li');
-      li.textContent = `${history.length - idx}. ${name}`;
-      historyList.appendChild(li);
-    });
-  }
-
-  nextBtn.addEventListener('click', () => {
-    animals = animals.filter(a => a.name !== winner.name);
-    winner = null;
-    winnerDisplay.style.display = 'none';
     nextBtn.style.display = 'none';
-    container.innerHTML = '';
-    animals.forEach(({name, icon}) => {
-      const card = createAnimalCard(name, icon);
-      container.appendChild(card);
-    });
-    if(animals.length === 0){
-      alert("Hết học sinh để chọn rồi!");
+
+    setTimeout(() => {
+      winnerDisplay.style.display = 'none';
+      nextBtn.style.display = 'inline-block';
+    }, 3000);
+  }
+
+  startBtn.onclick = () => {
+    let rawNames = namesInput.value.trim().split('\n').filter(n => n.trim() !== '');
+    if(rawNames.length === 0) {
+      alert("Vui lòng nhập ít nhất một tên!");
       return;
     }
-    animateRace();
-  });
+    if(rawNames.length > maxStudents){
+      alert(`Chỉ được nhập tối đa ${maxStudents} tên thôi nha!`);
+      rawNames = rawNames.slice(0, maxStudents);
+    }
 
-  startBtn.addEventListener('click', startRace);
+    animals = rawNames.map((fullName, i) => {
+      return {
+        name: formatName(fullName),
+        icon: animalIcons[i % animalIcons.length],
+        card: null
+      };
+    });
 
-  downloadSampleBtn.addEventListener('click', () => {
-    const sampleData = `Võ Minh Thịnh
-Nguyễn Thị Lan
-Trần Văn Hoàng
-Lê Thị Hoa
-Phạm Văn Nam
-Nguyễn Văn Bình
-Lê Minh Tú
-Phan Thị Hạnh
-Đỗ Anh Tuấn
-Trần Thị Nga`;
-    const blob = new Blob([sampleData], {type: 'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'danh_sach_hoc_sinh_mau.txt';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 0);
-  });
+    winner = null;
+    history = [];
+    updateHistory();
+    displayAnimals();
+
+    nextBtn.style.display = 'none';
+  };
+
+  nextBtn.onclick = () => {
+    if(animals.length === 0) return;
+    chooseWinner();
+  };
+
 </script>
+
 </body>
 </html>
