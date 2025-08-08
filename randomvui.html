@@ -96,12 +96,17 @@
   .animal-icon {
     font-size: 4.5rem;
     line-height: 1;
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     text-align: center;
     user-select: none;
     pointer-events: none;
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+    border-radius: 50%;
+    background: #fff0f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     animation: floatIcon 4s ease-in-out infinite;
   }
   @keyframes floatIcon {
@@ -127,7 +132,7 @@
     50% { transform: translateY(-8px); }
   }
   .winner {
-    animation: winnerScaleRotate 4s ease forwards;
+    animation: winnerScaleRotate 4s ease forwards, blink 1.2s linear infinite;
     z-index: 10;
     filter: drop-shadow(0 0 15px #ff1493);
     box-shadow: 0 0 30px 5px #ff69b4 inset;
@@ -136,6 +141,10 @@
     0% { transform: scale(1) rotate(0deg); }
     50% { transform: scale(4) rotate(720deg); }
     100% { transform: scale(3) rotate(1440deg); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
   }
   .dimmed {
     filter: brightness(0.6);
@@ -191,6 +200,11 @@
   #winnerDisplay .animal-icon {
     font-size: 10rem !important;
     filter: drop-shadow(0 0 25px #ff1493);
+    border-radius: 50% !important;
+    background: #fff0f5 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
   #winnerDisplay .animal-name {
     font-size: 3.5rem !important;
@@ -255,7 +269,9 @@
   function normalizeName(name) {
     name = name.trim();
     if (name.length === 0) return null;
-    return name.toUpperCase();
+    // lấy chữ cuối và in hoa
+    const parts = name.split(/\s+/);
+    return parts[parts.length-1].toUpperCase();
   }
 
   function createAnimalCard(name, icon) {
@@ -354,9 +370,9 @@
     winnerCard.style.width = '220px';
     winnerCard.style.height = '300px';
     winnerCard.style.fontSize = '10rem';
-    winnerCard.style.borderRadius = '40px';
+    winnerCard.style.borderRadius = '50%';
     winnerCard.style.boxShadow = '0 0 40px #ff1493 inset';
-    winnerCard.style.animation = 'winnerScaleRotate 4s ease forwards';
+    winnerCard.style.animation = 'winnerScaleRotate 4s ease forwards, blink 1.2s linear infinite';
 
     winnerDisplay.appendChild(winnerCard);
 
@@ -433,8 +449,6 @@ Trần Thị Nga`;
       URL.revokeObjectURL(url);
     }, 0);
   });
-
 </script>
-
 </body>
 </html>
