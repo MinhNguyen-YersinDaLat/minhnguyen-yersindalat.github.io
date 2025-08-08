@@ -63,7 +63,7 @@
   .animal-card {
     position: relative;
     width: 90px;
-    height: 120px; /* đủ chỗ cho icon + tên */
+    height: 130px; /* đủ chỗ cho icon + tên */
     background: white;
     border-radius: 30px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.12);
@@ -72,7 +72,7 @@
     justify-content: flex-start;
     align-items: center;
     padding-top: 10px;
-    gap: 8px;
+    gap: 6px;
     user-select: none;
     cursor: default;
     transition: transform 0.35s ease, filter 0.35s ease;
@@ -98,7 +98,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    max-width: 85px;
     text-align: center;
   }
 
@@ -278,7 +278,6 @@
       animals.push({name: cleanNames[i], icon, card});
     }
 
-    // Bật nút tiếp tục sau chạy
     nextBtn.style.display = 'none';
 
     animateRace();
@@ -292,7 +291,6 @@
     let count = 0;
     const moveInterval = setInterval(() => {
       animals.forEach(({card}) => {
-        // Dịch chuyển lắc lư ngẫu nhiên
         const dx = (Math.random()-0.5)*20;
         const dy = (Math.random()-0.5)*15;
         card.style.transform = `translate(${dx}px, ${dy}px)`;
@@ -306,11 +304,9 @@
   }
 
   function chooseWinner(){
-    // Chọn ngẫu nhiên người thắng
     const winnerIndex = Math.floor(Math.random() * animals.length);
     winner = animals[winnerIndex];
 
-    // Làm mờ các thẻ khác
     animals.forEach(({card}, idx) => {
       if(idx === winnerIndex){
         card.classList.add('winner');
@@ -322,7 +318,6 @@
       }
     });
 
-    // Hiện winner chính giữa, phóng to
     winnerDisplay.style.display = 'block';
     winnerDisplay.innerHTML = '';
 
@@ -336,12 +331,10 @@
 
     winnerDisplay.appendChild(winnerCard);
 
-    // Thêm lịch sử
     history.unshift(winner.name);
     if(history.length > 20) history.pop();
     updateHistory();
 
-    // Hiển thị nút tiếp tục
     nextBtn.style.display = 'inline-block';
   }
 
@@ -354,7 +347,6 @@
     });
   }
 
-  // Nút tiếp tục: loại người thắng và chạy lại
   nextBtn.addEventListener('click', () => {
     animals = animals.filter(a => a.name !== winner.name);
     winner = null;
