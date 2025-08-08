@@ -25,6 +25,12 @@
     width: 90%;
     text-align: center;
   }
+  #inputHint {
+    color: #666;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
   textarea {
     width: 100%;
     height: 100px;
@@ -35,6 +41,11 @@
     resize: vertical;
     box-sizing: border-box;
     font-family: monospace;
+    transition: border-color 0.3s;
+  }
+  textarea:focus {
+    border-color: #ff69b4;
+    outline: none;
   }
   button {
     margin-top: 12px;
@@ -63,10 +74,10 @@
   .animal-card {
     position: relative;
     width: 90px;
-    height: 130px; /* đủ chỗ cho icon + tên */
+    height: 130px;
     background: white;
     border-radius: 30px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -75,9 +86,12 @@
     gap: 6px;
     user-select: none;
     cursor: default;
-    transition: transform 0.35s ease, filter 0.35s ease;
+    transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.3s ease;
     will-change: transform, filter;
     animation: gentleJump 1.5s ease-in-out infinite;
+  }
+  .animal-card:hover {
+    box-shadow: 0 10px 30px rgba(255,105,180,0.6);
   }
   .animal-icon {
     font-size: 4.5rem;
@@ -87,6 +101,12 @@
     text-align: center;
     user-select: none;
     pointer-events: none;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+    animation: floatIcon 4s ease-in-out infinite;
+  }
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
   }
   .animal-name {
     margin: 0;
@@ -102,36 +122,31 @@
     text-align: center;
   }
 
-  /* Hiệu ứng nhảy nhẹ */
   @keyframes gentleJump {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
   }
-
-  /* Khi thắng */
   .winner {
     animation: winnerScaleRotate 4s ease forwards;
     z-index: 10;
+    filter: drop-shadow(0 0 15px #ff1493);
+    box-shadow: 0 0 30px 5px #ff69b4 inset;
   }
   @keyframes winnerScaleRotate {
-    0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 2px #ff69b4); }
-    50% { transform: scale(4) rotate(720deg); filter: drop-shadow(0 0 15px #ff1493); }
-    100% { transform: scale(3) rotate(1440deg); filter: drop-shadow(0 0 10px #ff69b4); }
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(4) rotate(720deg); }
+    100% { transform: scale(3) rotate(1440deg); }
   }
-
-  /* Mờ đi các con còn lại khi có winner */
   .dimmed {
     filter: brightness(0.6);
     transition: filter 0.4s ease;
   }
-
-  /* Hiệu ứng chớp lấp lánh winner */
   .winner::after {
     content: '';
     position: absolute;
     top: 5px; left: 5px; right: 5px; bottom: 5px;
     border-radius: 30px;
-    box-shadow: 0 0 15px 5px #ff69b4;
+    box-shadow: 0 0 20px 8px #ff69b4;
     animation: sparkle 1.2s infinite;
     pointer-events: none;
     z-index: 20;
@@ -140,8 +155,6 @@
     0%, 100% { box-shadow: 0 0 15px 5px #ff69b4; }
     50% { box-shadow: 0 0 30px 10px #ff1493; }
   }
-
-  /* Phần bảng kết quả */
   #resultArea {
     margin-top: 25px;
     max-width: 600px;
@@ -167,16 +180,30 @@
     border-bottom: 1px solid #eee;
     padding-bottom: 3px;
   }
-
-  /* Giữ winner giữa màn hình */
   #winnerDisplay {
     position: fixed;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 100;
+    text-align: center;
   }
-
+  #winnerDisplay .animal-icon {
+    font-size: 10rem !important;
+    filter: drop-shadow(0 0 25px #ff1493);
+  }
+  #winnerDisplay .animal-name {
+    font-size: 3.5rem !important;
+    color: #ff1493;
+    text-transform: uppercase;
+    font-weight: 900;
+    margin-top: 12px;
+    user-select: text;
+  }
+  #downloadSampleBtn {
+    background: #6b4c9a;
+    margin-left: 10px;
+  }
 </style>
 </head>
 <body>
@@ -184,22 +211,24 @@
 <h1>🎉 Gọi ngẫu nhiên học sinh dễ thương 🎉</h1>
 
 <div id="inputArea">
-  <textarea id="namesInput" placeholder="Nhập danh sách tên học sinh, mỗi tên 1 dòng (tối đa 50 học sinh)"></textarea>
+  <div id="inputHint">Nhập tên học sinh, mỗi tên một dòng (tối đa 50). Ví dụ: Võ Minh Thịnh</div>
+  <textarea id="namesInput" placeholder="Nhập danh sách tên học sinh..."></textarea>
   <br />
   <button id="startBtn">🎬 Bắt đầu cuộc đua thú!</button>
   <button id="nextBtn" style="display:none; margin-left:15px; background:#ff1493;">➡ Tiếp tục (loại người thắng)</button>
+  <button id="downloadSampleBtn" title="Tải mẫu danh sách" style="background:#6b4c9a;">📥 Tải danh sách mẫu</button>
 </div>
 
 <div id="animalContainer"></div>
 
-<div id="winnerDisplay" style="display:none;">
-  <!-- Winner icon + name sẽ hiện ở đây -->
-</div>
+<div id="winnerDisplay" style="display:none;"></div>
 
 <div id="resultArea">
   <h2>📋 Lịch sử kết quả</h2>
   <ul id="historyList"></ul>
 </div>
+
+<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 
 <script>
   const animalIcons = [
@@ -220,11 +249,12 @@
   const namesInput = document.getElementById('namesInput');
   const winnerDisplay = document.getElementById('winnerDisplay');
   const historyList = document.getElementById('historyList');
+  const winSound = document.getElementById('winSound');
+  const downloadSampleBtn = document.getElementById('downloadSampleBtn');
 
   function normalizeName(name) {
     name = name.trim();
     if (name.length === 0) return null;
-    // In hoa đầy đủ
     return name.toUpperCase();
   }
 
@@ -270,7 +300,6 @@
     winnerDisplay.style.display = 'none';
     winner = null;
 
-    // Gán icon tuần tự hoặc random nếu học sinh > số icon
     for(let i = 0; i < cleanNames.length; i++){
       const icon = animalIcons[i % animalIcons.length];
       const card = createAnimalCard(cleanNames[i], icon);
@@ -283,16 +312,16 @@
     animateRace();
   }
 
-  // Hiệu ứng nhảy nhót lộn xộn
+  // Nhảy nhót lộn xộn, nhiều hơn
   function animateRace(){
-    let moves = 100; // số bước lắc lư
-    let interval = 80; // ms cho mỗi bước
+    let moves = 120;
+    let interval = 70;
 
     let count = 0;
     const moveInterval = setInterval(() => {
       animals.forEach(({card}) => {
-        const dx = (Math.random()-0.5)*20;
-        const dy = (Math.random()-0.5)*15;
+        const dx = (Math.random()-0.5)*30;
+        const dy = (Math.random()-0.5)*25;
         card.style.transform = `translate(${dx}px, ${dy}px)`;
       });
       count++;
@@ -322,14 +351,29 @@
     winnerDisplay.innerHTML = '';
 
     const winnerCard = createAnimalCard(winner.name, winner.icon);
-    winnerCard.style.width = '180px';
-    winnerCard.style.height = '240px';
-    winnerCard.style.fontSize = '9rem';
+    winnerCard.style.width = '220px';
+    winnerCard.style.height = '300px';
+    winnerCard.style.fontSize = '10rem';
     winnerCard.style.borderRadius = '40px';
-    winnerCard.style.boxShadow = '0 0 30px #ff1493';
+    winnerCard.style.boxShadow = '0 0 40px #ff1493 inset';
     winnerCard.style.animation = 'winnerScaleRotate 4s ease forwards';
 
     winnerDisplay.appendChild(winnerCard);
+
+    // Hiển thị tên to rõ ở dưới icon
+    const winnerName = document.createElement('p');
+    winnerName.textContent = winner.name;
+    winnerName.style.color = '#ff1493';
+    winnerName.style.fontSize = '3.5rem';
+    winnerName.style.fontWeight = '900';
+    winnerName.style.textTransform = 'uppercase';
+    winnerName.style.marginTop = '12px';
+    winnerName.style.userSelect = 'text';
+    winnerDisplay.appendChild(winnerName);
+
+    // Phát âm thanh vui nhộn
+    winSound.currentTime = 0;
+    winSound.play();
 
     history.unshift(winner.name);
     if(history.length > 20) history.pop();
@@ -365,6 +409,30 @@
   });
 
   startBtn.addEventListener('click', startRace);
+
+  downloadSampleBtn.addEventListener('click', () => {
+    const sampleData = `Võ Minh Thịnh
+Nguyễn Thị Lan
+Trần Văn Hoàng
+Lê Thị Hoa
+Phạm Văn Nam
+Nguyễn Văn Bình
+Lê Minh Tú
+Phan Thị Hạnh
+Đỗ Anh Tuấn
+Trần Thị Nga`;
+    const blob = new Blob([sampleData], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'danh_sach_hoc_sinh_mau.txt';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+  });
 
 </script>
 
