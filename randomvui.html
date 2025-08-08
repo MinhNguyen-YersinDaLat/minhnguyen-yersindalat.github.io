@@ -15,11 +15,43 @@
   h1 {
     color: #d63384;
   }
+  #inputSection {
+    margin-bottom: 15px;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+  }
+  textarea {
+    width: 100%;
+    height: 100px;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #d63384;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  button {
+    background: #d63384;
+    border: none;
+    color: white;
+    padding: 12px 28px;
+    font-size: 18px;
+    margin: 10px 6px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(214,51,132,0.7);
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #a30052;
+  }
   #container {
     position: relative;
     width: 100%;
     max-width: 960px;
-    margin: 20px auto 40px;
+    margin: 0 auto 40px;
     height: 600px;
     border: 3px solid #d63384;
     border-radius: 15px;
@@ -84,21 +116,6 @@
     from { transform: translate(-50%, -50%) scale(4) rotate(0deg);}
     to { transform: translate(-50%, -50%) scale(4) rotate(360deg);}
   }
-  button {
-    background: #d63384;
-    border: none;
-    color: white;
-    padding: 14px 30px;
-    font-size: 18px;
-    margin: 10px 6px;
-    border-radius: 25px;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(214,51,132,0.7);
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #a30052;
-  }
   #result {
     font-size: 22px;
     margin-top: 15px;
@@ -130,6 +147,12 @@
 
 <h1>🎲 Chọn ngẫu nhiên học sinh vui nhộn 🎉</h1>
 
+<div id="inputSection">
+  <label for="namesInput" style="font-weight:bold; color:#d63384;">Nhập tên học sinh mỗi dòng một tên (tối đa 50):</label><br>
+  <textarea id="namesInput" placeholder="VD: Nguyễn Văn A&#10;Trần Thị B&#10;Lê Minh C"></textarea><br>
+  <button id="btnUpdateList">Cập nhật danh sách học sinh</button>
+</div>
+
 <div id="container"></div>
 
 <div>
@@ -154,7 +177,6 @@
     '🦀','🐠','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓'
   ];
 
-  // Danh sách 50 học sinh (ví dụ tên gốc)
   let students = [
     "Nguyễn Văn An", "Trần Thị Bình", "Lê Minh Cường", "Phạm Thị Duyên", "Hoàng Văn Đông",
     "Võ Minh Thịnh", "Bùi Thị Hồng", "Đặng Văn Khoa", "Phan Thị Lan", "Trương Văn Nam",
@@ -178,7 +200,6 @@
     return firstInitial + lastName;
   }
 
-  // Mảng lưu đối tượng student {name, short, icon, x, y, element}
   let activeStudents = [];
 
   const container = document.getElementById('container');
@@ -186,17 +207,17 @@
   const btnContinue = document.getElementById('btnContinue');
   const result = document.getElementById('result');
   const historyList = document.getElementById('historyList');
+  const namesInput = document.getElementById('namesInput');
+  const btnUpdateList = document.getElementById('btnUpdateList');
 
   // Tạo vị trí ngẫu nhiên trong container, không chồng lên nhau
   function randomPosition(existingPositions, width=50, height=50) {
-    const containerRect = container.getBoundingClientRect();
     const maxX = container.clientWidth - width;
     const maxY = container.clientHeight - height;
     let tries = 0;
     while(tries < 1000){
       const x = Math.floor(Math.random()*maxX);
       const y = Math.floor(Math.random()*maxY);
-      // check khoảng cách với các vị trí khác, tránh chồng chéo
       if(existingPositions.every(p => {
         const dx = p.x - x;
         const dy = p.y - y;
@@ -206,7 +227,6 @@
       }
       tries++;
     }
-    // fallback
     return {x:0,y:0};
   }
 
@@ -215,7 +235,7 @@
     activeStudents = [];
     container.innerHTML = '';
     let positions = [];
-    for(let i=0; i<students.length; i++){
+    for(let i=0; i<students.length && i<50; i++){
       const icon = animalIcons[i % animalIcons.length];
       const name = students[i];
       const short = shortName(name);
@@ -252,13 +272,16 @@
     });
   }
 
-  // Xử lý chọn ngẫu nhiên
   let selectedStudent = null;
   let jumpCount = 0;
   let jumpInterval = null;
   const jumps = 30;
 
   function selectRandomStudent(){
+    if(activeStudents.length === 0) {
+      alert("Danh sách học sinh trống. Vui lòng nhập tên học sinh.");
+      return;
+    }
     btnRandom.disabled = true;
     btnContinue.style.display = 'none';
     result.textContent = '';
@@ -272,20 +295,16 @@
       if(jumpCount >= jumps){
         clearInterval(jumpInterval);
 
-        // Chọn random
         const idx = Math.floor(Math.random() * activeStudents.length);
         selectedStudent = activeStudents[idx];
 
-        // reset class
         activeStudents.forEach(s=>{
           s.element.classList.remove('selected','winner','dimmed');
           s.element.style.position = 'absolute';
         });
 
-        // gán class winner cho người thắng
         selectedStudent.element.classList.add('selected','winner');
 
-        // các icon khác mờ nhỏ
         activeStudents.forEach(s=>{
           if(s !== selectedStudent){
             s.element.classList.add('dimmed');
@@ -293,11 +312,9 @@
           }
         });
 
-        // Cập nhật kết quả
         result.textContent = `🎉 Đã chọn: ${selectedStudent.icon} ${selectedStudent.name.toUpperCase()} 🎉`;
         updateHistory(selectedStudent.name.toUpperCase(), selectedStudent.icon);
 
-        // Phát âm thanh vui nhộn
         const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
         audio.volume = 0.6;
         audio.play();
@@ -311,24 +328,21 @@
 
   btnRandom.addEventListener('click', selectRandomStudent);
 
-  // Lịch sử kết quả
   let history = [];
 
   function updateHistory(name, icon){
     history.unshift({name, icon});
     if(history.length > 10) history.pop();
     historyList.innerHTML = '';
-    history.forEach((item, i) => {
+    history.forEach((item) => {
       const li = document.createElement('li');
       li.textContent = `${item.icon}  ${item.name}`;
       historyList.appendChild(li);
     });
   }
 
-  // Nút tiếp tục - loại bỏ người thắng, làm lại
   btnContinue.addEventListener('click', () => {
     if(selectedStudent){
-      // Loại bỏ người thắng ra khỏi danh sách
       students = students.filter(s => s !== selectedStudent.name);
       createStudents();
       selectedStudent = null;
@@ -337,6 +351,29 @@
       btnContinue.style.display = "none";
     }
   });
+
+  btnUpdateList.addEventListener('click', () => {
+    let inputText = namesInput.value.trim();
+    if(!inputText){
+      alert("Vui lòng nhập tên học sinh.");
+      return;
+    }
+    let namesArray = inputText.split('\n')
+      .map(name => name.trim())
+      .filter(name => name.length > 0)
+      .slice(0,50); // tối đa 50 tên
+    students = namesArray;
+    createStudents();
+    selectedStudent = null;
+    result.textContent = '';
+    btnRandom.style.display = "inline-block";
+    btnContinue.style.display = "none";
+    history = [];
+    historyList.innerHTML = '';
+  });
+
+  // Gán giá trị mặc định vào textarea
+  namesInput.value = students.join('\n');
 </script>
 
 </body>
