@@ -3,306 +3,256 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Random Học Sinh - Đua Thú 5 Hàng 50 Em</title>
+<title>Sàn Đấu Vật Nuôi - Party Animals phiên bản Toán</title>
 <style>
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #ffe6f0, #ffb6c1);
-    margin: 0; padding: 20px;
-    text-align: center;
-    color: #5a2a47;
+    margin:0; background:#f0f8ff; font-family: Arial, sans-serif; text-align:center;
   }
-  h1 {
-    margin-bottom: 10px;
+  #canvas-container {
+    position: relative; margin: 20px auto; width: 800px; height: 800px; 
+    border: 3px solid #333; border-radius: 50%; background: #fff;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
   }
-  textarea {
-    width: 80%;
-    max-width: 600px;
-    height: 150px;
-    padding: 10px;
-    font-size: 1.1rem;
-    border-radius: 10px;
-    border: 2px solid #ff69b4;
-    resize: vertical;
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: transparent !important;
   }
-  #raceArea {
-    margin: 25px auto;
-    width: 90%;
-    max-width: 900px;
-    background: #fff0f5;
-    border-radius: 15px;
-    padding: 20px;
-    min-height: 360px;
-    max-height: 700px;
-    overflow-y: auto;
-    box-shadow: 0 0 15px rgba(255,105,180,0.3);
-    position: relative;
+  #winner {
+    font-size: 24px; font-weight: bold; color: #d63384; margin: 15px 0;
   }
-  .lane {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    height: 70px;
-    margin-bottom: 10px;
-    position: relative;
-    background: #ffe1f3;
-    border-radius: 12px;
-    padding-left: 160px;
+  #startBtn, #resetBtn {
+    padding: 12px 24px; font-size: 16px; border:none; border-radius: 25px; cursor:pointer;
+    margin: 10px 8px;
+    background: #ff69b4; color: white;
+    box-shadow: 0 4px 8px rgba(255,105,180,0.6);
+    transition: background-color 0.3s ease;
   }
-  .runnerName {
-    width: 150px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: #bf2e74;
-    user-select: none;
-    position: absolute;
-    left: 10px;
+  #startBtn:hover, #resetBtn:hover {
+    background: #d63384;
   }
-  .runnerEmoji {
-    font-size: 40px;
-    filter: drop-shadow(2px 4px 3px rgba(255, 105, 180, 0.4));
-    position: relative;
-    transition: transform 0.05s linear;
+  #inputNames {
+    width: 800px; height: 120px; margin: 10px auto; font-size: 16px; padding: 8px;
+    border-radius: 8px; border: 2px solid #ff69b4; resize: none;
   }
-  /* Rung lắc animation khi về đích */
-  @keyframes shake {
-    0%, 100% { transform: translateX(0) rotate(0deg); }
-    20%, 60% { transform: translateX(-5px) rotate(-10deg); }
-    40%, 80% { transform: translateX(5px) rotate(10deg); }
-  }
-  .shake {
-    animation: shake 0.5s ease-in-out 4;
-  }
-  #buttons {
-    margin-top: 20px;
-  }
-  button {
-    background: #ff69b4;
-    border: none;
-    color: white;
-    padding: 12px 25px;
-    margin: 0 10px;
-    font-size: 1rem;
-    border-radius: 30px;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgba(255,105,180,0.6);
-    transition: background-color 0.3s;
-  }
-  button:hover:not(:disabled) {
-    background: #d81e6e;
-  }
-  button:disabled {
-    background: #ffc1dc;
-    cursor: default;
-  }
-  #history {
-    margin-top: 30px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    background: #fff0f5;
-    border-radius: 15px;
-    padding: 15px;
-    box-shadow: 0 0 10px rgba(255,105,180,0.25);
-    color: #a12e62;
-    font-size: 1rem;
-    max-height: 180px;
-    overflow-y: auto;
-    text-align: left;
-  }
-  #history h2 {
-    margin-top: 0;
-  }
-  #history ul {
-    padding-left: 20px;
-    margin: 0;
-  }
-  #history li {
-    margin-bottom: 6px;
+  label {
+    font-weight: bold; color: #444; font-size: 18px;
   }
 </style>
 </head>
 <body>
 
-<h1>🎉 Gọi Ngẫu Nhiên Học Sinh Bằng Đua Thú 5 Hàng 🐰🐷🐨</h1>
-<p>Nhập danh sách tối đa 50 học sinh, mỗi tên một dòng. Học sinh sẽ được chia đều vào 5 hàng, mỗi hàng 10 bạn chạy đua song song.</p>
+<h1>🎉 Sàn Đấu Vật Nuôi - Chọn Học Sinh Ngẫu Nhiên 🎉</h1>
 
-<textarea id="namesInput" placeholder="Nhập tên học sinh vào đây, mỗi tên trên 1 dòng..."></textarea>
+<label for="inputNames">Nhập danh sách tên học sinh (tối đa 50), mỗi tên một dòng:</label><br/>
+<textarea id="inputNames" placeholder="Ví dụ: Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C"></textarea><br/>
 
-<div id="buttons">
-  <button id="startBtn">🚀 Bắt đầu</button>
-  <button id="pauseBtn" disabled>⏸️ Tạm dừng</button>
-  <button id="resetBtn" disabled>🔄 Làm mới</button>
-</div>
+<button id="startBtn">🚀 Bắt đầu đua</button>
+<button id="resetBtn" disabled>🔄 Làm lại</button>
 
-<div id="raceArea" aria-live="polite" aria-atomic="true" aria-relevant="additions"></div>
+<div id="canvas-container"></div>
 
-<section id="history" aria-live="polite" aria-atomic="true">
-  <h2>Lịch sử kết quả</h2>
-  <ul id="historyList"></ul>
-</section>
+<div id="winner"></div>
 
-<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script>
-  const animalEmojis = ['🐰','🐷','🐨','🐼','🐸','🐯','🦊','🐵','🐶','🐱','🦄','🐭','🐹','🐻','🐔','🐴','🐗','🐝','🐬','🐢'];
-  const namesInput = document.getElementById('namesInput');
-  const raceArea = document.getElementById('raceArea');
+  const { Engine, Render, Runner, Bodies, Composite, Events, Body, Vector } = Matter;
+
+  const container = document.getElementById('canvas-container');
+  const winnerDiv = document.getElementById('winner');
   const startBtn = document.getElementById('startBtn');
-  const pauseBtn = document.getElementById('pauseBtn');
   const resetBtn = document.getElementById('resetBtn');
-  const historyList = document.getElementById('historyList');
-  const winSound = document.getElementById('winSound');
+  const inputNames = document.getElementById('inputNames');
 
-  let lanes = [];
-  let raceInterval = null;
-  let paused = false;
-  let finished = false;
+  let engine, render, runner;
+  let balls = [];
+  let isRunning = false;
 
-  function createRunner(name, emoji, laneDiv) {
-    const runnerDiv = document.createElement('div');
-    runnerDiv.className = 'runnerEmoji';
-    runnerDiv.textContent = emoji;
-    runnerDiv.style.transform = 'translateX(0)';
-    laneDiv.appendChild(runnerDiv);
+  const maxPlayers = 50;
+  const arenaRadius = 380;
 
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'runnerName';
-    nameDiv.textContent = name;
-    laneDiv.appendChild(nameDiv);
-
-    return {
-      name,
-      runnerDiv,
-      position: 0,
-      speed: 2 + Math.random() * 2 // px per tick
-    };
+  // Tạo màu sắc khác nhau cho từng thú
+  function getRandomColor(seed) {
+    const colors = [
+      '#ff6f91', '#ff9671', '#ffc75f', '#f9f871', '#5bd1a6',
+      '#00bcd4', '#8067c9', '#b36ac9', '#ff9a76', '#ff7f50',
+      '#7fffd4', '#ffdab9', '#e0ffff', '#afeeee', '#dda0dd'
+    ];
+    return colors[seed % colors.length];
   }
 
-  function startRace() {
-    if (raceInterval) return;
+  // Tạo thú (hình tròn + tên)
+  function createAnimal(name, index) {
+    // Random vị trí trong vòng tròn arena
+    let angle = Math.random() * 2 * Math.PI;
+    let r = Math.random() * (arenaRadius - 30);
+    let x = container.clientWidth/2 + r * Math.cos(angle);
+    let y = container.clientHeight/2 + r * Math.sin(angle);
 
-    let names = namesInput.value.trim().split('\n').map(n => n.trim()).filter(n => n !== '');
-    if (names.length === 0) {
-      alert('Bạn chưa nhập tên học sinh!');
-      return;
-    }
-    if (names.length > 50) {
-      alert('Chỉ hỗ trợ tối đa 50 học sinh, sẽ lấy 50 tên đầu tiên.');
-      names = names.slice(0, 50);
-    }
-
-    raceArea.innerHTML = '';
-    lanes = [];
-
-    // Tạo 5 lanes
-    for(let i=0; i<5; i++) {
-      const laneDiv = document.createElement('div');
-      laneDiv.className = 'lane';
-      raceArea.appendChild(laneDiv);
-      lanes.push({ laneDiv, runners: [] });
-    }
-
-    // Chia đều học sinh cho 5 lanes
-    for (let i=0; i<names.length; i++) {
-      const laneIndex = Math.floor(i / 10);
-      if(laneIndex >= 5) break; // chỉ 5 lane thôi
-      const emoji = animalEmojis[i % animalEmojis.length];
-      const runner = createRunner(names[i], emoji, lanes[laneIndex].laneDiv);
-      lanes[laneIndex].runners.push(runner);
-    }
-
-    finished = false;
-    paused = false;
-
-    startBtn.disabled = true;
-    pauseBtn.disabled = false;
-    resetBtn.disabled = false;
-    pauseBtn.textContent = '⏸️ Tạm dừng';
-
-    raceInterval = setInterval(() => {
-      if(paused || finished) return;
-
-      lanes.forEach(lane => {
-        lane.runners.forEach(runner => {
-          runner.position += runner.speed;
-          const finishLine = raceArea.clientWidth - 70;
-          if(runner.position >= finishLine && !finished) {
-            runner.position = finishLine;
-            finishRace(runner);
-          }
-          runner.runnerDiv.style.transform = `translateX(${runner.position}px)`;
-        });
-      });
-    }, 50);
+    let ball = Bodies.circle(x, y, 30, {
+      restitution: 0.8,
+      friction: 0.2,
+      density: 0.002,
+      label: name
+    });
+    ball.render.fillStyle = getRandomColor(index);
+    ball.name = name;
+    return ball;
   }
 
-  function finishRace(winner) {
-    finished = true;
-    clearInterval(raceInterval);
-    raceInterval = null;
-
-    // Rung lắc thú cưng về đích
-    winner.runnerDiv.classList.add('shake');
-
-    // Phát âm thanh chiến thắng
-    winSound.currentTime = 0;
-    winSound.play();
-
-    alert(`🎉 Chúc mừng học sinh được chọn: ${winner.name}! 🏆`);
-    addToHistory(winner.name);
-
-    startBtn.disabled = false;
-    pauseBtn.disabled = true;
-  }
-
-  function pauseRace() {
-    paused = !paused;
-    pauseBtn.textContent = paused ? '▶️ Tiếp tục' : '⏸️ Tạm dừng';
-  }
-
-  function resetRace() {
-    if(raceInterval) clearInterval(raceInterval);
-    raceInterval = null;
-    paused = false;
-    finished = false;
-    lanes = [];
-    raceArea.innerHTML = '';
-    startBtn.disabled = false;
-    pauseBtn.disabled = true;
-    resetBtn.disabled = true;
-  }
-
-  function addToHistory(name) {
-    let history = JSON.parse(localStorage.getItem('raceHistory') || '[]');
-    const timeStr = new Date().toLocaleString('vi-VN');
-    history.unshift(`${timeStr}: ${name}`);
-    if(history.length > 20) history.pop();
-    localStorage.setItem('raceHistory', JSON.stringify(history));
-    renderHistory();
-  }
-
-  function renderHistory() {
-    let history = JSON.parse(localStorage.getItem('raceHistory') || '[]');
-    historyList.innerHTML = '';
-    if(history.length === 0) {
-      historyList.innerHTML = '<li>Chưa có kết quả nào.</li>';
-      return;
-    }
-    history.forEach(entry => {
-      const li = document.createElement('li');
-      li.textContent = entry;
-      historyList.appendChild(li);
+  // Vẽ tên trên canvas
+  function drawNames(render, balls) {
+    let ctx = render.context;
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "black";
+    balls.forEach(ball => {
+      let pos = ball.position;
+      ctx.fillText(ball.name, pos.x, pos.y - 40);
     });
   }
 
-  renderHistory();
+  // Tạo sàn đấu hình tròn ranh giới
+  function createArenaWalls() {
+    let walls = [];
 
-  startBtn.addEventListener('click', startRace);
-  pauseBtn.addEventListener('click', pauseRace);
-  resetBtn.addEventListener('click', resetRace);
+    // 4 cạnh vuông lớn chứa sàn
+    walls.push(Bodies.rectangle(container.clientWidth/2, -50, container.clientWidth, 100, { isStatic: true }));
+    walls.push(Bodies.rectangle(container.clientWidth/2, container.clientHeight + 50, container.clientWidth, 100, { isStatic: true }));
+    walls.push(Bodies.rectangle(-50, container.clientHeight/2, 100, container.clientHeight, { isStatic: true }));
+    walls.push(Bodies.rectangle(container.clientWidth + 50, container.clientHeight/2, 100, container.clientHeight, { isStatic: true }));
+
+    return walls;
+  }
+
+  // Giới hạn vật thể trong vòng tròn arena
+  function keepInsideArena(ball) {
+    let center = { x: container.clientWidth/2, y: container.clientHeight/2 };
+    let dist = Matter.Vector.magnitude(Matter.Vector.sub(ball.position, center));
+    if (dist > arenaRadius) {
+      return false; // out of arena
+    }
+    return true;
+  }
+
+  // Khởi tạo game
+  function initGame(names) {
+    if (engine) {
+      Matter.Render.stop(render);
+      Matter.Runner.stop(runner);
+      Composite.clear(engine.world);
+      Engine.clear(engine);
+      render.canvas.remove();
+      render.textures = {};
+      balls = [];
+      isRunning = false;
+      winnerDiv.textContent = '';
+    }
+
+    engine = Engine.create();
+
+    render = Render.create({
+      element: container,
+      engine: engine,
+      options: {
+        width: container.clientWidth,
+        height: container.clientHeight,
+        wireframes: false,
+        background: 'transparent',
+      }
+    });
+
+    // Đặt background sàn đấu màu trắng tròn
+    let ctx = render.context;
+    ctx.canvas.style.borderRadius = '50%';
+
+    Composite.add(engine.world, createArenaWalls());
+
+    // Tạo các thú vật
+    names.forEach((name, i) => {
+      let animal = createAnimal(name, i);
+      Composite.add(engine.world, animal);
+      balls.push(animal);
+    });
+
+    // Tạo runner và render
+    runner = Runner.create();
+    Render.run(render);
+    Runner.run(runner, engine);
+
+    // Va chạm tạo lực ngẫu nhiên đẩy nhau
+    Events.on(engine, 'beforeUpdate', function() {
+      balls.forEach(ball => {
+        // Đẩy ngẫu nhiên 1 lực nhỏ để động vật không đứng yên
+        let force = Vector.create((Math.random() - 0.5)*0.0006, (Math.random() - 0.5)*0.0006);
+        Body.applyForce(ball, ball.position, force);
+      });
+
+      // Loại bỏ thú ra khỏi vòng tròn
+      balls = balls.filter(ball => {
+        if (!keepInsideArena(ball)) {
+          Composite.remove(engine.world, ball);
+          return false;
+        }
+        return true;
+      });
+
+      // Nếu còn 1 con duy nhất thì dừng game
+      if (balls.length === 1 && isRunning) {
+        isRunning = false;
+        winnerDiv.textContent = `🎉 Người chiến thắng là: ${balls[0].name} 🎉`;
+        resetBtn.disabled = false;
+        startBtn.disabled = false;
+        playWinSound();
+      }
+    });
+
+    // Vẽ tên mỗi frame
+    Events.on(render, 'afterRender', function() {
+      drawNames(render, balls);
+    });
+
+    resetBtn.disabled = true;
+  }
+
+  // Phát âm thanh thắng
+  function playWinSound() {
+    const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
+    audio.volume = 0.5;
+    audio.play();
+  }
+
+  // Bắt đầu game
+  startBtn.addEventListener('click', () => {
+    let rawNames = inputNames.value.trim();
+    if (!rawNames) {
+      alert('Vui lòng nhập danh sách tên học sinh!');
+      return;
+    }
+    let names = rawNames.split('\n').map(n => n.trim()).filter(n => n.length > 0).slice(0, 50);
+    if (names.length < 2) {
+      alert('Phải nhập ít nhất 2 tên!');
+      return;
+    }
+    winnerDiv.textContent = '';
+    initGame(names);
+    isRunning = true;
+    startBtn.disabled = true;
+    resetBtn.disabled = false;
+  });
+
+  // Reset game
+  resetBtn.addEventListener('click', () => {
+    winnerDiv.textContent = '';
+    balls = [];
+    Composite.clear(engine.world);
+    Engine.clear(engine);
+    render.canvas.remove();
+    render.textures = {};
+    startBtn.disabled = false;
+    resetBtn.disabled = true;
+  });
+
 </script>
-
 </body>
 </html>
