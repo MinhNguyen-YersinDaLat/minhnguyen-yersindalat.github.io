@@ -1,186 +1,289 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>Trang Chủ - Thái Minh Nguyên</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Thầy Thái Minh Nguyên — Toán & Ứng Dụng</title>
 <style>
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(to bottom right, #fff0f5, #e6f7ff);
-        overflow-x: hidden;
-    }
-    header {
-        text-align: center;
-        padding: 20px;
-        background: #ffb6c1;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    header img {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 3px solid white;
-    }
-    header h1 {
-        margin: 10px 0 5px;
-        color: #ff4081;
-    }
-    header p {
-        margin: 0;
-        font-weight: bold;
-        color: #555;
-    }
-    .container {
-        padding: 20px;
-        max-width: 900px;
-        margin: auto;
-    }
-    .section {
-        background: white;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    h2 {
-        color: #ff4081;
-        border-bottom: 2px solid #ffb6c1;
-        padding-bottom: 5px;
-    }
-    .games button {
-        background: #4cafef;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        margin: 5px;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: 0.3s;
-    }
-    .games button:hover {
-        background: #3a8fd6;
-    }
-    .docs a {
-        display: block;
-        margin: 5px 0;
-        text-decoration: none;
-        color: #007bff;
-    }
-    .floating-math {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        overflow: hidden;
-        z-index: 0;
-    }
-    .math-icon {
-        position: absolute;
-        font-size: 28px;
-        animation: floatUp 10s linear infinite, spin3D 4s linear infinite;
-        opacity: 0.8;
-    }
-    @keyframes floatUp {
-        0% { transform: translateY(100vh) rotate(0deg); }
-        100% { transform: translateY(-10vh) rotate(360deg); }
-    }
-    @keyframes spin3D {
-        from { transform: rotateX(0deg) rotateY(0deg); }
-        to { transform: rotateX(360deg) rotateY(360deg); }
-    }
-    #musicControl {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #ff4081;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 50%;
-        font-size: 20px;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
+  :root{
+    --accent:#ff6fa3;
+    --accent-2:#6f42c1;
+    --bg1:#fff7fb;
+    --card:#ffffff;
+    --muted:#556;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg,var(--bg1),#e8f8ff);
+    color:#163044;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    overflow-x:hidden;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:22px;
+    max-width:1100px;
+    margin:18px auto;
+    background: linear-gradient(90deg,var(--accent),#ffd6ea);
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(16,24,40,0.08);
+  }
+  .avatar{
+    width:120px;height:120px;border-radius:14px;object-fit:cover;border:4px solid rgba(255,255,255,0.25);box-shadow:0 8px 20px rgba(0,0,0,0.12);
+  }
+  .hero h1{margin:0;font-size:26px;color:#fff;}
+  .hero p{margin:6px 0 0;color:rgba(255,255,255,0.95);font-weight:600}
+  .hero .tag{margin-top:8px;font-size:13px;color:rgba(255,255,255,0.9)}
+
+  main{max-width:1100px;margin:18px auto;padding:0 18px 60px;display:grid;grid-template-columns:1fr 360px;gap:18px}
+  @media (max-width:980px){ main{grid-template-columns:1fr;padding:0 12px} header{flex-direction:column;align-items:center;text-align:center} .hero{text-align:center} }
+
+  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(16,24,40,0.06)}
+  h2{margin:0 0 8px;color:var(--accent-2)}
+
+  /* games */
+  .games-grid{display:flex;flex-wrap:wrap;gap:12px}
+  .game-card{width:220px;border-radius:12px;overflow:hidden;text-decoration:none;color:inherit;background:linear-gradient(180deg,#fff,#fffefc);box-shadow:0 8px 22px rgba(16,24,40,0.06);transition:transform .18s ease}
+  .game-card:hover{transform:translateY(-6px)}
+  .game-thumb{height:110px;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(90deg,var(--accent),#ffd1e6);color:white}
+  .game-info{padding:10px}
+  .game-info h3{margin:0 0 6px;font-size:16px}
+  .game-info p{margin:0;color:var(--muted);font-size:13px}
+
+  /* docs */
+  .docs-list{display:flex;flex-direction:column;gap:8px}
+  .doc-link{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:#fff;border:1px solid #f0f0f0;text-decoration:none;color:#123;box-shadow:0 6px 16px rgba(2,6,23,0.04)}
+  .doc-link .name{font-weight:700}
+  .doc-link .meta{font-size:13px;color:var(--muted)}
+
+  /* side widgets */
+  .side .small{padding:12px}
+  .btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;font-weight:800;cursor:pointer;box-shadow:0 10px 30px rgba(111,66,193,0.08)}
+  .muted{color:var(--muted);font-size:13px}
+  input.search{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e6e6}
+
+  /* floating icons layer */
+  .float-layer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .math{position:absolute;font-weight:700;color:rgba(8,24,63,0.88);text-shadow:0 1px 0 rgba(255,255,255,0.6);will-change:transform,opacity;filter:drop-shadow(0 6px 18px rgba(0,0,0,0.08))}
+
+  footer{max-width:1100px;margin:22px auto;padding:12px 18px;text-align:center;color:var(--muted)}
+  .small-muted{color:var(--muted);font-size:13px}
+  a.btn-link{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
 
-<!-- Nhạc nền -->
-<audio id="bgMusic" loop autoplay>
-    <source src="background.mp3" type="audio/mpeg">
-</audio>
-<button id="musicControl">🔊</button>
+<!-- floating icons -->
+<div class="float-layer" id="floatLayer" aria-hidden="true"></div>
 
-<header>
-    <img src="ảnh.jpg" alt="Ảnh Thái Minh Nguyên">
+<header role="banner" aria-label="Trang chủ Thầy Thái Minh Nguyên">
+  <img src="ảnh.jpg" alt="Ảnh Thái Minh Nguyên" class="avatar" />
+  <div class="hero">
     <h1>Thái Minh Nguyên</h1>
-    <p>Giáo viên Toán - THPT Yersin Đà Lạt</p>
+    <p>Giáo viên Toán — THPT Yersin Đà Lạt</p>
+    <div class="tag">Học Toán = Thử Thách + Vui Chơi • Ôn thi, Ứng dụng & Giải trí học tập</div>
+  </div>
 </header>
 
-<div class="container">
-    <div class="section games">
-        <h2>🎮 Trò chơi</h2>
-        <button onclick="window.location.href='snake.html'">Rắn Săn Mồi</button>
-        <button onclick="alert('Game 2 đang cập nhật...')">Game 2</button>
+<main>
+  <!-- left column -->
+  <section aria-labelledby="gamesTitle">
+    <div class="card">
+      <h2 id="gamesTitle">🎮 Game Toán</h2>
+      <p class="small-muted">Click để mở trong tab mới — thêm game dễ dàng bằng cách thêm file HTML vào repo.</p>
+
+      <div class="games-grid" role="list">
+        <a class="game-card" href="snake.html" target="_blank" role="listitem" title="Rắn Săn Mồi Cấp Số Nhân">
+          <div class="game-thumb">🐍</div>
+          <div class="game-info">
+            <h3>Rắn — Cấp số nhân</h3>
+            <p>Rèn phản xạ & tư duy cấp số (mở ở tab mới).</p>
+          </div>
+        </a>
+
+        <a class="game-card" href="#" title="Sắp ra mắt">
+          <div class="game-thumb">🧩</div>
+          <div class="game-info">
+            <h3>Thử thách logic</h3>
+            <p>Game đố logic — sắp ra mắt.</p>
+          </div>
+        </a>
+
+        <a class="game-card" href="#" title="Sắp ra mắt">
+          <div class="game-thumb">🔎</div>
+          <div class="game-info">
+            <h3>Tìm số bí ẩn</h3>
+            <p>Nhận dạng pattern & tư duy nhanh.</p>
+          </div>
+        </a>
+      </div>
     </div>
 
-    <div class="section docs">
-        <h2>📂 Tài liệu</h2>
-        <div id="docList">Đang tải tài liệu...</div>
+    <div class="card" aria-labelledby="challengeTitle">
+      <h2 id="challengeTitle">🏆 Thử thách & Bài tập</h2>
+      <p class="small-muted">Dùng cho ôn luyện, thi thử, hoặc làm warm-up đầu giờ.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button class="btn" onclick="alert('Thử thách đang chạy — cập nhật sau')">Thử thách tuần</button>
+        <button class="btn" onclick="alert('Sinh đề nhanh — feature sắp đến')">Sinh đề nhanh</button>
+      </div>
     </div>
-</div>
 
-<!-- Icon toán bay -->
-<div class="floating-math" id="mathContainer"></div>
+    <div class="card" aria-labelledby="docsTitle">
+      <h2 id="docsTitle">📚 Thư viện tài liệu</h2>
+      <p class="small-muted">Upload file vào folder <code>tai-lieu/</code> — trang sẽ tự cập nhật. Nhấp để xem trực tiếp (mở tab mới).</p>
+      <div id="docsArea" class="docs-list" aria-live="polite">
+        <div class="small-muted">Đang tải danh sách tài liệu…</div>
+      </div>
+    </div>
+
+    <div class="card" aria-labelledby="videoTitle">
+      <h2 id="videoTitle">🎥 Video minh họa</h2>
+      <p class="small-muted">Khu vực để nhúng YouTube / Vimeo clip ngắn (bài giảng, mẹo Casio).</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <a class="btn" href="#" onclick="alert('Tính năng chèn video: thêm link YouTube')">Thêm video</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- right column -->
+  <aside class="side">
+    <div class="card small">
+      <h3>🔎 Tìm nhanh tài liệu</h3>
+      <input id="quickSearch" class="search" placeholder="Gõ tên tài liệu..." aria-label="Tìm tài liệu" />
+      <div class="small-muted" style="margin-top:8px">Nhập vài ký tự để lọc danh sách tài liệu.</div>
+    </div>
+
+    <div class="card small">
+      <h3>🎵 Nhạc nền</h3>
+      <div style="display:flex;gap:10px;align-items:center;justify-content:center">
+        <button id="musicToggle" class="btn" aria-pressed="false">🔇</button>
+        <div class="muted">Bật / Tắt nhạc nền</div>
+      </div>
+    </div>
+
+    <div class="card small">
+      <h3>⚙️ Quản lý</h3>
+      <p class="small-muted">Thêm game: upload file HTML vào repo. Thêm tài liệu: upload file vào <code>tai-lieu/</code>.</p>
+      <a class="btn" href="https://github.com/MinhNguyen-YersinDaLat/minhnguyen-yersindalat.github.io" target="_blank">Mở repo</a>
+    </div>
+  </aside>
+</main>
+
+<footer>&copy; <span id="year"></span> Thái Minh Nguyên — THPT Yersin Đà Lạt</footer>
+
+<!-- background audio (play after interaction) -->
+<audio id="bgMusic" src="background.mp3" loop preload="auto"></audio>
 
 <script>
-// Nhạc nền
-let music = document.getElementById('bgMusic');
-let musicBtn = document.getElementById('musicControl');
-musicBtn.onclick = () => {
-    if (music.paused) { music.play(); musicBtn.textContent = "🔊"; }
-    else { music.pause(); musicBtn.textContent = "🔇"; }
-};
+/* --------- Config (repo info) --------- */
+const GITHUB_USER = 'MinhNguyen-YersinDaLat';
+const GITHUB_REPO = 'minhnguyen-yersindalat.github.io';
+const DOC_FOLDER = 'tai-lieu';
 
-// Load tài liệu tự động từ thư mục tai-lieu/
-async function loadDocs() {
-    try {
-        let res = await fetch('tai-lieu/');
-        let text = await res.text();
-        let parser = new DOMParser();
-        let htmlDoc = parser.parseFromString(text, 'text/html');
-        let links = htmlDoc.querySelectorAll('a');
-        let listHTML = "";
-        links.forEach(a => {
-            let file = a.getAttribute('href');
-            if (file && file !== '../') {
-                let name = decodeURIComponent(file.replace(/\\/g, '').split('/').pop());
-                listHTML += `<a href="tai-lieu/${name}" target="_blank">${name}</a>`;
-            }
-        });
-        document.getElementById('docList').innerHTML = listHTML || "Chưa có tài liệu.";
-    } catch (e) {
-        document.getElementById('docList').innerHTML = "Không thể tải tài liệu.";
+/* set year */
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------- floating math icons (3D-ish) ---------- */
+(function floatingIcons(){
+  const ICONS = ['∑','√','π','∞','∫','∆','±','×','÷','≈','∂','∇'];
+  const layer = document.getElementById('floatLayer');
+  const COUNT = Math.min(Math.floor(window.innerWidth * window.innerHeight / 50000), 40);
+  const rand = (a,b)=> Math.random()*(b-a)+a;
+  for(let i=0;i<COUNT;i++){
+    const el = document.createElement('div');
+    el.className = 'math';
+    el.textContent = ICONS[Math.floor(Math.random()*ICONS.length)];
+    const size = Math.round(rand(18,44));
+    el.style.fontSize = size + 'px';
+    el.style.left = rand(-10, 100) + 'vw';
+    el.style.top = rand(-10, 100) + 'vh';
+    el.style.opacity = rand(0.2,0.9).toFixed(2);
+    const dur = rand(6,16) * 1000;
+    el.animate([
+      { transform: `translateY(0px) rotateX(0deg) rotateY(0deg)`, opacity: el.style.opacity },
+      { transform: `translateY(${rand(-200,-40)}px) rotateX(${rand(90,540)}deg) rotateY(${rand(90,540)}deg)`, opacity: 1 },
+      { transform: `translateY(0px) rotateX(${rand(360,1080)}deg) rotateY(${rand(360,1080)}deg)`, opacity: el.style.opacity }
+    ], {
+      duration: dur,
+      iterations: Infinity,
+      direction: 'alternate',
+      easing: 'ease-in-out',
+      delay: Math.random()*2000
+    });
+    layer.appendChild(el);
+  }
+})();
+
+/* ---------- audio control ---------- */
+const bg = document.getElementById('bgMusic');
+const toggle = document.getElementById('musicToggle');
+let userInteracted = false;
+const ensurePlayOnInteraction = () => {
+  if(userInteracted) return;
+  userInteracted = true;
+  bg.play().catch(()=>{ /* autoplay blocked */ });
+};
+document.addEventListener('click', ensurePlayOnInteraction, {once:true});
+toggle.addEventListener('click', ()=>{
+  if(bg.paused){ bg.play(); toggle.textContent='🔊'; toggle.setAttribute('aria-pressed', 'true'); }
+  else { bg.pause(); toggle.textContent='🔇'; toggle.setAttribute('aria-pressed', 'false'); }
+});
+
+/* ---------- load docs from GitHub API ---------- */
+async function loadDocs(){
+  const area = document.getElementById('docsArea');
+  area.innerHTML = '<div class="small-muted">Đang tải danh sách tài liệu…</div>';
+  const api = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DOC_FOLDER}`;
+  try{
+    const res = await fetch(api);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const files = await res.json();
+    const docs = files.filter(f => f.type==='file' && /\.(pdf|docx?|pptx?)$/i.test(f.name))
+                      .sort((a,b)=> a.name.localeCompare(b.name,'vi'));
+    area.innerHTML = '';
+    if(docs.length===0){
+      area.innerHTML = '<div class="small-muted">Chưa có tài liệu trong <code>tai-lieu/</code>.</div>';
+      return;
     }
+    docs.forEach(f=>{
+      const a = document.createElement('a');
+      a.className = 'doc-link';
+      // open via Google Docs Viewer so most browsers show online instead of forcing download
+      a.href = `https://docs.google.com/viewer?url=${encodeURIComponent(f.download_url)}&embedded=true`;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.innerHTML = `<span class="name">${f.name}</span><span class="meta">mở xem</span>`;
+      area.appendChild(a);
+    });
+
+    // quick search hook
+    document.getElementById('quickSearch').addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      Array.from(area.children).forEach(node=>{
+        node.style.display = node.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+
+  }catch(err){
+    area.innerHTML = '<div class="small-muted">Lỗi tải tài liệu.</div>';
+    console.error(err);
+  }
 }
 loadDocs();
 
-// Tạo icon toán bay
-const icons = ['∑','√','π','∞','Δ','±','×','÷','≈','∫','∂','Ω','≠','≤','≥','∴','∵','%','∞','∇'];
-function createIcon() {
-    let icon = document.createElement('div');
-    icon.className = 'math-icon';
-    icon.style.left = Math.random() * 100 + 'vw';
-    icon.style.animationDuration = (6 + Math.random()*6) + 's, 4s';
-    icon.textContent = icons[Math.floor(Math.random()*icons.length)];
-    document.getElementById('mathContainer').appendChild(icon);
-    setTimeout(() => icon.remove(), 12000);
-}
-setInterval(createIcon, 500);
+/* ---------- keyboard helper: press G to open first game ---------- */
+window.addEventListener('keydown', e=>{
+  if(e.key.toLowerCase()==='g'){
+    const first = document.querySelector('.game-card');
+    if(first) window.open(first.href, '_blank');
+  }
+});
 </script>
 </body>
 </html>
