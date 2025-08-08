@@ -2,141 +2,163 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Trang Toán của Minh Nguyên</title>
+  <title>Trang Toán của Thái Minh Nguyên</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #fff8f0;
       margin: 0;
       padding: 0;
-      text-align: center;
+      background-color: #fffaf0;
+      overflow-x: hidden;
     }
-    <section id="gioi-thieu" style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 800px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-    <img src="teacher-icon.png" alt="Giáo viên" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px;">
-    <h2 style="margin: 0; font-size: 24px; color: #333;">Thái Minh Nguyên</h2>
-    <p style="font-size: 18px; color: #666; margin: 5px 0;">Giáo viên Toán – Trường THPT Yersin Đà Lạt</p>
-    <p style="font-size: 16px; color: #444;">Luôn yêu thích việc dạy học và tạo ra các trò chơi toán học thú vị cho học sinh.</p>
-</section>
-
     header {
       background-color: #ffb347;
       padding: 20px;
+      text-align: center;
+      color: white;
       position: relative;
-      overflow: hidden;
     }
     header h1 {
-      margin: 10px 0;
-      font-size: 2em;
+      margin: 0;
+      font-size: 36px;
     }
-    #intro-img {
-      width: 300px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    header p {
+      margin: 5px 0;
     }
-    /* Icon toán bay bay */
+    section {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+    #gioi-thieu {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    #gioi-thieu img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+    #games, #tai-lieu {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .game-button {
+      display: inline-block;
+      padding: 15px 25px;
+      margin: 10px;
+      background-color: #ff7f50;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: 0.3s;
+      font-weight: bold;
+    }
+    .game-button:hover {
+      background-color: #ff6347;
+      transform: scale(1.05);
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul li {
+      margin: 8px 0;
+    }
+    ul li a {
+      color: #333;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    ul li a:hover {
+      color: #ff4500;
+    }
+    /* Icon toán bay */
     .math-icon {
       position: absolute;
       font-size: 24px;
       animation: float 8s infinite linear;
-      opacity: 0.8;
+      opacity: 0.6;
     }
     @keyframes float {
       0% { transform: translateY(100vh) rotate(0deg); }
-      100% { transform: translateY(-100vh) rotate(360deg); }
-    }
-    /* Nút chơi game */
-    .game-btn {
-      display: inline-block;
-      margin: 20px;
-      padding: 15px 25px;
-      background-color: #4CAF50;
-      color: white;
-      font-size: 1.2em;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    .game-btn:hover {
-      background-color: #45a049;
-    }
-    /* Danh sách tài liệu */
-    #docs {
-      margin-top: 30px;
-      padding: 10px;
-    }
-    #docs h2 {
-      color: #333;
-    }
-    #doc-list {
-      list-style: none;
-      padding: 0;
-    }
-    #doc-list li {
-      margin: 8px 0;
-    }
-    #doc-list a {
-      color: #0077cc;
-      text-decoration: none;
-    }
-    #doc-list a:hover {
-      text-decoration: underline;
+      100% { transform: translateY(-10vh) rotate(360deg); }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Chào mừng đến với thế giới Toán học 🎓</h1>
-  <img id="intro-img" src="ảnh.jpg" alt="Giới thiệu Toán học">
-  <!-- Icon toán bay bay -->
-  <div class="math-icon" style="left:10%;">➗</div>
-  <div class="math-icon" style="left:30%;">➕</div>
-  <div class="math-icon" style="left:50%;">✖️</div>
-  <div class="math-icon" style="left:70%;">√</div>
-  <div class="math-icon" style="left:90%;">∑</div>
+  <h1>Trang Toán của Thái Minh Nguyên</h1>
+  <p>Chia sẻ trò chơi và tài liệu Toán học thú vị</p>
 </header>
 
-<main>
-  <!-- Nút vào game -->
-  <a class="game-btn" href="snake.html">🎮 Chơi game Rắn Săn Mồi Cấp Số Nhân</a>
+<section id="gioi-thieu">
+  <img src="teacher-icon.png" alt="Giáo viên">
+  <h2>Thái Minh Nguyên</h2>
+  <p>Giáo viên Toán – Trường THPT Yersin Đà Lạt</p>
+  <p>Luôn yêu thích việc dạy học và tạo ra các trò chơi toán học thú vị cho học sinh.</p>
+</section>
 
-  <!-- Danh sách tài liệu -->
-  <section id="docs">
-    <h2>📚 Tài liệu ôn thi THPT môn Toán</h2>
-    <ul id="doc-list">
-      <li>Đang tải danh sách...</li>
-    </ul>
-  </section>
-</main>
+<section id="games">
+  <h2>🎮 Trò chơi Toán học</h2>
+  <a href="snake.html" class="game-button" target="_blank">Rắn Săn Mồi Cấp Số Nhân</a>
+  <a href="game2.html" class="game-button" target="_blank">Game 2</a>
+  <a href="game3.html" class="game-button" target="_blank">Game 3</a>
+</section>
+
+<section id="tai-lieu">
+  <h2>📚 Tài liệu Toán học</h2>
+  <ul id="file-list">
+    <li>Đang tải danh sách tài liệu...</li>
+  </ul>
+</section>
 
 <script>
-// Lấy danh sách PDF trong thư mục "tai-lieu" từ GitHub API
-const username = "MinhNguyen-YersinDaLat";
-const repo = "minhnguyen-yersindalat.github.io";
-const folder = "tai-lieu";
+  // Icon toán bay bay
+  const symbols = ["➕","➖","✖️","➗","√","∫","π","∞"];
+  for (let i = 0; i < 20; i++) {
+    let span = document.createElement("span");
+    span.className = "math-icon";
+    span.style.left = Math.random() * 100 + "vw";
+    span.style.animationDuration = (6 + Math.random() * 4) + "s";
+    span.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    document.body.appendChild(span);
+  }
 
-fetch(`https://api.github.com/repos/${username}/${repo}/contents/${folder}`)
-  .then(response => response.json())
-  .then(files => {
-    const list = document.getElementById("doc-list");
-    list.innerHTML = ""; // Xóa dòng "Đang tải..."
-    files.forEach(file => {
-      if (file.name.endsWith(".pdf")) {
-        const li = document.createElement("li");
-        const link = document.createElement("a");
-        // Xem trực tiếp bằng Google Docs Viewer
-        link.href = `https://docs.google.com/viewer?url=${encodeURIComponent(file.download_url)}&embedded=true`;
-        link.target = "_blank";
-        link.textContent = file.name;
-        li.appendChild(link);
-        list.appendChild(li);
-      }
+  // Tự động liệt kê file trong thư mục tai-lieu
+  fetch('tai-lieu/')
+    .then(res => res.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const links = [...doc.querySelectorAll("a")];
+      const fileList = document.getElementById("file-list");
+      fileList.innerHTML = "";
+      links.forEach(link => {
+        const href = link.getAttribute("href");
+        if (href && href !== "../") {
+          let li = document.createElement("li");
+          let a = document.createElement("a");
+          a.href = "tai-lieu/" + href;
+          a.textContent = href;
+          a.target = "_blank";
+          li.appendChild(a);
+          fileList.appendChild(li);
+        }
+      });
+    })
+    .catch(err => {
+      document.getElementById("file-list").innerHTML = "<li>Lỗi tải tài liệu</li>";
     });
-  })
-  .catch(err => {
-    document.getElementById("doc-list").innerHTML = "<li>Lỗi tải tài liệu.</li>";
-    console.error(err);
-  });
 </script>
 
 </body>
