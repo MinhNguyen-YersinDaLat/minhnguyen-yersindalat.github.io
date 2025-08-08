@@ -1,190 +1,206 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>🎉 Gọi Học Sinh Đua Thú Cute 🐰🐱🐶</title>
-  <style>
-    body {
-      font-family: 'Comic Sans MS', cursive, Arial, sans-serif;
-      background: linear-gradient(135deg, #ffe6f2, #ffb6c1);
-      margin: 0;
-      padding: 20px;
-      overflow-x: hidden;
-      text-align: center;
-    }
-    h1 {
-      color: #d63384;
-      margin-bottom: 20px;
-      text-shadow: 1px 1px 4px #ff69b4;
-      font-size: 2.8em;
-    }
-    textarea {
-      width: 360px;
-      height: 120px;
-      font-size: 16px;
-      padding: 12px;
-      border-radius: 12px;
-      border: 2px solid #ff69b4;
-      resize: none;
-      box-shadow: 0 0 10px #ff69b4;
-      margin-bottom: 15px;
-    }
-    button {
-      padding: 14px 32px;
-      font-size: 20px;
-      background-color: #d63384;
-      color: white;
-      border: none;
-      border-radius: 30px;
-      cursor: pointer;
-      box-shadow: 0 6px 15px rgba(214,51,132,0.7);
-      transition: background-color 0.3s, transform 0.2s;
-      margin-bottom: 30px;
-    }
-    button:hover {
-      background-color: #ff1493;
-      transform: scale(1.05);
-    }
-    #raceTrack {
-      position: relative;
-      width: 100%;
-      max-width: 900px;
-      height: 400px;
-      background: #fff0f5;
-      border: 4px solid #ff69b4;
-      border-radius: 20px;
-      margin: auto;
-      overflow: hidden;
-      box-shadow: 0 0 15px #ff69b4;
-    }
-    .runner {
-      position: absolute;
-      left: 0;
-      width: 60px;
-      height: 60px;
-      font-size: 50px;
-      user-select: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: left 0.1s linear;
-    }
-    .runner-name {
-      font-weight: bold;
-      color: #d63384;
-      text-shadow: 1px 1px 2px #ff69b4;
-      margin-top: 4px;
-      font-size: 14px;
-      white-space: nowrap;
-    }
-    #winner {
-      font-size: 32px;
-      font-weight: 900;
-      color: #d63384;
-      margin-top: 30px;
-      text-shadow: 2px 2px 8px #ff69b4;
-      min-height: 50px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Random Học Sinh - Đua Thú Dễ Thương</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #ffe6f0, #ffb6c1);
+    margin: 0; padding: 20px;
+    text-align: center;
+    color: #5a2a47;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  textarea {
+    width: 80%;
+    max-width: 600px;
+    height: 150px;
+    padding: 10px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    border: 2px solid #ff69b4;
+    resize: vertical;
+  }
+  #raceArea {
+    margin: 25px auto;
+    width: 90%;
+    max-width: 900px;
+    background: #fff0f5;
+    border-radius: 15px;
+    padding: 20px;
+    min-height: 300px;
+    max-height: 600px;
+    overflow-y: auto;
+    box-shadow: 0 0 15px rgba(255,105,180,0.3);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .runnerRow {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+    position: relative;
+    height: 60px;
+  }
+  .runnerName {
+    width: 150px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #bf2e74;
+    user-select: none;
+  }
+  .runnerEmoji {
+    position: absolute;
+    left: 0;
+    font-size: 40px;
+    transition: transform 0.05s linear;
+  }
+  #buttons {
+    margin-top: 20px;
+  }
+  button {
+    background: #ff69b4;
+    border: none;
+    color: white;
+    padding: 12px 25px;
+    margin: 0 10px;
+    font-size: 1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(255,105,180,0.6);
+    transition: background-color 0.3s;
+  }
+  button:hover:not(:disabled) {
+    background: #d81e6e;
+  }
+  button:disabled {
+    background: #ffc1dc;
+    cursor: default;
+  }
+  /* Cute animal emojis for runners */
+  /* Will pick randomly from this list */
+</style>
 </head>
 <body>
 
-<h1>🎉 Gọi Học Sinh Đua Thú Cute</h1>
-<textarea id="namesInput" placeholder="Nhập danh sách học sinh, mỗi tên 1 dòng..."></textarea><br>
-<button id="startBtn">🚀 Bắt đầu đua!</button>
+<h1>🎉 Gọi Ngẫu Nhiên Học Sinh Bằng Đua Thú Cưng 🐰🐷🐨</h1>
+<p>Nhập danh sách tên học sinh, mỗi tên một dòng (tối đa 50). Bấm "Bắt đầu" để xem thú cưng nào về đích trước nhé!</p>
 
-<div id="raceTrack"></div>
-<div id="winner"></div>
+<textarea id="namesInput" placeholder="Nhập tên học sinh vào đây, mỗi tên trên 1 dòng..."></textarea>
+
+<div id="buttons">
+  <button id="startBtn">🚀 Bắt đầu</button>
+  <button id="pauseBtn" disabled>⏸️ Tạm dừng</button>
+  <button id="resetBtn" disabled>🔄 Làm mới</button>
+</div>
+
+<div id="raceArea" aria-live="polite" aria-atomic="true" aria-relevant="additions"></div>
 
 <script>
-  const emojis = ['🐰', '🐱', '🐶', '🦊', '🐻', '🐼', '🐨', '🐯', '🐸', '🐵'];
-  const raceTrack = document.getElementById('raceTrack');
-  const winnerDiv = document.getElementById('winner');
+  const animalEmojis = ['🐰','🐷','🐨','🐼','🐸','🐯','🦊','🐵','🐶','🐱','🦄','🐭','🐹','🐻','🐔','🐴','🐗','🐝','🐬','🐢'];
+  const namesInput = document.getElementById('namesInput');
+  const raceArea = document.getElementById('raceArea');
   const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
   let runners = [];
-  let animationId;
-  let raceInProgress = false;
+  let raceInterval = null;
+  let paused = false;
 
   function createRunner(name, index) {
-    const runner = document.createElement('div');
-    runner.classList.add('runner');
-    runner.style.top = `${index * 70 + 20}px`;
-    runner.style.left = '0px';
+    const row = document.createElement('div');
+    row.className = 'runnerRow';
 
-    const emoji = emojis[index % emojis.length];
-    runner.innerHTML = `<div>${emoji}</div><div class="runner-name">${name}</div>`;
-    raceTrack.appendChild(runner);
+    const nameLabel = document.createElement('div');
+    nameLabel.className = 'runnerName';
+    nameLabel.textContent = name;
+    row.appendChild(nameLabel);
 
-    return { element: runner, name, position: 0, speed: 1 + Math.random() * 3 };
+    const emoji = document.createElement('div');
+    emoji.className = 'runnerEmoji';
+    emoji.style.top = '10px';
+    // random animal emoji by cycling through the list with index
+    emoji.textContent = animalEmojis[index % animalEmojis.length];
+    row.appendChild(emoji);
+
+    raceArea.appendChild(row);
+
+    return {
+      name: name,
+      runnerEmoji: emoji,
+      position: 0,
+      speed: 2 + Math.random() * 2 // speed random từ 2 đến 4 px mỗi tick
+    };
   }
 
   function startRace() {
-    if (raceInProgress) return;
+    if (raceInterval) return; // tránh start liên tục
 
-    // Clear previous results
-    raceTrack.innerHTML = '';
-    winnerDiv.textContent = '';
-    runners = [];
-
-    // Get names
-    const namesText = document.getElementById('namesInput').value.trim();
-    if (!namesText) {
-      alert('Vui lòng nhập danh sách học sinh!');
-      return;
-    }
-    const names = namesText.split('\n').filter(n => n.trim().length > 0);
-
+    let names = namesInput.value.trim().split('\n').map(n => n.trim()).filter(n => n !== '');
     if (names.length === 0) {
-      alert('Danh sách học sinh trống!');
+      alert('Bạn chưa nhập tên học sinh!');
       return;
     }
-
-    // Create runners
-    names.forEach((name, i) => {
-      runners.push(createRunner(name, i));
-    });
-
-    raceInProgress = true;
-    startBtn.disabled = true;
-
-    animateRace();
-  }
-
-  function animateRace() {
-    let finished = false;
-    const finishLine = raceTrack.clientWidth - 70;
-
-    function step() {
-      runners.forEach(runner => {
-        if (!finished) {
-          runner.position += runner.speed;
-          if (runner.position >= finishLine) {
-            runner.position = finishLine;
-            finished = true;
-            raceInProgress = false;
-            startBtn.disabled = false;
-            winnerDiv.textContent = `🏆 Người chiến thắng: ${runner.name} 🎉`;
-            speakName(runner.name);
-          }
-          runner.element.style.left = runner.position + 'px';
-        }
-      });
-      if (!finished) {
-        animationId = requestAnimationFrame(step);
-      }
+    if (names.length > 50) {
+      alert('Chỉ hỗ trợ tối đa 50 học sinh, sẽ lấy 50 tên đầu tiên.');
+      names = names.slice(0, 50);
     }
-    animationId = requestAnimationFrame(step);
+
+    raceArea.innerHTML = '';
+    runners = names.map(createRunner);
+
+    paused = false;
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    resetBtn.disabled = false;
+
+    raceInterval = setInterval(() => {
+      if (!paused) {
+        runners.forEach(runner => {
+          runner.position += runner.speed;
+          if (runner.position > raceArea.clientWidth - 70) {
+            runner.position = raceArea.clientWidth - 70;
+            finishRace(runner);
+          }
+          runner.runnerEmoji.style.transform = `translateX(${runner.position}px)`;
+        });
+      }
+    }, 50);
   }
 
-  function speakName(name) {
-    if (!window.speechSynthesis) return;
-    const utterance = new SpeechSynthesisUtterance(name);
-    utterance.lang = 'vi-VN';
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+  function finishRace(winner) {
+    clearInterval(raceInterval);
+    raceInterval = null;
+    alert(`🎉 Chúc mừng học sinh được chọn: ${winner.name}! 🏆`);
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+  }
+
+  function pauseRace() {
+    paused = !paused;
+    pauseBtn.textContent = paused ? '▶️ Tiếp tục' : '⏸️ Tạm dừng';
+  }
+
+  function resetRace() {
+    if (raceInterval) clearInterval(raceInterval);
+    raceInterval = null;
+    paused = false;
+    runners = [];
+    raceArea.innerHTML = '';
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    resetBtn.disabled = true;
   }
 
   startBtn.addEventListener('click', startRace);
+  pauseBtn.addEventListener('click', pauseRace);
+  resetBtn.addEventListener('click', resetRace);
 </script>
 
 </body>
