@@ -58,6 +58,7 @@
     max-width: 900px;
     gap: 15px;
     margin-bottom: 30px;
+    min-height: 110px;
   }
 
   .animal-card {
@@ -173,13 +174,11 @@
     font-size: 1rem;
   }
 
-  /* Hiệu ứng xoay cho người thắng */
   @keyframes winnerRotate {
     0% { transform: rotate(0deg) scale(1); }
     100% { transform: rotate(360deg) scale(2.5); }
   }
 
-  /* Hiệu ứng nhấp nháy */
   @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
@@ -187,7 +186,6 @@
   .blink {
     animation: blink 1s infinite;
   }
-
 </style>
 </head>
 <body>
@@ -215,7 +213,7 @@
 <script>
   const maxStudents = 50;
   const animalIcons = ['🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱'];
-  
+
   const namesInput = document.getElementById('names-input');
   const startBtn = document.getElementById('start-btn');
   const animalContainer = document.getElementById('animal-container');
@@ -227,8 +225,9 @@
   let animals = [];
   let winner = null;
   let history = [];
+  let choosingInProgress = false;
 
-  // Xử lý tên theo format: lấy chữ cuối, in hoa
+  // Xử lý tên: lấy chữ cuối, in hoa
   function formatName(fullName) {
     let parts = fullName.trim().split(/\s+/);
     if(parts.length === 0) return '';
@@ -253,7 +252,6 @@
     animals.forEach(({name, icon}) => {
       const card = createAnimalCard(name, icon);
       animalContainer.appendChild(card);
-      // lưu phần tử card vào mảng để tiện xử lý sau
       animals.find(a => a.name === name).card = card;
     });
   }
@@ -270,16 +268,22 @@
 
   // Bắt đầu chọn người thắng
   function chooseWinner(){
-    if(animals.length === 0) return;
+    if(choosingInProgress) return;
+    if(animals.length === 0) {
+      alert('Không còn ai để chọn!');
+      nextBtn.style.display = 'none';
+      return;
+    }
+    choosingInProgress = true;
+
     const winnerIndex = Math.floor(Math.random() * animals.length);
     winner = animals[winnerIndex];
 
     animals.forEach(({card}, idx) => {
       if(idx === winnerIndex){
-        card.classList.add('winner');
+        card.classList.add('winner', 'blink');
         card.style.transform = 'translate(0,0)';
         card.style.zIndex = '1000';
-        card.classList.add('blink');
       } else {
         card.classList.add('dimmed');
         card.style.transform = 'none';
@@ -322,6 +326,7 @@
     setTimeout(() => {
       winnerDisplay.style.display = 'none';
       nextBtn.style.display = 'inline-block';
+      choosingInProgress = false;
     }, 3000);
   }
 
@@ -349,14 +354,12 @@
     updateHistory();
     displayAnimals();
 
-    nextBtn.style.display = 'none';
+    nextBtn.style.display = 'inline-block';
   };
 
   nextBtn.onclick = () => {
-    if(animals.length === 0) return;
     chooseWinner();
   };
-
 </script>
 
 </body>
