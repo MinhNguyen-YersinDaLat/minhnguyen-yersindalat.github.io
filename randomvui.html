@@ -28,54 +28,54 @@
   }
   .animal {
     position: absolute;
-    width: 70px; height: 70px;
+    width: 240px; height: 240px; /* phóng to gấp 4 lần */
     text-align: center;
     cursor: default;
     user-select: none;
     transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
   }
   .animal img, .animal .icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 15px;
-    box-shadow: 0 0 10px rgba(214, 51, 132, 0.5);
-    filter: drop-shadow(0 0 3px #d63384);
-  }
-  .animal .icon {
-    font-size: 48px;
-    line-height: 60px;
+    width: 220px;
+    height: 220px;
+    border-radius: 25px;
+    box-shadow: 0 0 18px rgba(214, 51, 132, 0.8);
+    filter: drop-shadow(0 0 6px #d63384);
+    font-size: 220px;
+    line-height: 220px;
     user-select: none;
+    display: inline-block;
   }
   .animal .name {
-    font-size: 12px;
+    font-size: 24px; /* to hơn */
+    font-weight: 900; /* chữ đậm */
     color: #d63384;
-    font-weight: bold;
-    margin-top: 4px;
+    margin-top: 6px;
     user-select: none;
-    width: 70px;
+    width: 240px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-transform: uppercase; /* in hoa toàn bộ */
   }
 
   /* Animation glow + zoom + twinkle cho thú được chọn */
   @keyframes glowPulse {
-    0% { box-shadow: 0 0 10px 4px #ff69b4; }
-    50% { box-shadow: 0 0 30px 10px #ff1493; }
-    100% { box-shadow: 0 0 10px 4px #ff69b4; }
+    0% { box-shadow: 0 0 15px 6px #ff69b4; }
+    50% { box-shadow: 0 0 45px 14px #ff1493; }
+    100% { box-shadow: 0 0 15px 6px #ff69b4; }
   }
   @keyframes sparkle {
-    0%, 100% { text-shadow: 0 0 6px #ff8fc9, 0 0 10px #ff0080; }
-    50% { text-shadow: 0 0 20px #ff9ad0, 0 0 25px #ff33a6; }
+    0%, 100% { text-shadow: 0 0 12px #ff8fc9, 0 0 20px #ff0080; }
+    50% { text-shadow: 0 0 40px #ff9ad0, 0 0 50px #ff33a6; }
   }
   @keyframes zoomInOut {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.8) rotate(15deg); }
+    50% { transform: scale(2.4) rotate(15deg); }
   }
   /* Hiệu ứng người thắng */
   @keyframes winnerZoom {
-    0%, 100% { transform: scale(1.8); }
-    50% { transform: scale(2.2) rotate(20deg); }
+    0%, 100% { transform: scale(2.4); }
+    50% { transform: scale(3) rotate(20deg); }
   }
 
   .selected {
@@ -89,8 +89,22 @@
     z-index: 2000 !important;
   }
   .faded {
-    opacity: 0.3;
+    opacity: 0.25;
     transition: opacity 0.5s ease;
+  }
+
+  /* Nhảy nhót, lộn xộn */
+  @keyframes jitterX {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(8px); }
+    50% { transform: translateX(-8px); }
+    75% { transform: translateX(5px); }
+  }
+  @keyframes jitterY {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(8px); }
+    50% { transform: translateY(-8px); }
+    75% { transform: translateY(5px); }
   }
 
   #btnRandom, #btnContinue, #btnLoadList {
@@ -100,7 +114,7 @@
     color: white;
     border: none;
     border-radius: 30px;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(255,105,180,0.6);
     transition: background-color 0.3s ease;
@@ -111,10 +125,10 @@
   }
   #result {
     margin-top: 10px;
-    font-size: 28px;
+    font-size: 32px;
     color: #d63384;
     font-weight: bold;
-    min-height: 70px;
+    min-height: 90px;
     user-select: none;
     text-align: center;
   }
@@ -147,7 +161,7 @@
   #nameList {
     margin: 10px auto 0 auto;
     width: 90vw; max-width: 900px;
-    height: 100px;
+    height: 120px;
     border-radius: 12px;
     border: 2px solid #d63384;
     padding: 10px;
@@ -160,7 +174,7 @@
     margin-top: 20px;
     font-weight: bold;
     color: #d63384;
-    font-size: 16px;
+    font-size: 18px;
   }
 </style>
 </head>
@@ -201,13 +215,13 @@
   let selectedStudent = null;
   let history = [];
 
-  // Hàm rút gọn tên: "Võ Minh Thịnh" -> "VM Thịnh"
+  // Hàm rút gọn tên: "Võ Minh Thịnh" -> "VM THỊNH"
   function shortenName(fullName) {
     const parts = fullName.trim().split(/\s+/);
-    if(parts.length === 1) return fullName;
-    const lastName = parts.pop();
+    if(parts.length === 1) return fullName.toUpperCase();
+    const lastName = parts.pop().toUpperCase();
     const initials = parts.map(p => p[0].toUpperCase()).join('');
-    return initials + ' ' + lastName;
+    return (initials + ' ' + lastName).toUpperCase();
   }
 
   function createAnimals() {
@@ -215,36 +229,38 @@
     activeStudents.forEach(stu => {
       const div = document.createElement("div");
       div.classList.add("animal");
-      div.style.left = Math.random() * (container.clientWidth - 70) + "px";
-      div.style.top = Math.random() * (container.clientHeight - 70) + "px";
+      div.style.left = Math.random() * (container.clientWidth - 240) + "px";
+      div.style.top = Math.random() * (container.clientHeight - 240) + "px";
       const icon = animalIcons[Math.floor(Math.random() * animalIcons.length)];
       stu.icon = icon;
       div.innerHTML = `<div class="icon">${icon}</div><div class="name" title="${stu.name}">${shortenName(stu.name)}</div>`;
       container.appendChild(div);
       stu.element = div;
     });
+    startJitter();
   }
 
-  function animateAnimals(duration = 3000) {
-    const interval = 120;
-    let elapsed = 0;
-    function move() {
-      activeStudents.forEach(stu => {
-        const maxX = container.clientWidth - 70;
-        const maxY = container.clientHeight - 70;
+  // Di chuyển lộn xộn dễ thương nhiều hơn
+  let jitterIntervals = [];
+  function startJitter() {
+    clearJitter();
+    jitterIntervals = activeStudents.map(stu => {
+      return setInterval(() => {
+        if(stu.element.classList.contains('selected') || stu.element.classList.contains('winner')) return;
+        const maxX = container.clientWidth - 240;
+        const maxY = container.clientHeight - 240;
         let currentX = parseFloat(stu.element.style.left);
         let currentY = parseFloat(stu.element.style.top);
-        let newX = Math.min(maxX, Math.max(0, currentX + (Math.random() * 40 - 20)));
-        let newY = Math.min(maxY, Math.max(0, currentY + (Math.random() * 40 - 20)));
+        let newX = Math.min(maxX, Math.max(0, currentX + (Math.random() * 60 - 30)));
+        let newY = Math.min(maxY, Math.max(0, currentY + (Math.random() * 60 - 30)));
         stu.element.style.left = newX + "px";
         stu.element.style.top = newY + "px";
-      });
-      elapsed += interval;
-      if (elapsed < duration) {
-        setTimeout(move, interval);
-      }
-    }
-    move();
+      }, 80);
+    });
+  }
+  function clearJitter() {
+    jitterIntervals.forEach(i => clearInterval(i));
+    jitterIntervals = [];
   }
 
   function updateHistory(name, icon) {
@@ -269,29 +285,49 @@
       s.element.style.opacity = '1';
     });
     result.textContent = "Đang chọn...";
-    animateAnimals(4000);
-    setTimeout(() => {
-      const idx = Math.floor(Math.random() * activeStudents.length);
-      selectedStudent = activeStudents[idx];
-      selectedStudent.element.classList.add('selected', 'winner');
+    clearJitter();
 
-      // Mờ đi các thú khác
-      activeStudents.forEach(s => {
-        if(s !== selectedStudent) {
-          s.element.classList.add('faded');
-        }
+    // Nhảy nhót liên tục 3.5s trước khi chọn
+    let jumps = 35;
+    let jumpCount = 0;
+    const jumpInterval = setInterval(() => {
+      activeStudents.forEach(stu => {
+        const maxX = container.clientWidth - 240;
+        const maxY = container.clientHeight - 240;
+        let currentX = parseFloat(stu.element.style.left);
+        let currentY = parseFloat(stu.element.style.top);
+        let newX = Math.min(maxX, Math.max(0, currentX + (Math.random() * 60 - 30)));
+        let newY = Math.min(maxY, Math.max(0, currentY + (Math.random() * 60 - 30)));
+        stu.element.style.left = newX + "px";
+        stu.element.style.top = newY + "px";
       });
+      jumpCount++;
+      if(jumpCount >= jumps) {
+        clearInterval(jumpInterval);
 
-      result.textContent = `🎉 Đã chọn: ${selectedStudent.icon} ${selectedStudent.name} 🎉`;
-      updateHistory(selectedStudent.name, selectedStudent.icon);
+        // Chọn ngẫu nhiên
+        const idx = Math.floor(Math.random() * activeStudents.length);
+        selectedStudent = activeStudents[idx];
+        selectedStudent.element.classList.add('selected', 'winner');
 
-      const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
-      audio.volume = 0.6;
-      audio.play();
+        // Mờ đi các thú khác
+        activeStudents.forEach(s => {
+          if(s !== selectedStudent) {
+            s.element.classList.add('faded');
+          }
+        });
 
-      btnRandom.style.display = "none";
-      btnContinue.style.display = "inline-block";
-    }, 4000);
+        result.textContent = `🎉 Đã chọn: ${selectedStudent.icon} ${selectedStudent.name} 🎉`;
+        updateHistory(selectedStudent.name, selectedStudent.icon);
+
+        const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
+        audio.volume = 0.6;
+        audio.play();
+
+        btnRandom.style.display = "none";
+        btnContinue.style.display = "inline-block";
+      }
+    }, 100);
   }
 
   function continueGame() {
