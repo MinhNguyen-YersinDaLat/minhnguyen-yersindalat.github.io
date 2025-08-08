@@ -3,364 +3,499 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Vòng Quay Vui Vẻ - Chọn ngẫu nhiên học sinh</title>
+<title>🎉 Game chọn học sinh dễ thương - Full Option</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+  /* --- Reset & body --- */
+  * {
+    box-sizing: border-box;
+  }
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
-    margin: 0; padding: 20px;
-    display: flex; flex-direction: column; align-items: center;
-    min-height: 100vh;
+    margin:0; padding:0;
+    font-family: 'Fredoka One', cursive, Arial, sans-serif;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f7fa 100%);
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh;
     color: #333;
+    overflow-x: hidden;
+    position: relative;
   }
-
-  h1 {
-    margin-bottom: 12px;
-    color: #d6336c;
-    font-weight: 900;
-    text-shadow: 1px 1px 2px #fff;
+  header {
+    margin-top: 25px;
+    text-align: center;
   }
-
-  #input-area {
+  header h1 {
+    font-size: 3rem;
+    color: #ff4081;
+    margin-bottom: 5px;
+    text-shadow: 0 0 8px #ff4081aa;
+  }
+  header p {
+    font-size: 1.3rem;
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 25px;
+  }
+  #inputArea {
+    margin: 0 auto 25px;
+    width: 90%; max-width: 650px;
+    text-align: center;
+  }
+  #inputNames {
     width: 100%;
-    max-width: 600px;
-    margin-bottom: 20px;
-  }
-  #input-area textarea {
-    width: 100%;
-    height: 100px;
-    border-radius: 10px;
-    border: 2px solid #ff77aa;
-    font-size: 16px;
-    padding: 10px;
+    height: 130px;
+    font-size: 1.2rem;
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: 3px solid #ff4081;
     resize: vertical;
-  }
-  #input-area button {
-    margin-top: 10px;
-    background-color: #ff4b81;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 25px;
+    text-transform: uppercase;
     font-weight: 700;
-    font-size: 16px;
+    box-shadow: inset 0 0 10px #ff4081aa;
+    transition: border-color 0.3s ease;
+  }
+  #inputNames:focus {
+    border-color: #e040fb;
+    outline: none;
+  }
+  #btnStart, #btnNext {
+    background: #ff4081;
+    color: white;
+    border:none;
+    padding: 16px 38px;
+    font-size: 1.4rem;
+    margin-top: 18px;
+    border-radius: 30px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    box-shadow: 0 8px 16px #ff4081bb;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-weight: 900;
   }
-  #input-area button:hover {
-    background-color: #d62e5a;
+  #btnStart:hover, #btnNext:hover {
+    background: #e040fb;
+    transform: scale(1.05);
   }
-
-  #animal-container {
+  #btnNext {
+    display: none;
+    margin-left: 20px;
+  }
+  #gameArea {
+    margin-top: 10px;
+    max-width: 1100px;
+    width: 95vw;
+    min-height: 480px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    max-width: 900px;
-    gap: 15px;
-    margin-bottom: 30px;
-    min-height: 110px;
+    gap: 18px;
+    perspective: 1200px;
   }
-
   .animal-card {
-    width: 60px;
-    height: 90px;
-    background: #fff0f5;
-    border-radius: 15px;
-    box-shadow: 0 3px 7px rgba(214, 50, 90, 0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.4s ease;
     position: relative;
-    cursor: default;
+    width: 90px;
+    height: 90px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+    display: flex; justify-content: center; align-items: center;
+    flex-direction: column;
     user-select: none;
+    cursor: default;
+    transition: transform 0.35s ease, filter 0.35s ease;
+    will-change: transform, filter;
+    animation: gentleJump 1.5s ease-in-out infinite;
   }
-
+  .animal-card:nth-child(odd) {
+    animation-delay: 0.3s;
+  }
   .animal-icon {
-    font-size: 2.5rem;
+    font-size: 4.5rem; /* giảm size icon */
     line-height: 1;
     user-select: none;
-    transition: transform 0.4s ease;
-    filter: drop-shadow(1px 2px 1px rgba(214, 50, 90, 0.7));
+    z-index: 1;
   }
   .animal-name {
-    font-size: 0.9rem;
-    margin-top: 6px;
-    color: #d6336c;
-    font-weight: 600;
-    user-select: none;
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .dimmed {
-    opacity: 0.3;
-    filter: grayscale(100%);
-  }
-
-  .winner {
-    position: fixed !important;
-    top: 50%; left: 50%;
-    transform-origin: center center;
-    z-index: 1000 !important;
-    box-shadow: 0 0 40px 10px #ff2e8c inset;
-    border-radius: 50%;
-    width: 150px !important;
-    height: 210px !important;
-    font-size: 7rem !important;
-    background: #fff0f5;
-    animation: winnerRotate 3s linear forwards;
-    cursor: default !important;
-  }
-
-  .winner .animal-name {
-    font-size: 2.8rem !important;
-    margin-top: 10px;
-    color: #ff2e8c;
+    margin-top: 10px; /* tăng khoảng cách */
     font-weight: 900;
-    text-shadow: 0 0 4px #ff75b1;
+    font-size: 1.1rem;
+    color: #222;
+    user-select: text;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+    z-index: 5;
+    position: relative;
   }
-
-  #winner-display {
-    display: none;
-    flex-direction: column;
+  /* Highlight khi chọn */
+  .highlighted {
+    animation: blinkGlow 0.9s ease-in-out infinite;
+    transform: scale(1.7) rotate(5deg);
+    z-index: 11;
+    filter: brightness(1.4) drop-shadow(0 0 10px #ff4081);
+    box-shadow: 0 0 18px #ff4081aa;
+  }
+  /* Winner effect */
+  .winner {
+    z-index: 999;
+    position: fixed !important;
+    top: 50%;
+    left: 50%;
+    width: 360px !important;
+    height: 360px !important;
+    margin-left: -180px;
+    margin-top: -180px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow:
+      0 0 25px #ff4081,
+      0 0 50px #ff4081,
+      0 0 80px #ff4081,
+      0 0 100px #ff4081;
+    font-size: 14rem !important;
+    line-height: 1;
+    display: flex !important;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 25px;
+    animation: spinAndGlow 3s linear infinite;
+    filter: drop-shadow(0 0 15px #ff4081);
+    user-select: none;
   }
-
-  #next-btn {
-    display: none;
-    background-color: #ff2e8c;
+  .winner-name {
+    position: fixed;
+    top: 68%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 3.8rem;
+    font-weight: 900;
+    color: #ff4081;
+    text-shadow: 0 0 12px #ff4081;
+    user-select: none;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    z-index: 9999;
+  }
+  /* Mờ các icon còn lại */
+  .dimmed {
+    filter: brightness(0.3) blur(1.6px);
+    transition: filter 0.5s ease;
+  }
+  /* Hiệu ứng nhảy nhót */
+  @keyframes gentleJump {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-10px) rotate(-3deg); }
+  }
+  /* Hiệu ứng chớp nhấp nháy */
+  @keyframes blinkGlow {
+    0%, 100% { filter: brightness(1.4) drop-shadow(0 0 12px #ff4081); }
+    50% { filter: brightness(2) drop-shadow(0 0 30px #ff4081); }
+  }
+  /* Hiệu ứng xoay và phát sáng */
+  @keyframes spinAndGlow {
+    0% {
+      transform: rotate(0deg);
+      filter: drop-shadow(0 0 10px #ff4081);
+    }
+    50% {
+      transform: rotate(360deg);
+      filter: drop-shadow(0 0 50px #ff4081);
+    }
+    100% {
+      transform: rotate(720deg);
+      filter: drop-shadow(0 0 10px #ff4081);
+    }
+  }
+  /* Nút bật tắt âm thanh */
+  #soundToggle {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #ff4081;
     color: white;
     border: none;
-    padding: 14px 30px;
-    border-radius: 30px;
-    font-size: 1.2rem;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
     cursor: pointer;
-    font-weight: 700;
-    box-shadow: 0 4px 8px rgba(255, 46, 140, 0.5);
+    box-shadow: 0 6px 18px rgba(255, 64, 129, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
     transition: background-color 0.3s ease;
   }
-  #next-btn:hover {
-    background-color: #d1236a;
+  #soundToggle:hover {
+    background: #e040fb;
   }
-
-  #history {
-    max-width: 600px;
-    width: 90%;
-    background: #fff0f5;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(214, 50, 90, 0.2);
-    padding: 15px 20px;
-    margin-top: auto;
-    text-align: left;
-    font-weight: 600;
-    color: #c40a66;
-  }
-  #history h3 {
-    margin-top: 0;
-    font-weight: 900;
-    font-size: 1.4rem;
-  }
-  #history ul {
-    padding-left: 20px;
-    margin: 5px 0 0 0;
-  }
-  #history li {
-    list-style-type: disc;
-    margin-bottom: 6px;
+  /* Lịch sử kết quả */
+  #historyArea {
+    max-width: 680px;
+    margin: 30px auto 50px;
+    padding: 16px 24px;
+    background: #ffe4f4;
+    border-radius: 20px;
+    font-family: monospace;
     font-size: 1rem;
+    color: #aa2c5b;
+    height: 180px;
+    overflow-y: auto;
+    box-shadow: inset 0 0 12px #ff4081aa;
   }
-
-  @keyframes winnerRotate {
-    0% { transform: rotate(0deg) scale(1); }
-    100% { transform: rotate(360deg) scale(2.5); }
+  /* Các icon toán học bay bay 3D */
+  .math-icon {
+    position: fixed;
+    font-size: 3rem;
+    user-select: none;
+    opacity: 0.75;
+    pointer-events: none;
+    animation: floatUp3D 10s linear infinite;
+    transform-style: preserve-3d;
+    filter: drop-shadow(0 0 3px #ff4081);
+    z-index: 0;
   }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+  @keyframes floatUp3D {
+    0% {
+      transform: translateY(100vh) rotateX(0deg) rotateY(0deg);
+      opacity: 0.75;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-30vh) rotateX(360deg) rotateY(360deg);
+      opacity: 0;
+    }
   }
-  .blink {
-    animation: blink 1s infinite;
+  /* Responsive */
+  @media (max-width: 900px) {
+    #gameArea {
+      max-width: 90vw;
+      min-height: 380px;
+      gap: 12px;
+    }
+    .animal-card {
+      width: 75px;
+      height: 75px;
+    }
+    .animal-icon {
+      font-size: 3.8rem;
+    }
+    .animal-name {
+      font-size: 1rem;
+    }
+    .winner {
+      width: 280px !important;
+      height: 280px !important;
+      margin-left: -140px;
+      margin-top: -140px;
+      font-size: 10rem !important;
+    }
+    .winner-name {
+      font-size: 2.6rem;
+      top: 65%;
+    }
+  }
+  @media (max-width: 460px) {
+    #inputNames {
+      height: 100px;
+      font-size: 1rem;
+    }
+    #btnStart, #btnNext {
+      padding: 12px 26px;
+      font-size: 1.1rem;
+    }
+    #gameArea {
+      min-height: 320px;
+    }
+    .animal-card {
+      width: 65px;
+      height: 65px;
+    }
+    .animal-icon {
+      font-size: 3.2rem;
+    }
+    .animal-name {
+      font-size: 0.9rem;
+    }
+    .winner {
+      width: 220px !important;
+      height: 220px !important;
+      margin-left: -110px;
+      margin-top: -110px;
+      font-size: 8rem !important;
+    }
+    .winner-name {
+      font-size: 2rem;
+      top: 62%;
+    }
   }
 </style>
 </head>
 <body>
 
-<h1>🎉 Vòng Quay Vui Vẻ</h1>
+<header>
+  <h1>🎉 Game chọn học sinh dễ thương</h1>
+  <p>Nhập tên học sinh, mỗi tên một dòng (tối đa 50), sau đó bấm "Bắt đầu".</p>
+</header>
 
-<div id="input-area">
-  <textarea id="names-input" placeholder="Nhập danh sách tên học sinh, mỗi tên một dòng (tối đa 50)"></textarea>
-  <button id="start-btn">Bắt đầu chọn</button>
+<div id="inputArea">
+  <textarea id="inputNames" placeholder="Nhập tên học sinh, mỗi tên một dòng (tối đa 50)" maxlength="500" style="text-transform: uppercase;"></textarea><br/>
+  <button id="btnStart">🚀 Bắt đầu</button>
+  <button id="btnNext">▶️ Tiếp tục (bỏ người thắng)</button>
 </div>
 
-<div id="animal-container"></div>
+<div id="gameArea" aria-live="polite" aria-label="Danh sách học sinh"></div>
 
-<div id="winner-display"></div>
+<div id="winnerName" class="winner-name" aria-live="assertive" style="display:none;"></div>
 
-<button id="next-btn">Chọn tiếp</button>
+<div id="historyArea" aria-label="Lịch sử kết quả chọn học sinh">Lịch sử kết quả:</div>
 
-<div id="history">
-  <h3>Lịch sử kết quả</h3>
-  <ul id="history-list"></ul>
-</div>
-
-<audio id="win-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+<button id="soundToggle" title="Bật/Tắt âm thanh">🔊</button>
 
 <script>
-  const maxStudents = 50;
-  const animalIcons = ['🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱','🐰','🐷','🐸','🐵','🐥','🐝','🐴','🐭','🐶','🐱'];
+  const animalIcons = [
+    '🐰','🐻','🐼','🐨','🐯','🦊','🐵','🐸','🐷','🐔',
+    '🦄','🐝','🐙','🦉','🐢','🐧','🦁','🐬','🐴','🐶',
+    '🐹','🦋','🐞','🐛','🐗','🦢','🐟','🦜','🐓','🐕',
+    '🐈','🦚','🐲','🦕','🦖','🐉','🐺','🦥','🐿️','🦦',
+    '🦨','🦡','🐇','🐣','🦇','🐦','🐤','🐩','🐺','🦄'
+  ];
+  const maxPlayers = 50;
+  let players = [];
+  let winnerIndex = -1;
+  let isRunning = false;
+  let history = JSON.parse(localStorage.getItem('selectionHistory')) || [];
+  let soundOn = true;
 
-  const namesInput = document.getElementById('names-input');
-  const startBtn = document.getElementById('start-btn');
-  const animalContainer = document.getElementById('animal-container');
-  const winnerDisplay = document.getElementById('winner-display');
-  const nextBtn = document.getElementById('next-btn');
-  const historyList = document.getElementById('history-list');
-  const winSound = document.getElementById('win-sound');
+  const inputNames = document.getElementById('inputNames');
+  const btnStart = document.getElementById('btnStart');
+  const btnNext = document.getElementById('btnNext');
+  const gameArea = document.getElementById('gameArea');
+  const winnerNameDisplay = document.getElementById('winnerName');
+  const historyArea = document.getElementById('historyArea');
+  const soundToggle = document.getElementById('soundToggle');
 
-  let animals = [];
-  let winner = null;
-  let history = [];
-  let choosingInProgress = false;
+  // Audio files - dùng link free Google sound
+  const audioJump = new Audio('https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_roll.ogg');
+  const audioWin = new Audio('https://actions.google.com/sounds/v1/celebration/party_horn.ogg');
 
-  // Xử lý tên: lấy chữ cuối, in hoa
-  function formatName(fullName) {
-    let parts = fullName.trim().split(/\s+/);
-    if(parts.length === 0) return '';
-    let lastName = parts[parts.length-1];
-    return lastName.toUpperCase();
+  // Lấy từ cuối tên viết hoa
+  function getLastName(name) {
+    const parts = name.trim().split(/\s+/);
+    return parts[parts.length - 1].toUpperCase();
   }
 
-  // Tạo thẻ thú với tên
-  function createAnimalCard(name, icon) {
+  // Tạo thẻ thú + tên
+  function createAnimalCard(player, index) {
     const card = document.createElement('div');
-    card.classList.add('animal-card');
-    card.innerHTML = `
-      <div class="animal-icon">${icon}</div>
-      <div class="animal-name">${name}</div>
-    `;
+    card.className = 'animal-card';
+    card.style.animationDelay = (Math.random()*1.5) + 's';
+
+    const iconSpan = document.createElement('div');
+    iconSpan.className = 'animal-icon';
+    iconSpan.textContent = animalIcons[index % animalIcons.length];
+
+    const nameSpan = document.createElement('div');
+    nameSpan.className = 'animal-name';
+    nameSpan.textContent = getLastName(player);
+
+    card.appendChild(iconSpan);
+    card.appendChild(nameSpan);
+
     return card;
   }
 
-  // Hiển thị danh sách thú
-  function displayAnimals(){
-    animalContainer.innerHTML = '';
-    animals.forEach(({name, icon}) => {
-      const card = createAnimalCard(name, icon);
-      animalContainer.appendChild(card);
-      animals.find(a => a.name === name).card = card;
+  // Vẽ danh sách thú
+  function renderPlayers() {
+    gameArea.innerHTML = '';
+    players.forEach((player, idx) => {
+      const card = createAnimalCard(player, idx);
+      gameArea.appendChild(card);
     });
   }
 
-  // Cập nhật lịch sử
-  function updateHistory(){
-    historyList.innerHTML = '';
-    history.forEach(item => {
-      const li = document.createElement('li');
-      li.textContent = item;
-      historyList.appendChild(li);
+  // Mờ tất cả ngoại trừ winner
+  function dimAllExcept(winnerIdx) {
+    [...gameArea.children].forEach((card, idx) => {
+      if(idx !== winnerIdx) card.classList.add('dimmed');
+      else card.classList.remove('dimmed');
     });
   }
 
-  // Bắt đầu chọn người thắng
-  function chooseWinner(){
-    if(choosingInProgress) return;
-    if(animals.length === 0) {
-      alert('Không còn ai để chọn!');
-      nextBtn.style.display = 'none';
+  // Bỏ mờ hết
+  function clearDim() {
+    [...gameArea.children].forEach(card => card.classList.remove('dimmed'));
+  }
+
+  // Bấm Start
+  btnStart.onclick = () => {
+    if(isRunning) return;
+    const rawNames = inputNames.value.trim();
+    if(!rawNames) {
+      alert('Vui lòng nhập tên học sinh!');
       return;
     }
-    choosingInProgress = true;
-
-    const winnerIndex = Math.floor(Math.random() * animals.length);
-    winner = animals[winnerIndex];
-
-    animals.forEach(({card}, idx) => {
-      if(idx === winnerIndex){
-        card.classList.add('winner', 'blink');
-        card.style.transform = 'translate(0,0)';
-        card.style.zIndex = '1000';
-      } else {
-        card.classList.add('dimmed');
-        card.style.transform = 'none';
-      }
-    });
-
-    winnerDisplay.style.display = 'flex';
-    winnerDisplay.innerHTML = '';
-
-    const winnerCard = createAnimalCard(winner.name, winner.icon);
-    winnerCard.classList.add('winner');
-    winnerCard.style.width = '150px';
-    winnerCard.style.height = '210px';
-    winnerCard.style.fontSize = '7rem';
-    winnerCard.style.borderRadius = '50%';
-    winnerCard.style.boxShadow = '0 0 25px #ff1493 inset';
-    winnerCard.style.animation = 'winnerRotate 3s linear forwards';
-
-    winnerDisplay.appendChild(winnerCard);
-
-    const winnerName = document.createElement('p');
-    winnerName.textContent = winner.name;
-    winnerName.style.color = '#ff1493';
-    winnerName.style.fontSize = '2.5rem';
-    winnerName.style.fontWeight = '900';
-    winnerName.style.textTransform = 'uppercase';
-    winnerName.style.marginTop = '12px';
-    winnerName.style.userSelect = 'text';
-    winnerDisplay.appendChild(winnerName);
-
-    winSound.currentTime = 0;
-    winSound.play();
-
-    history.unshift(winner.name);
-    if(history.length > 20) history.pop();
-    updateHistory();
-
-    nextBtn.style.display = 'none';
-
-    setTimeout(() => {
-      winnerDisplay.style.display = 'none';
-      nextBtn.style.display = 'inline-block';
-      choosingInProgress = false;
-    }, 3000);
-  }
-
-  startBtn.onclick = () => {
-    let rawNames = namesInput.value.trim().split('\n').filter(n => n.trim() !== '');
-    if(rawNames.length === 0) {
-      alert("Vui lòng nhập ít nhất một tên!");
+    players = rawNames.split('\n').map(s => s.trim()).filter(s => s).slice(0, maxPlayers);
+    if(players.length === 0) {
+      alert('Danh sách trống!');
       return;
     }
-    if(rawNames.length > maxStudents){
-      alert(`Chỉ được nhập tối đa ${maxStudents} tên thôi nha!`);
-      rawNames = rawNames.slice(0, maxStudents);
+    inputNames.value = players.join('\n');
+    renderPlayers();
+    btnStart.style.display = 'none';
+    btnNext.style.display = 'inline-block';
+    winnerNameDisplay.style.display = 'none';
+    clearDim();
+    startRandomSelection();
+  };
+
+  // Bấm Tiếp tục
+  btnNext.onclick = () => {
+    if(isRunning) return;
+    if(winnerIndex < 0) return;
+    // loại bỏ người thắng
+    players.splice(winnerIndex,1);
+    winnerIndex = -1;
+    if(players.length === 0) {
+      alert('Đã hết học sinh để chọn!');
+      resetGame();
+      return;
+    }
+    renderPlayers();
+    winnerNameDisplay.style.display = 'none';
+    btnStart.style.display = 'none';
+    btnNext.style.display = 'inline-block';
+    clearDim();
+    startRandomSelection();
+  };
+
+  // Reset game
+  function resetGame() {
+    btnStart.style.display = 'inline-block';
+    btnNext.style.display = 'none';
+    winnerNameDisplay.style.display = 'none';
+    gameArea.innerHTML = '';
+    players = [];
+    winnerIndex = -1;
+  }
+
+  // Random chọn học sinh
+  async function startRandomSelection() {
+    isRunning = true;
+    let cycles = 40 + Math.floor(Math.random()*20); // số lần nhảy icon
+    let currentIndex = 0;
+    if(soundOn) audioJump.play();
+
+    while(cycles > 0) {
+      highlightCard(currentIndex);
+      await sleep(80 + Math.random()*40);
+      currentIndex = (currentIndex + 1) % players.length;
+      cycles--;
+    }
+    if(soundOn) {
+      audioJump.pause();
+      audioJump.currentTime = 0;
     }
 
-    animals = rawNames.map((fullName, i) => {
-      return {
-        name: formatName(fullName),
-        icon: animalIcons[i % animalIcons.length],
-        card: null
-      };
-    });
-
-    winner = null;
-    history = [];
-    updateHistory();
-    displayAnimals();
-
-    nextBtn.style.display = 'inline-block';
-  };
-
-  nextBtn.onclick = () => {
-    chooseWinner();
-  };
-</script>
-
-</body>
-</html>
+   
