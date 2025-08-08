@@ -57,34 +57,47 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .selected {
-    animation: glowPulse 1.5s infinite alternate;
-    transform: scale(1.4);
-    z-index: 1000 !important;
-    box-shadow: 0 0 30px 10px #ff69b4 !important;
-  }
+
+  /* Animation glow + zoom + twinkle cho thú được chọn */
   @keyframes glowPulse {
     0% { box-shadow: 0 0 10px 4px #ff69b4; }
-    100% { box-shadow: 0 0 30px 10px #ff1493; }
+    50% { box-shadow: 0 0 30px 10px #ff1493; }
+    100% { box-shadow: 0 0 10px 4px #ff69b4; }
   }
-  #btnRandom, #btnContinue {
-    margin: 15px 5px 25px 5px;
-    padding: 12px 35px;
+  @keyframes sparkle {
+    0%, 100% { text-shadow: 0 0 6px #ff8fc9, 0 0 10px #ff0080; }
+    50% { text-shadow: 0 0 20px #ff9ad0, 0 0 25px #ff33a6; }
+  }
+  @keyframes zoomInOut {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.8) rotate(15deg); }
+  }
+
+  .selected {
+    animation: glowPulse 2s infinite, zoomInOut 2s infinite, sparkle 2s infinite;
+    transform-origin: center center;
+    z-index: 1000 !important;
+    cursor: default;
+  }
+
+  #btnRandom, #btnContinue, #btnLoadList {
+    margin: 15px 5px 15px 5px;
+    padding: 12px 30px;
     background-color: #ff69b4;
     color: white;
     border: none;
     border-radius: 30px;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(255,105,180,0.6);
     transition: background-color 0.3s ease;
     user-select: none;
   }
-  #btnRandom:hover, #btnContinue:hover {
+  #btnRandom:hover, #btnContinue:hover, #btnLoadList:hover {
     background-color: #d63384;
   }
   #result {
-    margin-top: 15px;
+    margin-top: 10px;
     font-size: 28px;
     color: #d63384;
     font-weight: bold;
@@ -117,16 +130,40 @@
     padding: 4px 0;
     border-bottom: 1px solid #ffa3cc;
   }
+
+  /* Textarea nhập danh sách */
+  #nameList {
+    margin: 10px auto 0 auto;
+    width: 90vw; max-width: 900px;
+    height: 100px;
+    border-radius: 12px;
+    border: 2px solid #d63384;
+    padding: 10px;
+    font-size: 14px;
+    font-family: monospace;
+    resize: vertical;
+  }
+  label[for="nameList"] {
+    display: block;
+    margin-top: 20px;
+    font-weight: bold;
+    color: #d63384;
+    font-size: 16px;
+  }
 </style>
 </head>
 <body>
 
 <h1>🎲 Random Gọi Tên Học Sinh - Thú Chibi Dễ Thương</h1>
 
+<label for="nameList">Nhập danh sách tên học sinh (mỗi tên một dòng):</label>
+<textarea id="nameList" placeholder="Ví dụ:&#10;Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C"></textarea>
+<button id="btnLoadList">📥 Load Danh Sách</button>
+
 <div id="container" aria-label="Khu vực thú nhảy"></div>
 
 <div>
-  <button id="btnRandom">🎯 Chọn Ngẫu Nhiên</button>
+  <button id="btnRandom" disabled>🎯 Chọn Ngẫu Nhiên</button>
   <button id="btnContinue" style="display:none;">▶️ Tiếp Tục (Loại Người Đã Chọn)</button>
 </div>
 
@@ -138,44 +175,20 @@
 </section>
 
 <script>
-  // Danh sách 50 học sinh + icon chibi emoji (thầy đổi icon nếu có ảnh)
-  const studentsData = [
-    { name: "Nguyễn Văn A", icon: "🐰" },{ name: "Trần Thị B", icon: "🐱" },
-    { name: "Lê Văn C", icon: "🐻" },{ name: "Phạm Thị D", icon: "🐸" },
-    { name: "Hoàng Văn E", icon: "🦊" },{ name: "Võ Thị F", icon: "🐨" },
-    { name: "Đặng Văn G", icon: "🐥" },{ name: "Bùi Thị H", icon: "🐵" },
-    { name: "Phan Văn I", icon: "🐯" },{ name: "Trương Thị K", icon: "🐰" },
-    { name: "Ngô Văn L", icon: "🐹" },{ name: "Lý Thị M", icon: "🐼" },
-    { name: "Dương Văn N", icon: "🐶" },{ name: "Trần Thị O", icon: "🐔" },
-    { name: "Phạm Văn P", icon: "🦄" },{ name: "Vũ Thị Q", icon: "🐧" },
-    { name: "Lê Văn R", icon: "🐢" },{ name: "Hoàng Thị S", icon: "🐝" },
-    { name: "Đỗ Văn T", icon: "🦉" },{ name: "Nguyễn Thị U", icon: "🐺" },
-    { name: "Lâm Văn V", icon: "🐨" },{ name: "Mai Thị W", icon: "🦋" },
-    { name: "Trịnh Văn X", icon: "🐬" },{ name: "Phùng Thị Y", icon: "🦄" },
-    { name: "Vũ Văn Z", icon: "🐠" },{ name: "Hoàng Anh 1", icon: "🦦" },
-    { name: "Nguyễn Bình 2", icon: "🐿️" },{ name: "Trần Lan 3", icon: "🐝" },
-    { name: "Lê Hoa 4", icon: "🐰" },{ name: "Phạm Hồng 5", icon: "🐧" },
-    { name: "Hoàng Long 6", icon: "🐻" },{ name: "Đỗ Phương 7", icon: "🐦" },
-    { name: "Nguyễn Duy 8", icon: "🦉" },{ name: "Bùi Mai 9", icon: "🐶" },
-    { name: "Phan Lan 10", icon: "🐢" },{ name: "Trương Sơn 11", icon: "🐨" },
-    { name: "Ngô Hương 12", icon: "🐸" },{ name: "Lý Bình 13", icon: "🐯" },
-    { name: "Dương Nam 14", icon: "🐵" },{ name: "Trần Hương 15", icon: "🐰" },
-    { name: "Phạm Thảo 16", icon: "🐭" },{ name: "Vũ Sơn 17", icon: "🦦" },
-    { name: "Lê Thu 18", icon: "🐿️" },{ name: "Hoàng Mai 19", icon: "🐹" },
-    { name: "Đỗ Vân 20", icon: "🐰" },{ name: "Nguyễn Hòa 21", icon: "🦋" },
-  ];
-
   const container = document.getElementById('container');
   const btnRandom = document.getElementById('btnRandom');
   const btnContinue = document.getElementById('btnContinue');
+  const btnLoadList = document.getElementById('btnLoadList');
   const result = document.getElementById('result');
   const historyList = document.getElementById('historyList');
+  const nameList = document.getElementById('nameList');
 
-  let activeStudents = [...studentsData];
+  const animalIcons = ['🐰', '🐱', '🐻', '🐸', '🦊', '🐨', '🐥', '🐵', '🐯', '🐹', '🐼', '🐶', '🐔', '🦄', '🐧', '🐢', '🐝', '🦉', '🐺', '🦋', '🐬', '🐠', '🦦', '🐿️', '🐦', '🐭'];
+
+  let activeStudents = [];
   let selectedStudent = null;
   let history = [];
 
-  // Tạo thú chibi lên màn hình
   function createAnimals() {
     container.innerHTML = "";
     activeStudents.forEach(stu => {
@@ -183,13 +196,14 @@
       div.classList.add("animal");
       div.style.left = Math.random() * (container.clientWidth - 70) + "px";
       div.style.top = Math.random() * (container.clientHeight - 70) + "px";
-      div.innerHTML = `<div class="icon">${stu.icon}</div><div class="name" title="${stu.name}">${stu.name}</div>`;
+      const icon = animalIcons[Math.floor(Math.random() * animalIcons.length)];
+      stu.icon = icon;
+      div.innerHTML = `<div class="icon">${icon}</div><div class="name" title="${stu.name}">${stu.name}</div>`;
       container.appendChild(div);
       stu.element = div;
     });
   }
 
-  // Hiệu ứng nhảy nhót random
   function animateAnimals(duration = 3000) {
     const interval = 120;
     let elapsed = 0;
@@ -212,7 +226,6 @@
     move();
   }
 
-  // Cập nhật lịch sử thắng
   function updateHistory(name, icon) {
     history.unshift({ name, icon });
     if(history.length > 10) history.pop();
@@ -224,39 +237,31 @@
     });
   }
 
-  // Chọn ngẫu nhiên 1 HS
   function selectRandomStudent() {
     if(activeStudents.length === 0){
-      alert("Hết học sinh để chọn! Vui lòng reset hoặc tải lại trang.");
+      alert("Hết học sinh để chọn! Vui lòng nhập danh sách mới hoặc tải lại trang.");
+      btnRandom.disabled = true;
       return;
     }
-
-    // Xóa class selected cũ
     activeStudents.forEach(s => s.element.classList.remove('selected'));
     result.textContent = "Đang chọn...";
-
     animateAnimals(4000);
-
     setTimeout(() => {
       const idx = Math.floor(Math.random() * activeStudents.length);
       selectedStudent = activeStudents[idx];
       selectedStudent.element.classList.add('selected');
       result.textContent = `🎉 Đã chọn: ${selectedStudent.icon} ${selectedStudent.name} 🎉`;
-
       updateHistory(selectedStudent.name, selectedStudent.icon);
 
-      // Phát nhạc vui
       const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
       audio.volume = 0.6;
       audio.play();
 
-      // Hiển thị nút tiếp tục, ẩn nút chọn
       btnRandom.style.display = "none";
       btnContinue.style.display = "inline-block";
     }, 4000);
   }
 
-  // Loại bỏ HS vừa chọn và chơi tiếp
   function continueGame() {
     if(!selectedStudent) return;
     activeStudents = activeStudents.filter(s => s !== selectedStudent);
@@ -269,10 +274,23 @@
 
   btnRandom.addEventListener('click', selectRandomStudent);
   btnContinue.addEventListener('click', continueGame);
-
-  // Khởi tạo game lần đầu
-  createAnimals();
-
+  btnLoadList.addEventListener('click', () => {
+    const rawNames = nameList.value.trim();
+    if(!rawNames){
+      alert("Vui lòng nhập danh sách tên học sinh.");
+      return;
+    }
+    const names = rawNames.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+    activeStudents = names.map(n => ({ name: n }));
+    selectedStudent = null;
+    history = [];
+    historyList.innerHTML = "";
+    result.textContent = "";
+    btnRandom.disabled = false;
+    btnRandom.style.display = "inline-block";
+    btnContinue.style.display = "none";
+    createAnimals();
+  });
 </script>
 
 </body>
