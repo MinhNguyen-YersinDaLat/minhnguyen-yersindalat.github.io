@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảo vệ sức khỏe - Nói không với thuốc lá</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fefcfb 0%, #fef3e2 30%, #fef0f0 70%, #fefefe 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Menu Styles */
+        .main-menu {
+            text-align: center;
+            color: #92400e;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(251, 146, 60, 0.15);
+            box-shadow: 0 25px 50px rgba(194, 65, 12, 0.08);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px rgba(194, 65, 12, 0.2);
+            font-weight: bold;
+            background: linear-gradient(45deg, #ef4444, #f97316, #fb923c, #fbbf24);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .title {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 35px;
+            color: #92400e;
+            font-style: italic;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
+            padding: 15px 30px;
+            background: rgba(254, 243, 199, 0.5);
+            border-radius: 25px;
+            border: 1px solid rgba(251, 146, 60, 0.2);
+        }
+
+        .author-info {
+            margin-top: 40px;
+            padding-top: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .author-line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.5), transparent);
+            max-width: 100px;
+        }
+
+        .author-text {
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: #92400e;
+        }
+
+        .author-title {
+            font-weight: 300;
+            font-size: 0.9rem;
+            color: #a16207;
+        }
+
+        .author-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #b91c1c;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .author-school {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #92400e;
+        }
+
+        .smoke-effect {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 5rem;
+            opacity: 0.4;
+            animation: smokeDisappear 4s ease-out infinite;
+            z-index: -1;
+        }
+
+        .smoke-effect::before {
+            content: '💨💨💨';
+            position: absolute;
+            top: -20px;
+            left: -100px;
+            font-size: 3rem;
+            opacity: 0.2;
+            animation: smokeDisappear 5s ease-out infinite 1s;
+        }
+
+        .smoke-effect::after {
+            content: '🚭';
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            font-size: 2rem;
+            opacity: 0.6;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes smokeDisappear {
+            0% { opacity: 0.6; transform: translateX(-50%) translateY(0) scale(1); }
+            50% { opacity: 0.3; transform: translateX(-50%) translateY(-30px) scale(1.2); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-80px) scale(1.5); }
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #f97316, #ea580c);
+            color: white;
+            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.25);
+        }
+
+        .btn-tertiary {
+            background: linear-gradient(45deg, #fb923c, #f97316);
+            color: white;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.25);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Instructions Styles */
+        .instructions {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            color: #1e293b;
+            box-shadow: 0 25px 50px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .instructions h2 {
+            color: #3b82f6;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .instructions p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Game Part 1 Styles */
+        .game-part1 {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #334155 70%, #475569 100%);
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .intro-text {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.15) 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            max-width: 650px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+            backdrop-filter: blur(12px);
+        }
+
+        .intro-text h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .game-area {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, rgba(67, 56, 202, 0.2) 50%, rgba(79, 70, 229, 0.25) 100%);
+            border-radius: 25px;
+            margin: 20px auto;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(99, 102, 241, 0.4);
+            box-shadow: 0 12px 40px rgba(30, 58, 138, 0.2);
+            overflow: hidden;
+        }
+
+        /* Lighting Effects */
+        .spotlight {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 70%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 5;
+            transform: translate(-50%, -50%);
+        }
+
+        .spotlight.active {
+            opacity: 1;
+            animation: spotlightPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes spotlightPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .organ-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .organ.nearby .organ-glow {
+            opacity: 1;
+            animation: organGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes organGlow {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .character {
+            position: absolute;
+            font-size: 3rem;
+            transition: all 0.3s ease;
+            z-index: 10;
+            cursor: pointer;
+            animation: bounce 2s ease-in-out infinite;
+            left: 50%;
+            top: 80%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+            50% { transform: translate(-50%, -50%) translateY(-10px); }
+        }
+
+        .organ {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(196, 181, 253, 0.2) 100%);
+            border-radius: 50%;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            min-width: 120px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            border: 3px solid rgba(139, 92, 246, 0.5);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+        }
+
+        .organ:hover, .organ.nearby {
+            transform: scale(1.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(196, 181, 253, 0.35) 100%);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.3);
+            border-color: rgba(168, 85, 247, 0.8);
+            filter: brightness(1.1);
+        }
+
+        /* Chia thành lưới 3x3 với các khu vực riêng biệt */
+        .organ-eyes {
+            top: 15%;
+            left: 15%;
+        }
+
+        .organ-brain {
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .organ-lungs {
+            top: 15%;
+            right: 15%;
+        }
+
+        .organ-heart {
+            top: 45%;
+            left: 15%;
+        }
+
+        .organ-liver {
+            top: 45%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .organ-stomach {
+            top: 45%;
+            right: 15%;
+        }
+
+        .organ-kidney {
+            top: 75%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .organ-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+        }
+
+        .organ-name {
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .game-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.15) 100%);
+            border-radius: 15px;
+            padding: 12px;
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+        }
+
+        .control-hint {
+            font-size: 0.8rem;
+            text-align: center;
+            margin-bottom: 8px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .movement-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            max-width: 120px;
+            margin: 0 auto;
+        }
+
+        .move-btn {
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .move-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .move-btn:active {
+            transform: scale(0.95);
+        }
+
+        .interaction-hint {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .interaction-hint.show {
+            opacity: 1;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            color: #1e293b;
+            box-shadow: 0 25px 50px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            color: #3b82f6;
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-right: 15px;
+        }
+
+        .modal-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            min-height: 100px;
+        }
+
+        .conversation-progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #3b82f6;
+            transform: scale(1.2);
+        }
+
+        .progress-dot.completed {
+            background: #10b981;
+        }
+
+        .conversation-controls {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .conversation-hint {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-modal:hover {
+            color: #ef4444;
+        }
+
+        /* Progress and Score */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #06b6d4);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            color: #1e293b;
+            z-index: 100;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .organs-container {
+                gap: 20px;
+            }
+            
+            .organ {
+                min-width: 150px;
+                padding: 20px;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(15, 23, 42, 0.15);
+        }
+
+        .completion-screen {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .completion-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+        }
+
+        .completion-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .completion-content p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Game Part 2 Styles - Shooting Game */
+        .part2-intro {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .part2-intro-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .part2-intro h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: warningPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .falling-toxins {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .falling-toxin {
+            position: absolute;
+            font-size: 2rem;
+            animation: fallDown 3s linear infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes fallDown {
+            0% { transform: translateY(-50px); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        .shooting-game {
+            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        .game-canvas {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .player-ship {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            z-index: 10;
+            transition: left 0.1s ease;
+        }
+
+        .enemy {
+            position: absolute;
+            font-size: 2rem;
+            z-index: 5;
+            transition: all 0.1s ease;
+            cursor: pointer;
+        }
+
+        .enemy:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+        }
+
+        .bullet {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background: linear-gradient(180deg, #fbbf24, #f59e0b);
+            border-radius: 2px;
+            z-index: 8;
+        }
+
+        .explosion {
+            position: absolute;
+            font-size: 3rem;
+            z-index: 15;
+            animation: explode 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0.5); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .game-hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .lives-display {
+            display: flex;
+            gap: 10px;
+            font-size: 2rem;
+        }
+
+        .life-icon {
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+        }
+
+        .life-icon.lost {
+            opacity: 0.3;
+            filter: grayscale(100%);
+        }
+
+        .score-hud {
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .wave-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            z-index: 25;
+            opacity: 0;
+            animation: waveAnnounce 2s ease-out;
+        }
+
+        @keyframes waveAnnounce {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .toxin-info-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 2px solid #ef4444;
+            z-index: 100;
+            max-width: 350px;
+            text-align: left;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+            opacity: 0;
+            animation: popupSlideIn 2s ease-out forwards;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes popupSlideIn {
+            0% { opacity: 0; transform: translateX(100%); }
+            10% { opacity: 1; transform: translateX(0); }
+            90% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+
+        .toxin-info-popup h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toxin-info-popup p {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .game-controls-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 20;
+        }
+
+        .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .game-over-screen.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .game-over-content {
+            text-align: center;
+            background: rgba(220, 38, 38, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #dc2626;
+            max-width: 600px;
+        }
+
+        .game-over-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ef4444;
+        }
+
+        .game-over-content p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .game-mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .victory-screen {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .victory-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .victory-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            animation: victoryGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes victoryGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(16, 185, 129, 0.8); }
+            50% { text-shadow: 0 0 30px rgba(16, 185, 129, 1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Score Display -->
+    <div class="score-display" id="scoreDisplay">Điểm: 0</div>
+
+    <!-- Main Menu Screen -->
+    <div class="screen active" id="mainMenu">
+        <div class="smoke-effect">💨</div>
+        <div class="main-menu">
+            <div class="logo">🚭✨ "HÀNH TRÌNH KHÔNG KHÓI" ✨🚭</div>
+            <h1 class="title">Cuộc phiêu lưu qua các cơ quan<br><span style="font-size: 0.75em; color: #b91c1c; font-weight: 600; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">để giữ cơ thể khỏe mạnh</span></h1>
+            <div class="subtitle">🌟 Khám phá 7 cơ quan quan trọng và học cách bảo vệ chúng 🌟</div>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="startGame()">🎮 Bắt đầu hành trình</button>
+                <button class="btn btn-secondary" onclick="showInstructions()">📖 Hướng dẫn chơi</button>
+                <button class="btn btn-tertiary" onclick="exitGame()">🚪 Thoát</button>
+            </div>
+            <div class="author-info">
+                <div class="author-line"></div>
+                <div class="author-text">
+                    <span class="author-title">Tác giả:</span><br>
+                    <span class="author-name">Thầy giáo Thái Minh Nguyên</span><br>
+                    <span class="author-school">Trường THPT Yersin Đà Lạt</span>
+                </div>
+                <div class="author-line"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Screen -->
+    <div class="screen" id="instructionsScreen">
+        <div class="instructions">
+            <h2>📋 Hướng dẫn chơi</h2>
+            <p><strong>Chào mừng bạn đến với trò chơi giáo dục về sức khỏe!</strong></p>
+            
+            <h3>🎯 Mục tiêu:</h3>
+            <p>Tìm hiểu tác hại của thuốc lá và thuốc lá điện tử đối với cơ thể, đồng thời học cách bảo vệ sức khỏe.</p>
+            
+            <h3>🎮 Cấu trúc game:</h3>
+            <ul>
+                <li><strong>Phần 1:</strong> Khám phá vai trò của các cơ quan (Tim - Não - Phổi)</li>
+                <li><strong>Phần 2:</strong> Tìm hiểu tác hại của thuốc lá</li>
+                <li><strong>Phần 3:</strong> Học cách bảo vệ sức khỏe</li>
+            </ul>
+            
+            <h3>⭐ Cách chơi:</h3>
+            <ul>
+                <li>Nhấp vào các cơ quan để tìm hiểu thông tin</li>
+                <li>Đọc kỹ nội dung để hiểu rõ tác hại</li>
+                <li>Tích lũy điểm số qua từng phần</li>
+                <li>Hoàn thành tất cả để nhận phần thưởng</li>
+            </ul>
+            
+            <p><strong>💡 Lưu ý:</strong> Điểm số tích lũy sẽ quyết định phần thưởng cuối game. Hãy tham gia tích cực!</p>
+            
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="startGame()">Bắt đầu ngay</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">Quay lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Part 1 Screen -->
+    <div class="screen" id="gamePart1">
+        <div class="intro-text">
+            <h2>❤️🧠🫁🫀🫘🌀👁️ Gặp gỡ 7 người bạn đồng hành</h2>
+            <p>"Chúng tôi là 7 cơ quan quan trọng nhất của cơ thể – hãy tìm hiểu và bảo vệ chúng tôi khỏi tác hại của thuốc lá!"</p>
+        </div>
+        
+        <div class="game-area">
+            <!-- Spotlight Effect -->
+            <div class="spotlight" id="spotlight"></div>
+            
+            <!-- Character -->
+            <div class="character" id="character">🧑‍⚕️</div>
+            
+            <!-- Organs -->
+            <div class="organ organ-heart" id="heartOrgan">
+                <div class="organ-glow"></div>
+                <div class="organ-icon">❤️</div>
+                <div class="organ-name">TIM</div>
+                <div class="interaction-hint" id="heartHint">Nhấn SPACE để nói chuyện!</div>
+            </div>
+            
+            <div class="organ organ-brain" id="brainOrgan">
+                <div class="organ-glow"></div>
+                <div class="organ-icon">🧠</div>
+                <div class="organ-name">NÃO</div>
+                <div class="interaction-hint" id="brainHint">Nhấn SPACE để nói chuyện!</div>
+            </div>
+            
+            <div class="organ organ-lungs" id="lungsOrgan">
+                <div class="organ-glow"></div>
+                <div class="organ-icon">🫁</div>
+                <div class="organ-name">PHỔI</div>
+                <div class="interaction-hint" id="lungsHint">Nhấn SPACE để nói chuyện!</div>
+            </div>
+            
+            <div class="organ organ-liver" id="liverOrgan">
+                <div class="organ-glow"></div>
+                <div class="organ-icon">🫀</div>
+                <div class="organ-name">GAN</div>
+                <div class="interaction-hint" id="liverHint">Nhấn SPACE để nói chuyện!</div>
+            </div>
+            
+            <div class="organ organ-kidney" id="kidneyOrgan">
+                <div class="organ-glow"></div>
+                <div class="organ-icon">🫘</div>
+                <div class="organ-name">THẬN</div>
+                <div class="interaction-hint" id="kidneyHint">Nhấn SPACE để nói chuyện!</div>
+            </div>
+            
+            <div class="organ organ-stomach" id="stomachOrgan">
+                <div class="organ-glow"></div>
+                <div class="organ-icon">🌀</div>
+                <div class="organ-name">RUỘT</div>
+                <div class="interaction-hint" id="stomachHint">Nhấn SPACE để nói chuyện!</div>
+            </div>
+            
+            <div class="organ organ-eyes" id="eyesOrgan">
+                <div class="organ-glow"></div>
+                <div class="organ-icon">👁️</div>
+                <div class="organ-name">MẮT</div>
+                <div class="interaction-hint" id="eyesHint">Nhấn SPACE để nói chuyện!</div>
+            </div>
+
+            <!-- Game Controls Inside Game Area -->
+            <div class="game-controls">
+                <div class="control-hint">🎮 Điều khiển</div>
+                <div class="movement-buttons">
+                    <div></div>
+                    <button class="move-btn" onmousedown="moveCharacter('up')" onmouseup="stopMoving()">↑</button>
+                    <div></div>
+                    <button class="move-btn" onmousedown="moveCharacter('left')" onmouseup="stopMoving()">←</button>
+                    <button class="move-btn" onmousedown="moveCharacter('down')" onmouseup="stopMoving()">↓</button>
+                    <button class="move-btn" onmousedown="moveCharacter('right')" onmouseup="stopMoving()">→</button>
+                    <div></div>
+                    <button class="move-btn" onclick="interactWithNearbyOrgan()">💬</button>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Screen -->
+    <div class="screen" id="completionScreen">
+        <div class="completion-content">
+            <h2>🎉 Chúc mừng!</h2>
+            <p>Bạn đã khám phá vai trò quan trọng của các cơ quan sống còn.</p>
+            <p><strong>Hãy bảo vệ chúng bằng cách tránh xa thuốc lá và thuốc lá điện tử!</strong></p>
+            <p>Điểm số của bạn: <span id="finalScore">0</span></p>
+            
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="continueToNextPart()">Tiếp tục Phần 2</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">Về menu chính</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Mode Selection Screen -->
+    <div class="screen" id="gameModeSelection">
+        <div class="part2-intro-content">
+            <h2>🎮 PHẦN 2: CHỌN CÁCH CHƠI 🎮</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 40px;">
+                Bạn muốn tìm hiểu tác hại của thuốc lá theo cách nào?
+            </p>
+            
+            <div class="game-mode-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 800px; margin: 0 auto;">
+                <!-- Shooting Game Mode -->
+                <div class="game-mode-card" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startShootingGame()">
+                    <div style="font-size: 4rem; margin-bottom: 15px;">🚀</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Game Bắn Súng</h3>
+                    <p style="color: #fecaca; margin-bottom: 20px;">Chiến đấu với các chất độc hại từ thuốc lá và thuốc lá điện tử!</p>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
+                        ⚡ Hành động nhanh<br>
+                        🎯 Phản xạ tốt<br>
+                        💥 Thử thách kỹ năng
+                    </div>
+                </div>
+                
+                <!-- Quiz Game Mode -->
+                <div class="game-mode-card" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startQuizGame()">
+                    <div style="font-size: 4rem; margin-bottom: 15px;">🧠</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Game Câu Hỏi</h3>
+                    <p style="color: #a7f3d0; margin-bottom: 20px;">Trả lời câu hỏi về tác hại của thuốc lá một cách thông minh!</p>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
+                        📚 Học kiến thức<br>
+                        🤔 Suy nghĩ logic<br>
+                        🏆 Tích lũy điểm cao
+                    </div>
+                </div>
+                
+                <!-- Memory Game Mode -->
+                <div class="game-mode-card" style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startMemoryGame()">
+                    <div style="font-size: 4rem; margin-bottom: 15px;">🧩</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Game Trí Nhớ</h3>
+                    <p style="color: #ddd6fe; margin-bottom: 20px;">Ghép đôi các chất độc với tác hại của chúng!</p>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
+                        🧠 Rèn luyện trí nhớ<br>
+                        🔗 Kết nối thông tin<br>
+                        ⏰ Thử thách thời gian
+                    </div>
+                </div>
+                
+                <!-- Story Mode -->
+                <div class="game-mode-card" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startStoryMode()">
+                    <div style="font-size: 4rem; margin-bottom: 15px;">📖</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Chế Độ Câu Chuyện</h3>
+                    <p style="color: #fed7aa; margin-bottom: 20px;">Theo dõi hành trình của một người hút thuốc!</p>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
+                        📚 Câu chuyện thực tế<br>
+                        💭 Cảm xúc sâu sắc<br>
+                        🎭 Trải nghiệm nhập vai
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-buttons" style="margin-top: 40px;">
+                <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Về menu chính</button>
+            </div>
+        </div>
+        
+        <!-- Falling toxins animation -->
+        <div class="falling-toxins" id="fallingToxins"></div>
+    </div>
+
+    <!-- Part 2 Intro Screen -->
+    <div class="screen" id="part2Intro">
+        <div class="part2-intro-content">
+            <h2>⚠️ PHẦN 2: SỰ XÂM LĂNG CỦA CÁC CHẤT ĐỘC HẠI ⚠️</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 30px;">
+                🚨 <strong>Cẩn thận! Kẻ thù đang ồ ạt tấn công từ thuốc lá và thuốc lá điện tử!</strong>
+            </p>
+            <p style="font-size: 1.1rem; margin-bottom: 30px;">
+                🎯 <strong>Nhiệm vụ:</strong> Né tránh và tiêu diệt các chất độc hại trước khi chúng phá hủy cơ thể bạn!
+            </p>
+            <div style="margin: 30px 0;">
+                <p style="font-size: 1rem; color: #fbbf24;">
+                    🎮 <strong>Điều khiển:</strong> ← → để di chuyển, SPACE để bắn<br>
+                    💖 Bạn có 3 mạng: Trái tim 💖 - Sức mạnh 🌟 - Năng lượng ✨
+                </p>
+            </div>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="startActualShootingGame()">🚀 Bắt đầu chiến đấu!</button>
+                <button class="btn btn-secondary" onclick="showGameModeSelection()">🔙 Chọn lại chế độ</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Về menu chính</button>
+            </div>
+        </div>
+        
+        <!-- Falling toxins animation -->
+        <div class="falling-toxins" id="fallingToxins"></div>
+    </div>
+
+    <!-- Shooting Game Screen -->
+    <div class="screen" id="shootingGame">
+        <div class="game-canvas" id="gameCanvas">
+            <!-- Game HUD -->
+            <div class="game-hud">
+                <div class="lives-display" id="livesDisplay">
+                    <span class="life-icon" id="life1">💖</span>
+                    <span class="life-icon" id="life2">🌟</span>
+                    <span class="life-icon" id="life3">✨</span>
+                </div>
+                <div class="score-hud">
+                    <span>Điểm: </span><span id="gameScore">0</span>
+                </div>
+            </div>
+            
+            <!-- Player Ship -->
+            <div class="player-ship" id="playerShip">🦸‍♀️</div>
+            
+            <!-- Wave Indicator -->
+            <div class="wave-indicator" id="waveIndicator"></div>
+            
+            <!-- Game Over Screen -->
+            <div class="game-over-screen" id="gameOverScreen">
+                <div class="game-over-content">
+                    <h2 id="gameOverTitle">💀 Game Over</h2>
+                    <p id="gameOverMessage">Hút thuốc hủy hoại sức khỏe từng ngày. Cơ thể bạn đã bị tổn thương nghiêm trọng!</p>
+                    <div class="menu-buttons">
+                        <button class="btn btn-primary" onclick="restartShootingGame()">🔄 Chơi lại</button>
+                        <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Menu chính</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Controls Info -->
+        <div class="game-controls-info">
+            🎮 ← → Di chuyển | SPACE Bắn | ESC Tạm dừng
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div class="screen" id="victoryScreen">
+        <div class="victory-content">
+            <h2>🎉 Chiến thắng!</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 20px;">
+                Bạn đã ngăn chặn làn sóng tấn công của các chất độc hại!
+            </p>
+            <p style="font-size: 1.1rem; margin-bottom: 30px;">
+                ⚠️ <strong>Nhưng hiểm họa vẫn còn...</strong><br>
+                Trong thực tế, thuốc lá và thuốc lá điện tử tấn công cơ thể 24/7.<br>
+                Cách duy nhất để thắng là <strong>KHÔNG BAO GIỜ HÚT!</strong>
+            </p>
+            <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                <p style="font-size: 1rem;">
+                    🏆 <strong>Điểm số cuối cùng:</strong> <span id="finalGameScore">0</span><br>
+                    🎯 <strong>Chất độc tiêu diệt:</strong> <span id="toxinsDestroyed">0</span>
+                </p>
+            </div>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="continueToNextPart()">➡️ Tiếp tục Phần 3</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Menu chính</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons" id="navButtons" style="display: none;">
+        <button class="nav-btn" onclick="goBack()">⬅️ Quay lại</button>
+        <button class="nav-btn" onclick="showMainMenu()">🏠 Menu chính</button>
+    </div>
+
+    <!-- Modal for Organ Information -->
+    <div class="modal" id="organModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <div class="modal-header">
+                <span class="modal-icon" id="modalIcon"></span>
+                <span id="modalTitle"></span>
+            </div>
+            <div class="conversation-progress" id="conversationProgress"></div>
+            <div class="modal-text" id="modalText"></div>
+            <div class="conversation-controls">
+                <div class="conversation-hint" id="conversationHint">Nhấn SPACE để tiếp tục cuộc trò chuyện...</div>
+                <div class="menu-buttons">
+                    <button class="btn btn-secondary" id="nextMessageBtn" onclick="nextMessage()">Tiếp tục (SPACE)</button>
+                    <button class="btn btn-primary" id="finishConversationBtn" onclick="closeModal()" style="display: none;">Kết thúc</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'mainMenu';
+        let score = 0;
+        let visitedOrgans = new Set();
+        let progress = 0;
+        
+        // Character movement variables
+        let characterPosition = { x: 50, y: 80 }; // Percentage positions
+        let isMoving = false;
+        let moveInterval = null;
+        let currentDirection = null;
+        let nearbyOrgan = null;
+
+        // Sound System with improved audio context handling
+        const soundSystem = {
+            audioContext: null,
+            heartbeat: null,
+            breathing: null,
+            currentAmbient: null,
+            isInitialized: false,
+            
+            async init() {
+                try {
+                    // Initialize audio context on user interaction
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Resume audio context if suspended
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+                    
+                    this.createHeartbeatSound();
+                    this.createBreathingSound();
+                    this.isInitialized = true;
+                    console.log('Sound system initialized successfully');
+                } catch (e) {
+                    console.log('Audio initialization failed:', e);
+                    this.isInitialized = false;
+                }
+            },
+            
+            async ensureAudioContext() {
+                if (!this.audioContext || this.audioContext.state === 'closed') {
+                    await this.init();
+                }
+                if (this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+            },
+            
+            createHeartbeatSound() {
+                this.heartbeat = {
+                    isPlaying: false,
+                    interval: null,
+                    async play() {
+                        if (this.isPlaying) return;
+                        await soundSystem.ensureAudioContext();
+                        this.isPlaying = true;
+                        this.interval = setInterval(async () => {
+                            await this.playBeat();
+                        }, 800); // 75 BPM
+                    },
+                    stop() {
+                        this.isPlaying = false;
+                        if (this.interval) {
+                            clearInterval(this.interval);
+                            this.interval = null;
+                        }
+                    },
+                    async playBeat() {
+                        try {
+                            await soundSystem.ensureAudioContext();
+                            const oscillator = soundSystem.audioContext.createOscillator();
+                            const gainNode = soundSystem.audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(soundSystem.audioContext.destination);
+                            
+                            oscillator.frequency.setValueAtTime(200, soundSystem.audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.15, soundSystem.audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, soundSystem.audioContext.currentTime + 0.15);
+                            
+                            oscillator.start(soundSystem.audioContext.currentTime);
+                            oscillator.stop(soundSystem.audioContext.currentTime + 0.15);
+                        } catch (e) {
+                            console.log('Heartbeat sound failed:', e);
+                        }
+                    }
+                };
+            },
+            
+            createBreathingSound() {
+                this.breathing = {
+                    isPlaying: false,
+                    interval: null,
+                    async play() {
+                        if (this.isPlaying) return;
+                        await soundSystem.ensureAudioContext();
+                        this.isPlaying = true;
+                        this.interval = setInterval(async () => {
+                            await this.playBreath();
+                        }, 3000); // Every 3 seconds
+                    },
+                    stop() {
+                        this.isPlaying = false;
+                        if (this.interval) {
+                            clearInterval(this.interval);
+                            this.interval = null;
+                        }
+                    },
+                    async playBreath() {
+                        try {
+                            await soundSystem.ensureAudioContext();
+                            const oscillator = soundSystem.audioContext.createOscillator();
+                            const gainNode = soundSystem.audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(soundSystem.audioContext.destination);
+                            
+                            oscillator.frequency.setValueAtTime(120, soundSystem.audioContext.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(180, soundSystem.audioContext.currentTime + 1.5);
+                            oscillator.frequency.exponentialRampToValueAtTime(120, soundSystem.audioContext.currentTime + 2.5);
+                            
+                            gainNode.gain.setValueAtTime(0.08, soundSystem.audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, soundSystem.audioContext.currentTime + 2.5);
+                            
+                            oscillator.start(soundSystem.audioContext.currentTime);
+                            oscillator.stop(soundSystem.audioContext.currentTime + 2.5);
+                        } catch (e) {
+                            console.log('Breathing sound failed:', e);
+                        }
+                    }
+                };
+            },
+            
+            async playInteractionSound() {
+                try {
+                    await this.ensureAudioContext();
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(500, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.2);
+                    
+                    gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.2);
+                } catch (e) {
+                    console.log('Interaction sound failed:', e);
+                }
+            },
+            
+            async playMoveSound() {
+                try {
+                    await this.ensureAudioContext();
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(350, this.audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.05, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.1);
+                } catch (e) {
+                    console.log('Move sound failed:', e);
+                }
+            },
+            
+            async startOrganAmbient(organType) {
+                this.stopAllAmbient();
+                switch(organType) {
+                    case 'heart':
+                        await this.heartbeat.play();
+                        this.currentAmbient = 'heart';
+                        break;
+                    case 'lungs':
+                        await this.breathing.play();
+                        this.currentAmbient = 'lungs';
+                        break;
+                    case 'brain':
+                        // Brain has no specific ambient sound
+                        this.currentAmbient = 'brain';
+                        break;
+                }
+            },
+            
+            stopAllAmbient() {
+                if (this.heartbeat) this.heartbeat.stop();
+                if (this.breathing) this.breathing.stop();
+                this.currentAmbient = null;
+            }
+        };
+
+        const organInfo = {
+            heart: {
+                icon: '❤️',
+                title: 'Tim - Trái tim của bạn',
+                messages: [
+                    "Xin chào! Mình là Tim – trái tim của bạn. 💓",
+                    "Mỗi ngày, mình đập khoảng 100.000 lần, bơm hơn 7.500 lít máu đi khắp cơ thể để nuôi dưỡng từng tế bào.",
+                    "Nhờ mình, não có đủ oxy để suy nghĩ, phổi hoạt động trơn tru, và các cơ quan khác duy trì sự sống.",
+                    "Nhưng nếu bạn hút thuốc, chất nicotine sẽ làm tăng nhịp tim và huyết áp... 😰",
+                    "Carbon monoxide chiếm chỗ oxy trong máu, khiến mình phải làm việc quá sức và dễ bị nhồi máu cơ tim.",
+                    "Mình muốn sống khỏe mạnh để đồng hành cùng bạn cả đời. Đừng để khói thuốc phá hủy mình nhé! ❤️"
+                ]
+            },
+            brain: {
+                icon: '🧠',
+                title: 'Não - Trung tâm điều khiển',
+                messages: [
+                    "Xin chào! Mình là Não – trung tâm điều khiển của cơ thể. 🧠",
+                    "Mình chứa khoảng 86 tỷ tế bào thần kinh, xử lý hàng triệu thông tin mỗi giây...",
+                    "Mình giúp bạn suy nghĩ, học tập, và cảm nhận cuộc sống một cách tuyệt vời!",
+                    "Nhưng nicotine trong thuốc lá và thuốc lá điện tử có thể thay đổi cấu trúc và chức năng của mình... 😵",
+                    "Đặc biệt nguy hiểm ở tuổi vị thành niên khi mình đang phát triển.",
+                    "Mình sẽ bị rối loạn tập trung, giảm trí nhớ, thậm chí mất kiểm soát hành vi khi phụ thuộc vào chất gây nghiện này.",
+                    "Hãy cho mình môi trường trong lành, không khói thuốc để mình có thể giúp bạn đạt được mọi ước mơ! 🌟"
+                ]
+            },
+            lungs: {
+                icon: '🫁',
+                title: 'Phổi - Lá phổi của bạn',
+                messages: [
+                    "Xin chào! Mình là Phổi – lá phổi của bạn. 🫁",
+                    "Mỗi ngày, mình trao đổi hơn 6.000 lít không khí, đưa oxy vào máu và loại bỏ CO₂.",
+                    "Mình là 'máy lọc không khí' tự nhiên của cơ thể bạn đấy!",
+                    "Nếu bạn hít khói thuốc, tar (hắc ín) sẽ bám chặt vào mình... 😷",
+                    "Tar làm giảm diện tích trao đổi khí, formaldehyde có thể gây ung thư...",
+                    "Hydrogen cyanide sẽ phá hủy lông mao – hệ thống tự làm sạch của mình.",
+                    "Khi mình bị tổn thương, bạn sẽ khó thở, mệt mỏi và không thể tham gia những hoạt động yêu thích.",
+                    "Xin hãy để mình được hít thở không khí trong lành! 🌬️💚"
+                ]
+            },
+            liver: {
+                icon: '🫀',
+                title: 'Gan - Nhà máy hóa học của cơ thể',
+                messages: [
+                    "Xin chào! Mình là Gan – nhà máy hóa học của cơ thể bạn. 🫀",
+                    "Mình thực hiện hơn 500 chức năng khác nhau, từ lọc độc tố đến sản xuất protein quan trọng.",
+                    "Mình có khả năng tái sinh tuyệt vời – có thể phục hồi 75% khối lượng khi bị tổn thương!",
+                    "Nhưng khi bạn hút thuốc, mình phải làm việc quá tải để loại bỏ các chất độc... 😵‍💫",
+                    "Nicotine, tar và hàng trăm hóa chất khác làm mình viêm nhiễm và xơ hóa.",
+                    "Benzopyrene và formaldehyde có thể gây ung thư gan, khiến mình không thể tái sinh.",
+                    "Mình cần bạn tránh xa thuốc lá để có thể bảo vệ cơ thể khỏi độc tố mỗi ngày! 💪"
+                ]
+            },
+            kidney: {
+                icon: '🫘',
+                title: 'Thận - Bộ lọc siêu việt',
+                messages: [
+                    "Xin chào! Mình là Thận – bộ lọc siêu việt của cơ thể. 🫘",
+                    "Mỗi ngày, mình lọc khoảng 180 lít máu, loại bỏ chất thải và giữ lại những gì cần thiết.",
+                    "Mình điều hòa huyết áp, sản xuất hồng cầu và cân bằng nước trong cơ thể.",
+                    "Khi bạn hút thuốc, nicotine làm co mạch máu, giảm lưu lượng máu đến mình... 😰",
+                    "Cadmium và chì trong khói thuốc tích tụ trong mình, gây tổn thương không thể phục hồi.",
+                    "Mình có thể bị suy thận mãn tính, buộc bạn phải lọc máu suốt đời.",
+                    "Hãy giúp mình hoạt động tốt bằng cách uống đủ nước và tránh xa thuốc lá! 💧"
+                ]
+            },
+            stomach: {
+                icon: '🌀',
+                title: 'Ruột - Hệ thống tiêu hóa',
+                messages: [
+                    "Xin chào! Mình là Ruột – hệ thống tiêu hóa dài 7-8 mét của cơ thể bạn. 🌀",
+                    "Mình gồm ruột non và ruột già, hấp thụ dinh dưỡng và nước từ thức ăn đã tiêu hóa.",
+                    "Mình có hàng triệu vi khuẩn có ích giúp tiêu hóa và tăng cường miễn dịch!",
+                    "Nhưng nicotine và các chất độc trong thuốc lá làm rối loạn hệ vi sinh của mình... 😣",
+                    "Khói thuốc tăng nguy cơ viêm ruột, loét ruột và ung thư đại trực tràng.",
+                    "Mình sẽ co thắt bất thường, gây đau bụng, tiêu chảy hoặc táo bón.",
+                    "Hãy cho mình thức ăn giàu chất xơ và tránh xa thuốc lá để mình hoạt động tốt! 🥬"
+                ]
+            },
+            eyes: {
+                icon: '👁️',
+                title: 'Mắt - Cửa sổ tâm hồn',
+                messages: [
+                    "Xin chào! Mình là Mắt – cửa sổ tâm hồn của bạn. 👁️",
+                    "Mình giúp bạn nhìn thấy thế giới tuyệt đẹp với hàng triệu màu sắc và chi tiết.",
+                    "Mình xử lý 80% thông tin mà não bộ nhận được mỗi ngày!",
+                    "Nhưng khói thuốc chứa các gốc tự do tấn công võng mạc của mình... 😵",
+                    "Mình có thể bị thoái hóa điểm vàng, đục thủy tinh thể (đục mắt).",
+                    "Nicotine làm giảm lưu lượng máu đến thần kinh thị giác, có thể gây mù lòa.",
+                    "Mình muốn giúp bạn nhìn thấy vẻ đẹp cuộc sống – hãy bảo vệ mình khỏi khói thuốc! ✨"
+                ]
+            }
+        };
+
+        // Conversation state
+        let currentConversation = null;
+        let conversationStep = 0;
+        
+        // Shooting Game State
+        let gameState = {
+            isPlaying: false,
+            isPaused: false,
+            lives: 3,
+            gameScore: 0,
+            playerPosition: 50, // percentage
+            enemies: [],
+            bullets: [],
+            wave: 1,
+            enemiesDestroyed: 0,
+            gameSpeed: 1,
+            lastEnemySpawn: 0,
+            enemySpawnRate: 2000, // milliseconds
+            gameLoop: null
+        };
+
+        // Toxin data with detailed information
+        const toxinData = {
+            // Group 1: Carcinogens
+            'benzen': { icon: '🧪', name: 'Benzen', group: 'carcinogen', 
+                info: 'Có trong xăng và khói thuốc (có trong thuốc lá và thuốc lá điện tử). Gây bệnh bạch cầu và làm tổn thương tủy xương.' },
+            'formaldehyde': { icon: '🧴', name: 'Formaldehyde', group: 'carcinogen',
+                info: 'Dùng trong ướp xác (có trong thuốc lá và thuốc lá điện tử). Gây ung thư mũi, họng và kích ứng mắt, da, đường hô hấp.' },
+            'arsenic': { icon: '☠️', name: 'Arsenic', group: 'carcinogen',
+                info: 'Kim loại nặng cực độc (có trong thuốc lá và thuốc lá điện tử), gây ung thư da, phổi, và tổn thương tim.' },
+            'cadmium': { icon: '🔋', name: 'Cadmium', group: 'carcinogen',
+                info: 'Có trong pin (có trong thuốc lá và thuốc lá điện tử). Gây ung thư phổi và suy thận nghiêm trọng.' },
+            'chromium': { icon: '🧩', name: 'Chromium VI', group: 'carcinogen',
+                info: 'Chất oxy hóa mạnh (có trong thuốc lá và thuốc lá điện tử), gây ung thư phổi và tổn thương gan.' },
+            'nitrosamine': { icon: '🧫', name: 'Nitrosamine', group: 'carcinogen',
+                info: 'Chất gây đột biến gen (có trong thuốc lá và thuốc lá điện tử), đặc biệt nguy hiểm trong khói thuốc.' },
+            
+            // Group 2: Neurotoxins
+            'nicotine': { icon: '⚡', name: 'Nicotine', group: 'neurotoxin',
+                info: 'Gây nghiện mạnh (có trong thuốc lá và thuốc lá điện tử), làm tăng huyết áp, nhịp tim, và thay đổi cấu trúc não.' },
+            'carbon_monoxide': { icon: '💨', name: 'Carbon Monoxide', group: 'neurotoxin',
+                info: 'Chiếm chỗ oxy trong máu (có trong thuốc lá và thuốc lá điện tử), gây thiếu oxy não và tim.' },
+            
+            // Group 3: Lung destroyers
+            'tar': { icon: '🪶', name: 'Tar (Hắc ín)', group: 'lung_destroyer',
+                info: 'Làm tắc nghẽn phổi (có trong thuốc lá và thuốc lá điện tử), gây viêm phế quản mãn tính và ung thư.' },
+            'ammonia': { icon: '🧴', name: 'Ammonia', group: 'lung_destroyer',
+                info: 'Tăng hấp thu nicotine (có trong thuốc lá và thuốc lá điện tử), gây tổn thương niêm mạc phổi.' },
+            'hydrogen_cyanide': { icon: '🧪', name: 'Hydrogen Cyanide', group: 'lung_destroyer',
+                info: 'Phá hủy lông mao của phổi (có trong thuốc lá và thuốc lá điện tử), làm giảm khả năng tự làm sạch.' },
+            
+            // Group 4: Toxic additives
+            'acetone': { icon: '💅', name: 'Acetone', group: 'toxic_additive',
+                info: 'Dung môi trong sơn móng tay (có trong thuốc lá và thuốc lá điện tử), gây kích ứng mắt, mũi, họng.' },
+            'ddt': { icon: '🐜', name: 'DDT', group: 'toxic_additive',
+                info: 'Thuốc trừ sâu (có trong thuốc lá và thuốc lá điện tử), gây rối loạn nội tiết và ung thư.' },
+            'polonium': { icon: '☢️', name: 'Polonium-210', group: 'toxic_additive',
+                info: 'Chất phóng xạ (có trong thuốc lá và thuốc lá điện tử) gây ung thư phổi.' },
+            
+            // Group 5: Vape toxins
+            'liquid_nicotine': { icon: '💧', name: 'Nicotine lỏng', group: 'vape_toxin',
+                info: 'Gây nghiện mạnh (có trong thuốc lá và thuốc lá điện tử), ảnh hưởng nghiêm trọng đến não bộ và tim mạch.' },
+            'diacetyl': { icon: '🍿', name: 'Diacetyl', group: 'vape_toxin',
+                info: 'Hương liệu gây bệnh "popcorn lung" (có trong thuốc lá và thuốc lá điện tử) – viêm tiểu phế quản tắc nghẽn.' },
+            'heavy_metals': { icon: '⚙️', name: 'Kim loại nặng', group: 'vape_toxin',
+                info: 'Chì, Cadmium, Nickel, Chromium (có trong thuốc lá và thuốc lá điện tử) - Gây nhiễm độc, tổn thương phổi và gan.' },
+            'pg_vg_heated': { icon: '🌫️', name: 'PG & VG đốt nóng', group: 'vape_toxin',
+                info: 'Sinh ra formaldehyde và acrolein (có trong thuốc lá và thuốc lá điện tử), gây kích ứng phổi và mạch máu.' },
+            'ultrafine_particles': { icon: '🌌', name: 'Hạt siêu mịn', group: 'vape_toxin',
+                info: 'Thâm nhập sâu vào máu (có trong thuốc lá và thuốc lá điện tử), gây viêm phổi và xơ vữa động mạch.' },
+            'vitamin_e_acetate': { icon: '🧴', name: 'Vitamin E Acetate', group: 'vape_toxin',
+                info: 'Liên quan đến bệnh phổi cấp tính EVALI (có trong thuốc lá và thuốc lá điện tử), có thể gây tử vong.' }
+        };
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+            
+            // Show/hide navigation buttons
+            const navButtons = document.getElementById('navButtons');
+            if (screenId === 'mainMenu') {
+                navButtons.style.display = 'none';
+            } else {
+                navButtons.style.display = 'flex';
+            }
+            
+            updateProgress();
+        }
+
+        function showMainMenu() {
+            showScreen('mainMenu');
+        }
+
+        function showInstructions() {
+            showScreen('instructionsScreen');
+        }
+
+        async function startGame() {
+            showScreen('gamePart1');
+            score = 0;
+            visitedOrgans.clear();
+            updateScore();
+            resetCharacterPosition();
+            
+            // Initialize sound system with user interaction
+            try {
+                await soundSystem.init();
+                console.log('Game started with sound system');
+            } catch (e) {
+                console.log('Game started without sound:', e);
+            }
+        }
+
+        function resetCharacterPosition() {
+            characterPosition = { x: 50, y: 80 };
+            updateCharacterPosition();
+            checkNearbyOrgans();
+        }
+
+        function updateCharacterPosition() {
+            const character = document.getElementById('character');
+            const spotlight = document.getElementById('spotlight');
+            
+            if (character) {
+                character.style.left = characterPosition.x + '%';
+                character.style.top = characterPosition.y + '%';
+            }
+            
+            // Update spotlight position to follow character
+            if (spotlight) {
+                spotlight.style.left = characterPosition.x + '%';
+                spotlight.style.top = characterPosition.y + '%';
+            }
+        }
+
+        function moveCharacter(direction) {
+            if (currentScreen !== 'gamePart1') return;
+            
+            currentDirection = direction;
+            if (!isMoving) {
+                isMoving = true;
+                soundSystem.playMoveSound();
+                
+                moveInterval = setInterval(() => {
+                    const moveSpeed = 2; // Percentage per move
+                    
+                    switch(currentDirection) {
+                        case 'up':
+                            if (characterPosition.y > 10) characterPosition.y -= moveSpeed;
+                            break;
+                        case 'down':
+                            if (characterPosition.y < 90) characterPosition.y += moveSpeed;
+                            break;
+                        case 'left':
+                            if (characterPosition.x > 10) characterPosition.x -= moveSpeed;
+                            break;
+                        case 'right':
+                            if (characterPosition.x < 90) characterPosition.x += moveSpeed;
+                            break;
+                    }
+                    
+                    updateCharacterPosition();
+                    checkNearbyOrgans();
+                }, 50);
+            }
+        }
+
+        function stopMoving() {
+            isMoving = false;
+            currentDirection = null;
+            if (moveInterval) {
+                clearInterval(moveInterval);
+                moveInterval = null;
+            }
+        }
+
+        function checkNearbyOrgans() {
+            const organs = [
+                { id: 'eyes', x: 15, y: 15, element: document.getElementById('eyesOrgan'), hint: document.getElementById('eyesHint') },
+                { id: 'brain', x: 50, y: 15, element: document.getElementById('brainOrgan'), hint: document.getElementById('brainHint') },
+                { id: 'lungs', x: 85, y: 15, element: document.getElementById('lungsOrgan'), hint: document.getElementById('lungsHint') },
+                { id: 'heart', x: 15, y: 45, element: document.getElementById('heartOrgan'), hint: document.getElementById('heartHint') },
+                { id: 'liver', x: 50, y: 45, element: document.getElementById('liverOrgan'), hint: document.getElementById('liverHint') },
+                { id: 'stomach', x: 85, y: 45, element: document.getElementById('stomachOrgan'), hint: document.getElementById('stomachHint') },
+                { id: 'kidney', x: 50, y: 75, element: document.getElementById('kidneyOrgan'), hint: document.getElementById('kidneyHint') }
+            ];
+
+            let foundNearby = null;
+            const spotlight = document.getElementById('spotlight');
+
+            organs.forEach(organ => {
+                const distance = Math.sqrt(
+                    Math.pow(characterPosition.x - organ.x, 2) + 
+                    Math.pow(characterPosition.y - organ.y, 2)
+                );
+
+                if (distance < 20) { // Within interaction range
+                    foundNearby = organ.id;
+                    organ.element.classList.add('nearby');
+                    organ.hint.classList.add('show');
+                    
+                    // Activate spotlight when near organ
+                    if (spotlight) {
+                        spotlight.classList.add('active');
+                    }
+                    
+                    // Start organ-specific ambient sound
+                    soundSystem.startOrganAmbient(organ.id);
+                } else {
+                    organ.element.classList.remove('nearby');
+                    organ.hint.classList.remove('show');
+                }
+            });
+
+            // Deactivate spotlight if no organ nearby
+            if (!foundNearby && spotlight) {
+                spotlight.classList.remove('active');
+                soundSystem.stopAllAmbient();
+            }
+
+            nearbyOrgan = foundNearby;
+        }
+
+        async function interactWithNearbyOrgan() {
+            if (nearbyOrgan) {
+                try {
+                    await soundSystem.playInteractionSound();
+                } catch (e) {
+                    console.log('Interaction sound failed:', e);
+                }
+                showOrganInfo(nearbyOrgan);
+            }
+        }
+
+        // Add click handlers for organs
+        function addOrganClickHandlers() {
+            document.getElementById('heartOrgan').addEventListener('click', () => {
+                if (nearbyOrgan === 'heart') {
+                    interactWithNearbyOrgan();
+                }
+            });
+            
+            document.getElementById('brainOrgan').addEventListener('click', () => {
+                if (nearbyOrgan === 'brain') {
+                    interactWithNearbyOrgan();
+                }
+            });
+            
+            document.getElementById('lungsOrgan').addEventListener('click', () => {
+                if (nearbyOrgan === 'lungs') {
+                    interactWithNearbyOrgan();
+                }
+            });
+            
+            document.getElementById('liverOrgan').addEventListener('click', () => {
+                if (nearbyOrgan === 'liver') {
+                    interactWithNearbyOrgan();
+                }
+            });
+            
+            document.getElementById('kidneyOrgan').addEventListener('click', () => {
+                if (nearbyOrgan === 'kidney') {
+                    interactWithNearbyOrgan();
+                }
+            });
+            
+            document.getElementById('stomachOrgan').addEventListener('click', () => {
+                if (nearbyOrgan === 'stomach') {
+                    interactWithNearbyOrgan();
+                }
+            });
+            
+            document.getElementById('eyesOrgan').addEventListener('click', () => {
+                if (nearbyOrgan === 'eyes') {
+                    interactWithNearbyOrgan();
+                }
+            });
+        }
+
+        function exitGame() {
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi trò chơi?')) {
+                alert('Cảm ơn bạn đã tham gia! Hãy nhớ bảo vệ sức khỏe nhé! 🌟');
+            }
+        }
+
+        function showOrganInfo(organType) {
+            const info = organInfo[organType];
+            currentConversation = organType;
+            conversationStep = 0;
+            
+            document.getElementById('modalIcon').textContent = info.icon;
+            document.getElementById('modalTitle').textContent = info.title;
+            
+            // Create progress dots
+            createProgressDots(info.messages.length);
+            
+            // Show first message
+            showCurrentMessage();
+            
+            document.getElementById('organModal').classList.add('active');
+            
+            // Add points if first visit - 10 points per organ
+            if (!visitedOrgans.has(organType)) {
+                visitedOrgans.add(organType);
+                score += 10; // 10 points per organ
+                updateScore();
+            }
+        }
+
+        function createProgressDots(totalMessages) {
+            const progressContainer = document.getElementById('conversationProgress');
+            progressContainer.innerHTML = '';
+            
+            for (let i = 0; i < totalMessages; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot';
+                if (i === 0) dot.classList.add('active');
+                progressContainer.appendChild(dot);
+            }
+        }
+
+        function showCurrentMessage() {
+            // Determine which info object to use
+            const info = organInfo[currentConversation] || damageInfo[currentConversation];
+            const messageText = info.messages[conversationStep];
+            
+            document.getElementById('modalText').textContent = messageText;
+            
+            // Update progress dots
+            const dots = document.querySelectorAll('.progress-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active');
+                if (index < conversationStep) {
+                    dot.classList.add('completed');
+                } else if (index === conversationStep) {
+                    dot.classList.add('active');
+                }
+            });
+            
+            // Update buttons and hints
+            const nextBtn = document.getElementById('nextMessageBtn');
+            const finishBtn = document.getElementById('finishConversationBtn');
+            const hint = document.getElementById('conversationHint');
+            
+            if (conversationStep < info.messages.length - 1) {
+                nextBtn.style.display = 'inline-block';
+                finishBtn.style.display = 'none';
+                hint.textContent = 'Nhấn SPACE để tiếp tục cuộc trò chuyện...';
+            } else {
+                nextBtn.style.display = 'none';
+                finishBtn.style.display = 'inline-block';
+                hint.textContent = 'Cuộc trò chuyện đã kết thúc. Cảm ơn bạn đã lắng nghe!';
+                
+                // Check if all organs visited for Part 1
+                if (organInfo[currentConversation]) {
+                    // Check if all organs visited
+                    if (visitedOrgans.size === 7) {
+                        setTimeout(() => {
+                            closeModal();
+                            setTimeout(() => {
+                                showCompletionScreen();
+                            }, 1000);
+                        }, 2000);
+                    }
+                }
+            }
+        }
+
+        function nextMessage() {
+            if (currentConversation) {
+                const info = organInfo[currentConversation] || damageInfo[currentConversation];
+                if (conversationStep < info.messages.length - 1) {
+                    conversationStep++;
+                    showCurrentMessage();
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('organModal').classList.remove('active');
+            currentConversation = null;
+            conversationStep = 0;
+        }
+
+        function showCompletionScreen() {
+            document.getElementById('finalScore').textContent = score;
+            showScreen('completionScreen');
+        }
+
+        function continueToNextPart() {
+            // Show game mode selection instead of going directly to shooting game
+            showGameModeSelection();
+        }
+        
+        function showGameModeSelection() {
+            showScreen('gameModeSelection');
+        }
+
+        function updateScore() {
+            document.getElementById('scoreDisplay').textContent = `Điểm: ${score}`;
+        }
+
+        function updateProgress() {
+            let progressPercent = 0;
+            
+            switch(currentScreen) {
+                case 'mainMenu':
+                    progressPercent = 0;
+                    break;
+                case 'instructionsScreen':
+                    progressPercent = 10;
+                    break;
+                case 'gamePart1':
+                    progressPercent = 30 + (visitedOrgans.size * 8);
+                    break;
+                case 'gamePart2':
+                    progressPercent = 60 + (visitedDamageTypes.size * 10);
+                    break;
+                case 'completionScreen':
+                    progressPercent = 100;
+                    break;
+            }
+            
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+        }
+
+        function resetPart2() {
+            part2Progress = 0;
+            visitedDamageTypes.clear();
+            updatePart2Progress();
+            
+            // Reset visual states
+            document.querySelectorAll('.damage-item').forEach(item => {
+                item.classList.remove('visited');
+            });
+        }
+
+        // Falling toxins animation for intro
+        function initializeFallingToxins() {
+            const container = document.getElementById('fallingToxins');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            const toxinIcons = ['🧪', '🧴', '☠️', '🔋', '⚡', '💨', '🪶', '💅', '🍿', '⚙️'];
+            
+            // Create falling toxins
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const toxin = document.createElement('div');
+                    toxin.className = 'falling-toxin';
+                    toxin.textContent = toxinIcons[Math.floor(Math.random() * toxinIcons.length)];
+                    toxin.style.left = Math.random() * 100 + '%';
+                    toxin.style.animationDelay = Math.random() * 2 + 's';
+                    toxin.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    container.appendChild(toxin);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        if (toxin.parentNode) {
+                            toxin.parentNode.removeChild(toxin);
+                        }
+                    }, 5000);
+                }, i * 200);
+            }
+        }
+
+        // Start shooting game
+        function startShootingGame() {
+            showScreen('part2Intro');
+            initializeFallingToxins();
+        }
+        
+        function startActualShootingGame() {
+            showScreen('shootingGame');
+            resetGameState();
+            startGameLoop();
+        }
+        
+        function startQuizGame() {
+            alert('🧠 Game Câu Hỏi đang được phát triển! Sẽ có câu hỏi trắc nghiệm về tác hại của thuốc lá với nhiều mức độ khó khác nhau.');
+            // TODO: Implement quiz game
+        }
+        
+        function startMemoryGame() {
+            alert('🧩 Game Trí Nhớ đang được phát triển! Bạn sẽ ghép đôi các chất độc hại với tác hại tương ứng trong thời gian giới hạn.');
+            // TODO: Implement memory matching game
+        }
+        
+        function startStoryMode() {
+            alert('📖 Chế Độ Câu Chuyện đang được phát triển! Bạn sẽ theo dõi hành trình của một người từ khi bắt đầu hút thuốc đến những hậu quả nghiêm trọng.');
+            // TODO: Implement story mode with interactive narrative
+        }
+
+        function resetGameState() {
+            gameState = {
+                isPlaying: true,
+                isPaused: false,
+                lives: 3,
+                gameScore: 0,
+                playerPosition: 50,
+                enemies: [],
+                bullets: [],
+                wave: 1,
+                enemiesDestroyed: 0,
+                gameSpeed: 1,
+                lastEnemySpawn: 0,
+                enemySpawnRate: 2000,
+                gameLoop: null
+            };
+            
+            updateGameHUD();
+            clearGameCanvas();
+        }
+
+        function updateGameHUD() {
+            document.getElementById('gameScore').textContent = gameState.gameScore;
+            
+            // Update lives display
+            const lifeIcons = ['life1', 'life2', 'life3'];
+            lifeIcons.forEach((id, index) => {
+                const lifeElement = document.getElementById(id);
+                if (index >= gameState.lives) {
+                    lifeElement.classList.add('lost');
+                } else {
+                    lifeElement.classList.remove('lost');
+                }
+            });
+        }
+
+        function clearGameCanvas() {
+            const canvas = document.getElementById('gameCanvas');
+            // Remove all enemies and bullets
+            canvas.querySelectorAll('.enemy, .bullet, .explosion').forEach(el => el.remove());
+        }
+
+        function startGameLoop() {
+            if (gameState.gameLoop) {
+                clearInterval(gameState.gameLoop);
+            }
+            
+            gameState.gameLoop = setInterval(() => {
+                if (!gameState.isPlaying || gameState.isPaused) return;
+                
+                updateGame();
+            }, 33); // 30 FPS for smoother gameplay
+        }
+
+        function updateGame() {
+            const currentTime = Date.now();
+            
+            // Spawn enemies
+            if (currentTime - gameState.lastEnemySpawn > gameState.enemySpawnRate) {
+                spawnEnemy();
+                gameState.lastEnemySpawn = currentTime;
+            }
+            
+            // Update enemies
+            updateEnemies();
+            
+            // Update bullets
+            updateBullets();
+            
+            // Check collisions
+            checkCollisions();
+            
+            // Check game over conditions
+            if (gameState.lives <= 0) {
+                gameOver();
+            }
+            
+            // Increase difficulty over time
+            if (gameState.enemiesDestroyed > 0 && gameState.enemiesDestroyed % 10 === 0) {
+                gameState.gameSpeed += 0.1;
+                gameState.enemySpawnRate = Math.max(800, gameState.enemySpawnRate - 100);
+            }
+        }
+
+        function spawnEnemy() {
+            const toxinKeys = Object.keys(toxinData);
+            const randomToxin = toxinKeys[Math.floor(Math.random() * toxinKeys.length)];
+            const toxin = toxinData[randomToxin];
+            
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+            enemy.textContent = toxin.icon;
+            enemy.style.left = Math.random() * 90 + '%';
+            enemy.style.top = '0px';
+            enemy.dataset.toxinKey = randomToxin;
+            enemy.dataset.speed = (1 + Math.random() * 2) * gameState.gameSpeed;
+            
+            document.getElementById('gameCanvas').appendChild(enemy);
+            gameState.enemies.push(enemy);
+        }
+
+        function updateEnemies() {
+            gameState.enemies.forEach((enemy, index) => {
+                const currentTop = parseFloat(enemy.style.top) || 0;
+                const speed = parseFloat(enemy.dataset.speed) || 1;
+                const newTop = currentTop + speed;
+                
+                enemy.style.top = newTop + 'px';
+                
+                // Remove if off screen or hit player
+                if (newTop > 600) {
+                    enemy.remove();
+                    gameState.enemies.splice(index, 1);
+                } else if (newTop > 520 && checkPlayerCollision(enemy)) {
+                    // Player hit
+                    playerHit();
+                    enemy.remove();
+                    gameState.enemies.splice(index, 1);
+                }
+            });
+        }
+
+        function updateBullets() {
+            gameState.bullets.forEach((bullet, index) => {
+                const currentTop = parseFloat(bullet.style.top) || 0;
+                const newTop = currentTop - 12; // Faster bullet speed
+                
+                bullet.style.top = newTop + 'px';
+                
+                // Remove if off screen
+                if (newTop < 0) {
+                    bullet.remove();
+                    gameState.bullets.splice(index, 1);
+                }
+            });
+        }
+
+        function checkCollisions() {
+            gameState.bullets.forEach((bullet, bulletIndex) => {
+                gameState.enemies.forEach((enemy, enemyIndex) => {
+                    if (isColliding(bullet, enemy)) {
+                        // Hit!
+                        const toxinKey = enemy.dataset.toxinKey;
+                        const toxin = toxinData[toxinKey];
+                        
+                        // Show toxin info popup
+                        showToxinPopup(toxin);
+                        
+                        // Create explosion effect
+                        createExplosion(enemy);
+                        
+                        // Remove bullet and enemy
+                        bullet.remove();
+                        enemy.remove();
+                        gameState.bullets.splice(bulletIndex, 1);
+                        gameState.enemies.splice(enemyIndex, 1);
+                        
+                        // Update score
+                        gameState.gameScore += 10;
+                        gameState.enemiesDestroyed++;
+                        updateGameHUD();
+                        
+                        // Check victory condition
+                        if (gameState.enemiesDestroyed >= 30) {
+                            victory();
+                        }
+                    }
+                });
+            });
+        }
+
+        function isColliding(bullet, enemy) {
+            const bulletRect = bullet.getBoundingClientRect();
+            const enemyRect = enemy.getBoundingClientRect();
+            
+            return !(bulletRect.right < enemyRect.left || 
+                    bulletRect.left > enemyRect.right || 
+                    bulletRect.bottom < enemyRect.top || 
+                    bulletRect.top > enemyRect.bottom);
+        }
+
+        function checkPlayerCollision(enemy) {
+            const playerRect = document.getElementById('playerShip').getBoundingClientRect();
+            const enemyRect = enemy.getBoundingClientRect();
+            
+            return !(playerRect.right < enemyRect.left || 
+                    playerRect.left > enemyRect.right || 
+                    playerRect.bottom < enemyRect.top || 
+                    playerRect.top > enemyRect.bottom);
+        }
+
+        function createExplosion(enemy) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = '💥';
+            explosion.style.left = enemy.style.left;
+            explosion.style.top = enemy.style.top;
+            
+            document.getElementById('gameCanvas').appendChild(explosion);
+            
+            setTimeout(() => {
+                if (explosion.parentNode) {
+                    explosion.remove();
+                }
+            }, 500);
+        }
+
+        function showToxinPopup(toxin) {
+            const popup = document.createElement('div');
+            popup.className = 'toxin-info-popup';
+            popup.innerHTML = `
+                <h3><span>${toxin.icon}</span> ${toxin.name}</h3>
+                <p>${toxin.info}</p>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    popup.remove();
+                }
+            }, 2000);
+        }
+
+        function playerHit() {
+            gameState.lives--;
+            updateGameHUD();
+            
+            // Flash effect
+            const player = document.getElementById('playerShip');
+            player.style.filter = 'brightness(2) drop-shadow(0 0 20px red)';
+            setTimeout(() => {
+                player.style.filter = '';
+            }, 200);
+        }
+
+        function gameOver() {
+            gameState.isPlaying = false;
+            clearInterval(gameState.gameLoop);
+            
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            const gameOverMessage = document.getElementById('gameOverMessage');
+            
+            // Show damaged organ based on which life was lost last
+            let organDamage = '';
+            if (gameState.lives === 0) {
+                organDamage = '✨ Năng lượng của bạn đã cạn kiệt bởi các chất độc hại từ thuốc lá!';
+            } else if (gameState.lives === 1) {
+                organDamage = '🌟 Sức mạnh của bạn đã bị suy yếu bởi nicotine và các chất độc thần kinh!';
+            } else {
+                organDamage = '💖 Trái tim của bạn đã bị tổn thương bởi carbon monoxide và các chất gây ung thư!';
+            }
+            
+            gameOverMessage.innerHTML = `
+                ${organDamage}<br><br>
+                <strong>Hút thuốc hủy hoại sức khỏe từng ngày.</strong><br>
+                Trong thực tế, bạn không thể "bắn hạ" các chất độc này - chúng sẽ tích tụ và phá hủy cơ thể!
+            `;
+            
+            gameOverScreen.classList.add('show');
+        }
+
+        function victory() {
+            gameState.isPlaying = false;
+            clearInterval(gameState.gameLoop);
+            
+            // Update final scores
+            document.getElementById('finalGameScore').textContent = gameState.gameScore;
+            document.getElementById('toxinsDestroyed').textContent = gameState.enemiesDestroyed;
+            
+            // Add bonus points to main score
+            score += gameState.gameScore;
+            updateScore();
+            
+            showScreen('victoryScreen');
+        }
+
+        function restartShootingGame() {
+            document.getElementById('gameOverScreen').classList.remove('show');
+            resetGameState();
+            startGameLoop();
+        }
+
+        // Player movement and shooting with smooth controls
+        let playerMovement = {
+            left: false,
+            right: false,
+            moveSpeed: 3,
+            smoothMoveInterval: null
+        };
+
+        function startPlayerMovement(direction) {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+            
+            playerMovement[direction] = true;
+            
+            if (!playerMovement.smoothMoveInterval) {
+                playerMovement.smoothMoveInterval = setInterval(() => {
+                    let moved = false;
+                    
+                    if (playerMovement.left && gameState.playerPosition > 2) {
+                        gameState.playerPosition -= playerMovement.moveSpeed;
+                        moved = true;
+                    }
+                    if (playerMovement.right && gameState.playerPosition < 98) {
+                        gameState.playerPosition += playerMovement.moveSpeed;
+                        moved = true;
+                    }
+                    
+                    if (moved) {
+                        document.getElementById('playerShip').style.left = gameState.playerPosition + '%';
+                    }
+                    
+                    if (!playerMovement.left && !playerMovement.right) {
+                        clearInterval(playerMovement.smoothMoveInterval);
+                        playerMovement.smoothMoveInterval = null;
+                    }
+                }, 16); // ~60 FPS for smooth movement
+            }
+        }
+
+        function stopPlayerMovement(direction) {
+            playerMovement[direction] = false;
+        }
+
+        function movePlayer(direction) {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+            
+            const moveSpeed = 8;
+            if (direction === 'left' && gameState.playerPosition > 2) {
+                gameState.playerPosition -= moveSpeed;
+            } else if (direction === 'right' && gameState.playerPosition < 98) {
+                gameState.playerPosition += moveSpeed;
+            }
+            
+            document.getElementById('playerShip').style.left = gameState.playerPosition + '%';
+        }
+
+        function shootBullet() {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+            
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            bullet.style.left = gameState.playerPosition + '%';
+            bullet.style.top = '520px';
+            
+            document.getElementById('gameCanvas').appendChild(bullet);
+            gameState.bullets.push(bullet);
+        }
+
+        // Clean up game when leaving shooting game screen
+        function cleanupShootingGame() {
+            if (gameState.gameLoop) {
+                clearInterval(gameState.gameLoop);
+                gameState.gameLoop = null;
+            }
+            gameState.isPlaying = false;
+        }
+
+        function goBack() {
+            // Clean up shooting game if leaving it
+            if (currentScreen === 'shootingGame') {
+                cleanupShootingGame();
+            }
+            
+            switch(currentScreen) {
+                case 'instructionsScreen':
+                    showMainMenu();
+                    break;
+                case 'gamePart1':
+                    showMainMenu();
+                    break;
+                case 'part2Intro':
+                    showScreen('completionScreen');
+                    break;
+                case 'shootingGame':
+                    showScreen('part2Intro');
+                    break;
+                case 'victoryScreen':
+                    showMainMenu();
+                    break;
+                case 'completionScreen':
+                    showScreen('gamePart1');
+                    break;
+                default:
+                    showMainMenu();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('organModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Keyboard navigation with improved space key handling
+        document.addEventListener('keydown', function(e) {
+            console.log('Key pressed:', e.key, 'Current screen:', currentScreen, 'Modal active:', document.getElementById('organModal').classList.contains('active'));
+            
+            if (e.key === 'Escape') {
+                if (currentScreen === 'shootingGame') {
+                    gameState.isPaused = !gameState.isPaused;
+                } else {
+                    closeModal();
+                }
+                return;
+            }
+            
+            // Conversation controls when modal is open
+            if (document.getElementById('organModal').classList.contains('active')) {
+                if (e.code === 'Space' || e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (currentConversation && conversationStep < (organInfo[currentConversation] || damageInfo[currentConversation]).messages.length - 1) {
+                        nextMessage();
+                    } else {
+                        closeModal();
+                    }
+                }
+                return;
+            }
+            
+            // Shooting game controls
+            if (currentScreen === 'shootingGame' && gameState.isPlaying && !gameState.isPaused) {
+                switch(e.code) {
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                        e.preventDefault();
+                        startPlayerMovement('left');
+                        break;
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        e.preventDefault();
+                        startPlayerMovement('right');
+                        break;
+                    case 'Space':
+                        e.preventDefault();
+                        e.stopPropagation();
+                        shootBullet();
+                        break;
+                }
+                return;
+            }
+            
+            // Character movement controls for Part 1
+            if (currentScreen === 'gamePart1') {
+                switch(e.code) {
+                    case 'ArrowUp':
+                    case 'KeyW':
+                        e.preventDefault();
+                        moveCharacter('up');
+                        break;
+                    case 'ArrowDown':
+                    case 'KeyS':
+                        e.preventDefault();
+                        moveCharacter('down');
+                        break;
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                        e.preventDefault();
+                        moveCharacter('left');
+                        break;
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        e.preventDefault();
+                        moveCharacter('right');
+                        break;
+                    case 'Space':
+                    case 'Enter':
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Space pressed, nearby organ:', nearbyOrgan);
+                        interactWithNearbyOrgan();
+                        break;
+                }
+            }
+        });
+
+        document.addEventListener('keyup', function(e) {
+            if (currentScreen === 'gamePart1') {
+                switch(e.code) {
+                    case 'ArrowUp':
+                    case 'KeyW':
+                    case 'ArrowDown':
+                    case 'KeyS':
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        stopMoving();
+                        break;
+                }
+            } else if (currentScreen === 'shootingGame' && gameState.isPlaying && !gameState.isPaused) {
+                switch(e.code) {
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                        e.preventDefault();
+                        stopPlayerMovement('left');
+                        break;
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        e.preventDefault();
+                        stopPlayerMovement('right');
+                        break;
+                }
+            }
+        });
+
+        // Initialize
+        updateScore();
+        updateProgress();
+        
+        // Initialize click handlers when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addOrganClickHandlers();
+        });
+        
+        // Also add handlers immediately if DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addOrganClickHandlers);
+        } else {
+            addOrganClickHandlers();
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d0daa2112ff9ad',t:'MTc1NDg0MzE3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
