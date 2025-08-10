@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Game Dạy Học: Biến đổi đại số</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Hiệu ứng nhẹ nhàng cho thông báo đúng/sai */
+    .pulse-once { animation: pulse-once 500ms ease-out 1; }
+    @keyframes pulse-once {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    /* Confetti đơn giản bằng emoji */
+    .confetti {
+      position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 50;
+    }
+    .confetti span {
+      position: absolute; top: -10%; font-size: 20px; animation: fall 1.8s linear forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(120vh) rotate(360deg); opacity: 0.9; }
+    }
+    /* Badge hướng dẫn nhỏ */
+    .tip-badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-900 via-violet-800 to-fuchsia-700 text-white">
+  <div class="confetti hidden" id="confetti"></div>
+
+  <!-- Nút nổi Toàn màn hình -->
+  <button id="fabFullscreen" title="Toàn màn hình"
+          class="fixed bottom-5 right-5 z-40 rounded-full bg-slate-800/80 hover:bg-slate-700 shadow-lg ring-1 ring-white/10 px-4 py-3 flex items-center gap-2">
+    <span class="text-xl">⛶</span>
+    <span class="hidden sm:inline">Toàn màn hình</span>
+  </button>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 md:py-10">
+    <!-- Header -->
+    <header class="mb-6 md:mb-8">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Biến đổi đại số – Game luyện tập</h1>
+          <p class="text-white/80 mt-1">Rút – Phân – Tích – Quy • Hiển thị 1 câu/lần • Chữ to dễ nhìn</p>
+        </div>
+        <!-- Điểm & Hẹn giờ -->
+        <div class="flex items-center gap-3">
+          <div class="rounded-xl backdrop-blur bg-white/10 px-4 py-3 flex items-center gap-2">
+            <span class="text-yellow-300">⭐</span>
+            <span class="text-sm text-white/80">Điểm</span>
+            <span class="text-2xl font-semibold" id="score">0</span>
+          </div>
+          <div class="rounded-xl backdrop-blur bg-white/10 px-4 py-3 flex items-center gap-2">
+            <span class="text-sm text-white/80">⏱</span>
+            <span class="text-2xl font-mono tabular-nums" id="timer">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thanh điều hướng bước -->
+      <nav class="mt-4">
+        <ul class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <li><button data-section="warmup" class="tab-btn w-full rounded-xl bg-white/10 hover:bg-white/15 transition p-3 text-center ring-1 ring-white/10 font-medium">1. Khởi động</button></li>
+          <li><button data-section="learn" class="tab-btn w-full rounded-xl bg-white/10 hover:bg-white/15 transition p-3 text-center ring-1 ring-white/10 font-medium">2. Hình thành</button></li>
+          <li><button data-section="practice" class="tab-btn w-full rounded-xl bg-white/10 hover:bg-white/15 transition p-3 text-center ring-1 ring-white/10 font-medium">3. Luyện tập</button></li>
+          <li><button data-section="summary" class="tab-btn w-full rounded-xl bg-white/10 hover:bg-white/15 transition p-3 text-center ring-1 ring-white/10 font-medium">4. Tổng kết</button></li>
+        </ul>
+      </nav>
+
+      <!-- Điều khiển thời lượng theo hoạt động -->
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <span class="text-sm text-white/80">Chọn thời lượng:</span>
+        <div class="flex gap-2">
+          <button data-min="5" class="time-btn rounded-full bg-white/10 hover:bg-white/15 px-3 py-1.5 text-sm ring-1 ring-white/10">Khởi động – 5'</button>
+          <button data-min="20" class="time-btn rounded-full bg-white/10 hover:bg-white/15 px-3 py-1.5 text-sm ring-1 ring-white/10">Hình thành – 20'</button>
+          <button data-min="15" class="time-btn rounded-full bg-white/10 hover:bg-white/15 px-3 py-1.5 text-sm ring-1 ring-white/10">Luyện tập – 15'</button>
+          <button data-min="5" class="time-btn rounded-full bg-white/10 hover:bg-white/15 px-3 py-1.5 text-sm ring-1 ring-white/10">Tổng kết – 5'</button>
+        </div>
+        <div class="ml-auto flex flex-wrap gap-2">
+          <button id="startTimer" class="rounded-lg bg-emerald-500 hover:bg-emerald-600 px-3 py-1.5 text-sm font-medium">Bắt đầu</button>
+          <button id="pauseTimer" class="rounded-lg bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-sm font-medium">Tạm dừng</button>
+          <button id="resetTimer" class="rounded-lg bg-rose-500 hover:bg-rose-600 px-3 py-1.5 text-sm font-medium">Đặt lại</button>
+          <button id="toggleFullscreen" class="rounded-lg bg-slate-700 hover:bg-slate-600 px-3 py-1.5 text-sm font-medium" title="Bật/tắt toàn màn hình">Toàn màn hình</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Nội dung -->
+    <section id="warmup" class="section">
+      <div class="rounded-2xl p-5 md:p-6 bg-white/10 ring-1 ring-white/10 backdrop-blur">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold">Khởi động – 3 câu hỏi trắc nghiệm nhanh</h2>
+            <p class="text-white/80 mt-1">Giơ bảng tưởng tượng hoặc trả lời ngay trên màn hình nhé!</p>
+          </div>
+          <span class="tip-badge rounded-lg px-3 py-1 text-xs">Mẹo: Chỉ cộng/trừ số hạng đồng dạng</span>
+        </div>
+
+        <div id="warmupBox" class="mt-5">
+          <!-- Câu hỏi sẽ được sinh động -->
+        </div>
+      </div>
+    </section>
+
+    <section id="learn" class="section hidden">
+      <div class="mb-4 flex flex-wrap items-center gap-3 justify-between">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/10 ring-1 ring-white/10 text-lg">📘</span>
+          <span class="text-white/90 font-medium">Phần 2 – Chế độ 1 câu hỏi</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="learnPrev" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-3 py-1.5">← Trước</button>
+          <span id="learnCounter" class="rounded-lg bg-white/10 ring-1 ring-white/10 px-3 py-1.5 text-sm">1/10</span>
+          <button id="learnNext" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-3 py-1.5">Tiếp →</button>
+        </div>
+      </div>
+      <div class="rounded-2xl p-5 md:p-6 bg-white/10 ring-1 ring-white/10 backdrop-blur">
+        <div id="learnBox"></div>
+      </div>
+    </section>
+
+    <section id="practice" class="section hidden">
+      <div class="mb-4 flex flex-wrap items-center gap-3 justify-between">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/10 ring-1 ring-white/10 text-lg">🎯</span>
+          <span class="text-white/90 font-medium">Phần 3 – Chế độ 1 câu hỏi</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="prevQ" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-3 py-1.5">← Trước</button>
+          <span id="practiceCounter" class="rounded-lg bg-white/10 ring-1 ring-white/10 px-3 py-1.5 text-sm">1/10</span>
+          <button id="nextQ" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-3 py-1.5">Tiếp →</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-5">
+        <div class="rounded-2xl p-5 bg-white/10 ring-1 ring-white/10 backdrop-blur">
+          <div id="practiceBox"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="summary" class="section hidden">
+      <div class="rounded-2xl p-5 md:p-6 bg-white/10 ring-1 ring-white/10 backdrop-blur">
+        <h3 class="text-2xl font-semibold">Tổng kết</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-4">
+          <div class="space-y-2">
+            <p class="text-white/90 font-medium">Kiến thức cốt lõi:</p>
+            <ul class="list-disc list-inside space-y-1 text-white/90">
+              <li>Chỉ cộng/trừ số hạng đồng dạng.</li>
+              <li>Nhân phân phối là cơ sở để nhân đa thức.</li>
+              <li>Phân tích nhân tử giúp rút gọn nhanh và giải phương trình.</li>
+              <li>Quy đồng & rút gọn phân thức là bắt buộc trước khi cộng/trừ.</li>
+            </ul>
+            <div class="mt-3 rounded-xl bg-emerald-500/15 ring-1 ring-emerald-400/30 p-4">
+              <div class="text-emerald-200 text-sm">Mẹo nhớ nhanh</div>
+              <div class="text-emerald-100 text-lg font-semibold mt-1">Rút – Phân – Tích – Quy</div>
+            </div>
+            <button id="printSummary" class="mt-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 px-4 py-2 font-medium">In phiếu tổng kết</button>
+          </div>
+          <div>
+            <p class="text-white/90 font-medium mb-2">Sơ đồ tư duy</p>
+            <!-- Mindmap bằng SVG -->
+            <div class="relative h-80 rounded-xl bg-white/10 ring-1 ring-white/10 overflow-hidden">
+              <svg viewBox="0 0 600 360" class="w-full h-full">
+                <!-- Lines -->
+                <line x1="300" y1="180" x2="110" y2="90" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                <line x1="300" y1="180" x2="490" y2="90" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                <line x1="300" y1="180" x2="110" y2="270" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                <line x1="300" y1="180" x2="490" y2="270" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                <!-- Nodes -->
+                <g class="node" data-tip="Chỉ cộng/trừ đồng dạng">
+                  <circle cx="300" cy="180" r="48" fill="rgba(99,102,241,0.3)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+                  <text x="300" y="182" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="16" font-weight="bold">Cốt lõi</text>
+                </g>
+                <g class="node" data-tip="Gom nhóm và rút gọn" transform="translate(110,90)">
+                  <rect x="-60" y="-22" rx="12" ry="12" width="120" height="44" fill="rgba(34,197,94,0.25)" stroke="rgba(255,255,255,0.5)"/>
+                  <text x="0" y="4" text-anchor="middle" fill="white" font-size="14">Rút gọn</text>
+                </g>
+                <g class="node" data-tip="a(b±c)=ab±ac" transform="translate(490,90)">
+                  <rect x="-72" y="-22" rx="12" ry="12" width="144" height="44" fill="rgba(168,85,247,0.25)" stroke="rgba(255,255,255,0.5)"/>
+                  <text x="0" y="4" text-anchor="middle" fill="white" font-size="14">Phân phối</text>
+                </g>
+                <g class="node" data-tip="Đặt chung/hằng đẳng thức/nhóm" transform="translate(110,270)">
+                  <rect x="-86" y="-22" rx="12" ry="12" width="172" height="44" fill="rgba(236,72,153,0.25)" stroke="rgba(255,255,255,0.5)"/>
+                  <text x="0" y="4" text-anchor="middle" fill="white" font-size="14">Phân tích nhân tử</text>
+                </g>
+                <g class="node" data-tip="BCNN làm mẫu chung" transform="translate(490,270)">
+                  <rect x="-102" y="-22" rx="12" ry="12" width="204" height="44" fill="rgba(34,197,94,0.25)" stroke="rgba(255,255,255,0.5)"/>
+                  <text x="0" y="4" text-anchor="middle" fill="white" font-size="14">Quy đồng & rút gọn</text>
+                </g>
+              </svg>
+              <div id="mindTip" class="absolute left-2 bottom-2 text-xs text-white/90 bg-black/30 px-2 py-1 rounded">
+                Chạm vào nút bất kỳ để xem gợi ý nhanh
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer nhỏ -->
+    <footer class="mt-6 text-center text-white/70 text-sm">
+      Tất cả câu nhắc đã được làm tương tác đầy đủ. Không có âm thanh trong Canva Code (tính năng này chưa hỗ trợ).
+    </footer>
+  </main>
+
+  <script>
+    // Trạng thái
+    const state = {
+      score: 0,
+      section: 'warmup',
+      timer: { total: 0, left: 0, id: null, running: false },
+      warmup: { index: 0, answered: false }
+    };
+
+    // Công cụ nhỏ
+    const $ = (s, p=document) => p.querySelector(s);
+    const $$ = (s, p=document) => Array.from(p.querySelectorAll(s));
+    const byId = id => document.getElementById(id);
+    const setText = (el, txt) => (el.textContent = txt);
+    const norm = s => (s||'').toLowerCase().replace(/\s+/g,'').replace(/·/g,'*').replace(/–/g,'-').replace(/—/g,'-');
+
+    function addScore(n=10) {
+      state.score += n;
+      setText(byId('score'), state.score);
+      confetti();
+    }
+    function showMsg(id, ok, msgOK='Đúng rồi! 🎉', msgNO='Thử lại nhé!') {
+      const el = byId(id);
+      el.className = 'mt-2 text-sm ' + (ok ? 'text-emerald-200' : 'text-rose-200');
+      el.textContent = ok ? msgOK : msgNO;
+      el.parentElement?.classList?.add('pulse-once');
+      setTimeout(()=>el.parentElement?.classList?.remove('pulse-once'), 500);
+    }
+    function confetti() {
+      const box = byId('confetti');
+      box.classList.remove('hidden');
+      // tạo 18 mảnh emoji
+      const icons = ['🎉','✨','🟣','🟡','🔷','💫','⭐','🔶','🟢'];
+      for (let i=0;i<18;i++){
+        const s = document.createElement('span');
+        s.style.left = Math.random()*100 + '%';
+        s.style.animationDelay = (Math.random()*0.3)+'s';
+        s.style.transform = `translateY(0) rotate(${Math.random()*180}deg)`;
+        s.textContent = icons[Math.floor(Math.random()*icons.length)];
+        box.appendChild(s);
+        setTimeout(()=>s.remove(), 1800);
+      }
+      setTimeout(()=>box.classList.add('hidden'), 1900);
+    }
+
+    // Điều hướng
+    function setSection(id) {
+      state.section = id;
+      $$('.section').forEach(s => s.classList.add('hidden'));
+      byId(id).classList.remove('hidden');
+      // Active tab
+      $$('.tab-btn').forEach(b => {
+        if (b.dataset.section === id) {
+          b.classList.add('ring-2','ring-white/40','bg-white/15');
+        } else {
+          b.classList.remove('ring-2','ring-white/40','bg-white/15');
+        }
+      });
+    }
+    $$('.tab-btn').forEach(btn => btn.addEventListener('click', ()=>setSection(btn.dataset.section)));
+    setSection('warmup');
+
+    // Hẹn giờ
+    function formatTime(sec){
+      const m = Math.floor(sec/60).toString().padStart(2,'0');
+      const s = Math.floor(sec%60).toString().padStart(2,'0');
+      return m+':'+s;
+    }
+
+    // Toàn màn hình
+    const fsBtn = document.addEventListener('DOMContentLoaded', ()=>{
+      const btn = document.getElementById('toggleFullscreen');
+      const fab = document.getElementById('fabFullscreen');
+      const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const enter = () => {
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      };
+      const exit = () => {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      };
+      const update = () => {
+        if (btn) btn.textContent = isFull() ? 'Thoát toàn màn' : 'Toàn màn hình';
+        if (fab) fab.querySelector('span.hidden')?.classList?.toggle('sm:inline', !isFull());
+      };
+      const toggle = ()=>{ isFull() ? exit() : enter(); };
+      if (btn) btn.addEventListener('click', toggle);
+      if (fab) fab.addEventListener('click', toggle);
+      document.addEventListener('fullscreenchange', update);
+      document.addEventListener('webkitfullscreenchange', update);
+      update();
+    });
+    function updateTimerDisplay() {
+      setText(byId('timer'), formatTime(state.timer.left));
+    }
+    $$('.time-btn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const min = parseInt(b.dataset.min,10);
+        state.timer.total = min*60;
+        state.timer.left = state.timer.total;
+        updateTimerDisplay();
+        showToast('Đặt thời lượng ' + min + ' phút.');
+      });
+    });
+    byId('startTimer').addEventListener('click', ()=>{
+      if (!state.timer.left) {
+        state.timer.left = state.timer.total || 300; // mặc định 5'
+      }
+      if (state.timer.running) return;
+      state.timer.running = true;
+      state.timer.id = setInterval(()=>{
+        state.timer.left = Math.max(0, state.timer.left-1);
+        updateTimerDisplay();
+        if (state.timer.left <= 0) {
+          clearInterval(state.timer.id);
+          state.timer.running = false;
+          showToast('Hết giờ! Tuyệt vời, chuyển phần tiếp theo nhé.');
+        }
+      }, 1000);
+    });
+    byId('pauseTimer').addEventListener('click', ()=>{
+      if (state.timer.id) clearInterval(state.timer.id);
+      state.timer.running = false;
+      showToast('Đã tạm dừng hẹn giờ.');
+    });
+    byId('resetTimer').addEventListener('click', ()=>{
+      if (state.timer.id) clearInterval(state.timer.id);
+      state.timer.running = false;
+      state.timer.left = state.timer.total || 0;
+      updateTimerDisplay();
+      showToast('Đã đặt lại thời gian.');
+    });
+
+    // Toast đơn giản
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-lg ring-1 ring-white/10';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(), 1800);
+    }
+
+    // KHỞI ĐỘNG
+    const warmupQs = [
+      {
+        q: '2x + 5x = ?',
+        choices: ['5x', '7x', '7'],
+        correct: 1,
+        explain: 'Cộng hệ số vì đồng dạng: 2 + 5 = 7 → 7x.'
+      },
+      {
+        q: '3(a + 2) = ?',
+        choices: ['3a + 2', '3a + 6', 'a + 5'],
+        correct: 1,
+        explain: 'Phân phối: 3·a + 3·2 = 3a + 6.'
+      },
+      {
+        q: '1/2 + 1/3 = ?',
+        choices: ['2/5', '5/6', '1/6'],
+        correct: 1,
+        explain: 'Quy đồng mẫu 6: 3/6 + 2/6 = 5/6.'
+      }
+    ];
+    function renderWarmup() {
+      const box = byId('warmupBox');
+      const i = state.warmup.index;
+      if (i >= warmupQs.length) {
+        box.innerHTML = `
+          <div class="rounded-xl bg-emerald-500/20 ring-1 ring-emerald-400/30 p-4">
+            <div class="font-semibold text-emerald-100">Hoàn thành khởi động! ✨</div>
+            <p class="text-emerald-100/90 mt-1">Điểm thưởng đã cộng. Sẵn sàng vào phần Hình thành kiến thức.</p>
+            <div class="mt-3 flex gap-2">
+              <button class="rounded-lg bg-indigo-500 hover:bg-indigo-600 px-4 py-2 font-medium" onclick="setSection('learn')">Sang phần 2</button>
+              <button class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-4 py-2" onclick="restartWarmup()">Làm lại</button>
+            </div>
+          </div>`;
+        return;
+      }
+      const q = warmupQs[i];
+      box.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-white/80">Câu ${i+1} / ${warmupQs.length}</div>
+          <div class="text-xs text-white/70">Chủ đề: Biến đổi đại số nền tảng</div>
+        </div>
+        <div class="mt-3 rounded-xl bg-white/10 ring-1 ring-white/10 p-4">
+          <div class="text-3xl md:text-4xl font-bold leading-snug">${q.q}</div>
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            ${q.choices.map((c,idx)=>`
+              <button data-idx="${idx}" class="warm-choice rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-4 py-2 text-left">${c}</button>
+            `).join('')}
+          </div>
+          <div id="warmMsg" class="mt-3 text-sm"></div>
+          <div class="mt-3 flex gap-2">
+            <button id="nextWarm" class="rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 px-4 py-2 font-medium disabled:opacity-50" disabled>Tiếp theo</button>
+            <button id="explainWarm" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-4 py-2">Giải thích</button>
+          </div>
+        </div>`;
+      $$('.warm-choice', box).forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = parseInt(btn.dataset.idx,10);
+          const correct = idx === q.correct;
+          $$('.warm-choice', box).forEach(b=>b.disabled = true);
+          byId('nextWarm').disabled = false;
+          if (correct) {
+            btn.classList.add('bg-emerald-500/30');
+            showMsg('warmMsg', true, 'Chính xác! +10 điểm 🎯');
+            addScore(10);
+          } else {
+            btn.classList.add('bg-rose-500/30');
+            showMsg('warmMsg', false, 'Chưa đúng, thử xem gợi ý nhé.');
+          }
+        });
+      });
+      byId('nextWarm').addEventListener('click', ()=>{
+        state.warmup.index++;
+        renderWarmup();
+      });
+      byId('explainWarm').addEventListener('click', ()=>{
+        showToast(q.explain);
+      });
+    }
+    function restartWarmup() {
+      state.warmup.index = 0;
+      renderWarmup();
+    }
+    renderWarmup();
+
+    // Phần 2: Ngân hàng 10 câu học kiến thức (mỗi lần 1 câu)
+    const learnQuestions = [
+      {q:'Xác định số hạng đồng dạng với 3x?', type:'choice', choices:['5x','2y','x^2','-x'], answer:0, tip:'Đồng dạng: cùng biến và số mũ.'},
+      {q:'Rút gọn: 3x + 5y − x + 2y = ?', type:'input', answer:['2x+7y','7y+2x'], tip:'Gom x với x, y với y.'},
+      {q:'3(a+2) = ?', type:'input', answer:['3a+6'], tip:'Phân phối vào ngoặc.'},
+      {q:'−2(5y − 3) = ?', type:'input', answer:['-10y+6'], tip:'Nhân -2 vào mỗi hạng tử.'},
+      {q:'(x+2)(y+3) = ?', type:'input', answer:['xy+3x+2y+6'], tip:'Phân phối hai lần.'},
+      {q:'Phân tích: 5x + 10 = ?', type:'input', answer:['5(x+2)','5*(x+2)'], tip:'Đặt nhân tử chung 5.'},
+      {q:'Phân tích: x^2 − 9 = ?', type:'input', answer:['(x-3)(x+3)','(x+3)(x-3)'], tip:'Hiệu hai bình phương.'},
+      {q:'Phân tích: x^2 + 6x + 9 = ?', type:'input', answer:['(x+3)^2','(x+3)*(x+3)'], tip:'Bình phương hoàn chỉnh.'},
+      {q:'1/x + 1/y = ?', type:'input', answer:['(x+y)/xy'], tip:'Mẫu chung xy.'},
+      {q:'2/x − 3/y = ?', type:'input', answer:['(2y-3x)/xy'], tip:'Mẫu chung xy.'}
+    ];
+
+    function renderLearnQuestion(i=0){
+      const box = byId('learnBox');
+      const total = learnQuestions.length;
+      const item = learnQuestions[i];
+      byId('learnCounter').textContent = (i+1)+'/'+total;
+      if (!item) { box.innerHTML = '<div class="text-white/90">Hết câu hỏi!</div>'; return; }
+      if (item.type === 'choice') {
+        box.innerHTML = `
+          <div class="text-3xl md:text-4xl font-extrabold mb-3 leading-snug">${item.q}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${item.choices.map((c,idx)=>`<button class=\"learn-choice rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-4 py-3 text-left\" data-idx=\"${idx}\">${c}</button>`).join('')}
+          </div>
+          <div id="learnMsg" class="mt-3 text-base"></div>
+          <div class="mt-3 flex gap-2">
+            <button id="learnTip" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-4 py-2">Gợi ý</button>
+          </div>`;
+        $$('.learn-choice', box).forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const ok = parseInt(btn.dataset.idx,10) === (item.answer);
+            if (ok) { addScore(8); showMsg('learnMsg', true, 'Đúng rồi!'); }
+            else { showMsg('learnMsg', false, 'Chưa đúng, thử lại nhé.'); }
+          });
+        });
+      } else {
+        box.innerHTML = `
+          <div class="text-3xl md:text-4xl font-extrabold mb-3 leading-snug">${item.q}</div>
+          <div class="flex gap-2">
+            <input id="learnInput" class="w-full rounded-lg bg-white/10 ring-1 ring-white/10 px-4 py-3 text-xl md:text-2xl placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Nhập đáp án" />
+            <button id="learnCheck" class="rounded-lg bg-emerald-500 hover:bg-emerald-600 px-5 py-3 text-base font-medium">Kiểm tra</button>
+            <button id="learnShow" class="rounded-lg bg-sky-500 hover:bg-sky-600 px-4 py-3 text-base">Đáp án</button>
+          </div>
+          <div id="learnMsg" class="mt-2 text-base"></div>
+          <div class="mt-2"><button id="learnTip" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-3 py-1.5 text-sm">Gợi ý</button></div>`;
+        byId('learnCheck').addEventListener('click', ()=>{
+          const ok = (item.answer||[]).some(a=> norm(a) === norm(byId('learnInput').value));
+          if (ok) { addScore(8); showMsg('learnMsg', true, 'Tuyệt!'); }
+          else { showMsg('learnMsg', false, 'Thử lại nào.'); }
+        });
+        byId('learnShow').addEventListener('click', ()=> showToast('Đáp án: '+ (Array.isArray(item.answer)? item.answer[0] : item.answer)));
+      }
+      const tipBtn = byId('learnTip');
+      if (tipBtn) tipBtn.addEventListener('click', ()=> showToast(item.tip||'Hãy phân tích từng bước.'));
+    }
+
+    let learnIndex = 0;
+    document.addEventListener('DOMContentLoaded', ()=>{
+      renderLearnQuestion(learnIndex);
+      const lp = byId('learnPrev'); const ln = byId('learnNext');
+      if (lp) lp.addEventListener('click', ()=>{ learnIndex = (learnIndex-1+learnQuestions.length)%learnQuestions.length; renderLearnQuestion(learnIndex); });
+      if (ln) ln.addEventListener('click', ()=>{ learnIndex = (learnIndex+1)%learnQuestions.length; renderLearnQuestion(learnIndex); });
+    });
+
+    // Nút kiểm tra chung cho các bài nhập đáp án
+    function checkInput(inputId, msgId, answers) {
+      const val = norm(byId(inputId).value);
+      const ok = answers.some(ans => norm(ans) === val);
+      showMsg(msgId, ok);
+      if (ok) addScore(8);
+    }
+    $$('.check-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const inputId = btn.dataset.check;
+        const msgId = inputId + 'Msg';
+        const answers = JSON.parse(btn.dataset.answers||'[]');
+        checkInput(inputId, msgId, answers);
+      });
+    });
+    $$('.hint').forEach(b=>{
+      b.addEventListener('click', ()=> showToast(b.dataset.hint || 'Hãy thử phân tích từng bước.'));
+    });
+    $$('.show').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const ans = b.dataset.solution || '';
+        showToast('Đáp án: ' + ans);
+      });
+    });
+
+    // Phần 3: Ngân hàng 10 câu luyện tập (mỗi lần 1 câu)
+    const practiceQuestions = [
+      {q:'Rút gọn: 2a + 3b − 4a + b = ?', answer:['-2a+4b','4b-2a'], tip:'Gom a với a, b với b.'},
+      {q:'Phân phối: −2(3x − 4) = ?', answer:['-6x+8'], tip:'Nhân -2 vào mỗi hạng tử.'},
+      {q:'Phân tích: x^2 − 16 = ?', answer:['(x-4)(x+4)','(x+4)(x-4)'], tip:'Hiệu hai bình phương.'},
+      {q:'Quy đồng: 3/a + 5/(2a) = ?', answer:['11/(2a)'], tip:'Mẫu chung 2a.'},
+      {q:'(x^2 − 4)/(x + 2) + 3(x − 1) = ?', answer:['4x-5','-5+4x'], tip:'Rút gọn x^2-4 = (x-2)(x+2).'},
+      {q:'2/x − x/(x^2 − 4) = ?', answer:['(x-4)/(x(x-2))'], tip:'Mẫu chung x(x-2)(x+2).'},
+      {q:'3(x−2) = ?', answer:['3x-6'], tip:'Nhân 3 vào từng hạng tử.'},
+      {q:'(x+1)^2 = ?', answer:['x^2+2x+1'], tip:'Bình phương một tổng.'},
+      {q:'Rút gọn: 4a^2 + 3a − 2a^2 − 5a = ?', answer:['2a^2-2a','-2a+2a^2'], tip:'Gom hạng tử đồng dạng.'},
+      {q:'1/2 + 1/3 = ?', answer:['5/6'], tip:'Mẫu chung 6.'}
+    ];
+
+    function renderPracticeQuestion(i=0){
+      const box = byId('practiceBox');
+      const total = practiceQuestions.length;
+      const item = practiceQuestions[i];
+      byId('practiceCounter').textContent = (i+1)+'/'+total;
+      if (!item) { box.innerHTML = '<div class="text-white/90">Hết câu hỏi!</div>'; return; }
+      box.innerHTML = `
+        <div class="text-3xl md:text-4xl font-extrabold leading-snug mb-3">${item.q}</div>
+        <div class="flex gap-2">
+          <input id="practiceInput" class="w-full rounded-lg bg-white/10 ring-1 ring-white/10 px-4 py-3 text-xl md:text-2xl placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Nhập đáp án" />
+          <button id="practiceCheck" class="rounded-lg bg-emerald-500 hover:bg-emerald-600 px-5 py-3 text-base font-medium">Kiểm tra</button>
+          <button id="practiceShow" class="rounded-lg bg-sky-500 hover:bg-sky-600 px-4 py-3 text-base">Đáp án</button>
+        </div>
+        <div id="practiceMsg" class="mt-2 text-base"></div>
+        <div class="mt-2"><button id="practiceTip" class="rounded-lg bg-white/10 hover:bg-white/15 ring-1 ring-white/10 px-3 py-1.5 text-sm">Gợi ý</button></div>`;
+      byId('practiceCheck').addEventListener('click', ()=>{
+        const ok = (item.answer||[]).some(a=> norm(a) === norm(byId('practiceInput').value));
+        if (ok) { addScore(10); showMsg('practiceMsg', true, 'Chính xác!'); }
+        else { showMsg('practiceMsg', false, 'Chưa đúng, thử lại nhé.'); }
+      });
+      byId('practiceShow').addEventListener('click', ()=> showToast('Đáp án: '+ (Array.isArray(item.answer)? item.answer[0] : item.answer)));
+      byId('practiceTip').addEventListener('click', ()=> showToast(item.tip||'Hãy phân tích từng bước.'));
+    }
+
+    let practiceIndex = 0;
+    document.addEventListener('DOMContentLoaded', ()=>{
+      renderPracticeQuestion(practiceIndex);
+      const n = byId('nextQ'); const p = byId('prevQ');
+      if (n) n.addEventListener('click', ()=>{ practiceIndex = (practiceIndex+1)%practiceQuestions.length; renderPracticeQuestion(practiceIndex); });
+      if (p) p.addEventListener('click', ()=>{ practiceIndex = (practiceIndex-1+practiceQuestions.length)%practiceQuestions.length; renderPracticeQuestion(practiceIndex); });
+    });
+
+    // In tổng kết
+    byId('printSummary').addEventListener('click', ()=> window.print());
+
+    // Tooltip đơn giản cho mindmap
+    $$('.node').forEach(n=>{
+      n.style.cursor = 'pointer';
+      n.addEventListener('click', ()=>{
+        const tip = n.getAttribute('data-tip') || 'Gợi ý';
+        byId('mindTip').textContent = tip;
+        addScore(2);
+      });
+    });
+
+    // Tự động đánh dấu tab đầu
+    setSection('warmup');
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d1388376118149',t:'MTc1NDg0NzAyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
