@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảo vệ sức khỏe - Nói không với thuốc lá</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
         * {
             margin: 0;
@@ -200,10 +201,17 @@
             color: white;
             box-shadow: 0 4px 15px rgba(249, 115, 22, 0.25);
         }
-
+        
         .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: none;
         }
 
         /* Instructions Styles */
@@ -367,44 +375,20 @@
             filter: brightness(1.1);
         }
 
-        /* Chia thành lưới 3x3 với các khu vực riêng biệt */
-        .organ-eyes {
-            top: 15%;
-            left: 15%;
+        .organ.visited {
+            opacity: 0;
+            transform: scale(0.5);
+            pointer-events: none;
         }
 
-        .organ-brain {
-            top: 15%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .organ-lungs {
-            top: 15%;
-            right: 15%;
-        }
-
-        .organ-heart {
-            top: 45%;
-            left: 15%;
-        }
-
-        .organ-liver {
-            top: 45%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .organ-stomach {
-            top: 45%;
-            right: 15%;
-        }
-
-        .organ-kidney {
-            top: 75%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
+        /* NEW Organ Positions */
+        .organ-eyes { top: 10%; left: 15%; }
+        .organ-brain { top: 10%; left: 50%; transform: translateX(-50%); }
+        .organ-lungs { top: 10%; right: 15%; }
+        .organ-heart { top: 40%; left: 15%; }
+        .organ-liver { top: 40%; left: 50%; transform: translateX(-50%); }
+        .organ-stomach { top: 40%; right: 15%; }
+        .organ-kidney { top: 70%; left: 50%; transform: translateX(-50%); }
 
         .organ-icon {
             font-size: 3rem;
@@ -642,23 +626,10 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .title {
-                font-size: 1.5rem;
-            }
-            
-            .organs-container {
-                gap: 20px;
-            }
-            
-            .organ {
-                min-width: 150px;
-                padding: 20px;
-            }
-            
-            .modal-content {
-                padding: 20px;
-                margin: 10px;
-            }
+            .title { font-size: 1.5rem; }
+            .organs-container { gap: 20px; }
+            .organ { min-width: 150px; padding: 20px; }
+            .modal-content { padding: 20px; margin: 10px; }
         }
 
         /* Navigation Buttons */
@@ -714,16 +685,15 @@
             margin-bottom: 30px;
         }
 
-        /* Game Part 2 Styles - Shooting Game */
-        .part2-intro {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        /* Game Part 2 & 3 Intro Styles */
+        .part-intro-screen {
             color: white;
             text-align: center;
             position: relative;
             overflow: hidden;
         }
 
-        .part2-intro-content {
+        .part-intro-content {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
             padding: 40px;
@@ -733,12 +703,16 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
-        .part2-intro h2 {
+        .part-intro-content h2 {
             font-size: 2.5rem;
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             animation: warningPulse 2s ease-in-out infinite;
         }
+
+        #part2Intro { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
+        #part3Intro { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+
 
         @keyframes warningPulse {
             0%, 100% { transform: scale(1); }
@@ -879,7 +853,7 @@
             font-weight: bold;
             z-index: 25;
             opacity: 0;
-            animation: waveAnnounce 2s ease-out;
+            animation: waveAnnounce 2s ease-out forwards;
         }
 
         @keyframes waveAnnounce {
@@ -902,7 +876,7 @@
             text-align: left;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
             opacity: 0;
-            animation: popupSlideIn 2s ease-out forwards;
+            animation: popupSlideIn 3s ease-out forwards;
             backdrop-filter: blur(10px);
         }
 
@@ -984,11 +958,6 @@
             margin-bottom: 30px;
         }
 
-        .game-mode-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
         .victory-screen {
             background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: white;
@@ -1013,6 +982,161 @@
         @keyframes victoryGlow {
             0%, 100% { text-shadow: 0 0 20px rgba(16, 185, 129, 0.8); }
             50% { text-shadow: 0 0 30px rgba(16, 185, 129, 1); }
+        }
+        
+        /* --- CUTE QUIZ GAME STYLES --- */
+        .quiz-game {
+            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
+            color: #333;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: floatUp 10s infinite ease-in;
+            z-index: 0;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh);
+                opacity: 0;
+            }
+        }
+
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 800px;
+            width: 95%;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            z-index: 1;
+        }
+
+        .quiz-progress {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            background: #ffc3a0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .quiz-question {
+            font-size: 1.6rem;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            min-height: 80px;
+        }
+        
+        .quiz-question::before {
+            content: '🤔 ';
+        }
+
+        .answer-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .answer-btn {
+            padding: 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            color: #555;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .answer-btn:active:not(:disabled) {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(145deg, #a8e6cf, #81c784);
+            color: white;
+            animation: correct-bounce 0.5s ease;
+        }
+
+        .answer-btn.wrong {
+            background: linear-gradient(145deg, #ff9a9e, #fecfef);
+            color: white;
+            animation: wrong-shake 0.5s ease;
+        }
+        
+        .answer-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        @keyframes correct-bounce {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(0.95); }
+            50% { transform: scale(1.1); }
+            75% { transform: scale(1.05); }
+        }
+
+        @keyframes wrong-shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+
+        .quiz-feedback {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            min-height: 30px;
+            animation: fade-in 0.5s ease;
+        }
+        
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .next-question-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            background: #ffafbd;
+            background: -webkit-linear-gradient(to right, #ffc3a0, #ffafbd);
+            background: linear-gradient(to right, #ffc3a0, #ffafbd);
+            color: white;
+        }
+        
+        .next-question-btn.visible {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -1060,20 +1184,17 @@
             
             <h3>🎮 Cấu trúc game:</h3>
             <ul>
-                <li><strong>Phần 1:</strong> Khám phá vai trò của các cơ quan (Tim - Não - Phổi)</li>
-                <li><strong>Phần 2:</strong> Tìm hiểu tác hại của thuốc lá</li>
-                <li><strong>Phần 3:</strong> Học cách bảo vệ sức khỏe</li>
+                <li><strong>Phần 1: Khám phá cơ thể</strong> - Tìm hiểu vai trò của 7 cơ quan quan trọng.</li>
+                <li><strong>Phần 2: Game Bắn Súng 🚀</strong> - Chiến đấu với các chất độc hại.</li>
+                <li><strong>Phần 3: Game Câu Hỏi 🧠</strong> - Kiểm tra kiến thức của bạn.</li>
             </ul>
             
             <h3>⭐ Cách chơi:</h3>
             <ul>
-                <li>Nhấp vào các cơ quan để tìm hiểu thông tin</li>
-                <li>Đọc kỹ nội dung để hiểu rõ tác hại</li>
-                <li>Tích lũy điểm số qua từng phần</li>
-                <li>Hoàn thành tất cả để nhận phần thưởng</li>
+                <li>Hoàn thành các phần chơi để tích lũy điểm.</li>
+                <li>Đọc kỹ thông tin để trả lời câu hỏi và vượt qua thử thách.</li>
+                <li>Hãy tham gia tích cực để nhận được điểm số cao nhất!</li>
             </ul>
-            
-            <p><strong>💡 Lưu ý:</strong> Điểm số tích lũy sẽ quyết định phần thưởng cuối game. Hãy tham gia tích cực!</p>
             
             <div class="menu-buttons">
                 <button class="btn btn-primary" onclick="startGame()">Bắt đầu ngay</button>
@@ -1082,13 +1203,19 @@
         </div>
     </div>
 
+    <!-- Part 1 Intro Screen -->
+    <div class="screen game-part1" id="part1Intro">
+        <div class="intro-text" style="text-align: center;">
+             <h2>❤️🧠🫁🫀🫘🌀👁️ Gặp gỡ 7 người bạn đồng hành</h2>
+             <p>"Chúng tôi là 7 cơ quan quan trọng nhất của cơ thể – hãy tìm hiểu và bảo vệ chúng tôi khỏi tác hại của thuốc lá!"</p>
+        </div>
+        <div class="menu-buttons">
+            <button class="btn btn-primary" onclick="startPart1Game()">Bắt đầu khám phá</button>
+        </div>
+    </div>
+
     <!-- Game Part 1 Screen -->
     <div class="screen" id="gamePart1">
-        <div class="intro-text">
-            <h2>❤️🧠🫁🫀🫘🌀👁️ Gặp gỡ 7 người bạn đồng hành</h2>
-            <p>"Chúng tôi là 7 cơ quan quan trọng nhất của cơ thể – hãy tìm hiểu và bảo vệ chúng tôi khỏi tác hại của thuốc lá!"</p>
-        </div>
-        
         <div class="game-area">
             <!-- Spotlight Effect -->
             <div class="spotlight" id="spotlight"></div>
@@ -1098,51 +1225,31 @@
             
             <!-- Organs -->
             <div class="organ organ-heart" id="heartOrgan">
-                <div class="organ-glow"></div>
-                <div class="organ-icon">❤️</div>
-                <div class="organ-name">TIM</div>
+                <div class="organ-glow"></div><div class="organ-icon">❤️</div><div class="organ-name">TIM</div>
                 <div class="interaction-hint" id="heartHint">Nhấn SPACE để nói chuyện!</div>
             </div>
-            
             <div class="organ organ-brain" id="brainOrgan">
-                <div class="organ-glow"></div>
-                <div class="organ-icon">🧠</div>
-                <div class="organ-name">NÃO</div>
+                <div class="organ-glow"></div><div class="organ-icon">🧠</div><div class="organ-name">NÃO</div>
                 <div class="interaction-hint" id="brainHint">Nhấn SPACE để nói chuyện!</div>
             </div>
-            
             <div class="organ organ-lungs" id="lungsOrgan">
-                <div class="organ-glow"></div>
-                <div class="organ-icon">🫁</div>
-                <div class="organ-name">PHỔI</div>
+                <div class="organ-glow"></div><div class="organ-icon">🫁</div><div class="organ-name">PHỔI</div>
                 <div class="interaction-hint" id="lungsHint">Nhấn SPACE để nói chuyện!</div>
             </div>
-            
             <div class="organ organ-liver" id="liverOrgan">
-                <div class="organ-glow"></div>
-                <div class="organ-icon">🫀</div>
-                <div class="organ-name">GAN</div>
+                <div class="organ-glow"></div><div class="organ-icon">🫀</div><div class="organ-name">GAN</div>
                 <div class="interaction-hint" id="liverHint">Nhấn SPACE để nói chuyện!</div>
             </div>
-            
             <div class="organ organ-kidney" id="kidneyOrgan">
-                <div class="organ-glow"></div>
-                <div class="organ-icon">🫘</div>
-                <div class="organ-name">THẬN</div>
+                <div class="organ-glow"></div><div class="organ-icon">🫘</div><div class="organ-name">THẬN</div>
                 <div class="interaction-hint" id="kidneyHint">Nhấn SPACE để nói chuyện!</div>
             </div>
-            
             <div class="organ organ-stomach" id="stomachOrgan">
-                <div class="organ-glow"></div>
-                <div class="organ-icon">🌀</div>
-                <div class="organ-name">RUỘT</div>
+                <div class="organ-glow"></div><div class="organ-icon">🌀</div><div class="organ-name">RUỘT</div>
                 <div class="interaction-hint" id="stomachHint">Nhấn SPACE để nói chuyện!</div>
             </div>
-            
             <div class="organ organ-eyes" id="eyesOrgan">
-                <div class="organ-glow"></div>
-                <div class="organ-icon">👁️</div>
-                <div class="organ-name">MẮT</div>
+                <div class="organ-glow"></div><div class="organ-icon">👁️</div><div class="organ-name">MẮT</div>
                 <div class="interaction-hint" id="eyesHint">Nhấn SPACE để nói chuyện!</div>
             </div>
 
@@ -1164,113 +1271,42 @@
         </div>
     </div>
 
-    <!-- Completion Screen -->
+    <!-- Completion Screen for Part 1-->
     <div class="screen" id="completionScreen">
         <div class="completion-content">
             <h2>🎉 Chúc mừng!</h2>
-            <p>Bạn đã khám phá vai trò quan trọng của các cơ quan sống còn.</p>
+            <p>Bạn đã hoàn thành Phần 1 và khám phá vai trò quan trọng của các cơ quan sống còn.</p>
             <p><strong>Hãy bảo vệ chúng bằng cách tránh xa thuốc lá và thuốc lá điện tử!</strong></p>
             <p>Điểm số của bạn: <span id="finalScore">0</span></p>
             
             <div class="menu-buttons">
-                <button class="btn btn-primary" onclick="continueToNextPart()">Tiếp tục Phần 2</button>
+                <button class="btn btn-primary" onclick="startPart2Intro()">Tiếp tục Phần 2 🚀</button>
                 <button class="btn btn-secondary" onclick="showMainMenu()">Về menu chính</button>
             </div>
         </div>
     </div>
 
-    <!-- Game Mode Selection Screen -->
-    <div class="screen" id="gameModeSelection">
-        <div class="part2-intro-content">
-            <h2>🎮 PHẦN 2: CHỌN CÁCH CHƠI 🎮</h2>
-            <p style="font-size: 1.2rem; margin-bottom: 40px;">
-                Bạn muốn tìm hiểu tác hại của thuốc lá theo cách nào?
-            </p>
-            
-            <div class="game-mode-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 800px; margin: 0 auto;">
-                <!-- Shooting Game Mode -->
-                <div class="game-mode-card" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startShootingGame()">
-                    <div style="font-size: 4rem; margin-bottom: 15px;">🚀</div>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Game Bắn Súng</h3>
-                    <p style="color: #fecaca; margin-bottom: 20px;">Chiến đấu với các chất độc hại từ thuốc lá và thuốc lá điện tử!</p>
-                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
-                        ⚡ Hành động nhanh<br>
-                        🎯 Phản xạ tốt<br>
-                        💥 Thử thách kỹ năng
-                    </div>
-                </div>
-                
-                <!-- Quiz Game Mode -->
-                <div class="game-mode-card" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startQuizGame()">
-                    <div style="font-size: 4rem; margin-bottom: 15px;">🧠</div>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Game Câu Hỏi</h3>
-                    <p style="color: #a7f3d0; margin-bottom: 20px;">Trả lời câu hỏi về tác hại của thuốc lá một cách thông minh!</p>
-                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
-                        📚 Học kiến thức<br>
-                        🤔 Suy nghĩ logic<br>
-                        🏆 Tích lũy điểm cao
-                    </div>
-                </div>
-                
-                <!-- Memory Game Mode -->
-                <div class="game-mode-card" style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startMemoryGame()">
-                    <div style="font-size: 4rem; margin-bottom: 15px;">🧩</div>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Game Trí Nhớ</h3>
-                    <p style="color: #ddd6fe; margin-bottom: 20px;">Ghép đôi các chất độc với tác hại của chúng!</p>
-                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
-                        🧠 Rèn luyện trí nhớ<br>
-                        🔗 Kết nối thông tin<br>
-                        ⏰ Thử thách thời gian
-                    </div>
-                </div>
-                
-                <!-- Story Mode -->
-                <div class="game-mode-card" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease;" onclick="startStoryMode()">
-                    <div style="font-size: 4rem; margin-bottom: 15px;">📖</div>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 15px; color: white;">Chế Độ Câu Chuyện</h3>
-                    <p style="color: #fed7aa; margin-bottom: 20px;">Theo dõi hành trình của một người hút thuốc!</p>
-                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; font-size: 0.9rem;">
-                        📚 Câu chuyện thực tế<br>
-                        💭 Cảm xúc sâu sắc<br>
-                        🎭 Trải nghiệm nhập vai
-                    </div>
-                </div>
-            </div>
-            
-            <div class="menu-buttons" style="margin-top: 40px;">
-                <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Về menu chính</button>
-            </div>
-        </div>
-        
-        <!-- Falling toxins animation -->
-        <div class="falling-toxins" id="fallingToxins"></div>
-    </div>
-
-    <!-- Part 2 Intro Screen -->
-    <div class="screen" id="part2Intro">
-        <div class="part2-intro-content">
-            <h2>⚠️ PHẦN 2: SỰ XÂM LĂNG CỦA CÁC CHẤT ĐỘC HẠI ⚠️</h2>
+    <!-- Part 2 Intro Screen (Shooting Game) -->
+    <div class="screen part-intro-screen" id="part2Intro">
+        <div class="part-intro-content">
+            <h2>PHẦN 2: TIÊU DIỆT CHẤT ĐỘC 🚀</h2>
             <p style="font-size: 1.3rem; margin-bottom: 30px;">
                 🚨 <strong>Cẩn thận! Kẻ thù đang ồ ạt tấn công từ thuốc lá và thuốc lá điện tử!</strong>
             </p>
             <p style="font-size: 1.1rem; margin-bottom: 30px;">
-                🎯 <strong>Nhiệm vụ:</strong> Né tránh và tiêu diệt các chất độc hại trước khi chúng phá hủy cơ thể bạn!
+                🎯 <strong>Nhiệm vụ:</strong> Tiêu diệt các chất độc hại trước khi chúng phá hủy cơ thể bạn!
             </p>
             <div style="margin: 30px 0;">
                 <p style="font-size: 1rem; color: #fbbf24;">
-                    🎮 <strong>Điều khiển:</strong> ← → để di chuyển, SPACE để bắn<br>
-                    💖 Bạn có 3 mạng: Trái tim 💖 - Sức mạnh 🌟 - Năng lượng ✨
+                    🎮 <strong>Điều khiển:</strong> ← → để di chuyển, SPACE để bắn
                 </p>
             </div>
             <div class="menu-buttons">
-                <button class="btn btn-primary" onclick="startActualShootingGame()">🚀 Bắt đầu chiến đấu!</button>
-                <button class="btn btn-secondary" onclick="showGameModeSelection()">🔙 Chọn lại chế độ</button>
-                <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Về menu chính</button>
+                <button class="btn btn-primary" onclick="startActualShootingGame()">Bắt đầu chiến đấu!</button>
+                <button class="btn btn-secondary" onclick="showScreen('completionScreen')">🔙 Quay lại</button>
             </div>
         </div>
-        
-        <!-- Falling toxins animation -->
-        <div class="falling-toxins" id="fallingToxins"></div>
+        <div class="falling-toxins" id="fallingToxinsIntro"></div>
     </div>
 
     <!-- Shooting Game Screen -->
@@ -1297,28 +1333,56 @@
             <!-- Game Over Screen -->
             <div class="game-over-screen" id="gameOverScreen">
                 <div class="game-over-content">
-                    <h2 id="gameOverTitle">💀 Game Over</h2>
-                    <p id="gameOverMessage">Hút thuốc hủy hoại sức khỏe từng ngày. Cơ thể bạn đã bị tổn thương nghiêm trọng!</p>
-                    <div class="menu-buttons">
-                        <button class="btn btn-primary" onclick="restartShootingGame()">🔄 Chơi lại</button>
-                        <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Menu chính</button>
-                    </div>
+                    <h2 id="gameOverTitle">💀 Thất bại...</h2>
+                    <p id="gameOverMessage">Bạn đã bị các chất độc hại đánh bại! Đừng lo, hãy dùng kiến thức để phục thù!</p>
                 </div>
             </div>
         </div>
         
-        <!-- Game Controls Info -->
         <div class="game-controls-info">
             🎮 ← → Di chuyển | SPACE Bắn | ESC Tạm dừng
         </div>
     </div>
 
-    <!-- Victory Screen -->
+    <!-- Part 3 Intro Screen (Quiz Game) -->
+    <div class="screen part-intro-screen" id="part3Intro">
+        <div class="part-intro-content">
+            <h2>PHẦN 3: THỬ THÁCH TRÍ TUỆ 🧠</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 30px;">
+                ✨ <strong>Bạn đã sẵn sàng để kiểm tra kiến thức của mình chưa?</strong>
+            </p>
+            <p style="font-size: 1.1rem; margin-bottom: 30px;">
+                🎯 <strong>Nhiệm vụ:</strong> Trả lời đúng các câu hỏi để chứng tỏ bạn là một chuyên gia về sức khỏe!
+            </p>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" style="background: #059669;" onclick="startQuizGame()">Bắt đầu trả lời!</button>
+                <button class="btn btn-secondary" onclick="showScreen('victoryScreen')">🔙 Quay lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Game Screen -->
+    <div class="screen quiz-game" id="quizGame">
+        <div class="quiz-container">
+            <div class="quiz-progress" id="quizProgress">Câu 1 / 10</div>
+            <h2 class="quiz-question" id="quizQuestion">Câu hỏi sẽ xuất hiện ở đây...</h2>
+            <div class="answer-options" id="answerOptions">
+                <button class="answer-btn">Đáp án A</button>
+                <button class="answer-btn">Đáp án B</button>
+                <button class="answer-btn">Đáp án C</button>
+                <button class="answer-btn">Đáp án D</button>
+            </div>
+            <div class="quiz-feedback" id="quizFeedback"></div>
+            <button class="btn btn-primary next-question-btn" id="nextQuestionBtn" onclick="nextQuizQuestion()">Câu tiếp theo</button>
+        </div>
+    </div>
+
+    <!-- Victory Screen (Shared for all game modes) -->
     <div class="screen" id="victoryScreen">
         <div class="victory-content">
-            <h2>🎉 Chiến thắng!</h2>
-            <p style="font-size: 1.3rem; margin-bottom: 20px;">
-                Bạn đã ngăn chặn làn sóng tấn công của các chất độc hại!
+            <h2 id="victoryTitle">🎉 Chiến thắng!</h2>
+            <p id="victoryMessage" style="font-size: 1.3rem; margin-bottom: 20px;">
+                Bạn đã hoàn thành thử thách!
             </p>
             <p style="font-size: 1.1rem; margin-bottom: 30px;">
                 ⚠️ <strong>Nhưng hiểm họa vẫn còn...</strong><br>
@@ -1326,14 +1390,12 @@
                 Cách duy nhất để thắng là <strong>KHÔNG BAO GIỜ HÚT!</strong>
             </p>
             <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 15px; margin: 20px 0;">
-                <p style="font-size: 1rem;">
-                    🏆 <strong>Điểm số cuối cùng:</strong> <span id="finalGameScore">0</span><br>
-                    🎯 <strong>Chất độc tiêu diệt:</strong> <span id="toxinsDestroyed">0</span>
+                <p id="victoryStats" style="font-size: 1rem;">
+                    🏆 <strong>Điểm số cuối cùng:</strong> <span id="finalGameScore">0</span>
                 </p>
             </div>
-            <div class="menu-buttons">
-                <button class="btn btn-primary" onclick="continueToNextPart()">➡️ Tiếp tục Phần 3</button>
-                <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Menu chính</button>
+            <div class="menu-buttons" id="victoryButtons">
+                <!-- Buttons will be dynamically added here -->
             </div>
         </div>
     </div>
@@ -1365,6 +1427,7 @@
     </div>
 
     <script>
+        // Game State Variables
         let currentScreen = 'mainMenu';
         let score = 0;
         let visitedOrgans = new Set();
@@ -1377,193 +1440,47 @@
         let currentDirection = null;
         let nearbyOrgan = null;
 
-        // Sound System with improved audio context handling
+        // Sound System using Tone.js
         const soundSystem = {
-            audioContext: null,
-            heartbeat: null,
-            breathing: null,
-            currentAmbient: null,
             isInitialized: false,
-            
+            synths: {},
+
             async init() {
+                if (this.isInitialized) return;
                 try {
-                    // Initialize audio context on user interaction
-                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    
-                    // Resume audio context if suspended
-                    if (this.audioContext.state === 'suspended') {
-                        await this.audioContext.resume();
-                    }
-                    
-                    this.createHeartbeatSound();
-                    this.createBreathingSound();
+                    await Tone.start();
+                    this.setupSynths();
                     this.isInitialized = true;
-                    console.log('Sound system initialized successfully');
+                    console.log("Audio context started successfully!");
                 } catch (e) {
-                    console.log('Audio initialization failed:', e);
-                    this.isInitialized = false;
+                    console.error("Could not start audio context:", e);
                 }
             },
-            
-            async ensureAudioContext() {
-                if (!this.audioContext || this.audioContext.state === 'closed') {
-                    await this.init();
-                }
-                if (this.audioContext.state === 'suspended') {
-                    await this.audioContext.resume();
-                }
+
+            setupSynths() {
+                this.synths.click = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.1 } }).toDestination();
+                this.synths.shoot = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.05, sustain: 0.1, release: 0.2 } }).toDestination();
+                this.synths.explosion = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0 } }).toDestination();
+                this.synths.playerHit = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 } }).toDestination();
+                this.synths.correct = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+                this.synths.wrong = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.1 } }).toDestination();
+                this.synths.victory = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.5 } }).toDestination();
+                this.synths.interaction = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination();
+                this.synths.move = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, envelope: { attack: 0.001, decay: 0.1, sustain: 0 } }).toDestination();
+                this.synths.wave = new Tone.Synth({ oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.1, decay: 0.3, sustain: 0.2, release: 0.5 } }).toDestination();
             },
-            
-            createHeartbeatSound() {
-                this.heartbeat = {
-                    isPlaying: false,
-                    interval: null,
-                    async play() {
-                        if (this.isPlaying) return;
-                        await soundSystem.ensureAudioContext();
-                        this.isPlaying = true;
-                        this.interval = setInterval(async () => {
-                            await this.playBeat();
-                        }, 800); // 75 BPM
-                    },
-                    stop() {
-                        this.isPlaying = false;
-                        if (this.interval) {
-                            clearInterval(this.interval);
-                            this.interval = null;
-                        }
-                    },
-                    async playBeat() {
-                        try {
-                            await soundSystem.ensureAudioContext();
-                            const oscillator = soundSystem.audioContext.createOscillator();
-                            const gainNode = soundSystem.audioContext.createGain();
-                            
-                            oscillator.connect(gainNode);
-                            gainNode.connect(soundSystem.audioContext.destination);
-                            
-                            oscillator.frequency.setValueAtTime(200, soundSystem.audioContext.currentTime);
-                            gainNode.gain.setValueAtTime(0.15, soundSystem.audioContext.currentTime);
-                            gainNode.gain.exponentialRampToValueAtTime(0.01, soundSystem.audioContext.currentTime + 0.15);
-                            
-                            oscillator.start(soundSystem.audioContext.currentTime);
-                            oscillator.stop(soundSystem.audioContext.currentTime + 0.15);
-                        } catch (e) {
-                            console.log('Heartbeat sound failed:', e);
-                        }
-                    }
-                };
-            },
-            
-            createBreathingSound() {
-                this.breathing = {
-                    isPlaying: false,
-                    interval: null,
-                    async play() {
-                        if (this.isPlaying) return;
-                        await soundSystem.ensureAudioContext();
-                        this.isPlaying = true;
-                        this.interval = setInterval(async () => {
-                            await this.playBreath();
-                        }, 3000); // Every 3 seconds
-                    },
-                    stop() {
-                        this.isPlaying = false;
-                        if (this.interval) {
-                            clearInterval(this.interval);
-                            this.interval = null;
-                        }
-                    },
-                    async playBreath() {
-                        try {
-                            await soundSystem.ensureAudioContext();
-                            const oscillator = soundSystem.audioContext.createOscillator();
-                            const gainNode = soundSystem.audioContext.createGain();
-                            
-                            oscillator.connect(gainNode);
-                            gainNode.connect(soundSystem.audioContext.destination);
-                            
-                            oscillator.frequency.setValueAtTime(120, soundSystem.audioContext.currentTime);
-                            oscillator.frequency.exponentialRampToValueAtTime(180, soundSystem.audioContext.currentTime + 1.5);
-                            oscillator.frequency.exponentialRampToValueAtTime(120, soundSystem.audioContext.currentTime + 2.5);
-                            
-                            gainNode.gain.setValueAtTime(0.08, soundSystem.audioContext.currentTime);
-                            gainNode.gain.exponentialRampToValueAtTime(0.01, soundSystem.audioContext.currentTime + 2.5);
-                            
-                            oscillator.start(soundSystem.audioContext.currentTime);
-                            oscillator.stop(soundSystem.audioContext.currentTime + 2.5);
-                        } catch (e) {
-                            console.log('Breathing sound failed:', e);
-                        }
-                    }
-                };
-            },
-            
-            async playInteractionSound() {
-                try {
-                    await this.ensureAudioContext();
-                    const oscillator = this.audioContext.createOscillator();
-                    const gainNode = this.audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(this.audioContext.destination);
-                    
-                    oscillator.frequency.setValueAtTime(500, this.audioContext.currentTime);
-                    oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.2);
-                    
-                    gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
-                    
-                    oscillator.start(this.audioContext.currentTime);
-                    oscillator.stop(this.audioContext.currentTime + 0.2);
-                } catch (e) {
-                    console.log('Interaction sound failed:', e);
-                }
-            },
-            
-            async playMoveSound() {
-                try {
-                    await this.ensureAudioContext();
-                    const oscillator = this.audioContext.createOscillator();
-                    const gainNode = this.audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(this.audioContext.destination);
-                    
-                    oscillator.frequency.setValueAtTime(350, this.audioContext.currentTime);
-                    gainNode.gain.setValueAtTime(0.05, this.audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
-                    
-                    oscillator.start(this.audioContext.currentTime);
-                    oscillator.stop(this.audioContext.currentTime + 0.1);
-                } catch (e) {
-                    console.log('Move sound failed:', e);
-                }
-            },
-            
-            async startOrganAmbient(organType) {
-                this.stopAllAmbient();
-                switch(organType) {
-                    case 'heart':
-                        await this.heartbeat.play();
-                        this.currentAmbient = 'heart';
-                        break;
-                    case 'lungs':
-                        await this.breathing.play();
-                        this.currentAmbient = 'lungs';
-                        break;
-                    case 'brain':
-                        // Brain has no specific ambient sound
-                        this.currentAmbient = 'brain';
-                        break;
-                }
-            },
-            
-            stopAllAmbient() {
-                if (this.heartbeat) this.heartbeat.stop();
-                if (this.breathing) this.breathing.stop();
-                this.currentAmbient = null;
-            }
+
+            playClick() { if (this.isInitialized) this.synths.click.triggerAttackRelease('C5', '8n'); },
+            playShoot() { if (this.isInitialized) this.synths.shoot.triggerAttackRelease('G5', '16n'); },
+            playExplosion() { if (this.isInitialized) this.synths.explosion.triggerAttackRelease('4n'); },
+            playPlayerHit() { if (this.isInitialized) this.synths.playerHit.triggerAttackRelease('C3', '8n'); },
+            playCorrect() { if (this.isInitialized) { this.synths.correct.triggerAttackRelease('C5', '16n', Tone.now()); this.synths.correct.triggerAttackRelease('G5', '16n', Tone.now() + 0.1); } },
+            playWrong() { if (this.isInitialized) this.synths.wrong.triggerAttackRelease('C3', '4n'); },
+            playVictory() { if (this.isInitialized) { const now = Tone.now(); this.synths.victory.triggerAttackRelease(['C4', 'E4', 'G4'], '4n', now); this.synths.victory.triggerAttackRelease(['G4', 'B4', 'D5'], '4n', now + 0.4); this.synths.victory.triggerAttackRelease(['C5', 'E5', 'G5'], '2n', now + 0.8); } },
+            playGameOver() { if (this.isInitialized) { const now = Tone.now(); this.synths.wrong.triggerAttackRelease('G2', '8n', now); this.synths.wrong.triggerAttackRelease('F#2', '8n', now + 0.2); this.synths.wrong.triggerAttackRelease('F2', '4n', now + 0.4); } },
+            playInteraction() { if (this.isInitialized) this.synths.interaction.triggerAttackRelease('E5', '8n'); },
+            playMove() { if (this.isInitialized) this.synths.move.triggerAttackRelease('C2', '16n'); },
+            playWave() { if (this.isInitialized) { const now = Tone.now(); this.synths.wave.triggerAttackRelease('C3', '4n', now); this.synths.wave.triggerAttackRelease('G3', '4n', now + 0.2); } }
         };
 
         const organInfo = {
@@ -1665,912 +1582,580 @@
         let conversationStep = 0;
         
         // Shooting Game State
-        let gameState = {
-            isPlaying: false,
-            isPaused: false,
-            lives: 3,
-            gameScore: 0,
-            playerPosition: 50, // percentage
-            enemies: [],
-            bullets: [],
-            wave: 1,
-            enemiesDestroyed: 0,
-            gameSpeed: 1,
-            lastEnemySpawn: 0,
-            enemySpawnRate: 2000, // milliseconds
-            gameLoop: null
+        let shootingGameState = {
+            isPlaying: false, isPaused: false, lives: 3, gameScore: 0,
+            playerPosition: 50, enemies: [], bullets: [], wave: 1,
+            enemiesDestroyed: 0, gameSpeed: 1, lastEnemySpawn: 0,
+            enemySpawnRate: 2000, nextWaveThreshold: 10, gameLoop: null
         };
 
         // Toxin data with detailed information
         const toxinData = {
-            // Group 1: Carcinogens
-            'benzen': { icon: '🧪', name: 'Benzen', group: 'carcinogen', 
-                info: 'Có trong xăng và khói thuốc (có trong thuốc lá và thuốc lá điện tử). Gây bệnh bạch cầu và làm tổn thương tủy xương.' },
-            'formaldehyde': { icon: '🧴', name: 'Formaldehyde', group: 'carcinogen',
-                info: 'Dùng trong ướp xác (có trong thuốc lá và thuốc lá điện tử). Gây ung thư mũi, họng và kích ứng mắt, da, đường hô hấp.' },
-            'arsenic': { icon: '☠️', name: 'Arsenic', group: 'carcinogen',
-                info: 'Kim loại nặng cực độc (có trong thuốc lá và thuốc lá điện tử), gây ung thư da, phổi, và tổn thương tim.' },
-            'cadmium': { icon: '🔋', name: 'Cadmium', group: 'carcinogen',
-                info: 'Có trong pin (có trong thuốc lá và thuốc lá điện tử). Gây ung thư phổi và suy thận nghiêm trọng.' },
-            'chromium': { icon: '🧩', name: 'Chromium VI', group: 'carcinogen',
-                info: 'Chất oxy hóa mạnh (có trong thuốc lá và thuốc lá điện tử), gây ung thư phổi và tổn thương gan.' },
-            'nitrosamine': { icon: '🧫', name: 'Nitrosamine', group: 'carcinogen',
-                info: 'Chất gây đột biến gen (có trong thuốc lá và thuốc lá điện tử), đặc biệt nguy hiểm trong khói thuốc.' },
-            
-            // Group 2: Neurotoxins
-            'nicotine': { icon: '⚡', name: 'Nicotine', group: 'neurotoxin',
-                info: 'Gây nghiện mạnh (có trong thuốc lá và thuốc lá điện tử), làm tăng huyết áp, nhịp tim, và thay đổi cấu trúc não.' },
-            'carbon_monoxide': { icon: '💨', name: 'Carbon Monoxide', group: 'neurotoxin',
-                info: 'Chiếm chỗ oxy trong máu (có trong thuốc lá và thuốc lá điện tử), gây thiếu oxy não và tim.' },
-            
-            // Group 3: Lung destroyers
-            'tar': { icon: '🪶', name: 'Tar (Hắc ín)', group: 'lung_destroyer',
-                info: 'Làm tắc nghẽn phổi (có trong thuốc lá và thuốc lá điện tử), gây viêm phế quản mãn tính và ung thư.' },
-            'ammonia': { icon: '🧴', name: 'Ammonia', group: 'lung_destroyer',
-                info: 'Tăng hấp thu nicotine (có trong thuốc lá và thuốc lá điện tử), gây tổn thương niêm mạc phổi.' },
-            'hydrogen_cyanide': { icon: '🧪', name: 'Hydrogen Cyanide', group: 'lung_destroyer',
-                info: 'Phá hủy lông mao của phổi (có trong thuốc lá và thuốc lá điện tử), làm giảm khả năng tự làm sạch.' },
-            
-            // Group 4: Toxic additives
-            'acetone': { icon: '💅', name: 'Acetone', group: 'toxic_additive',
-                info: 'Dung môi trong sơn móng tay (có trong thuốc lá và thuốc lá điện tử), gây kích ứng mắt, mũi, họng.' },
-            'ddt': { icon: '🐜', name: 'DDT', group: 'toxic_additive',
-                info: 'Thuốc trừ sâu (có trong thuốc lá và thuốc lá điện tử), gây rối loạn nội tiết và ung thư.' },
-            'polonium': { icon: '☢️', name: 'Polonium-210', group: 'toxic_additive',
-                info: 'Chất phóng xạ (có trong thuốc lá và thuốc lá điện tử) gây ung thư phổi.' },
-            
-            // Group 5: Vape toxins
-            'liquid_nicotine': { icon: '💧', name: 'Nicotine lỏng', group: 'vape_toxin',
-                info: 'Gây nghiện mạnh (có trong thuốc lá và thuốc lá điện tử), ảnh hưởng nghiêm trọng đến não bộ và tim mạch.' },
-            'diacetyl': { icon: '🍿', name: 'Diacetyl', group: 'vape_toxin',
-                info: 'Hương liệu gây bệnh "popcorn lung" (có trong thuốc lá và thuốc lá điện tử) – viêm tiểu phế quản tắc nghẽn.' },
-            'heavy_metals': { icon: '⚙️', name: 'Kim loại nặng', group: 'vape_toxin',
-                info: 'Chì, Cadmium, Nickel, Chromium (có trong thuốc lá và thuốc lá điện tử) - Gây nhiễm độc, tổn thương phổi và gan.' },
-            'pg_vg_heated': { icon: '🌫️', name: 'PG & VG đốt nóng', group: 'vape_toxin',
-                info: 'Sinh ra formaldehyde và acrolein (có trong thuốc lá và thuốc lá điện tử), gây kích ứng phổi và mạch máu.' },
-            'ultrafine_particles': { icon: '🌌', name: 'Hạt siêu mịn', group: 'vape_toxin',
-                info: 'Thâm nhập sâu vào máu (có trong thuốc lá và thuốc lá điện tử), gây viêm phổi và xơ vữa động mạch.' },
-            'vitamin_e_acetate': { icon: '🧴', name: 'Vitamin E Acetate', group: 'vape_toxin',
-                info: 'Liên quan đến bệnh phổi cấp tính EVALI (có trong thuốc lá và thuốc lá điện tử), có thể gây tử vong.' }
+            'benzen': { icon: '🧪', name: 'Benzen', info: 'Có trong xăng và khói thuốc lá/thuốc lá điện tử. Gây bệnh bạch cầu (ung thư máu).' },
+            'formaldehyde': { icon: '🧴', name: 'Formaldehyde', info: 'Dùng trong ướp xác, có trong khói thuốc. Gây ung thư mũi, họng và các bệnh hô hấp.' },
+            'arsenic': { icon: '☠️', name: 'Arsenic (Thạch tín)', info: 'Kim loại nặng cực độc có trong thuốc lá, gây ung thư da, phổi, và tổn thương tim.' },
+            'cadmium': { icon: '🔋', name: 'Cadmium', info: 'Kim loại nặng trong pin, cũng có trong thuốc lá. Gây ung thư phổi và suy thận nghiêm trọng.' },
+            'nicotine': { icon: '⚡', name: 'Nicotine', info: 'Chất gây nghiện chính trong thuốc lá & thuốc lá điện tử, làm tăng huyết áp, nhịp tim, và hại não.' },
+            'carbon_monoxide': { icon: '💨', name: 'Carbon Monoxide (CO)', info: 'Khí độc trong khói xe và thuốc lá. Nó chiếm chỗ oxy trong máu, khiến tim và não thiếu dưỡng khí.' },
+            'tar': { icon: '🪶', name: 'Tar (Hắc ín)', info: 'Chất dính màu đen trong khói thuốc lá, bám vào phổi, gây viêm phế quản và ung thư.' },
+            'diacetyl': { icon: '🍿', name: 'Diacetyl', info: 'Hương liệu trong một số thuốc lá điện tử, gây bệnh "phổi bắp rang" không thể chữa khỏi.' },
         };
 
+        // Quiz Game State
+        const quizData = [
+            {
+                question: "Chất nào trong thuốc lá gây nghiện mạnh nhất, khiến người dùng khó bỏ?",
+                options: ["Hắc ín (Tar)", "Nicotine", "Carbon Monoxide", "Formaldehyde"],
+                correct: 1,
+                explanation: "Nicotine là chất gây nghiện chính trong thuốc lá, tác động lên não bộ và tạo ra cảm giác thèm muốn."
+            },
+            {
+                question: "Cơ quan nào bị \"Hắc ín\" (Tar) trong khói thuốc bám vào và gây tổn thương nghiêm trọng nhất?",
+                options: ["Não", "Tim", "Gan", "Phổi"],
+                correct: 3,
+                explanation: "Hắc ín là một hỗn hợp dính, màu đen, bám vào phổi, gây ung thư và các bệnh hô hấp mãn tính."
+            },
+            {
+                question: "Chất độc nào trong khói thuốc chiếm chỗ của Oxy trong máu, khiến tim phải làm việc vất vả hơn?",
+                options: ["Arsenic (Thạch tín)", "Cadmium", "Carbon Monoxide (CO)", "Ammonia"],
+                correct: 2,
+                explanation: "Carbon Monoxide (CO) liên kết với hemoglobin trong máu mạnh hơn oxy, làm giảm lượng oxy đến các cơ quan."
+            },
+            {
+                question: "Bệnh \"phổi bắp rang\" (popcorn lung) là một tổn thương phổi không thể phục hồi, liên quan đến chất nào trong thuốc lá điện tử?",
+                options: ["Nicotine lỏng", "Kim loại nặng", "Vitamin E Acetate", "Diacetyl"],
+                correct: 3,
+                explanation: "Diacetyl là một chất tạo hương vị (bơ) được tìm thấy trong một số loại tinh dầu vape, có thể gây viêm tiểu phế quản tắc nghẽn."
+            },
+            {
+                question: "Hút thuốc lá làm tăng nguy cơ mắc bệnh nào ở Mắt, có thể dẫn đến mù lòa?",
+                options: ["Cận thị", "Đục thủy tinh thể", "Loạn thị", "Viễn thị"],
+                correct: 1,
+                explanation: "Hút thuốc làm tăng đáng kể nguy cơ bị đục thủy tinh thể và thoái hóa điểm vàng, hai nguyên nhân hàng đầu gây mù lòa."
+            },
+            {
+                question: "Nicotine đặc biệt nguy hiểm cho cơ quan nào khi nó đang trong giai đoạn phát triển ở tuổi vị thành niên?",
+                options: ["Tim", "Phổi", "Não", "Thận"],
+                correct: 2,
+                explanation: "Não bộ của thanh thiếu niên vẫn đang phát triển, và nicotine có thể làm thay đổi vĩnh viễn cấu trúc não, ảnh hưởng đến sự tập trung và kiểm soát hành vi."
+            },
+            {
+                question: "Chất Cadmium, một kim loại nặng có trong pin, cũng được tìm thấy trong khói thuốc. Nó gây hại chủ yếu cho cơ quan nào?",
+                options: ["Mắt và Ruột", "Gan và Phổi", "Não và Tim", "Thận và Phổi"],
+                correct: 3,
+                explanation: "Cadmium tích tụ trong cơ thể, đặc biệt gây hại cho thận và là một trong những nguyên nhân gây ung thư phổi."
+            },
+            {
+                question: "Nhà máy hóa học của cơ thể, chịu trách nhiệm lọc bỏ độc tố là cơ quan nào?",
+                options: ["Gan", "Thận", "Lá lách", "Ruột"],
+                correct: 0,
+                explanation: "Gan thực hiện hơn 500 chức năng, trong đó có việc chuyển hóa và loại bỏ các chất độc hại ra khỏi cơ thể."
+            },
+             {
+                question: "Chất nào được thêm vào thuốc lá để tăng tốc độ hấp thụ Nicotine, khiến người dùng nghiện nhanh hơn?",
+                options: ["Đường", "Menthol (Bạc hà)", "Ammonia", "Cacao"],
+                correct: 2,
+                explanation: "Ammonia làm tăng độ pH của khói thuốc, giúp nicotine chuyển sang dạng tự do (freebase) dễ dàng hấp thụ vào phổi và não hơn."
+            },
+            {
+                question: "Cách duy nhất để chiến thắng hoàn toàn các chất độc hại từ thuốc lá là gì?",
+                options: ["Hút ít đi", "Chuyển sang thuốc lá điện tử", "Tập thể dục nhiều hơn", "Không bao giờ hút thuốc"],
+                correct: 3,
+                explanation: "Không có mức độ hút thuốc nào là an toàn. Cách tốt nhất để bảo vệ sức khỏe là không bao giờ bắt đầu hoặc bỏ thuốc hoàn toàn."
+            }
+        ];
+        let quizState = {
+            currentQuestionIndex: 0,
+            quizScore: 0,
+            shuffledQuestions: []
+        };
+
+        // General Functions
         function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
+            soundSystem.playClick();
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             currentScreen = screenId;
-            
-            // Show/hide navigation buttons
-            const navButtons = document.getElementById('navButtons');
-            if (screenId === 'mainMenu') {
-                navButtons.style.display = 'none';
-            } else {
-                navButtons.style.display = 'flex';
-            }
-            
+            document.getElementById('navButtons').style.display = (screenId === 'mainMenu') ? 'none' : 'flex';
             updateProgress();
+
+            if (screenId === 'quizGame') {
+                createFloatingBubbles();
+            }
         }
 
-        function showMainMenu() {
-            showScreen('mainMenu');
-        }
-
-        function showInstructions() {
-            showScreen('instructionsScreen');
-        }
-
-        async function startGame() {
-            showScreen('gamePart1');
+        function showMainMenu() { showScreen('mainMenu'); }
+        function showInstructions() { showScreen('instructionsScreen'); }
+        function startGame() {
+            soundSystem.init(); // Initialize sound on first user interaction
+            soundSystem.playClick();
             score = 0;
             visitedOrgans.clear();
             updateScore();
             resetCharacterPosition();
-            
-            // Initialize sound system with user interaction
-            try {
-                await soundSystem.init();
-                console.log('Game started with sound system');
-            } catch (e) {
-                console.log('Game started without sound:', e);
+            document.querySelectorAll('.organ').forEach(organ => {
+                organ.classList.remove('visited');
+            });
+            showScreen('part1Intro');
+        }
+        function exitGame() {
+            soundSystem.playClick();
+            if (confirm('Bạn có chắc chắn muốn thoát khỏi trò chơi?')) {
+                alert('Cảm ơn bạn đã tham gia! Hãy nhớ bảo vệ sức khỏe nhé! 🌟');
+            }
+        }
+        function updateScore() {
+            document.getElementById('scoreDisplay').textContent = `Điểm: ${score}`;
+        }
+        function updateProgress() {
+            // Placeholder for progress logic
+        }
+        function goBack() {
+            soundSystem.playClick();
+            if (currentScreen === 'shootingGame') {
+                showScreen('part2Intro');
+            } else if (currentScreen === 'part2Intro') {
+                showScreen('completionScreen');
+            } else if (currentScreen === 'quizGame') {
+                showScreen('part3Intro');
+            } else if (currentScreen === 'part3Intro') {
+                victory('shooting');
+            } else if (currentScreen === 'completionScreen' || currentScreen === 'part1Intro') {
+                showScreen('mainMenu');
+            } else if (currentScreen === 'gamePart1') {
+                showScreen('part1Intro');
+            } else {
+                showMainMenu();
             }
         }
 
+        // Part 1: Organ Discovery
+        function startPart1Game() {
+            showScreen('gamePart1');
+        }
         function resetCharacterPosition() {
             characterPosition = { x: 50, y: 80 };
             updateCharacterPosition();
             checkNearbyOrgans();
         }
-
         function updateCharacterPosition() {
             const character = document.getElementById('character');
             const spotlight = document.getElementById('spotlight');
-            
-            if (character) {
-                character.style.left = characterPosition.x + '%';
-                character.style.top = characterPosition.y + '%';
-            }
-            
-            // Update spotlight position to follow character
-            if (spotlight) {
-                spotlight.style.left = characterPosition.x + '%';
-                spotlight.style.top = characterPosition.y + '%';
-            }
+            character.style.left = characterPosition.x + '%';
+            character.style.top = characterPosition.y + '%';
+            spotlight.style.left = characterPosition.x + '%';
+            spotlight.style.top = characterPosition.y + '%';
         }
-
         function moveCharacter(direction) {
-            if (currentScreen !== 'gamePart1') return;
-            
+            if (currentScreen !== 'gamePart1' || isMoving) return;
             currentDirection = direction;
-            if (!isMoving) {
-                isMoving = true;
-                soundSystem.playMoveSound();
-                
-                moveInterval = setInterval(() => {
-                    const moveSpeed = 2; // Percentage per move
-                    
-                    switch(currentDirection) {
-                        case 'up':
-                            if (characterPosition.y > 10) characterPosition.y -= moveSpeed;
-                            break;
-                        case 'down':
-                            if (characterPosition.y < 90) characterPosition.y += moveSpeed;
-                            break;
-                        case 'left':
-                            if (characterPosition.x > 10) characterPosition.x -= moveSpeed;
-                            break;
-                        case 'right':
-                            if (characterPosition.x < 90) characterPosition.x += moveSpeed;
-                            break;
-                    }
-                    
-                    updateCharacterPosition();
-                    checkNearbyOrgans();
-                }, 50);
-            }
+            isMoving = true;
+            soundSystem.playMove();
+            moveInterval = setInterval(() => {
+                const moveSpeed = 1.5;
+                if (currentDirection === 'up' && characterPosition.y > 5) characterPosition.y -= moveSpeed;
+                if (currentDirection === 'down' && characterPosition.y < 90) characterPosition.y += moveSpeed;
+                if (currentDirection === 'left' && characterPosition.x > 10) characterPosition.x -= moveSpeed;
+                if (currentDirection === 'right' && characterPosition.x < 90) characterPosition.x += moveSpeed;
+                updateCharacterPosition();
+                checkNearbyOrgans();
+            }, 30);
         }
-
         function stopMoving() {
             isMoving = false;
-            currentDirection = null;
-            if (moveInterval) {
-                clearInterval(moveInterval);
-                moveInterval = null;
-            }
+            clearInterval(moveInterval);
         }
-
         function checkNearbyOrgans() {
             const organs = [
-                { id: 'eyes', x: 15, y: 15, element: document.getElementById('eyesOrgan'), hint: document.getElementById('eyesHint') },
-                { id: 'brain', x: 50, y: 15, element: document.getElementById('brainOrgan'), hint: document.getElementById('brainHint') },
-                { id: 'lungs', x: 85, y: 15, element: document.getElementById('lungsOrgan'), hint: document.getElementById('lungsHint') },
-                { id: 'heart', x: 15, y: 45, element: document.getElementById('heartOrgan'), hint: document.getElementById('heartHint') },
-                { id: 'liver', x: 50, y: 45, element: document.getElementById('liverOrgan'), hint: document.getElementById('liverHint') },
-                { id: 'stomach', x: 85, y: 45, element: document.getElementById('stomachOrgan'), hint: document.getElementById('stomachHint') },
-                { id: 'kidney', x: 50, y: 75, element: document.getElementById('kidneyOrgan'), hint: document.getElementById('kidneyHint') }
+                { id: 'eyes', x: 15, y: 10 }, { id: 'brain', x: 50, y: 10 }, { id: 'lungs', x: 85, y: 10 },
+                { id: 'heart', x: 15, y: 40 }, { id: 'liver', x: 50, y: 40 }, { id: 'stomach', x: 85, y: 40 },
+                { id: 'kidney', x: 50, y: 70 }
             ];
-
             let foundNearby = null;
-            const spotlight = document.getElementById('spotlight');
-
             organs.forEach(organ => {
-                const distance = Math.sqrt(
-                    Math.pow(characterPosition.x - organ.x, 2) + 
-                    Math.pow(characterPosition.y - organ.y, 2)
-                );
-
-                if (distance < 20) { // Within interaction range
+                const organEl = document.getElementById(`${organ.id}Organ`);
+                const hintEl = document.getElementById(`${organ.id}Hint`);
+                const distance = Math.sqrt(Math.pow(characterPosition.x - organ.x, 2) + Math.pow(characterPosition.y - organ.y, 2));
+                if (distance < 18) {
                     foundNearby = organ.id;
-                    organ.element.classList.add('nearby');
-                    organ.hint.classList.add('show');
-                    
-                    // Activate spotlight when near organ
-                    if (spotlight) {
-                        spotlight.classList.add('active');
-                    }
-                    
-                    // Start organ-specific ambient sound
-                    soundSystem.startOrganAmbient(organ.id);
+                    organEl.classList.add('nearby');
+                    hintEl.classList.add('show');
                 } else {
-                    organ.element.classList.remove('nearby');
-                    organ.hint.classList.remove('show');
+                    organEl.classList.remove('nearby');
+                    hintEl.classList.remove('show');
                 }
             });
-
-            // Deactivate spotlight if no organ nearby
-            if (!foundNearby && spotlight) {
-                spotlight.classList.remove('active');
-                soundSystem.stopAllAmbient();
-            }
-
+            document.getElementById('spotlight').classList.toggle('active', !!foundNearby);
             nearbyOrgan = foundNearby;
         }
-
-        async function interactWithNearbyOrgan() {
+        function interactWithNearbyOrgan() {
             if (nearbyOrgan) {
-                try {
-                    await soundSystem.playInteractionSound();
-                } catch (e) {
-                    console.log('Interaction sound failed:', e);
-                }
+                soundSystem.playInteraction();
                 showOrganInfo(nearbyOrgan);
             }
         }
-
-        // Add click handlers for organs
-        function addOrganClickHandlers() {
-            document.getElementById('heartOrgan').addEventListener('click', () => {
-                if (nearbyOrgan === 'heart') {
-                    interactWithNearbyOrgan();
-                }
-            });
-            
-            document.getElementById('brainOrgan').addEventListener('click', () => {
-                if (nearbyOrgan === 'brain') {
-                    interactWithNearbyOrgan();
-                }
-            });
-            
-            document.getElementById('lungsOrgan').addEventListener('click', () => {
-                if (nearbyOrgan === 'lungs') {
-                    interactWithNearbyOrgan();
-                }
-            });
-            
-            document.getElementById('liverOrgan').addEventListener('click', () => {
-                if (nearbyOrgan === 'liver') {
-                    interactWithNearbyOrgan();
-                }
-            });
-            
-            document.getElementById('kidneyOrgan').addEventListener('click', () => {
-                if (nearbyOrgan === 'kidney') {
-                    interactWithNearbyOrgan();
-                }
-            });
-            
-            document.getElementById('stomachOrgan').addEventListener('click', () => {
-                if (nearbyOrgan === 'stomach') {
-                    interactWithNearbyOrgan();
-                }
-            });
-            
-            document.getElementById('eyesOrgan').addEventListener('click', () => {
-                if (nearbyOrgan === 'eyes') {
-                    interactWithNearbyOrgan();
-                }
-            });
-        }
-
-        function exitGame() {
-            if (confirm('Bạn có chắc chắn muốn thoát khỏi trò chơi?')) {
-                alert('Cảm ơn bạn đã tham gia! Hãy nhớ bảo vệ sức khỏe nhé! 🌟');
-            }
-        }
-
         function showOrganInfo(organType) {
             const info = organInfo[organType];
             currentConversation = organType;
             conversationStep = 0;
-            
             document.getElementById('modalIcon').textContent = info.icon;
             document.getElementById('modalTitle').textContent = info.title;
-            
-            // Create progress dots
-            createProgressDots(info.messages.length);
-            
-            // Show first message
+            createProgressDots(info.messages.length + 1); 
             showCurrentMessage();
-            
             document.getElementById('organModal').classList.add('active');
             
-            // Add points if first visit - 10 points per organ
             if (!visitedOrgans.has(organType)) {
                 visitedOrgans.add(organType);
-                score += 10; // 10 points per organ
+                score += 10;
                 updateScore();
             }
         }
-
-        function createProgressDots(totalMessages) {
-            const progressContainer = document.getElementById('conversationProgress');
-            progressContainer.innerHTML = '';
-            
-            for (let i = 0; i < totalMessages; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'progress-dot';
-                if (i === 0) dot.classList.add('active');
-                progressContainer.appendChild(dot);
-            }
+        function createProgressDots(total) {
+            const container = document.getElementById('conversationProgress');
+            container.innerHTML = Array.from({ length: total }, (_, i) => `<div class="progress-dot"></div>`).join('');
         }
-
         function showCurrentMessage() {
-            // Determine which info object to use
-            const info = organInfo[currentConversation] || damageInfo[currentConversation];
-            const messageText = info.messages[conversationStep];
+            const info = organInfo[currentConversation];
+            const isLastMessage = conversationStep >= info.messages.length;
             
-            document.getElementById('modalText').textContent = messageText;
-            
-            // Update progress dots
-            const dots = document.querySelectorAll('.progress-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.remove('active');
-                if (index < conversationStep) {
-                    dot.classList.add('completed');
-                } else if (index === conversationStep) {
-                    dot.classList.add('active');
-                }
-            });
-            
-            // Update buttons and hints
-            const nextBtn = document.getElementById('nextMessageBtn');
-            const finishBtn = document.getElementById('finishConversationBtn');
-            const hint = document.getElementById('conversationHint');
-            
-            if (conversationStep < info.messages.length - 1) {
-                nextBtn.style.display = 'inline-block';
-                finishBtn.style.display = 'none';
-                hint.textContent = 'Nhấn SPACE để tiếp tục cuộc trò chuyện...';
+            if (isLastMessage) {
+                document.getElementById('modalText').textContent = "Hãy nhớ lời mình dặn nhé. Tạm biệt!";
             } else {
-                nextBtn.style.display = 'none';
-                finishBtn.style.display = 'inline-block';
-                hint.textContent = 'Cuộc trò chuyện đã kết thúc. Cảm ơn bạn đã lắng nghe!';
-                
-                // Check if all organs visited for Part 1
-                if (organInfo[currentConversation]) {
-                    // Check if all organs visited
-                    if (visitedOrgans.size === 7) {
-                        setTimeout(() => {
-                            closeModal();
-                            setTimeout(() => {
-                                showCompletionScreen();
-                            }, 1000);
-                        }, 2000);
-                    }
-                }
+                document.getElementById('modalText').textContent = info.messages[conversationStep];
+            }
+
+            document.querySelectorAll('.progress-dot').forEach((dot, i) => {
+                dot.classList.remove('active', 'completed');
+                if (i < conversationStep) dot.classList.add('completed');
+                if (i === conversationStep) dot.classList.add('active');
+            });
+
+            document.getElementById('nextMessageBtn').style.display = isLastMessage ? 'none' : 'inline-block';
+            document.getElementById('finishConversationBtn').style.display = isLastMessage ? 'inline-block' : 'none';
+            
+            if (isLastMessage && visitedOrgans.size === 7) {
+                setTimeout(() => {
+                    closeModal();
+                    setTimeout(showCompletionScreen, 500);
+                }, 1500);
             }
         }
-
         function nextMessage() {
-            if (currentConversation) {
-                const info = organInfo[currentConversation] || damageInfo[currentConversation];
-                if (conversationStep < info.messages.length - 1) {
-                    conversationStep++;
-                    showCurrentMessage();
-                }
+            soundSystem.playClick();
+            const info = organInfo[currentConversation];
+            if (conversationStep < info.messages.length) { 
+                conversationStep++;
+                showCurrentMessage();
             }
         }
-
         function closeModal() {
+            soundSystem.playClick();
+            if (currentConversation && organInfo[currentConversation]) {
+                const organElement = document.getElementById(currentConversation + 'Organ');
+                if (organElement) {
+                    organElement.classList.add('visited');
+                }
+            }
             document.getElementById('organModal').classList.remove('active');
             currentConversation = null;
-            conversationStep = 0;
         }
-
         function showCompletionScreen() {
             document.getElementById('finalScore').textContent = score;
             showScreen('completionScreen');
         }
-
-        function continueToNextPart() {
-            // Show game mode selection instead of going directly to shooting game
-            showGameModeSelection();
-        }
         
-        function showGameModeSelection() {
-            showScreen('gameModeSelection');
-        }
-
-        function updateScore() {
-            document.getElementById('scoreDisplay').textContent = `Điểm: ${score}`;
-        }
-
-        function updateProgress() {
-            let progressPercent = 0;
-            
-            switch(currentScreen) {
-                case 'mainMenu':
-                    progressPercent = 0;
-                    break;
-                case 'instructionsScreen':
-                    progressPercent = 10;
-                    break;
-                case 'gamePart1':
-                    progressPercent = 30 + (visitedOrgans.size * 8);
-                    break;
-                case 'gamePart2':
-                    progressPercent = 60 + (visitedDamageTypes.size * 10);
-                    break;
-                case 'completionScreen':
-                    progressPercent = 100;
-                    break;
-            }
-            
-            document.getElementById('progressFill').style.width = progressPercent + '%';
-        }
-
-        function resetPart2() {
-            part2Progress = 0;
-            visitedDamageTypes.clear();
-            updatePart2Progress();
-            
-            // Reset visual states
-            document.querySelectorAll('.damage-item').forEach(item => {
-                item.classList.remove('visited');
-            });
-        }
-
-        // Falling toxins animation for intro
-        function initializeFallingToxins() {
-            const container = document.getElementById('fallingToxins');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            const toxinIcons = ['🧪', '🧴', '☠️', '🔋', '⚡', '💨', '🪶', '💅', '🍿', '⚙️'];
-            
-            // Create falling toxins
-            for (let i = 0; i < 15; i++) {
-                setTimeout(() => {
-                    const toxin = document.createElement('div');
-                    toxin.className = 'falling-toxin';
-                    toxin.textContent = toxinIcons[Math.floor(Math.random() * toxinIcons.length)];
-                    toxin.style.left = Math.random() * 100 + '%';
-                    toxin.style.animationDelay = Math.random() * 2 + 's';
-                    toxin.style.animationDuration = (2 + Math.random() * 2) + 's';
-                    container.appendChild(toxin);
-                    
-                    // Remove after animation
-                    setTimeout(() => {
-                        if (toxin.parentNode) {
-                            toxin.parentNode.removeChild(toxin);
-                        }
-                    }, 5000);
-                }, i * 200);
-            }
-        }
-
-        // Start shooting game
-        function startShootingGame() {
+        // Part 2: Shooting Game
+        function startPart2Intro() {
             showScreen('part2Intro');
-            initializeFallingToxins();
+            initializeFallingToxins('fallingToxinsIntro');
         }
-        
         function startActualShootingGame() {
             showScreen('shootingGame');
-            resetGameState();
+            resetShootingGameState();
             startGameLoop();
         }
-        
-        function startQuizGame() {
-            alert('🧠 Game Câu Hỏi đang được phát triển! Sẽ có câu hỏi trắc nghiệm về tác hại của thuốc lá với nhiều mức độ khó khác nhau.');
-            // TODO: Implement quiz game
-        }
-        
-        function startMemoryGame() {
-            alert('🧩 Game Trí Nhớ đang được phát triển! Bạn sẽ ghép đôi các chất độc hại với tác hại tương ứng trong thời gian giới hạn.');
-            // TODO: Implement memory matching game
-        }
-        
-        function startStoryMode() {
-            alert('📖 Chế Độ Câu Chuyện đang được phát triển! Bạn sẽ theo dõi hành trình của một người từ khi bắt đầu hút thuốc đến những hậu quả nghiêm trọng.');
-            // TODO: Implement story mode with interactive narrative
-        }
-
-        function resetGameState() {
-            gameState = {
-                isPlaying: true,
-                isPaused: false,
-                lives: 3,
-                gameScore: 0,
-                playerPosition: 50,
-                enemies: [],
-                bullets: [],
-                wave: 1,
-                enemiesDestroyed: 0,
-                gameSpeed: 1,
-                lastEnemySpawn: 0,
-                enemySpawnRate: 2000,
-                gameLoop: null
+        function resetShootingGameState() {
+            shootingGameState = {
+                isPlaying: true, isPaused: false, lives: 3, gameScore: 0,
+                playerPosition: 50, enemies: [], bullets: [], wave: 1,
+                enemiesDestroyed: 0, gameSpeed: 1, lastEnemySpawn: 0,
+                enemySpawnRate: 2000, nextWaveThreshold: 10, gameLoop: null
             };
-            
             updateGameHUD();
-            clearGameCanvas();
+            document.getElementById('gameCanvas').querySelectorAll('.enemy, .bullet, .explosion').forEach(el => el.remove());
         }
-
-        function updateGameHUD() {
-            document.getElementById('gameScore').textContent = gameState.gameScore;
-            
-            // Update lives display
-            const lifeIcons = ['life1', 'life2', 'life3'];
-            lifeIcons.forEach((id, index) => {
-                const lifeElement = document.getElementById(id);
-                if (index >= gameState.lives) {
-                    lifeElement.classList.add('lost');
-                } else {
-                    lifeElement.classList.remove('lost');
-                }
-            });
-        }
-
-        function clearGameCanvas() {
-            const canvas = document.getElementById('gameCanvas');
-            // Remove all enemies and bullets
-            canvas.querySelectorAll('.enemy, .bullet, .explosion').forEach(el => el.remove());
-        }
-
         function startGameLoop() {
-            if (gameState.gameLoop) {
-                clearInterval(gameState.gameLoop);
-            }
-            
-            gameState.gameLoop = setInterval(() => {
-                if (!gameState.isPlaying || gameState.isPaused) return;
-                
-                updateGame();
-            }, 33); // 30 FPS for smoother gameplay
+            if (shootingGameState.gameLoop) clearInterval(shootingGameState.gameLoop);
+            shootingGameState.gameLoop = setInterval(updateGame, 33);
         }
-
         function updateGame() {
-            const currentTime = Date.now();
-            
-            // Spawn enemies
-            if (currentTime - gameState.lastEnemySpawn > gameState.enemySpawnRate) {
+            if (!shootingGameState.isPlaying || shootingGameState.isPaused) return;
+            const now = Date.now();
+            if (now - shootingGameState.lastEnemySpawn > shootingGameState.enemySpawnRate) {
                 spawnEnemy();
-                gameState.lastEnemySpawn = currentTime;
+                shootingGameState.lastEnemySpawn = now;
             }
-            
-            // Update enemies
             updateEnemies();
-            
-            // Update bullets
             updateBullets();
-            
-            // Check collisions
             checkCollisions();
-            
-            // Check game over conditions
-            if (gameState.lives <= 0) {
-                gameOver();
-            }
-            
-            // Increase difficulty over time
-            if (gameState.enemiesDestroyed > 0 && gameState.enemiesDestroyed % 10 === 0) {
-                gameState.gameSpeed += 0.1;
-                gameState.enemySpawnRate = Math.max(800, gameState.enemySpawnRate - 100);
-            }
-        }
 
+            if (shootingGameState.enemiesDestroyed >= shootingGameState.nextWaveThreshold) {
+                shootingGameState.wave++;
+                shootingGameState.nextWaveThreshold += 10; 
+                shootingGameState.gameSpeed += 0.2;
+                shootingGameState.enemySpawnRate = Math.max(500, shootingGameState.enemySpawnRate - 250);
+                showWaveIndicator(`Làn sóng ${shootingGameState.wave}`);
+            }
+
+            if (shootingGameState.lives <= 0) gameOver();
+        }
         function spawnEnemy() {
-            const toxinKeys = Object.keys(toxinData);
-            const randomToxin = toxinKeys[Math.floor(Math.random() * toxinKeys.length)];
-            const toxin = toxinData[randomToxin];
-            
+            const keys = Object.keys(toxinData);
+            const key = keys[Math.floor(Math.random() * keys.length)];
             const enemy = document.createElement('div');
             enemy.className = 'enemy';
-            enemy.textContent = toxin.icon;
+            enemy.textContent = toxinData[key].icon;
             enemy.style.left = Math.random() * 90 + '%';
             enemy.style.top = '0px';
-            enemy.dataset.toxinKey = randomToxin;
-            enemy.dataset.speed = (1 + Math.random() * 2) * gameState.gameSpeed;
-            
+            enemy.dataset.toxinKey = key;
+            enemy.dataset.speed = (1 + Math.random() * 1.5) * shootingGameState.gameSpeed;
             document.getElementById('gameCanvas').appendChild(enemy);
-            gameState.enemies.push(enemy);
+            shootingGameState.enemies.push(enemy);
         }
-
         function updateEnemies() {
-            gameState.enemies.forEach((enemy, index) => {
-                const currentTop = parseFloat(enemy.style.top) || 0;
-                const speed = parseFloat(enemy.dataset.speed) || 1;
-                const newTop = currentTop + speed;
-                
-                enemy.style.top = newTop + 'px';
-                
-                // Remove if off screen or hit player
-                if (newTop > 600) {
+            shootingGameState.enemies.forEach((enemy, i) => {
+                let top = parseFloat(enemy.style.top);
+                top += parseFloat(enemy.dataset.speed);
+                enemy.style.top = top + 'px';
+                if (top > 600 || (top > 520 && isColliding(document.getElementById('playerShip'), enemy))) {
+                    if (top < 600) playerHit();
                     enemy.remove();
-                    gameState.enemies.splice(index, 1);
-                } else if (newTop > 520 && checkPlayerCollision(enemy)) {
-                    // Player hit
-                    playerHit();
-                    enemy.remove();
-                    gameState.enemies.splice(index, 1);
+                    shootingGameState.enemies.splice(i, 1);
                 }
             });
         }
-
         function updateBullets() {
-            gameState.bullets.forEach((bullet, index) => {
-                const currentTop = parseFloat(bullet.style.top) || 0;
-                const newTop = currentTop - 12; // Faster bullet speed
-                
-                bullet.style.top = newTop + 'px';
-                
-                // Remove if off screen
-                if (newTop < 0) {
+            shootingGameState.bullets.forEach((bullet, i) => {
+                let top = parseFloat(bullet.style.top);
+                top -= 12;
+                bullet.style.top = top + 'px';
+                if (top < 0) {
                     bullet.remove();
-                    gameState.bullets.splice(index, 1);
+                    shootingGameState.bullets.splice(i, 1);
                 }
             });
         }
-
         function checkCollisions() {
-            gameState.bullets.forEach((bullet, bulletIndex) => {
-                gameState.enemies.forEach((enemy, enemyIndex) => {
-                    if (isColliding(bullet, enemy)) {
-                        // Hit!
-                        const toxinKey = enemy.dataset.toxinKey;
-                        const toxin = toxinData[toxinKey];
-                        
-                        // Show toxin info popup
-                        showToxinPopup(toxin);
-                        
-                        // Create explosion effect
+            for (let i = shootingGameState.bullets.length - 1; i >= 0; i--) {
+                for (let j = shootingGameState.enemies.length - 1; j >= 0; j--) {
+                    const bullet = shootingGameState.bullets[i];
+                    const enemy = shootingGameState.enemies[j];
+                    if (bullet && enemy && isColliding(bullet, enemy)) {
                         createExplosion(enemy);
-                        
-                        // Remove bullet and enemy
+                        showToxinPopup(toxinData[enemy.dataset.toxinKey]);
+                        shootingGameState.gameScore += 10;
+                        shootingGameState.enemiesDestroyed++;
+                        updateGameHUD();
                         bullet.remove();
                         enemy.remove();
-                        gameState.bullets.splice(bulletIndex, 1);
-                        gameState.enemies.splice(enemyIndex, 1);
-                        
-                        // Update score
-                        gameState.gameScore += 10;
-                        gameState.enemiesDestroyed++;
-                        updateGameHUD();
-                        
-                        // Check victory condition
-                        if (gameState.enemiesDestroyed >= 30) {
-                            victory();
-                        }
+                        shootingGameState.bullets.splice(i, 1);
+                        shootingGameState.enemies.splice(j, 1);
+                        if (shootingGameState.enemiesDestroyed >= 30) victory('shooting');
+                        break; 
                     }
-                });
+                }
+            }
+        }
+        function showToxinPopup(toxin) {
+            document.querySelectorAll('.toxin-info-popup').forEach(p => p.remove());
+            const popup = document.createElement('div');
+            popup.className = 'toxin-info-popup';
+            popup.innerHTML = `<h3><span>${toxin.icon}</span> ${toxin.name}</h3><p>${toxin.info}</p>`;
+            document.body.appendChild(popup);
+            setTimeout(() => { if (popup.parentNode) { popup.remove(); } }, 3000);
+        }
+        function showWaveIndicator(text) {
+            soundSystem.playWave();
+            const indicator = document.getElementById('waveIndicator');
+            indicator.textContent = text;
+            indicator.style.animation = 'none';
+            void indicator.offsetWidth; 
+            indicator.style.animation = 'waveAnnounce 2s ease-out forwards';
+        }
+        function isColliding(a, b) {
+            const rectA = a.getBoundingClientRect();
+            const rectB = b.getBoundingClientRect();
+            return !(rectA.right < rectB.left || rectA.left > rectB.right || rectA.bottom < rectB.top || rectA.top > rectB.bottom);
+        }
+        function playerHit() {
+            soundSystem.playPlayerHit();
+            shootingGameState.lives--;
+            updateGameHUD();
+            const player = document.getElementById('playerShip');
+            player.style.animation = 'playerHit 0.3s ease';
+            setTimeout(() => player.style.animation = '', 300);
+        }
+        function gameOver() {
+            soundSystem.playGameOver();
+            shootingGameState.isPlaying = false;
+            clearInterval(shootingGameState.gameLoop);
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            gameOverScreen.classList.add('show');
+            setTimeout(() => {
+                gameOverScreen.classList.remove('show');
+                startPart3Intro();
+            }, 3000);
+        }
+        function restartShootingGame() {
+            soundSystem.playClick();
+            document.getElementById('gameOverScreen').classList.remove('show');
+            resetShootingGameState();
+            startGameLoop();
+        }
+        function updateGameHUD() {
+            document.getElementById('gameScore').textContent = shootingGameState.gameScore;
+            ['life1', 'life2', 'life3'].forEach((id, i) => {
+                document.getElementById(id).classList.toggle('lost', i >= shootingGameState.lives);
             });
         }
-
-        function isColliding(bullet, enemy) {
-            const bulletRect = bullet.getBoundingClientRect();
-            const enemyRect = enemy.getBoundingClientRect();
-            
-            return !(bulletRect.right < enemyRect.left || 
-                    bulletRect.left > enemyRect.right || 
-                    bulletRect.bottom < enemyRect.top || 
-                    bulletRect.top > enemyRect.bottom);
+        function shootBullet() {
+            if (!shootingGameState.isPlaying || shootingGameState.isPaused) return;
+            soundSystem.playShoot();
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            bullet.style.left = shootingGameState.playerPosition + '%';
+            bullet.style.top = '520px';
+            document.getElementById('gameCanvas').appendChild(bullet);
+            shootingGameState.bullets.push(bullet);
         }
-
-        function checkPlayerCollision(enemy) {
-            const playerRect = document.getElementById('playerShip').getBoundingClientRect();
-            const enemyRect = enemy.getBoundingClientRect();
-            
-            return !(playerRect.right < enemyRect.left || 
-                    playerRect.left > enemyRect.right || 
-                    playerRect.bottom < enemyRect.top || 
-                    playerRect.top > enemyRect.bottom);
-        }
-
         function createExplosion(enemy) {
+            soundSystem.playExplosion();
             const explosion = document.createElement('div');
             explosion.className = 'explosion';
             explosion.textContent = '💥';
             explosion.style.left = enemy.style.left;
             explosion.style.top = enemy.style.top;
-            
             document.getElementById('gameCanvas').appendChild(explosion);
-            
-            setTimeout(() => {
-                if (explosion.parentNode) {
-                    explosion.remove();
-                }
-            }, 500);
+            setTimeout(() => explosion.remove(), 500);
         }
 
-        function showToxinPopup(toxin) {
-            const popup = document.createElement('div');
-            popup.className = 'toxin-info-popup';
-            popup.innerHTML = `
-                <h3><span>${toxin.icon}</span> ${toxin.name}</h3>
-                <p>${toxin.info}</p>
-            `;
-            
-            document.body.appendChild(popup);
-            
-            setTimeout(() => {
-                if (popup.parentNode) {
-                    popup.remove();
-                }
-            }, 2000);
+        // Part 3: Quiz Game
+        function startPart3Intro() {
+            showScreen('part3Intro');
         }
 
-        function playerHit() {
-            gameState.lives--;
-            updateGameHUD();
-            
-            // Flash effect
-            const player = document.getElementById('playerShip');
-            player.style.filter = 'brightness(2) drop-shadow(0 0 20px red)';
-            setTimeout(() => {
-                player.style.filter = '';
-            }, 200);
-        }
-
-        function gameOver() {
-            gameState.isPlaying = false;
-            clearInterval(gameState.gameLoop);
-            
-            const gameOverScreen = document.getElementById('gameOverScreen');
-            const gameOverMessage = document.getElementById('gameOverMessage');
-            
-            // Show damaged organ based on which life was lost last
-            let organDamage = '';
-            if (gameState.lives === 0) {
-                organDamage = '✨ Năng lượng của bạn đã cạn kiệt bởi các chất độc hại từ thuốc lá!';
-            } else if (gameState.lives === 1) {
-                organDamage = '🌟 Sức mạnh của bạn đã bị suy yếu bởi nicotine và các chất độc thần kinh!';
-            } else {
-                organDamage = '💖 Trái tim của bạn đã bị tổn thương bởi carbon monoxide và các chất gây ung thư!';
+        function createFloatingBubbles() {
+            const quizScreen = document.getElementById('quizGame');
+            quizScreen.querySelectorAll('.bubble').forEach(b => b.remove());
+            for(let i = 0; i < 15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 60 + 20 + 'px';
+                bubble.style.width = size;
+                bubble.style.height = size;
+                bubble.style.left = Math.random() * 100 + 'vw';
+                bubble.style.animationDuration = Math.random() * 5 + 8 + 's';
+                bubble.style.animationDelay = Math.random() * 5 + 's';
+                quizScreen.appendChild(bubble);
             }
-            
-            gameOverMessage.innerHTML = `
-                ${organDamage}<br><br>
-                <strong>Hút thuốc hủy hoại sức khỏe từng ngày.</strong><br>
-                Trong thực tế, bạn không thể "bắn hạ" các chất độc này - chúng sẽ tích tụ và phá hủy cơ thể!
-            `;
-            
-            gameOverScreen.classList.add('show');
         }
 
-        function victory() {
-            gameState.isPlaying = false;
-            clearInterval(gameState.gameLoop);
-            
-            // Update final scores
-            document.getElementById('finalGameScore').textContent = gameState.gameScore;
-            document.getElementById('toxinsDestroyed').textContent = gameState.enemiesDestroyed;
-            
-            // Add bonus points to main score
-            score += gameState.gameScore;
-            updateScore();
-            
+        function startQuizGame() {
+            soundSystem.playClick();
+            quizState.shuffledQuestions = [...quizData].sort(() => 0.5 - Math.random());
+            quizState.currentQuestionIndex = 0;
+            quizState.quizScore = 0;
+            showScreen('quizGame');
+            displayQuizQuestion();
+        }
+        function displayQuizQuestion() {
+            const questionData = quizState.shuffledQuestions[quizState.currentQuestionIndex];
+            document.getElementById('quizProgress').textContent = `Câu ${quizState.currentQuestionIndex + 1} / ${quizState.shuffledQuestions.length}`;
+            document.getElementById('quizQuestion').textContent = questionData.question;
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = '';
+            questionData.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = option;
+                button.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+            document.getElementById('quizFeedback').textContent = '';
+            document.getElementById('nextQuestionBtn').classList.remove('visible');
+        }
+        function selectAnswer(selectedIndex) {
+            const questionData = quizState.shuffledQuestions[quizState.currentQuestionIndex];
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(button => button.disabled = true);
+
+            const feedbackEl = document.getElementById('quizFeedback');
+            if (selectedIndex === questionData.correct) {
+                soundSystem.playCorrect();
+                buttons[selectedIndex].classList.add('correct');
+                feedbackEl.innerHTML = "🎉 Chính xác! Tuyệt vời! <br>" + questionData.explanation;
+                feedbackEl.style.color = '#2e7d32';
+                quizState.quizScore += 10;
+            } else {
+                soundSystem.playWrong();
+                buttons[selectedIndex].classList.add('wrong');
+                buttons[questionData.correct].classList.add('correct');
+                feedbackEl.innerHTML = "😥 Tiếc quá! Cố gắng lần sau nhé! <br>" + questionData.explanation;
+                feedbackEl.style.color = '#d32f2f';
+            }
+            document.getElementById('nextQuestionBtn').classList.add('visible');
+        }
+        function nextQuizQuestion() {
+            soundSystem.playClick();
+            quizState.currentQuestionIndex++;
+            if (quizState.currentQuestionIndex < quizState.shuffledQuestions.length) {
+                displayQuizQuestion();
+            } else {
+                victory('quiz');
+            }
+        }
+
+        // Victory Logic
+        function victory(gameMode) {
+            soundSystem.playVictory();
+            const victoryButtons = document.getElementById('victoryButtons');
+            victoryButtons.innerHTML = ''; 
+
+            if (gameMode === 'shooting') {
+                shootingGameState.isPlaying = false;
+                clearInterval(shootingGameState.gameLoop);
+                score += shootingGameState.gameScore;
+                updateScore();
+                document.getElementById('victoryTitle').textContent = "🚀 Chiến Thắng Phần 2!";
+                document.getElementById('victoryMessage').textContent = "Bạn đã đẩy lùi thành công làn sóng chất độc!";
+                document.getElementById('victoryStats').innerHTML = `🏆 Điểm game: <span id="finalGameScore">${shootingGameState.gameScore}</span><br>🎯 Chất độc tiêu diệt: ${shootingGameState.enemiesDestroyed}`;
+                
+                victoryButtons.innerHTML = `
+                    <button class="btn btn-primary" onclick="startPart3Intro()">Tiếp tục Phần 3 🧠</button>
+                    <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Menu chính</button>
+                `;
+            } else if (gameMode === 'quiz') {
+                score += quizState.quizScore;
+                updateScore();
+                document.getElementById('victoryTitle').textContent = "🌟 CHÚC MỪNG BẠN ĐÃ HOÀN THÀNH! 🌟";
+                document.getElementById('victoryMessage').textContent = "Bạn đã hoàn thành xuất sắc tất cả các thử thách và chứng tỏ mình là một người hùng bảo vệ sức khỏe!";
+                document.getElementById('victoryStats').innerHTML = `🏆 Tổng điểm cuối cùng: <span id="finalGameScore">${score}</span>`;
+
+                 victoryButtons.innerHTML = `
+                    <button class="btn btn-primary" onclick="startGame()">Chơi lại từ đầu</button>
+                    <button class="btn btn-secondary" onclick="showMainMenu()">🏠 Menu chính</button>
+                `;
+            }
             showScreen('victoryScreen');
         }
 
-        function restartShootingGame() {
-            document.getElementById('gameOverScreen').classList.remove('show');
-            resetGameState();
-            startGameLoop();
-        }
-
-        // Player movement and shooting with smooth controls
-        let playerMovement = {
-            left: false,
-            right: false,
-            moveSpeed: 3,
-            smoothMoveInterval: null
-        };
-
-        function startPlayerMovement(direction) {
-            if (!gameState.isPlaying || gameState.isPaused) return;
-            
-            playerMovement[direction] = true;
-            
-            if (!playerMovement.smoothMoveInterval) {
-                playerMovement.smoothMoveInterval = setInterval(() => {
-                    let moved = false;
-                    
-                    if (playerMovement.left && gameState.playerPosition > 2) {
-                        gameState.playerPosition -= playerMovement.moveSpeed;
-                        moved = true;
-                    }
-                    if (playerMovement.right && gameState.playerPosition < 98) {
-                        gameState.playerPosition += playerMovement.moveSpeed;
-                        moved = true;
-                    }
-                    
-                    if (moved) {
-                        document.getElementById('playerShip').style.left = gameState.playerPosition + '%';
-                    }
-                    
-                    if (!playerMovement.left && !playerMovement.right) {
-                        clearInterval(playerMovement.smoothMoveInterval);
-                        playerMovement.smoothMoveInterval = null;
-                    }
-                }, 16); // ~60 FPS for smooth movement
-            }
-        }
-
-        function stopPlayerMovement(direction) {
-            playerMovement[direction] = false;
-        }
-
-        function movePlayer(direction) {
-            if (!gameState.isPlaying || gameState.isPaused) return;
-            
-            const moveSpeed = 8;
-            if (direction === 'left' && gameState.playerPosition > 2) {
-                gameState.playerPosition -= moveSpeed;
-            } else if (direction === 'right' && gameState.playerPosition < 98) {
-                gameState.playerPosition += moveSpeed;
-            }
-            
-            document.getElementById('playerShip').style.left = gameState.playerPosition + '%';
-        }
-
-        function shootBullet() {
-            if (!gameState.isPlaying || gameState.isPaused) return;
-            
-            const bullet = document.createElement('div');
-            bullet.className = 'bullet';
-            bullet.style.left = gameState.playerPosition + '%';
-            bullet.style.top = '520px';
-            
-            document.getElementById('gameCanvas').appendChild(bullet);
-            gameState.bullets.push(bullet);
-        }
-
-        // Clean up game when leaving shooting game screen
-        function cleanupShootingGame() {
-            if (gameState.gameLoop) {
-                clearInterval(gameState.gameLoop);
-                gameState.gameLoop = null;
-            }
-            gameState.isPlaying = false;
-        }
-
-        function goBack() {
-            // Clean up shooting game if leaving it
-            if (currentScreen === 'shootingGame') {
-                cleanupShootingGame();
-            }
-            
-            switch(currentScreen) {
-                case 'instructionsScreen':
-                    showMainMenu();
-                    break;
-                case 'gamePart1':
-                    showMainMenu();
-                    break;
-                case 'part2Intro':
-                    showScreen('completionScreen');
-                    break;
-                case 'shootingGame':
-                    showScreen('part2Intro');
-                    break;
-                case 'victoryScreen':
-                    showMainMenu();
-                    break;
-                case 'completionScreen':
-                    showScreen('gamePart1');
-                    break;
-                default:
-                    showMainMenu();
-            }
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('organModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        // Keyboard navigation with improved space key handling
+        // Event Listeners
         document.addEventListener('keydown', function(e) {
-            console.log('Key pressed:', e.key, 'Current screen:', currentScreen, 'Modal active:', document.getElementById('organModal').classList.contains('active'));
-            
-            if (e.key === 'Escape') {
-                if (currentScreen === 'shootingGame') {
-                    gameState.isPaused = !gameState.isPaused;
-                } else {
-                    closeModal();
-                }
-                return;
-            }
-            
-            // Conversation controls when modal is open
             if (document.getElementById('organModal').classList.contains('active')) {
                 if (e.code === 'Space' || e.key === 'Enter') {
                     e.preventDefault();
-                    e.stopPropagation();
-                    if (currentConversation && conversationStep < (organInfo[currentConversation] || damageInfo[currentConversation]).messages.length - 1) {
+                    const info = organInfo[currentConversation];
+                    if (currentConversation && conversationStep < info.messages.length) {
                         nextMessage();
                     } else {
                         closeModal();
@@ -2578,108 +2163,47 @@
                 }
                 return;
             }
-            
-            // Shooting game controls
-            if (currentScreen === 'shootingGame' && gameState.isPlaying && !gameState.isPaused) {
-                switch(e.code) {
-                    case 'ArrowLeft':
-                    case 'KeyA':
-                        e.preventDefault();
-                        startPlayerMovement('left');
-                        break;
-                    case 'ArrowRight':
-                    case 'KeyD':
-                        e.preventDefault();
-                        startPlayerMovement('right');
-                        break;
-                    case 'Space':
-                        e.preventDefault();
-                        e.stopPropagation();
-                        shootBullet();
-                        break;
-                }
-                return;
-            }
-            
-            // Character movement controls for Part 1
             if (currentScreen === 'gamePart1') {
-                switch(e.code) {
-                    case 'ArrowUp':
-                    case 'KeyW':
-                        e.preventDefault();
-                        moveCharacter('up');
-                        break;
-                    case 'ArrowDown':
-                    case 'KeyS':
-                        e.preventDefault();
-                        moveCharacter('down');
-                        break;
-                    case 'ArrowLeft':
-                    case 'KeyA':
-                        e.preventDefault();
-                        moveCharacter('left');
-                        break;
-                    case 'ArrowRight':
-                    case 'KeyD':
-                        e.preventDefault();
-                        moveCharacter('right');
-                        break;
-                    case 'Space':
-                    case 'Enter':
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Space pressed, nearby organ:', nearbyOrgan);
-                        interactWithNearbyOrgan();
-                        break;
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                    moveCharacter(e.key.replace('Arrow', '').toLowerCase());
                 }
+                if (e.code === 'Space' || e.key === 'Enter') {
+                    e.preventDefault();
+                    interactWithNearbyOrgan();
+                }
+            } else if (currentScreen === 'shootingGame' && shootingGameState.isPlaying) {
+                if (e.key === 'ArrowLeft') startPlayerMovement('left', true);
+                if (e.key === 'ArrowRight') startPlayerMovement('right', true);
+                if (e.code === 'Space') shootBullet();
             }
         });
-
         document.addEventListener('keyup', function(e) {
             if (currentScreen === 'gamePart1') {
-                switch(e.code) {
-                    case 'ArrowUp':
-                    case 'KeyW':
-                    case 'ArrowDown':
-                    case 'KeyS':
-                    case 'ArrowLeft':
-                    case 'KeyA':
-                    case 'ArrowRight':
-                    case 'KeyD':
-                        stopMoving();
-                        break;
-                }
-            } else if (currentScreen === 'shootingGame' && gameState.isPlaying && !gameState.isPaused) {
-                switch(e.code) {
-                    case 'ArrowLeft':
-                    case 'KeyA':
-                        e.preventDefault();
-                        stopPlayerMovement('left');
-                        break;
-                    case 'ArrowRight':
-                    case 'KeyD':
-                        e.preventDefault();
-                        stopPlayerMovement('right');
-                        break;
-                }
+                stopMoving();
+            } else if (currentScreen === 'shootingGame') {
+                if (e.key === 'ArrowLeft') startPlayerMovement('left', false);
+                if (e.key === 'ArrowRight') startPlayerMovement('right', false);
             }
         });
-
-        // Initialize
-        updateScore();
-        updateProgress();
         
-        // Initialize click handlers when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            addOrganClickHandlers();
-        });
-        
-        // Also add handlers immediately if DOM is already loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', addOrganClickHandlers);
-        } else {
-            addOrganClickHandlers();
+        let playerMovement = { left: false, right: false, interval: null };
+        function startPlayerMovement(dir, isDown) {
+            playerMovement[dir] = isDown;
+            if (isDown && !playerMovement.interval) {
+                playerMovement.interval = setInterval(() => {
+                    if (playerMovement.left) shootingGameState.playerPosition = Math.max(2, shootingGameState.playerPosition - 2);
+                    if (playerMovement.right) shootingGameState.playerPosition = Math.min(98, shootingGameState.playerPosition + 2);
+                    document.getElementById('playerShip').style.left = shootingGameState.playerPosition + '%';
+                }, 16);
+            } else if (!playerMovement.left && !playerMovement.right) {
+                clearInterval(playerMovement.interval);
+                playerMovement.interval = null;
+            }
         }
+        
+        document.getElementById('organModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+        document.addEventListener('DOMContentLoaded', updateScore);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d0daa2112ff9ad',t:'MTc1NDg0MzE3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
