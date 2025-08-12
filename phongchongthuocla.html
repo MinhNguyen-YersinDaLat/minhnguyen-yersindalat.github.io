@@ -374,7 +374,7 @@
             <!-- Nút hành động -->
             <div class="flex flex-col items-center gap-4">
                 <button onclick="startGame()" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-10 rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-110 text-xl">
-                    � BẮT ĐẦU CHƠI NGAY!
+                    🚀 BẮT ĐẦU CHƠI NGAY!
                 </button>
                 <button onclick="backToTitle()" class="bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-300 border border-gray-300 shadow-md">
                     ← Quay lại menu
@@ -597,7 +597,7 @@
                     <div class="bg-red-500/20 rounded-lg p-3 border border-red-400/30">
                         <div class="text-2xl mb-1">🎯</div>
                         <div class="font-bold text-white">Mục tiêu</div>
-                        <div class="text-red-200 text-xs">Đạt 1000 điểm</div>
+                        <div class="text-red-200 text-xs">Đạt 5000 điểm</div>
                     </div>
                     <div class="bg-blue-500/20 rounded-lg p-3 border border-blue-400/30">
                         <div class="text-2xl mb-1">🕹️</div>
@@ -739,7 +739,7 @@
                 <!-- Mục tiêu game -->
                 <div class="absolute top-4 right-4 bg-black/70 rounded-lg p-3 text-white text-sm text-center">
                     <div class="font-bold mb-2">🎯 Mục tiêu</div>
-                    <div class="text-xs text-green-400 mb-1">✅ Đạt 1000 điểm</div>
+                    <div class="text-xs text-green-400 mb-1">✅ Đạt 5000 điểm</div>
                     <div class="text-xs text-red-400">❌ Không để hết máu</div>
                 </div>
             </div>
@@ -777,6 +777,25 @@
                     </button>
                     <button onclick="closePart1Popup()" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300">
                         Để sau
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup đạt 5000 điểm -->
+    <div id="scoreGoalPopup" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-yellow-800 to-green-800 rounded-2xl shadow-2xl max-w-md w-full popup-enter border-2 border-yellow-500/50">
+            <div class="p-6 text-center">
+                <div class="text-6xl mb-4">🎉</div>
+                <h2 class="text-2xl font-bold text-white mb-2">Mục tiêu đạt được!</h2>
+                <p class="text-yellow-200 mb-4">Bạn đã đạt 5000 điểm! Bạn muốn làm gì tiếp theo?</p>
+                <div class="flex gap-3 justify-center">
+                    <button onclick="continuePlaying()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300">
+                        🚀 Chơi tiếp
+                    </button>
+                    <button onclick="proceedToQuizFromScore()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300">
+                        🧠 Qua phần câu hỏi
                     </button>
                 </div>
             </div>
@@ -1389,7 +1408,8 @@
                 lastShot: 0,
                 wave: 0,
                 waveDirection: 1,
-                waveSpeedX: 0.5
+                waveSpeedX: 0.5,
+                goalReached: false
             };
             AudioSystem.playGameAmbient();
             updateGameDisplay();
@@ -1400,7 +1420,6 @@
         
         function startNextWave() {
             gameState.wave++;
-            // Clear remaining bullets
             gameState.bullets.forEach(b => document.getElementById('bullet-' + b.id)?.remove());
             gameState.bullets = [];
 
@@ -1450,7 +1469,14 @@
                 startNextWave();
             }
             
-            if (gameState.score >= 1000 || gameState.health <= 0) {
+            if (gameState.score >= 5000 && !gameState.goalReached) {
+                gameState.goalReached = true;
+                gameState.isPaused = true;
+                document.getElementById('scoreGoalPopup').classList.remove('hidden');
+                return;
+            }
+
+            if (gameState.health <= 0) {
                 endGameAndProceedToQuiz();
                 return;
             }
@@ -1460,7 +1486,7 @@
 
         function shootBullet() {
             const now = Date.now();
-            if (now - gameState.lastShot < 300) return; // Slower fire rate for classic feel
+            if (now - gameState.lastShot < 300) return; 
             gameState.lastShot = now;
             AudioSystem.playShootSound();
             const heroRect = document.getElementById('hero').getBoundingClientRect();
@@ -1618,10 +1644,9 @@
 
         function endGameAndProceedToQuiz() {
             gameState.isPlaying = false;
-            AudioSystem.playPart1CompleteSound(); // Play a success/transition sound
+            AudioSystem.playPart1CompleteSound(); 
             
-            // Customize transition message
-            if (gameState.score >= 1000) {
+            if (gameState.score >= 5000) {
                 document.getElementById('transitionTitle').textContent = "Chiến thắng!";
                 document.getElementById('transitionMessage').innerHTML = `Bạn đã đạt ${gameState.score} điểm và bảo vệ thành công cơ thể!<br>Giờ hãy kiểm tra kiến thức của mình.`;
             } else {
@@ -1631,10 +1656,20 @@
 
             showScreen('transitionPopup');
 
-            // Cleanup game elements
             document.getElementById('bulletsContainer').innerHTML = '';
             document.getElementById('toxinsContainer').innerHTML = '';
             document.getElementById('explosionsContainer').innerHTML = '';
+        }
+
+        function continuePlaying() {
+            document.getElementById('scoreGoalPopup').classList.add('hidden');
+            gameState.isPaused = false;
+            startGameLoop(); 
+        }
+
+        function proceedToQuizFromScore() {
+            document.getElementById('scoreGoalPopup').classList.add('hidden');
+            endGameAndProceedToQuiz();
         }
         
         function startQuizFromTransition() {
@@ -1941,4 +1976,3 @@
     </script>
 </body>
 </html>
-�
