@@ -374,7 +374,7 @@
             <!-- Nút hành động -->
             <div class="flex flex-col items-center gap-4">
                 <button onclick="startGame()" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-10 rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-110 text-xl">
-                    🚀 BẮT ĐẦU CHƠI NGAY!
+                    � BẮT ĐẦU CHƠI NGAY!
                 </button>
                 <button onclick="backToTitle()" class="bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-300 border border-gray-300 shadow-md">
                     ← Quay lại menu
@@ -1387,12 +1387,48 @@
                 isPlaying: true, isPaused: false, score: 0, health: 3, maxHealth: 3,
                 heroPosition: 50, bullets: [], toxins: [],
                 lastShot: 0,
-                spawnRate: 0.015 // Tần suất ra chất độc cố định
+                wave: 0,
+                waveDirection: 1,
+                waveSpeedX: 0.5
             };
             AudioSystem.playGameAmbient();
             updateGameDisplay();
+            startNextWave();
             startGameLoop();
             document.getElementById('gameCanvas').focus();
+        }
+        
+        function startNextWave() {
+            gameState.wave++;
+            // Clear remaining bullets
+            gameState.bullets.forEach(b => document.getElementById('bullet-' + b.id)?.remove());
+            gameState.bullets = [];
+
+            const rows = 2 + Math.floor(gameState.wave / 2);
+            const cols = 6 + gameState.wave;
+            const waveWidth = cols * 50;
+            const startX = (document.getElementById('gameCanvas').offsetWidth - waveWidth) / 2;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const toxinType = toxinTypes[Math.floor(Math.random() * toxinTypes.length)];
+                    const toxin = {
+                        id: Date.now() + Math.random(),
+                        x: startX + c * 50,
+                        y: 50 + r * 50,
+                        type: toxinType
+                    };
+                    gameState.toxins.push(toxin);
+                    
+                    const toxinElement = document.createElement('div');
+                    toxinElement.id = 'toxin-' + toxin.id;
+                    toxinElement.className = `absolute text-4xl ${toxin.type.color}`;
+                    toxinElement.style.cssText = `left: ${toxin.x}px; top: ${toxin.y}px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); z-index: 15; transition: all 0.1s linear;`;
+                    toxinElement.textContent = toxin.type.emoji;
+                    document.getElementById('toxinsContainer').appendChild(toxinElement);
+                }
+            }
+            gameState.waveSpeedX = 0.5 + gameState.wave * 0.1;
         }
 
         function updateGameDisplay() {
@@ -1405,46 +1441,26 @@
 
         function startGameLoop() {
             if (!gameState.isPlaying || gameState.isPaused) return;
-
-            if (Math.random() < gameState.spawnRate) {
-                spawnToxin();
-            }
-
-            moveBullets();
+            
             moveToxins();
+            moveBullets();
             checkCollisions();
             
-            // End game conditions
+            if (gameState.toxins.length === 0) {
+                startNextWave();
+            }
+            
             if (gameState.score >= 1000 || gameState.health <= 0) {
                 endGameAndProceedToQuiz();
-                return; // Stop the loop
+                return;
             }
             
             requestAnimationFrame(startGameLoop);
         }
 
-        function spawnToxin() {
-            const toxinType = toxinTypes[Math.floor(Math.random() * toxinTypes.length)];
-            const gameCanvas = document.getElementById('gameCanvas');
-            // Tốc độ rơi tăng dần theo điểm
-            const speed = 2 + (gameState.score / 400) + Math.random(); 
-            const toxin = {
-                id: Date.now() + Math.random(),
-                x: Math.random() * (gameCanvas.offsetWidth - 60) + 30,
-                y: -50, type: toxinType, speed: speed
-            };
-            gameState.toxins.push(toxin);
-            const toxinElement = document.createElement('div');
-            toxinElement.id = 'toxin-' + toxin.id;
-            toxinElement.className = `absolute text-4xl transition-all duration-100 ${toxin.type.color}`;
-            toxinElement.style.cssText = `left: ${toxin.x}px; top: ${toxin.y}px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); z-index: 15;`;
-            toxinElement.textContent = toxin.type.emoji;
-            document.getElementById('toxinsContainer').appendChild(toxinElement);
-        }
-
         function shootBullet() {
             const now = Date.now();
-            if (now - gameState.lastShot < 200) return; // Tốc độ bắn vừa phải
+            if (now - gameState.lastShot < 300) return; // Slower fire rate for classic feel
             gameState.lastShot = now;
             AudioSystem.playShootSound();
             const heroRect = document.getElementById('hero').getBoundingClientRect();
@@ -1454,7 +1470,7 @@
                 id: Date.now() + Math.random(),
                 x: (heroRect.left - canvasRect.left + heroRect.width / 2),
                 y: heroRect.top - canvasRect.top,
-                speed: 15 // Tốc độ đạn vừa phải
+                speed: 10
             };
             gameState.bullets.push(bullet);
             
@@ -1483,16 +1499,32 @@
         }
 
         function moveToxins() {
-            gameState.toxins = gameState.toxins.filter(toxin => {
-                toxin.y += toxin.speed;
-                const toxinElement = document.getElementById('toxin-' + toxin.id);
-                if (toxin.y > 550) {
-                    toxinElement?.remove();
-                    return false;
+            let reverse = false;
+            const gameCanvas = document.getElementById('gameCanvas');
+            const canvasWidth = gameCanvas.offsetWidth;
+
+            for(const toxin of gameState.toxins) {
+                toxin.x += gameState.waveSpeedX * gameState.waveDirection;
+                if (toxin.x <= 10 || toxin.x >= canvasWidth - 40) {
+                    reverse = true;
                 }
-                if (toxinElement) toxinElement.style.top = toxin.y + 'px';
-                return true;
-            });
+            }
+
+            if (reverse) {
+                gameState.waveDirection *= -1;
+                for(const toxin of gameState.toxins) {
+                    toxin.y += 20; // Move down
+                }
+            }
+            
+            // Update DOM
+            for(const toxin of gameState.toxins) {
+                const el = document.getElementById('toxin-' + toxin.id);
+                if(el) {
+                    el.style.left = toxin.x + 'px';
+                    el.style.top = toxin.y + 'px';
+                }
+            }
         }
         
         function checkCollisions() {
@@ -1502,7 +1534,7 @@
                 for (let j = gameState.toxins.length - 1; j >= 0; j--) {
                     const toxin = gameState.toxins[j];
                     if (Math.hypot(bullet.x - (toxin.x + 25), bullet.y - (toxin.y + 25)) < 35) {
-                        createExplosion(toxin.x + 25, toxin.y + 25); // Pass toxin's center coordinates
+                        createExplosion(toxin.x + 25, toxin.y + 25);
                         showToxinInfo(toxin.type);
                         gameState.score += toxin.type.points;
                         document.getElementById('toxin-' + toxin.id)?.remove();
@@ -1909,3 +1941,4 @@
     </script>
 </body>
 </html>
+�
