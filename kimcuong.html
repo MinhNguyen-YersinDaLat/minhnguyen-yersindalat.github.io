@@ -608,6 +608,8 @@
 
             if (gem1) gem1.selectionPulse = 0;
             if (gem2) gem2.selectionPulse = 0;
+            
+            sounds.swap.triggerAttackRelease("G5", "32n");
 
             if (gem1 && gem2) {
                 if (gem1.type === GEM_TYPE.RAINBOW && gem2.type !== GEM_TYPE.RAINBOW) {
@@ -672,6 +674,7 @@
 
         function triggerGameOver() {
             gameOver = true;
+            sounds.gameOver.triggerAttackRelease("C2", "2n");
             const lostHeart = hearts.find(h => h.row === 0);
             if (lostHeart) monster.targetCol = lostHeart.col;
             gameOverScreen.classList.add('active');
@@ -680,9 +683,15 @@
         async function handleAllMatches(swappedCoords, isAutoCheck = false) {
             let madeAMatch = false;
             let firstPass = true;
+            let comboCounter = 0;
             while (true) {
                 let allLines = findMatchLines(); let allSquares = findSquareMatches();
                 if (allLines.length === 0 && allSquares.length === 0) break;
+                
+                comboCounter++;
+                const note = Tone.Frequency("C4").transpose(comboCounter * 2);
+                sounds.match.triggerAttackRelease(note, "16n");
+
                 madeAMatch = true;
                 let gemsToDestroy = new Set(); let gemToCreate = null;
                 if (firstPass && swappedCoords && !isAutoCheck) {
@@ -739,7 +748,10 @@
                 await animateRemoval([...gemsToDestroy].filter(Boolean));
                 score += [...gemsToDestroy].filter(Boolean).length * 10; updateScore();
                 [...gemsToDestroy].filter(Boolean).forEach(gem => { board[gem.row][gem.col] = null; });
-                if (gemToCreate) board[gemToCreate.row][gemToCreate.col] = createGem(gemToCreate.row, gemToCreate.col, gemToCreate.type, gemToCreate.color);
+                if (gemToCreate) {
+                    board[gemToCreate.row][gemToCreate.col] = createGem(gemToCreate.row, gemToCreate.col, gemToCreate.type, gemToCreate.color);
+                    sounds.specialCreate.triggerAttackRelease("C5", "8n");
+                }
                 
                 await applyGravityAndRefill();
             }
@@ -799,6 +811,7 @@
         async function animateExplosion(gem) { const x = gem.x + GEM_SIZE / 2; const y = gem.y + GEM_SIZE / 2; createParticles(x, y, 'white', 50); await animateEffect(300, (progress) => { ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * (1 - progress)})`; ctx.beginPath(); ctx.arc(x, y, GEM_SIZE * 2 * progress, 0, Math.PI * 2); ctx.fill(); }); }
         
         async function animateHeartRescue(heart) {
+            sounds.heartRescue.triggerAttackRelease(["C5", "E5", "G5", "C6"], "16n", Tone.now());
             const flyHeart = { x: heart.x, y: heart.y, scale: 1 };
             const destX = heartsSavedValueElement.getBoundingClientRect().left - canvas.getBoundingClientRect().left;
             const destY = heartsSavedValueElement.getBoundingClientRect().top - canvas.getBoundingClientRect().top;
@@ -866,7 +879,7 @@
                 const onContinue = () => {
                     clearTimeout(popupTimeout);
                     hideInfoPopup();
-                    popupContinueButton.onclick = null; // Gỡ bỏ sự kiện để tránh gọi nhiều lần
+                    popupContinueButton.onclick = null;
                     resolve();
                 };
 
