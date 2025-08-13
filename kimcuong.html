@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Kim Cương v2: Giải Cứu Trái Tim</title>
+    <!-- **MỚI**: Thêm thư viện âm thanh Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: radial-gradient(circle, #5e6a8e 0%, #2d344b 100%);
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            text-align: center;
+            overflow: hidden; /* Ngăn thanh cuộn xuất hiện */
+        }
+
+        h1 {
+            color: #f2e9e4;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+        }
+
+        #game-container {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        #game-board {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        #ui-container {
+            margin-bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.25);
+            padding: 10px 20px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .info {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        #score-value, #hearts-saved-value {
+            color: #80ed99;
+            transition: transform 0.1s ease-out; /* Thêm transition cho mượt */
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 4px #80ed99; }
+            50% { transform: scale(1.4); text-shadow: 0 0 15px #fff; }
+            100% { transform: scale(1); text-shadow: 0 0 4px #80ed99; }
+        }
+
+        .pulsate {
+            animation: pulse 0.4s ease-out;
+        }
+
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #16213e;
+            background: linear-gradient(145deg, #ffc947, #fca311);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+
+        #game-over-screen, #info-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            max-width: 380px;
+            background-color: rgba(45, 52, 75, 0.95);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 200;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        #game-over-screen.active, #info-popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #game-over-screen h2, #info-popup h2 {
+            font-size: 28px;
+            margin-top: 0;
+            color: #fca311;
+        }
+        
+        #game-over-screen h2 {
+             color: #e74c3c;
+        }
+
+        #info-popup p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Game Kim Cương v2: Giải Cứu Trái Tim</h1>
+
+    <div id="game-container">
+        <div id="ui-container">
+            <div id="score" class="info">Điểm: <span id="score-value">0</span></div>
+            <div id="hearts-saved" class="info">💖 Cứu: <span id="hearts-saved-value">0</span></div>
+             <button id="reset-button-main">Chơi Lại</button>
+        </div>
+        <canvas id="game-board"></canvas>
+
+        <div id="info-popup">
+            <h2>Bạn có biết?</h2>
+            <p id="popup-text">Nội dung về tác hại của thuốc lá...</p>
+            <button id="popup-continue-button">Tiếp tục</button>
+        </div>
+
+        <div id="game-over-screen">
+            <h2>Thua Cuộc!</h2>
+            <p>Trái tim đã bị bắt mất...</p>
+            <button id="reset-button-gameover">Chơi Lại</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CÀI ĐẶT GAME ---
+        const canvas = document.getElementById('game-board');
+        const ctx = canvas.getContext('2d');
+        const scoreValueElement = document.getElementById('score-value');
+        const heartsSavedValueElement = document.getElementById('hearts-saved-value');
+        const resetButtonMain = document.getElementById('reset-button-main');
+        const resetButtonGameOver = document.getElementById('reset-button-gameover');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const infoPopup = document.getElementById('info-popup');
+        const popupText = document.getElementById('popup-text');
+        const popupContinueButton = document.getElementById('popup-continue-button');
+
+        const COLS = 8;
+        const ROWS = 8;
+        const GEM_SIZE = 50;
+        const TOP_OFFSET = GEM_SIZE;
+        const GEM_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22'];
+        const ANIMATION_SPEED = 0.25;
+
+        const GEM_TYPE = { NORMAL: 'normal', H_LIGHTNING: 'h_lightning', V_LIGHTNING: 'v_lightning', BOMB: 'bomb', RAINBOW: 'rainbow', CROSS: 'cross' };
+
+        let board = [];
+        let score = 0;
+        let isProcessing = false;
+        let particles = [];
+        let isDragging = false;
+        let dragStartGem = null;
+
+        let hearts = [];
+        let monster = {};
+        let heartsSaved = 0;
+        let gameOver = false;
+        let successfulMoves = 0;
+        let backgroundParticles = [];
+        let audioStarted = false;
+        let popupTimeout;
+
+        const sounds = {
+            swap: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination(),
+            match: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+            specialCreate: new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.05, decay: 0.3, sustain: 0.2, release: 0.3 } }).toDestination(),
+            heartRescue: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination(),
+            gameOver: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.1, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination()
+        };
+        
+        const smokingFacts = [
+            "Hút thuốc lá gây ra 90% các ca ung thư phổi.",
+            "Khói thuốc chứa hơn 7.000 hóa chất, trong đó có hàng trăm chất độc hại và ít nhất 70 chất gây ung thư.",
+            "Thuốc lá điện tử (vape) vẫn chứa nicotine gây nghiện và nhiều hóa chất độc hại khác có thể gây tổn thương phổi nghiêm trọng.",
+            "Người hút thuốc thụ động cũng có nguy cơ mắc các bệnh về tim mạch và ung thư phổi.",
+            "Bỏ thuốc lá giúp cải thiện sức khỏe gần như ngay lập tức, giảm nguy cơ đau tim và đột quỵ.",
+            "Nicotine trong thuốc lá điện tử ảnh hưởng xấu đến sự phát triển não bộ ở thanh thiếu niên.",
+            "Hút thuốc làm tăng tốc độ lão hóa da, gây ra nếp nhăn sớm."
+        ];
+
+        // --- CÁC HÀM LOGIC & HỖ TRỢ ---
+
+        function findMatchLines() {
+            let allLines = [];
+            for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS - 2; c++) { let gem = board[r][c]; if (gem && gem.type !== GEM_TYPE.RAINBOW) { let line = [gem]; for (let i = c + 1; i < COLS; i++) { let nextGem = board[r][i]; if (nextGem && nextGem.color === gem.color && nextGem.type !== GEM_TYPE.RAINBOW) line.push(nextGem); else break; } if (line.length >= 3) { allLines.push(line); c += line.length - 1; } } } }
+            for (let c = 0; c < COLS; c++) { for (let r = 0; r < ROWS - 2; r++) { let gem = board[r][c]; if (gem && gem.type !== GEM_TYPE.RAINBOW) { let line = [gem]; for (let i = r + 1; i < ROWS; i++) { let nextGem = board[i][c]; if (nextGem && nextGem.color === gem.color && nextGem.type !== GEM_TYPE.RAINBOW) line.push(nextGem); else break; } if (line.length >= 3) { allLines.push(line); r += line.length - 1; } } } }
+            return allLines;
+        }
+        
+        function findSquareMatches() {
+            const squares = [];
+            for (let r = 0; r < ROWS - 1; r++) { for (let c = 0; c < COLS - 1; c++) { const gem1 = board[r][c], gem2 = board[r+1][c], gem3 = board[r][c+1], gem4 = board[r+1][c+1]; if (gem1 && gem2 && gem3 && gem4 && gem1.color === gem2.color && gem1.color === gem3.color && gem1.color === gem4.color && gem1.type !== GEM_TYPE.RAINBOW) squares.push([gem1, gem2, gem3, gem4]); } }
+            return squares;
+        }
+
+        // --- KHỞI TẠO GAME ---
+
+        function init() {
+            canvas.width = COLS * GEM_SIZE;
+            canvas.height = (ROWS + 1) * GEM_SIZE;
+            score = 0;
+            heartsSaved = 0;
+            successfulMoves = 0;
+            gameOver = false;
+            updateScore();
+            gameOverScreen.classList.remove('active');
+
+            monster = { col: 4, x: 4 * GEM_SIZE, y: GEM_SIZE / 2, targetCol: 4 };
+            hearts = [];
+            
+            createBoard();
+            spawnNewHeart();
+            initBackgroundParticles();
+
+            gameLoop();
+        }
+
+        function createBoard() {
+            board = [];
+            for (let row = 0; row < ROWS; row++) {
+                board[row] = [];
+                for (let col = 0; col < COLS; col++) {
+                    board[row][col] = createGem(row, col);
+                }
+            }
+            
+            let allMatchLines = findMatchLines();
+            while (allMatchLines.length > 0) {
+                 allMatchLines.flat().forEach(gem => {
+                    if(gem) board[gem.row][gem.col] = createGem(gem.row, gem.col);
+                 });
+                 allMatchLines = findMatchLines();
+            }
+        }
+        
+        function createGem(row, col, type = GEM_TYPE.NORMAL, color) {
+            return {
+                row: row, col: col,
+                x: col * GEM_SIZE, y: row * GEM_SIZE + TOP_OFFSET,
+                scale: 1,
+                color: color || GEM_COLORS[Math.floor(Math.random() * GEM_COLORS.length)],
+                type: type,
+                isHeart: false,
+                sparkleTimer: 0, sparkleAlpha: 0,
+                vy: 0, 
+                selectionPulse: 0
+            };
+        }
+
+        function spawnNewHeart() {
+            const availableCols = [];
+            for (let c = 0; c < COLS; c++) {
+                if (!board[ROWS - 1][c] || !board[ROWS-1][c].isHeart) {
+                     availableCols.push(c);
+                }
+            }
+            if (availableCols.length > 0) {
+                const col = availableCols[Math.floor(Math.random() * availableCols.length)];
+                const row = ROWS - 1;
+                const heart = createGem(row, col, GEM_TYPE.NORMAL, GEM_COLORS[Math.floor(Math.random() * GEM_COLORS.length)]);
+                heart.isHeart = true;
+                
+                board[row][col] = heart;
+                hearts.push(heart);
+            }
+        }
+
+        // --- VÒNG LẶP GAME & VẼ ---
+
+        function gameLoop() {
+            if (gameOver) return;
+            handleSparkles();
+            updateEntities();
+            updateParticles();
+            updateBackgroundParticles();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function handleSparkles() {
+            if (Math.random() < 0.05) {
+                const gem = board[Math.floor(Math.random() * ROWS)][Math.floor(Math.random() * COLS)];
+                if (gem && gem.sparkleTimer <= 0 && !gem.isHeart) gem.sparkleTimer = 60;
+            }
+        }
+
+        function updateEntities() {
+            board.flat().forEach(gem => {
+                if (gem) {
+                    const targetY = (gem.row * GEM_SIZE + TOP_OFFSET);
+                    const dy = targetY - gem.y;
+                    const ay = dy * 0.03;
+                    gem.vy += ay;
+                    gem.vy *= 0.9;
+                    gem.y += gem.vy;
+
+                    if (Math.abs(dy) < 0.1 && Math.abs(gem.vy) < 0.1) {
+                        gem.y = targetY;
+                        gem.vy = 0;
+                    }
+
+                    gem.x += (gem.col * GEM_SIZE - gem.x) * ANIMATION_SPEED;
+
+                    if (gem.scale < 1) {
+                        gem.scale -= 0.05;
+                        if (gem.scale <= 0) gem.scale = 0;
+                    }
+                    if (gem.sparkleTimer > 0) {
+                        gem.sparkleTimer--;
+                        const halfTime = 30;
+                        gem.sparkleAlpha = gem.sparkleTimer > halfTime ? 1 - (gem.sparkleTimer - halfTime) / halfTime : gem.sparkleTimer / halfTime;
+                    } else {
+                        gem.sparkleAlpha = 0;
+                    }
+                    
+                    if (gem.selectionPulse > 0) {
+                        gem.selectionPulse += 0.05;
+                        if (gem.selectionPulse > 2) gem.selectionPulse = 1;
+                    }
+                }
+            });
+            monster.x += (monster.targetCol * GEM_SIZE - monster.x) * 0.1;
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackgroundParticles();
+            drawMonster();
+            drawBoard();
+            drawParticles();
+        }
+
+        function drawMonster() {
+            const time = Date.now();
+            const centerX = monster.x + GEM_SIZE / 2;
+            const centerY = monster.y;
+
+            const smokePulse = Math.sin(time / 400) * 5 + 25;
+            const smokeGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, smokePulse);
+            smokeGradient.addColorStop(0, 'rgba(50, 50, 50, 0.8)');
+            smokeGradient.addColorStop(1, 'rgba(50, 50, 50, 0)');
+            ctx.fillStyle = smokeGradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, smokePulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            const cigPulse = Math.sin(time / 200) * 2;
+            ctx.font = `${GEM_SIZE * 0.6 + cigPulse}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🚬', centerX, centerY);
+
+            const eyeY = centerY - 5;
+            const eyeXOffset = 10;
+            const eyeRadius = 3;
+            const eyeGlow = Math.sin(time / 300) * 3 + 5;
+            ctx.fillStyle = '#ff0000';
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = eyeGlow;
+            ctx.beginPath();
+            ctx.arc(centerX - eyeXOffset, eyeY, eyeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + eyeXOffset, eyeY, eyeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function drawBoard() {
+            board.flat().forEach(gem => {
+                if (gem && gem.scale > 0) drawGem(gem);
+            });
+        }
+
+        function drawGem(gem) {
+            const size = GEM_SIZE * gem.scale;
+            const x = gem.x + (GEM_SIZE - size) / 2;
+            const y = gem.y + (GEM_SIZE - size) / 2;
+            const centerX = gem.x + GEM_SIZE / 2;
+            const centerY = gem.y + GEM_SIZE / 2;
+            
+            ctx.save();
+            
+            if (gem.selectionPulse > 0) {
+                const pulseRadius = size * 0.5 * gem.selectionPulse;
+                const pulseAlpha = 1 - (gem.selectionPulse - 1);
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, pulseRadius);
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${pulseAlpha * 0.5})`);
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            if (gem.isHeart) {
+                const time = Date.now();
+                const pulse = Math.sin(time / 200 + gem.col) * (size * 0.05) + (size * 0.55);
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(0, pulse));
+                gradient.addColorStop(0, 'rgba(255, 105, 180, 0.8)');
+                gradient.addColorStop(0.6, 'rgba(255, 105, 180, 0.4)');
+                gradient.addColorStop(1, 'rgba(255, 105, 180, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, Math.max(0, pulse), 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(time / 500);
+                const sparkleSize = size * 0.8;
+                const starPulse = Math.sin(time / 150) * 0.1 + 0.9;
+                ctx.fillStyle = 'rgba(255, 255, 224, 0.9)';
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = 'white';
+                ctx.fillRect(-sparkleSize * starPulse / 2, -sparkleSize * starPulse * 0.05, sparkleSize * starPulse, sparkleSize * starPulse * 0.1);
+                ctx.fillRect(-sparkleSize * starPulse * 0.05, -sparkleSize * starPulse / 2, sparkleSize * starPulse * 0.1, sparkleSize * starPulse);
+                ctx.restore();
+
+            } else if (gem.type !== GEM_TYPE.NORMAL && gem.type !== GEM_TYPE.RAINBOW) {
+                const time = Date.now();
+                ctx.fillStyle = 'rgba(255, 69, 0, 0.4)';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, Math.max(0, size * 0.5 + Math.sin(time / 150) * 3), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(255, 165, 0, 0.6)';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, Math.max(0, size * 0.4 + Math.sin(time / 200) * 2), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(255, 255, 0, 0.8)';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, Math.max(0, size * 0.25 + Math.sin(time / 250) * 1), 0, Math.PI * 2);
+                ctx.fill();
+            } else if (gem.type === GEM_TYPE.RAINBOW) {
+                const pulse = Math.sin(Date.now() / 200) * (size * 0.05) + (size * 0.55);
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(0, pulse));
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.4)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, Math.max(0, pulse), 0, Math.PI * 2);
+                ctx.fill();
+            }
+            const gemColor = (gem.type === GEM_TYPE.RAINBOW) ? '#FFFFFF' : gem.color;
+            ctx.fillStyle = gemColor;
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(centerX, y + size * 0.1);
+            ctx.lineTo(x + size * 0.9, centerY);
+            ctx.lineTo(centerX, y + size * 0.9);
+            ctx.lineTo(x + size * 0.1, centerY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath();
+            ctx.moveTo(centerX, y + size * 0.1);
+            ctx.lineTo(x + size * 0.1, centerY);
+            ctx.lineTo(centerX, centerY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(x + size * 0.1, centerY);
+            ctx.lineTo(centerX, y + size * 0.9);
+            ctx.lineTo(centerX, centerY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            ctx.moveTo(centerX, y + size * 0.1);
+            ctx.lineTo(x + size * 0.3, y + size * 0.3);
+            ctx.lineTo(x + size * 0.4, y + size * 0.2);
+            ctx.closePath();
+            ctx.fill();
+            
+            if (gem.isHeart) {
+                const pulse = Math.sin(Date.now() / 200 + gem.col) * 3;
+                ctx.font = `${GEM_SIZE * 0.6 + pulse}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💖', centerX, centerY);
+            }
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = size * 0.08;
+            if (gem.type === GEM_TYPE.H_LIGHTNING || gem.type === GEM_TYPE.V_LIGHTNING) {
+                const glowPulse = Math.sin(Date.now() / 150) * 5 + 10;
+                ctx.shadowBlur = glowPulse;
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+                if (gem.type === GEM_TYPE.H_LIGHTNING) {
+                    const hGrad = ctx.createLinearGradient(x, centerY, x + size, centerY);
+                    hGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    hGrad.addColorStop(0.4, 'rgba(255, 255, 255, 1)');
+                    hGrad.addColorStop(0.6, 'rgba(255, 255, 255, 1)');
+                    hGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = hGrad;
+                    ctx.fillRect(x, centerY - size * 0.075, size, size * 0.15);
+                } else {
+                    const vGrad = ctx.createLinearGradient(centerX, y, centerX, y + size);
+                    vGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    vGrad.addColorStop(0.4, 'rgba(255, 255, 255, 1)');
+                    vGrad.addColorStop(0.6, 'rgba(255, 255, 255, 1)');
+                    vGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = vGrad;
+                    ctx.fillRect(centerX - size * 0.075, y, size * 0.15, size);
+                }
+            }
+            else if (gem.type === GEM_TYPE.BOMB) { ctx.beginPath(); ctx.arc(centerX, centerY, size * 0.2, 0, Math.PI * 2); ctx.stroke(); }
+            else if (gem.type === GEM_TYPE.CROSS) { ctx.beginPath(); ctx.moveTo(x + size * 0.25, y + size * 0.25); ctx.lineTo(x + size * 0.75, y + size * 0.75); ctx.moveTo(x + size * 0.75, y + size * 0.25); ctx.lineTo(x + size * 0.25, y + size * 0.75); ctx.stroke(); }
+            
+            ctx.restore();
+        }
+        
+        // --- LOGIC GAME ---
+
+        canvas.addEventListener('mousedown', (e) => handleDragStart(e.clientX, e.clientY));
+        canvas.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
+        canvas.addEventListener('mouseup', handleDragEnd);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDragStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleDragMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+        canvas.addEventListener('touchend', handleDragEnd);
+
+        function handleDragStart(clientX, clientY) {
+            if (isProcessing || gameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const col = Math.floor((clientX - rect.left) / GEM_SIZE);
+            const row = Math.floor((clientY - rect.top - TOP_OFFSET) / GEM_SIZE);
+            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+            
+            const gem = board[row][col];
+            if (gem) {
+                gem.selectionPulse = 1;
+            }
+
+            isDragging = true;
+            dragStartGem = { row, col };
+        }
+
+        function handleDragMove(clientX, clientY) {
+            if (!isDragging || !dragStartGem || isProcessing || gameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const col = Math.floor((clientX - rect.left) / GEM_SIZE);
+            const row = Math.floor((clientY - rect.top - TOP_OFFSET) / GEM_SIZE);
+            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) { handleDragEnd(); return; }
+            if (row !== dragStartGem.row || col !== dragStartGem.col) {
+                if (areAdjacent(dragStartGem, { row, col })) {
+                    swapAndProcess(dragStartGem, { row, col });
+                }
+                handleDragEnd();
+            }
+        }
+
+        function handleDragEnd() {
+            if (dragStartGem) {
+                const gem = board[dragStartGem.row][dragStartGem.col];
+                if (gem) {
+                    gem.selectionPulse = 0;
+                }
+            }
+            isDragging = false;
+            dragStartGem = null;
+        }
+
+        async function swapAndProcess(gem1Coords, gem2Coords) {
+            isProcessing = true;
+            const gem1 = board[gem1Coords.row][gem1Coords.col];
+            const gem2 = board[gem2Coords.row][gem2Coords.col];
+
+            if (gem1) gem1.selectionPulse = 0;
+            if (gem2) gem2.selectionPulse = 0;
+
+            if (gem1 && gem2) {
+                if (gem1.type === GEM_TYPE.RAINBOW && gem2.type !== GEM_TYPE.RAINBOW) {
+                    await activateRainbowEffect(gem1, gem2);
+                    isProcessing = false; return;
+                }
+                if (gem2.type === GEM_TYPE.RAINBOW && gem1.type !== GEM_TYPE.RAINBOW) {
+                    await activateRainbowEffect(gem2, gem1);
+                    isProcessing = false; return;
+                }
+            }
+            
+            swapGems(gem1Coords, gem2Coords);
+            await waitForAnimations();
+            
+            const wasMoveSuccessful = await handleAllMatches([gem1Coords, gem2Coords]);
+
+            if (!wasMoveSuccessful) {
+                await sleep(100);
+                swapGems(gem1Coords, gem2Coords); await waitForAnimations();
+            } else {
+                await afterSuccessfulMove();
+            }
+            isProcessing = false;
+        }
+        
+        async function afterSuccessfulMove() {
+            successfulMoves++;
+            
+            const heartsToMove = [...hearts];
+            heartsToMove.sort((a, b) => b.row - a.row);
+
+            for(const heart of heartsToMove) {
+                if (heart.row > 0) {
+                    const gemAbove = board[heart.row - 1][heart.col];
+                    if (gemAbove && !gemAbove.isHeart) {
+                        board[heart.row][heart.col] = gemAbove;
+                        board[heart.row - 1][heart.col] = heart;
+                        
+                        heart.row--;
+                        gemAbove.row++;
+                    }
+                }
+            }
+            await waitForAnimations();
+
+            await handleAllMatches(null, true);
+
+            if (successfulMoves % 5 === 0) {
+                spawnNewHeart();
+            }
+
+            if (hearts.some(h => h.row === 0)) {
+                triggerGameOver();
+            }
+
+            if (hearts.length > 0) {
+                const highestHeart = hearts.reduce((prev, current) => (prev.row < current.row) ? prev : current);
+                monster.targetCol = highestHeart.col;
+            }
+        }
+
+        function triggerGameOver() {
+            gameOver = true;
+            const lostHeart = hearts.find(h => h.row === 0);
+            if (lostHeart) monster.targetCol = lostHeart.col;
+            gameOverScreen.classList.add('active');
+        }
+
+        async function handleAllMatches(swappedCoords, isAutoCheck = false) {
+            let madeAMatch = false;
+            let firstPass = true;
+            while (true) {
+                let allLines = findMatchLines(); let allSquares = findSquareMatches();
+                if (allLines.length === 0 && allSquares.length === 0) break;
+                madeAMatch = true;
+                let gemsToDestroy = new Set(); let gemToCreate = null;
+                if (firstPass && swappedCoords && !isAutoCheck) {
+                    let horizontalLines = allLines.filter(line => line.length >= 3 && line[0].row === line[1].row);
+                    let verticalLines = allLines.filter(line => line.length >= 3 && line[0].col === line[1].col);
+                    let intersectionPoints = [];
+                    horizontalLines.forEach(hLine => { verticalLines.forEach(vLine => { const intersection = hLine.find(hGem => vLine.some(vGem => hGem === vGem)); if (intersection) intersectionPoints.push(intersection); }); });
+                    const swappedIntersection = intersectionPoints.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col));
+                    if (swappedIntersection) gemToCreate = { row: swappedIntersection.row, col: swappedIntersection.col, type: GEM_TYPE.RAINBOW, color: swappedIntersection.color };
+                    if (!gemToCreate) { const square = allSquares.find(sq => sq.some(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col))); if (square) { const swappedGemInSquare = square.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col)); gemToCreate = { row: swappedGemInSquare.row, col: swappedGemInSquare.col, type: GEM_TYPE.CROSS, color: swappedGemInSquare.color }; } }
+                    if (!gemToCreate) { const line5 = allLines.find(line => line.length >= 5); if (line5) { const swappedGemInLine = line5.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col)); if (swappedGemInLine) gemToCreate = { row: swappedGemInLine.row, col: swappedGemInLine.col, type: GEM_TYPE.BOMB, color: swappedGemInLine.color }; } }
+                    if (!gemToCreate) { const line4 = allLines.find(line => line.length === 4); if (line4) { const swappedGemInLine = line4.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col)); if (swappedGemInLine) gemToCreate = { row: swappedGemInLine.row, col: swappedGemInLine.col, type: line4[0].row === line4[1].row ? GEM_TYPE.H_LIGHTNING : GEM_TYPE.V_LIGHTNING, color: swappedGemInLine.color }; } }
+                }
+                firstPass = false;
+                
+                let specialEffectPromises = [];
+                const allMatchedGems = [...allLines.flat(), ...allSquares.flat()];
+                allMatchedGems.forEach(gem => {
+                    if (gem.type === GEM_TYPE.H_LIGHTNING) specialEffectPromises.push(animateLightning(gem, 'h'));
+                    else if (gem.type === GEM_TYPE.V_LIGHTNING) specialEffectPromises.push(animateLightning(gem, 'v'));
+                    else if (gem.type === GEM_TYPE.BOMB) specialEffectPromises.push(animateExplosion(gem));
+                    else if (gem.type === GEM_TYPE.CROSS) specialEffectPromises.push(animateExplosion(gem));
+                });
+                await Promise.all(specialEffectPromises);
+
+                allSquares.flat().forEach(gem => gemsToDestroy.add(gem));
+                allMatchedGems.forEach(gem => {
+                    if (gem.type === GEM_TYPE.H_LIGHTNING) for (let c = 0; c < COLS; c++) gemsToDestroy.add(board[gem.row][c]);
+                    else if (gem.type === GEM_TYPE.V_LIGHTNING) for (let r = 0; r < ROWS; r++) gemsToDestroy.add(board[r][gem.col]);
+                    else if (gem.type === GEM_TYPE.BOMB) { for (let r = gem.row - 1; r <= gem.row + 1; r++) for (let c = gem.col - 1; c <= gem.col + 1; c++) { if (r >= 0 && r < ROWS && c >= 0 && c < COLS) gemsToDestroy.add(board[r][c]); } }
+                    else if (gem.type === GEM_TYPE.CROSS) { for (let i = -Math.max(ROWS, COLS); i < Math.max(ROWS, COLS); i++) { if (board[gem.row + i] && board[gem.row + i][gem.col + i]) gemsToDestroy.add(board[gem.row + i][gem.col + i]); if (board[gem.row + i] && board[gem.row + i][gem.col - i]) gemsToDestroy.add(board[gem.row + i][gem.col - i]); } }
+                });
+                
+                allMatchedGems.forEach(gem => gemsToDestroy.add(gem));
+                if (gemToCreate) { const gem = board[gemToCreate.row][gemToCreate.col]; gemsToDestroy.delete(gem); }
+
+                let rescuedHearts = [];
+                [...gemsToDestroy].filter(Boolean).forEach(gem => {
+                    if (gem.isHeart) {
+                        const heartIndex = hearts.findIndex(h => h === gem);
+                        if (heartIndex > -1) {
+                            rescuedHearts.push(hearts.splice(heartIndex, 1)[0]);
+                        }
+                    }
+                });
+                
+                if (rescuedHearts.length > 0) {
+                    await Promise.all(rescuedHearts.map(h => animateHeartRescue(h)));
+                    heartsSaved += rescuedHearts.length;
+                    updateScore();
+                    await showInfoPopup();
+                }
+
+                await animateRemoval([...gemsToDestroy].filter(Boolean));
+                score += [...gemsToDestroy].filter(Boolean).length * 10; updateScore();
+                [...gemsToDestroy].filter(Boolean).forEach(gem => { board[gem.row][gem.col] = null; });
+                if (gemToCreate) board[gemToCreate.row][gemToCreate.col] = createGem(gemToCreate.row, gemToCreate.col, gemToCreate.type, gemToCreate.color);
+                
+                await applyGravityAndRefill();
+            }
+            return madeAMatch;
+        }
+
+        async function applyGravityAndRefill() {
+            for (let col = 0; col < COLS; col++) {
+                let emptyRow = ROWS - 1;
+                for (let row = ROWS - 1; row >= 0; row--) {
+                    const gem = board[row][col];
+                    if (gem && !gem.isHeart) {
+                        if (emptyRow !== row) {
+                            gem.row = emptyRow;
+                            board[row][col] = null;
+                            board[emptyRow][col] = gem;
+                        }
+                        emptyRow--;
+                    } else if (board[row][col] && board[row][col].isHeart) {
+                        emptyRow = row - 1;
+                    }
+                }
+            }
+            
+            for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (board[r][c] === null) { board[r][c] = createGem(r, c); board[r][c].y = -GEM_SIZE + TOP_OFFSET; } } }
+            
+            await waitForAnimations();
+        }
+
+
+        function updateScore() {
+            const oldScore = parseInt(scoreValueElement.textContent);
+            const oldHearts = parseInt(heartsSavedValueElement.textContent);
+
+            if (oldScore !== score) {
+                scoreValueElement.classList.add('pulsate');
+            }
+            if (oldHearts !== heartsSaved) {
+                heartsSavedValueElement.classList.add('pulsate');
+            }
+
+            scoreValueElement.textContent = score;
+            heartsSavedValueElement.textContent = heartsSaved;
+        }
+        
+        function areAdjacent(gem1, gem2) { const rowDiff = Math.abs(gem1.row - gem2.row); const colDiff = Math.abs(gem1.col - gem2.col); return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1); }
+        function swapGems(gem1Coords, gem2Coords) { const gem1 = board[gem1Coords.row][gem1Coords.col]; const gem2 = board[gem2Coords.row][gem2Coords.col]; board[gem1Coords.row][gem1Coords.col] = gem2; board[gem2Coords.row][gem2Coords.col] = gem1; if(gem1 && gem2){ [gem1.row, gem2.row] = [gem2.row, gem1.row]; [gem1.col, gem2.col] = [gem2.col, gem1.col]; } }
+        async function activateRainbowEffect(rainbowGem, otherGem) { const colorToDestroy = otherGem.color; let gemsToDestroy = new Set([rainbowGem, otherGem]); let targetGems = []; board.flat().forEach(gem => { if (gem && gem.color === colorToDestroy) targetGems.push(gem); }); await animateEffect(300, (progress) => { const easeOut = 1 - Math.pow(1 - progress, 3); targetGems.forEach(target => { ctx.beginPath(); ctx.moveTo(rainbowGem.x + GEM_SIZE/2, rainbowGem.y + GEM_SIZE/2); const destX = target.x + GEM_SIZE/2; const destY = target.y + GEM_SIZE/2; ctx.lineTo(rainbowGem.x + GEM_SIZE/2 + (destX - (rainbowGem.x + GEM_SIZE/2)) * easeOut, rainbowGem.y + GEM_SIZE/2 + (destY - (rainbowGem.y + GEM_SIZE/2)) * easeOut); ctx.strokeStyle = `rgba(255, 255, 255, ${1 - progress})`; ctx.lineWidth = 5; ctx.stroke(); }); }); targetGems.forEach(gem => gemsToDestroy.add(gem)); await animateRemoval([...gemsToDestroy].filter(Boolean)); score += [...gemsToDestroy].filter(Boolean).length * 10; updateScore(); [...gemsToDestroy].filter(Boolean).forEach(gem => { board[gem.row][gem.col] = null; }); await applyGravityAndRefill(); await handleAllMatches(null); }
+        async function animateRemoval(matches) { matches.forEach(gem => { if(gem && !gem.isHeart) { createParticles(gem.x + GEM_SIZE/2, gem.y + GEM_SIZE/2, gem.color, 5); gem.scale = 0.99; }}); await sleep(250); }
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        function waitForAnimations() { return new Promise(resolve => { const check = () => { if ([...board.flat()].every(g => !g || (Math.abs(g.x - g.col*GEM_SIZE) < 0.1 && Math.abs(g.y - (g.row*GEM_SIZE + TOP_OFFSET)) < 0.1 && Math.abs(g.vy) < 0.1))) resolve(); else requestAnimationFrame(check); }; check(); }); }
+        function createParticles(x, y, color, count) { for (let i = 0; i < count; i++) { particles.push({ x, y, vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4, alpha: 1, color: color }); } }
+        function updateParticles() { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.alpha -= 0.02; if (p.alpha <= 0) particles.splice(i, 1); } }
+        function drawParticles() { particles.forEach(p => { ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); ctx.restore(); }); }
+        function animateEffect(duration, drawCallback) { return new Promise(resolve => { const startTime = Date.now(); function loop() { const elapsedTime = Date.now() - startTime; const progress = Math.min(elapsedTime / duration, 1); draw(); drawCallback(progress); if (progress < 1) requestAnimationFrame(loop); else { draw(); resolve(); } } loop(); }); }
+        async function animateLightning(gem, direction) { const x = gem.x + GEM_SIZE / 2; const y = gem.y + GEM_SIZE / 2; createParticles(x, y, 'white', 30); await animateEffect(200, (progress) => { ctx.strokeStyle = `rgba(255, 255, 255, ${1 - progress})`; ctx.lineWidth = 10 * (1 - progress); ctx.beginPath(); if (direction === 'h') { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); } else { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); } ctx.stroke(); }); }
+        async function animateExplosion(gem) { const x = gem.x + GEM_SIZE / 2; const y = gem.y + GEM_SIZE / 2; createParticles(x, y, 'white', 50); await animateEffect(300, (progress) => { ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * (1 - progress)})`; ctx.beginPath(); ctx.arc(x, y, GEM_SIZE * 2 * progress, 0, Math.PI * 2); ctx.fill(); }); }
+        
+        async function animateHeartRescue(heart) {
+            const flyHeart = { x: heart.x, y: heart.y, scale: 1 };
+            const destX = heartsSavedValueElement.getBoundingClientRect().left - canvas.getBoundingClientRect().left;
+            const destY = heartsSavedValueElement.getBoundingClientRect().top - canvas.getBoundingClientRect().top;
+
+            await animateEffect(500, (progress) => {
+                const easeIn = progress * progress;
+                flyHeart.x += (destX - flyHeart.x) * easeIn * 0.1;
+                flyHeart.y += (destY - flyHeart.y) * easeIn * 0.1;
+                flyHeart.scale = 1 - progress;
+                
+                ctx.font = `${GEM_SIZE * 0.6 * flyHeart.scale}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.globalAlpha = 1 - progress;
+                ctx.fillText('💖', flyHeart.x + GEM_SIZE/2, flyHeart.y + GEM_SIZE/2);
+                ctx.globalAlpha = 1;
+
+                if (Math.random() < 0.5) {
+                    createParticles(flyHeart.x + GEM_SIZE/2, flyHeart.y + GEM_SIZE/2, '#ffc0cb', 1);
+                }
+            });
+        }
+        
+        function initBackgroundParticles() {
+            backgroundParticles = [];
+            for (let i = 0; i < 50; i++) {
+                backgroundParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1,
+                    alpha: Math.random() * 0.5 + 0.2,
+                    vy: Math.random() * 0.5 + 0.1
+                });
+            }
+        }
+
+        function updateBackgroundParticles() {
+            backgroundParticles.forEach(p => {
+                p.y += p.vy;
+                if (p.y > canvas.height) {
+                    p.y = 0;
+                    p.x = Math.random() * canvas.width;
+                }
+            });
+        }
+
+        function drawBackgroundParticles() {
+            backgroundParticles.forEach(p => {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function showInfoPopup() {
+            return new Promise(resolve => {
+                isProcessing = true;
+                const fact = smokingFacts[Math.floor(Math.random() * smokingFacts.length)];
+                popupText.textContent = fact;
+                infoPopup.classList.add('active');
+
+                const onContinue = () => {
+                    clearTimeout(popupTimeout);
+                    hideInfoPopup();
+                    popupContinueButton.onclick = null; // Gỡ bỏ sự kiện để tránh gọi nhiều lần
+                    resolve();
+                };
+
+                popupContinueButton.onclick = onContinue;
+                popupTimeout = setTimeout(onContinue, 5000);
+            });
+        }
+
+        function hideInfoPopup() {
+            infoPopup.classList.remove('active');
+            isProcessing = false;
+        }
+
+        function startAudio() {
+            if (!audioStarted) {
+                Tone.start();
+                audioStarted = true;
+            }
+        }
+        canvas.addEventListener('mousedown', startAudio, { once: true });
+        canvas.addEventListener('touchstart', startAudio, { once: true });
+
+
+        scoreValueElement.addEventListener('animationend', () => scoreValueElement.classList.remove('pulsate'));
+        heartsSavedValueElement.addEventListener('animationend', () => heartsSavedValueElement.classList.remove('pulsate'));
+        resetButtonMain.addEventListener('click', init);
+        resetButtonGameOver.addEventListener('click', init);
+
+        init();
+    </script>
+</body>
+</html>
