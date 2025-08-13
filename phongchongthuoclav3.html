@@ -261,11 +261,17 @@
         </div>
     </div>
 
-    <!-- Nút Toàn màn hình -->
-    <button id="fullscreenBtn" class="fixed top-4 right-4 z-50 bg-white/80 backdrop-blur-sm p-3 rounded-full shadow-lg hover:bg-white transition-all">
-        <svg id="fullscreenIconOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-        <svg id="fullscreenIconClose" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700 hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-    </button>
+    <!-- Nút Toàn màn hình và Gợi ý -->
+    <div class="fixed top-4 right-4 z-50 flex flex-col items-end gap-2">
+        <button id="fullscreenBtn" class="bg-white/80 backdrop-blur-sm p-3 rounded-full shadow-lg hover:bg-white transition-all">
+            <svg id="fullscreenIconOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            <svg id="fullscreenIconClose" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700 hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+        </button>
+        <div id="fullscreenHint" class="text-center text-xs font-semibold text-red-600 animate-pulse bg-white/80 backdrop-blur-sm p-2 rounded-lg shadow-md">
+            <p>Vui lòng bấm vào đây</p>
+            <p>để có trải nghiệm tốt nhất!</p>
+        </div>
+    </div>
 
 
     <!-- Màn hình tiêu đề -->
@@ -1149,7 +1155,7 @@
                 dialogues: [
                     "Chào bạn! Mình là Dạ dày – nơi tiêu hóa và nghiền nát thức ăn.",
                     "Khói thuốc kích thích tăng tiết acid dịch vị, gây viêm loét dạ dày – tá tràng và cản trở hấp thu dinh dưỡng.",
-                    "Nicotine còn làm giảm lưu lượng máu đến niêm mạc dạ dày, khiến vết loét lâu lành.",
+                    "Nicotine còn làm giảm lưu lượng máu đến ni-mạc dạ dày, khiến vết loét lâu lành.",
                     "Hãy ăn uống điều độ và tránh xa thuốc lá để mình làm việc hiệu quả."
                 ]
             },
@@ -2032,65 +2038,84 @@
         };
 
         // --- Event Listeners ---
-        document.addEventListener('keydown', function(e) {
-            // Check if game part 1 is active
-            if (!document.getElementById('gameScreen').classList.contains('hidden')) {
-                const moveSpeed = 20;
-                let newX = characterPosition.x, newY = characterPosition.y;
-                if (e.key === 'ArrowLeft') newX -= moveSpeed;
-                else if (e.key === 'ArrowRight') newX += moveSpeed;
-                else if (e.key === 'ArrowUp') newY -= moveSpeed;
-                else if (e.key === 'ArrowDown') newY += moveSpeed;
-                else if (e.key === ' ') {
-                    e.preventDefault();
-                    // If popup is hidden, interact with organ, otherwise proceed with dialogue
-                    if (document.getElementById('organPopup').classList.contains('hidden')) {
-                        interactWithOrgan();
-                    } else {
-                        nextDialogue();
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Fullscreen Functionality ---
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const fullscreenIconOpen = document.getElementById('fullscreenIconOpen');
+            const fullscreenIconClose = document.getElementById('fullscreenIconClose');
+            const fullscreenHint = document.getElementById('fullscreenHint');
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.log(`Lỗi toàn màn hình: ${err.message}`);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
                     }
-                    return; // Stop further execution for this key press
                 }
-                // Only move if there's a change in position
-                if (newX !== characterPosition.x || newY !== characterPosition.y) {
-                    moveCharacter(newX, newY);
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const isFullscreen = !!document.fullscreenElement;
+                fullscreenIconOpen.classList.toggle('hidden', isFullscreen);
+                fullscreenIconClose.classList.toggle('hidden', !isFullscreen);
+                fullscreenHint.classList.toggle('hidden', isFullscreen);
+            });
+
+            // --- Other Event Listeners ---
+            document.addEventListener('keydown', function(e) {
+                if (!document.getElementById('gameScreen').classList.contains('hidden')) {
+                    const moveSpeed = 20;
+                    let newX = characterPosition.x, newY = characterPosition.y;
+                    if (e.key === 'ArrowLeft') newX -= moveSpeed;
+                    else if (e.key === 'ArrowRight') newX += moveSpeed;
+                    else if (e.key === 'ArrowUp') newY -= moveSpeed;
+                    else if (e.key === 'ArrowDown') newY += moveSpeed;
+                    else if (e.key === ' ') {
+                        e.preventDefault();
+                        if (document.getElementById('organPopup').classList.contains('hidden')) {
+                            interactWithOrgan();
+                        } else {
+                            nextDialogue();
+                        }
+                        return;
+                    }
+                    if (newX !== characterPosition.x || newY !== characterPosition.y) {
+                        moveCharacter(newX, newY);
+                    }
                 }
-            }
-            
-            // Check if game part 2 is active and playable
-            if (!document.getElementById('part2Screen').classList.contains('hidden') && gameState.isPlaying && !gameState.isPaused) {
-                if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    gameState.heroPosition = Math.max(2, gameState.heroPosition - 4);
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    gameState.heroPosition = Math.min(98, gameState.heroPosition + 4);
-                } else if (e.key === ' ') { 
-                    e.preventDefault(); 
-                    shootBullet(); 
+                
+                if (!document.getElementById('part2Screen').classList.contains('hidden') && gameState.isPlaying && !gameState.isPaused) {
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        gameState.heroPosition = Math.max(2, gameState.heroPosition - 4);
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        gameState.heroPosition = Math.min(98, gameState.heroPosition + 4);
+                    } else if (e.key === ' ') { 
+                        e.preventDefault(); 
+                        shootBullet(); 
+                    }
+                    updateGameDisplay();
                 }
-                updateGameDisplay();
-            }
-        });
+            });
 
+            document.getElementById('gameArea').addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                moveCharacter(e.clientX - rect.left - 30, e.clientY - rect.top - 30);
+            });
 
-        document.getElementById('gameArea').addEventListener('click', function(e) {
-            const rect = this.getBoundingClientRect();
-            moveCharacter(e.clientX - rect.left - 30, e.clientY - rect.top - 30);
-        });
-
-        // Initialize on load
-        window.addEventListener('load', () => {
-            // Add sounds to all buttons
             document.addEventListener('click', (e) => (e.target.closest('button')) && AudioSystem.playClickSound());
             document.addEventListener('mouseover', (e) => (e.target.closest('button')) && AudioSystem.playHoverSound());
+
+            document.addEventListener('click', function initAudio() {
+                AudioSystem.init();
+                document.removeEventListener('click', initAudio);
+            }, { once: true });
         });
 
-        // Initialize audio on first user interaction
-        document.addEventListener('click', function initAudio() {
-            AudioSystem.init();
-            document.removeEventListener('click', initAudio);
-        }, { once: true });
 
         // Add CSS for animations not covered by Tailwind
         const styleSheet = document.createElement("style");
