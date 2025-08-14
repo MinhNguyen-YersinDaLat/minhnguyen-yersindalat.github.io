@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard Phòng Chống Thuốc Lá - Giao diện mới</title>
+    <!-- Tone.js for Web Audio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        /* Import Google Font */
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;900&display=swap');
+
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif; /* Apply new font */
+            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        /* --- Animated Background START --- */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .background-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        .background-particles li {
+            position: absolute;
+            display: block;
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            animation: animate-particles 25s linear infinite;
+            bottom: -150px;
+        }
+
+        .background-particles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+        .background-particles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+        .background-particles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+        .background-particles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+        .background-particles li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+        .background-particles li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+        .background-particles li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; }
+        .background-particles li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; }
+        .background-particles li:nth-child(9){ left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; }
+        .background-particles li:nth-child(10){ left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; }
+
+        @keyframes animate-particles {
+            0%{
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+                border-radius: 0;
+            }
+            100%{
+                transform: translateY(-1000px) rotate(720deg);
+                opacity: 0;
+                border-radius: 50%;
+            }
+        }
+        /* --- Animated Background END --- */
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative; /* Ensure app content is above background */
+            z-index: 1;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .welcome-card {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 40px 30px;
+            border: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            color: #444;
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            color: #1a237e;
+            letter-spacing: -1px;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .welcome-features {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            padding: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .feature:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(255, 126, 95, 0.3);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(255, 126, 95, 0.4);
+        }
+
+        /* Game Screen */
+        .game-screen {
+            width: 100%;
+            max-width: 700px;
+            height: 100vh;
+            display: none; /* Initially hidden */
+            grid-template-rows: auto 1fr auto;
+            gap: 15px;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        .game-header {
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.6);
+            color: #444;
+            position: relative;
+        }
+        
+        #muteBtn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            opacity: 0.7;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        #muteBtn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            background: rgba(0,0,0,0.1);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #56ab2f, #a8e063);
+            height: 100%;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-image: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            animation: progress-shine 2s infinite;
+        }
+        @keyframes progress-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding-right: 30px; /* Space for mute button */
+        }
+
+        .card-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: -5px;
+            color: #1a237e;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.2);
+        }
+
+        .card-hint {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 500px;
+            height: 320px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard.fade-out {
+            animation: fadeOut 0.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeOut {
+            from { transform: scale(1) rotateY(var(--flip-angle, 0deg)); opacity: 1; }
+            to { transform: scale(0.8) rotateY(var(--flip-angle, 0deg)); opacity: 0; }
+        }
+
+        .flashcard.fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+            border: 3px solid white;
+            color: white;
+            transition: box-shadow 0.8s ease;
+        }
+
+        /* --- Theme Colors START --- */
+        /* Danger Theme (Red/Orange) */
+        .card-face.danger-theme {
+            background: linear-gradient(135deg, #ff6b6b, #e91e63);
+            animation-name: glow-danger;
+            animation-duration: 2.5s;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+        }
+        .card-face.danger-theme.card-back {
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+        }
+        @keyframes glow-danger {
+            from { box-shadow: 0 0 10px rgba(255,107,107,0.4), 0 0 20px rgba(233,30,99,0.3); }
+            to { box-shadow: 0 0 25px rgba(255,107,107,0.8), 0 0 40px rgba(233,30,99,0.6); }
+        }
+
+        /* Benefit Theme (Green) */
+        .card-face.benefit-theme {
+            background: linear-gradient(135deg, #56ab2f, #a8e063);
+            animation-name: glow-benefit;
+            animation-duration: 2.5s;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+        }
+        .card-face.benefit-theme.card-back {
+            background: linear-gradient(135deg, #66bb6a, #9ccc65);
+        }
+        @keyframes glow-benefit {
+            from { box-shadow: 0 0 10px rgba(86,171,47,0.4), 0 0 20px rgba(168,224,99,0.3); }
+            to { box-shadow: 0 0 25px rgba(86,171,47,0.8), 0 0 40px rgba(168,224,99,0.6); }
+        }
+
+        /* Info Theme (Blue) */
+        .card-face.info-theme {
+            background: linear-gradient(135deg, #48c6ef, #6f86d6);
+            animation-name: glow-info;
+            animation-duration: 2.5s;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+        }
+        .card-face.info-theme.card-back {
+            background: linear-gradient(135deg, #29b6f6, #5c6bc0);
+        }
+        @keyframes glow-info {
+            from { box-shadow: 0 0 10px rgba(72,198,239,0.4), 0 0 20px rgba(111,134,214,0.3); }
+            to { box-shadow: 0 0 25px rgba(72,198,239,0.8), 0 0 40px rgba(111,134,214,0.6); }
+        }
+        /* --- Theme Colors END --- */
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .card-content { width: 100%; }
+
+        .card-front .card-content {
+            font-size: 1.6rem;
+            font-weight: 900;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.4);
+            line-height: 1.4;
+        }
+
+        .card-back .card-content {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            text-align: left;
+            text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-icon {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255,255,255,0.5), 0px 2px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-category {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        /* Controls */
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            border-bottom: 4px solid rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+            border-bottom-width: 2px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+            background-color: #aaa;
+            border-bottom-color: #777;
+        }
+        
+        .btn-success { background-color: #2ecc71; border-bottom-color: #27ae60; }
+        .btn-warning { background-color: #f39c12; border-bottom-color: #d35400; }
+        .btn-primary { background-color: #3498db; border-bottom-color: #2980b9; }
+
+
+        /* Completion Message */
+        .completion-message {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .completion-message.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .completion-content {
+            background: linear-gradient(135deg, #56ab2f, #a8e063);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        
+        .completion-message.show .completion-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .completion-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            animation: tada 1.5s infinite;
+        }
+        
+        @keyframes tada {
+           0% {transform: scale(1);}
+           10%, 20% {transform: scale(0.9) rotate(-3deg);}
+           30%, 50%, 70%, 90% {transform: scale(1.1) rotate(3deg);}
+           40%, 60%, 80% {transform: scale(1.1) rotate(-3deg);}
+           100% {transform: scale(1) rotate(0);}
+        }
+
+        .completion-content h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .completion-content p { color: white; }
+
+        .completion-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        /* Confetti */
+        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f00; opacity: 0; }
+        .confetti.animate { animation: confetti-fall 3s linear forwards; }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotateZ(0deg); opacity: 1; }
+            100% { transform: translateY(300px) rotateZ(360deg); opacity: 0; }
+        }
+        
+        /* Info Popup Modal */
+        .info-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .info-modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .info-modal {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .info-modal-overlay.show .info-modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .info-modal-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #1a237e;
+            margin-bottom: 15px;
+        }
+        .info-modal-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .info-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #aaa;
+        }
+        .info-modal-close:hover {
+            color: #333;
+        }
+
+
+        @media (max-width: 768px) {
+            .app-container { padding: 15px; }
+            .welcome-card { padding: 30px 20px; }
+            .welcome-title { font-size: 2rem; }
+            .card-container { height: 300px; }
+            .card-front .card-content { font-size: 1.3rem; }
+            .card-back .card-content { font-size: 1rem; }
+            .btn { padding: 10px 16px; font-size: 0.8rem; }
+            .game-controls { gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-container">
+        <ul class="background-particles">
+            <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+        </ul>
+    </div>
+    <div class="app-container">
+        <!-- Welcome Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-card">
+                <div class="welcome-icon">🚭</div>
+                <h1 class="welcome-title">Flashcard Phổi Khỏe</h1>
+                <p class="welcome-subtitle">Cùng khám phá kiến thức về phòng chống thuốc lá một cách thật vui!</p>
+                
+                <div class="welcome-features">
+                    <div class="feature" onclick="showInfoPopup('science')"><span>🧪</span><span>Kiến thức y khoa</span></div>
+                    <div class="feature" onclick="showInfoPopup('vape')"><span>⚡</span><span>Sự thật về Vape</span></div>
+                    <div class="feature" onclick="showInfoPopup('stats')"><span>📊</span><span>Thống kê WHO</span></div>
+                </div>
+                
+                <button class="start-btn" onclick="startGame()">
+                    <span>Bắt đầu ngay</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-header">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="stats">
+                    <div>Đã học: <span id="studiedCount">0</span>/24</div>
+                    <div>Tiến trình: <span id="progressPercent">0</span>%</div>
+                    <div>Thẻ: <span id="currentCardStat">1</span>/24</div>
+                </div>
+                 <button id="muteBtn">🔊</button>
+            </div>
+
+            <div class="card-section">
+                <div class="card-info">
+                    <div>Thẻ <span id="cardNumber">1</span> / 24</div>
+                    <div class="card-hint">👆 Bấm vào thẻ để lật</div>
+                </div>
+
+                <div class="card-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="card-face card-front" id="cardFront">
+                            <div class="card-category">Câu hỏi</div>
+                            <div class="card-content" id="frontContent"></div>
+                        </div>
+                        <div class="card-face card-back" id="cardBack">
+                            <div class="card-category">Trả lời</div>
+                            <div class="card-content" id="backContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn btn-warning" id="prevBtn" onclick="previousCardWithAnimation()">
+                    <span>←</span> Quay lại
+                </button>
+                <button class="btn btn-success" id="nextBtn" onclick="nextCardWithAnimation()">
+                    Tiếp theo <span>→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Completion Message -->
+        <div class="completion-message" id="completionMessage">
+            <div class="completion-content" id="completionContent">
+                <div class="completion-icon">🎉</div>
+                <h2>Tuyệt vời!</h2>
+                <p>Bạn đã hoàn thành bộ thẻ Phổi Khỏe!</p>
+                <div class="completion-buttons">
+                    <button class="btn btn-primary" onclick="resetProgress()">🔄 Học lại</button>
+                    <button class="btn btn-warning" onclick="continueGame()">� Xáo trộn</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Info Popup Modal -->
+        <div class="info-modal-overlay" id="infoModalOverlay">
+            <div class="info-modal" id="infoModal">
+                <button class="info-modal-close" onclick="hideInfoPopup()">×</button>
+                <h2 class="info-modal-title" id="infoModalTitle"></h2>
+                <p class="info-modal-content" id="infoModalContent"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA ---
+        const flashcards = [
+            { front: "🧪 Nicotine là gì?", back: "💀 Nicotine là chất gây nghiện có trong thuốc lá và thuốc lá điện tử. Chỉ cần 10 giây để nicotine đến não, gây nghiện nhanh chóng và rất khó cai. Đây là lý do chính khiến người hút thuốc khó bỏ được thói quen này.", category: "info" },
+            { front: "⚡ Thuốc lá điện tử (Vape) có an toàn không?", back: "❌ KHÔNG AN TOÀN! Thuốc lá điện tử vẫn chứa nicotine gây nghiện và nhiều chất độc hại như formaldehyde. WHO khẳng định thuốc lá điện tử không an toàn và có thể gây bệnh phổi nghiêm trọng.", category: "danger" },
+            { front: "🌬️ Khói thuốc thụ động có hại như thế nào?", back: "☠️ Khói thuốc thụ động chứa hơn 250 chất độc hại, gây ung thư phổi, bệnh tim mạch, hen suyễn ở trẻ em. Không có mức độ tiếp xúc nào được coi là an toàn!", category: "danger" },
+            { front: "🎯 Thuốc lá gây ra những bệnh ung thư nào?", back: "🔢 Ít nhất 16 loại ung thư: phổi, họng, thực quản, bàng quang, gan, dạ dày, tụy, thận, cổ tử cung và nhiều cơ quan khác. Nguy cơ mắc ung thư tăng 15-30 lần so với người không hút thuốc!", category: "danger" },
+            { front: "👶 Hút thuốc ảnh hưởng đến khả năng sinh sản?", back: "💔 Hút thuốc giảm khả năng sinh sản ở cả nam và nữ, có thể gây vô sinh. Ở phụ nữ mang thai có thể dẫn đến sảy thai, sinh non và nhiều biến chứng nguy hiểm khác.", category: "danger" },
+            { front: "⏰ Cơ thể hồi phục như thế nào khi bỏ thuốc?", back: "🚀 20 phút: nhịp tim và huyết áp giảm. 12 giờ: khí CO trở về bình thường. 2 tuần: tuần hoàn máu cải thiện. 1 tháng: chức năng phổi tăng 30%. 1 năm: nguy cơ bệnh tim giảm 50%!", category: "benefit" },
+            { front: "☠️ Thuốc lá chứa bao nhiêu chất độc hại?", back: "🧪 Hơn 7.000 chất hóa học, trong đó có 70+ chất gây ung thư như benzene, formaldehyde, polonium-210, hydrogen cyanide. Hút thuốc giống như hít khí thải ô tô!", category: "info" },
+            { front: "🤔 Thuốc lá điện tử có giúp cai thuốc không?", back: "⚠️ Chưa có bằng chứng khoa học đủ mạnh! Nhiều người sử dụng cả thuốc lá thường và điện tử, làm tăng nguy cơ. Liệu pháp thay thế nicotine được chứng minh an toàn hơn!", category: "info" },
+            { front: "✨ Hút thuốc làm lão hóa da như thế nào?", back: "👵 Giảm lưu lượng máu đến da, phá hủy collagen gây lão hóa sớm, nếp nhăn, da xỉn màu và chậm lành vết thương. Người hút thuốc thường có nếp nhăn quanh môi và mắt rõ rệt!", category: "danger" },
+            { front: "🦴 Hút thuốc ảnh hưởng đến xương khớp?", back: "💀 Giảm mật độ xương, tăng nguy cơ loãng xương và gãy xương, đặc biệt ở phụ nữ mãn kinh. Làm chậm quá trình lành xương sau chấn thương hoặc phẫu thuật.", category: "danger" },
+            { front: "🧠 Tại sao thanh thiếu niên không nên dùng thuốc lá điện tử?", back: "⚠️ Não bộ phát triển đến 25 tuổi! Nicotine gây tổn thương vĩnh viễn cho não đang phát triển, dẫn đến vấn đề về trí nhớ, chú ý và học tập. Não thanh thiếu niên dễ nghiện gấp 3 lần!", category: "danger" },
+            { front: "🛡️ Hút thuốc ảnh hưởng đến hệ miễn dịch?", back: "🦠 Làm suy yếu miễn dịch, tăng nguy cơ nhiễm trùng đường hô hấp, viêm phổi, cúm và các triệu chứng COVID-19 nặng. Làm chậm quá trình lành vết thương.", category: "danger" },
+            { front: "💰 Chi phí kinh tế của việc hút thuốc?", back: "📊 Việt Nam: hơn 3 tỷ USD/năm cho chi phí y tế. Toàn cầu: 1.4 nghìn tỷ USD/năm. Bao gồm mất năng suất lao động, tử vong sớm, chi phí điều trị. Lợi ích kinh tế khi bỏ thuốc rất lớn!", category: "info" },
+            { front: "👁️ Hút thuốc ảnh hưởng đến thị lực?", back: "😵 Tăng nguy cơ thoái hóa điểm vàng, đục thủy tinh thể, bệnh võng mạc tiểu đường, tổn thương dây thần kinh thị giác có thể dẫn đến mù lòa. Người hút thuốc có nguy cơ mù gấp 2 lần!", category: "danger" },
+            { front: "🤱 Phụ nữ mang thai hút thuốc có tác hại gì?", back: "👶 Sảy thai, thai chết lưu, sinh non, trẻ nhẹ cân, dị tật bẩm sinh, hội chứng đột tử ở trẻ sơ sinh, chậm phát triển. Khói thuốc gián tiếp cũng có hại cho em bé!", category: "danger" },
+            { front: "🦷 Hút thuốc ảnh hưởng đến sức khỏe răng miệng?", back: "😬 Ung thư miệng, bệnh nướu, mất răng, hôi miệng, răng ố vàng, chậm lành sau phẫu thuật nha khoa. Người hút thuốc mất răng gấp 2-3 lần người không hút!", category: "danger" },
+            { front: "😰 Triệu chứng cai thuốc là gì?", back: "🎢 Lo âu, cáu kỉnh, khó tập trung, tăng cân, mất ngủ, thèm thuốc. Đỉnh điểm trong 3 ngày đầu, giảm dần sau 2-4 tuần. Hãy nhớ: khó khăn tạm thời, lợi ích vĩnh viễn!", category: "info" },
+            { front: "🪴 Shisha/Hookah có an toàn hơn không?", back: "❌ HOÀN TOÀN SAI! Chứa cùng các chất độc như thuốc lá thường. 1 lần hút shisha = 100 điếu thuốc về lượng khói. Nước không lọc được chất độc. Dùng chung vòi có nguy cơ lây nhiễm!", category: "danger" },
+            { front: "❤️ Hút thuốc ảnh hưởng đến tim mạch như thế nào?", back: "💔 Tăng nguy cơ đau tim 2-4 lần, đột quỵ 2-4 lần, bệnh động mạch ngoại biên, tăng huyết áp, tim đập nhanh, giảm oxy trong máu. Xơ vữa động mạch nhanh chóng!", category: "danger" },
+            { front: "🎯 Cách cai thuốc hiệu quả nhất?", back: "💪 Phương pháp kết hợp: hỗ trợ y tế, liệu pháp thay thế nicotine, tư vấn tâm lý, nhóm hỗ trợ, đường dây nóng cai thuốc, ứng dụng di động, đặt ngày cai thuốc, tránh các yếu tố kích thích!", category: "benefit" },
+            { front: "🍬 Hương liệu trong Vape có an toàn không?", back: "❌ KHÔNG! Nhiều hương liệu (như diacetyl) an toàn khi ăn nhưng lại cực kỳ độc hại khi hít vào phổi, gây ra bệnh 'phổi bỏng ngô' (viêm tiểu phế quản tắc nghẽn) không thể hồi phục và các tổn thương nghiêm trọng khác.", category: "danger" },
+            { front: "🌍 Thống kê dịch thuốc lá toàn cầu?", back: "📈 8 triệu người chết/năm toàn cầu, 1.3 tỷ người sử dụng. Thuốc lá giết chết 50% người sử dụng. Dự báo đến 2030: 8.3 triệu người chết nếu không hành động. Đại dịch trong đại dịch!", category: "info" },
+            { front: "🧬 Tác động di truyền của việc hút thuốc?", back: "🔬 Hút thuốc thay đổi biểu hiện gen, có thể truyền sang thế hệ tiếp theo. Tuy nhiên, bỏ thuốc có thể đảo ngược một số thay đổi di truyền này!", category: "info" },
+            { front: "💨 Khói thuốc tàn lưu là gì?", back: "🏠 Chất độc từ khói thuốc bám trên bề mặt, quần áo, tóc. Tồn tại hàng tháng/năm. Đặc biệt có hại cho trẻ sơ sinh và trẻ nhỏ. Không có mức độ tiếp xúc nào được coi là an toàn!", category: "danger" }
+        ];
+
+        // --- STATE & DOM ELEMENTS ---
+        let currentCardIndex = 0;
+        let studiedCards = new Set();
+        let isFlipped = false;
+        let isAnimating = false;
+        let isMuted = true; // Audio is muted by default
+        let audioInitialized = false;
+        
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const flashcardEl = document.getElementById('flashcard');
+        const cardFrontEl = document.getElementById('cardFront');
+        const cardBackEl = document.getElementById('cardBack');
+        const frontContentEl = document.getElementById('frontContent');
+        const backContentEl = document.getElementById('backContent');
+        const cardNumberEl = document.getElementById('cardNumber');
+        const currentCardStatEl = document.getElementById('currentCardStat');
+        const studiedCountEl = document.getElementById('studiedCount');
+        const progressPercentEl = document.getElementById('progressPercent');
+        const progressFillEl = document.getElementById('progressFill');
+        const completionMessageEl = document.getElementById('completionMessage');
+        const completionContentEl = document.getElementById('completionContent');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const infoModalOverlay = document.getElementById('infoModalOverlay');
+        const infoModalTitle = document.getElementById('infoModalTitle');
+        const infoModalContent = document.getElementById('infoModalContent');
+
+        // --- AUDIO SETUP (Tone.js) ---
+        let flipSound, clickSound, completionSound;
+
+        function initAudio() {
+            if (audioInitialized) return;
+            
+            Tone.start();
+
+            flipSound = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0 } }).toDestination();
+            clickSound = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).toDestination();
+            completionSound = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sine" }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 1 } }).toDestination();
+            
+            audioInitialized = true;
+            isMuted = false;
+            muteBtn.textContent = '🔊';
+        }
+
+        function playSound(sound, note, duration, time) {
+            if (isMuted || !audioInitialized) return;
+            sound.triggerAttackRelease(note, duration, time);
+        }
+
+        // --- FUNCTIONS ---
+        function startGame() {
+            if (!audioInitialized) initAudio();
+            
+            shuffleCards();
+            welcomeScreen.style.display = 'none';
+            gameScreen.style.display = 'grid';
+            flashcardEl.addEventListener('click', flipCard);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            isAnimating = true;
+            const card = flashcards[currentCardIndex];
+            
+            const frontParts = card.front.split(' ');
+            frontContentEl.innerHTML = `<div class="card-icon">${frontParts[0]}</div><div>${frontParts.slice(1).join(' ')}</div>`;
+            backContentEl.textContent = card.back;
+            
+            cardNumberEl.textContent = currentCardIndex + 1;
+            currentCardStatEl.textContent = currentCardIndex + 1;
+            
+            const themeClass = `${card.category}-theme`;
+            const themeClasses = ['danger-theme', 'benefit-theme', 'info-theme'];
+            cardFrontEl.classList.remove(...themeClasses);
+            cardBackEl.classList.remove(...themeClasses);
+            cardFrontEl.classList.add(themeClass);
+            cardBackEl.classList.add(themeClass);
+
+            isFlipped = false;
+            flashcardEl.classList.remove('flipped', 'fade-out');
+            flashcardEl.style.setProperty('--flip-angle', '0deg');
+            
+            flashcardEl.classList.add('fade-in');
+            setTimeout(() => {
+                flashcardEl.classList.remove('fade-in');
+                isAnimating = false;
+            }, 500);
+
+            prevBtn.disabled = currentCardIndex === 0;
+            if (currentCardIndex === flashcards.length - 1) {
+                nextBtn.innerHTML = 'Hoàn thành <span>✔</span>';
+            } else {
+                nextBtn.innerHTML = 'Tiếp theo <span>→</span>';
+            }
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const studiedCount = studiedCards.size;
+            const progressPercent = Math.round((studiedCount / flashcards.length) * 100);
+            
+            studiedCountEl.textContent = studiedCount;
+            progressPercentEl.textContent = progressPercent;
+            progressFillEl.style.width = progressPercent + '%';
+            
+            if (studiedCount === flashcards.length && !completionMessageEl.classList.contains('show')) {
+                setTimeout(() => {
+                    completionMessageEl.classList.add('show');
+                    triggerConfetti();
+                    if (!isMuted && audioInitialized) {
+                        const now = Tone.now();
+                        playSound(completionSound, ["C4", "E4", "G4"], "8n", now);
+                        playSound(completionSound, "C5", "8n", now + 0.2);
+                    }
+                }, 500);
+            }
+        }
+
+        function flipCard() {
+            if (isAnimating) return;
+            isFlipped = !isFlipped;
+            flashcardEl.classList.toggle('flipped', isFlipped);
+            playSound(flipSound, '8n');
+            if (isFlipped && !studiedCards.has(currentCardIndex)) {
+                studiedCards.add(currentCardIndex);
+                updateProgress();
+            }
+        }
+
+        function nextCardWithAnimation() {
+            if (isAnimating) return;
+            playSound(clickSound, 'C2', '8n');
+            if (currentCardIndex >= flashcards.length - 1) {
+                updateProgress();
+                return;
+            }
+            
+            isAnimating = true;
+            flashcardEl.style.setProperty('--flip-angle', isFlipped ? '180deg' : '0deg');
+            flashcardEl.classList.add('fade-out');
+
+            setTimeout(() => {
+                currentCardIndex++;
+                updateDisplay();
+            }, 500);
+        }
+
+        function previousCardWithAnimation() {
+            if (isAnimating || currentCardIndex === 0) return;
+            playSound(clickSound, 'C2', '8n');
+            
+            isAnimating = true;
+            flashcardEl.style.setProperty('--flip-angle', isFlipped ? '180deg' : '0deg');
+            flashcardEl.classList.add('fade-out');
+
+            setTimeout(() => {
+                currentCardIndex--;
+                updateDisplay();
+            }, 500);
+        }
+
+        function shuffleCards() {
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+        }
+
+        function resetProgress(shouldShuffle = false) {
+            playSound(clickSound, 'C2', '8n');
+            studiedCards.clear();
+            currentCardIndex = 0;
+            completionMessageEl.classList.remove('show');
+            if (shouldShuffle) {
+                shuffleCards();
+            }
+            updateDisplay();
+        }
+        
+        function continueGame() {
+            resetProgress(true); // Reset and shuffle
+        }
+        
+        function triggerConfetti() {
+            const colors = ['#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.transform = `scale(${Math.random() * 0.5 + 0.5})`;
+                completionContentEl.appendChild(confetti);
+                
+                setTimeout(() => confetti.classList.add('animate'), 10);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+        
+        // --- Info Popup Functions ---
+        const popupContent = {
+            science: {
+                title: '🧪 Về Kiến thức y khoa',
+                content: 'Bộ thẻ này được xây dựng dựa trên các nghiên cứu và khuyến cáo từ Tổ chức Y tế Thế giới (WHO) và các cơ quan y tế uy tín. Mọi thông tin đều được kiểm chứng để đảm bảo tính chính xác khoa học, giúp bạn hiểu rõ về các tác động của thuốc lá đến cơ thể.'
+            },
+            vape: {
+                title: '⚡ Sự thật về Vape',
+                content: 'Thuốc lá điện tử (Vape) thường được quảng cáo là một giải pháp an toàn hơn, nhưng chúng vẫn chứa nicotine gây nghiện và nhiều hóa chất độc hại khi được đun nóng. Phần này sẽ cung cấp những sự thật khoa học về các nguy cơ tiềm ẩn của vape.'
+            },
+            stats: {
+                title: '📊 Thống kê từ WHO',
+                content: 'Các con số không biết nói dối. Những thống kê trong bộ thẻ này được cập nhật từ các báo cáo mới nhất của WHO, cho thấy quy mô toàn cầu của đại dịch thuốc lá và những thiệt hại nặng nề về người và của mà nó gây ra mỗi năm.'
+            }
+        };
+
+        function showInfoPopup(type) {
+            playSound(clickSound, 'C3', '8n');
+            const data = popupContent[type];
+            infoModalTitle.textContent = data.title;
+            infoModalContent.textContent = data.content;
+            infoModalOverlay.classList.add('show');
+        }
+
+        function hideInfoPopup() {
+            infoModalOverlay.classList.remove('show');
+        }
+
+        // --- EVENT LISTENERS ---
+        muteBtn.addEventListener('click', () => {
+            if (!audioInitialized) {
+                initAudio();
+            } else {
+                isMuted = !isMuted;
+                muteBtn.textContent = isMuted ? '🔇' : '🔊';
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (gameScreen.style.display !== 'grid') return;
+
+            switch(event.key) {
+                case ' ': event.preventDefault(); flipCard(); break;
+                case 'ArrowRight': nextCardWithAnimation(); break;
+                case 'ArrowLeft': previousCardWithAnimation(); break;
+            }
+        });
+
+        infoModalOverlay.addEventListener('click', function(event) {
+            if (event.target === infoModalOverlay) {
+                hideInfoPopup();
+            }
+        });
+        
+    </script>
+</body>
+</html>
+�
