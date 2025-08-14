@@ -2,913 +2,881 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Kim Cương v2: Giải Cứu Trái Tim</title>
-    <!-- **MỚI**: Thêm thư viện âm thanh Tone.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Game Kim Cương: Bảo Vệ Trái Tim</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background: radial-gradient(circle, #5e6a8e 0%, #2d344b 100%);
-            color: #e0e0e0;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            touch-action: none;
+            overflow: hidden;
+            background-color: #fecaca;
+        }
+        canvas {
+            background-color: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.15);
+        }
+        .danger-zone {
+            position: absolute;
+            top: -10px;
+            left: 0;
+            right: 0;
+            height: 50px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #cigarette-sprite {
+            position: absolute;
+            top: -15px;
+            transition: left 0.3s ease-in-out;
+            width: 60px;
+            height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            flex-direction: column;
-            text-align: center;
-            overflow: hidden; /* Ngăn thanh cuộn xuất hiện */
         }
-
-        h1 {
-            color: #f2e9e4;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
-        }
-
-        #game-container {
+        .cigarette-body {
             position: relative;
-            background-color: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            font-size: 2.25rem; /* 36px */
+            line-height: 2.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-
-        #game-board {
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-        }
-
-        #ui-container {
-            margin-bottom: 20px;
-            background-color: rgba(0, 0, 0, 0.25);
-            padding: 10px 20px;
-            border-radius: 10px;
-            width: 400px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .info {
-            font-size: 22px;
-            font-weight: bold;
-        }
-        
-        #score-value, #hearts-saved-value {
-            color: #80ed99;
-            transition: transform 0.1s ease-out; /* Thêm transition cho mượt */
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); text-shadow: 0 0 4px #80ed99; }
-            50% { transform: scale(1.4); text-shadow: 0 0 15px #fff; }
-            100% { transform: scale(1); text-shadow: 0 0 4px #80ed99; }
-        }
-
-        .pulsate {
-            animation: pulse 0.4s ease-out;
-        }
-
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #16213e;
-            background: linear-gradient(145deg, #ffc947, #fca311);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            transition: all 0.2s ease;
-        }
-
-        #game-over-screen, #info-popup {
+        .eye {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 85%;
-            max-width: 380px;
-            background-color: rgba(45, 52, 75, 0.95);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 200;
-            text-align: center;
+            width: 6px;
+            height: 6px;
+            background-color: #ef4444; /* red-500 */
+            border-radius: 50%;
+            box-shadow: 0 0 5px #ef4444, 0 0 8px #ef4444;
+            animation: eye-glow 1.5s infinite alternate;
+        }
+        .eye1 { top: 12px; left: 10px; }
+        .eye2 { top: 12px; left: 20px; }
+        @keyframes eye-glow {
+            from { opacity: 0.7; box-shadow: 0 0 3px #ef4444, 0 0 5px #ef4444; }
+            to { opacity: 1; box-shadow: 0 0 5px #ef4444, 0 0 8px #ef4444; }
+        }
+        .smoke {
+            position: absolute;
+            background: rgba(80, 80, 80, 0.4);
+            border-radius: 50%;
+            animation: smoke-rise 4s infinite;
             opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
         }
-
-        #game-over-screen.active, #info-popup.active {
-            opacity: 1;
-            visibility: visible;
+        .smoke1 { width: 15px; height: 15px; left: 22px; bottom: 30px; animation-delay: 0s; }
+        .smoke2 { width: 20px; height: 20px; left: 15px; bottom: 35px; animation-delay: 1s; }
+        .smoke3 { width: 12px; height: 12px; left: 30px; bottom: 32px; animation-delay: 2s; }
+        @keyframes smoke-rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-40px) scale(2.5); opacity: 0; }
         }
-
-        #game-over-screen h2, #info-popup h2 {
-            font-size: 28px;
-            margin-top: 0;
-            color: #fca311;
-        }
-        
-        #game-over-screen h2 {
-             color: #e74c3c;
-        }
-
-        #info-popup p {
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
     </style>
 </head>
-<body>
+<body class="bg-gradient-to-br from-red-200 via-gray-200 to-red-300 flex items-center justify-center min-h-screen p-4">
 
-    <h1>Game Kim Cương v2: Giải Cứu Trái Tim</h1>
+    <div class="w-full max-w-md mx-auto text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-red-900 mb-2" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">Bảo Vệ Trái Tim</h1>
+        <p class="text-red-800 mb-4">Mỗi trái tim được cứu là một thông điệp sức khỏe!</p>
 
-    <div id="game-container">
-        <div id="ui-container">
-            <div id="score" class="info">Điểm: <span id="score-value">0</span></div>
-            <div id="hearts-saved" class="info">💖 Cứu: <span id="hearts-saved-value">0</span></div>
-             <button id="reset-button-main">Chơi Lại</button>
+        <div id="game-container" class="relative">
+             <div class="danger-zone">
+                <div id="cigarette-sprite">
+                    <div class="smoke smoke1"></div>
+                    <div class="smoke smoke2"></div>
+                    <div class="smoke smoke3"></div>
+                    <div class="cigarette-body">
+                        <div class="eye eye1"></div>
+                        <div class="eye eye2"></div>
+                        🚬
+                    </div>
+                </div>
+             </div>
+            <canvas id="gameCanvas"></canvas>
         </div>
-        <canvas id="game-board"></canvas>
 
-        <div id="info-popup">
-            <h2>Bạn có biết?</h2>
-            <p id="popup-text">Nội dung về tác hại của thuốc lá...</p>
-            <button id="popup-continue-button">Tiếp tục</button>
-        </div>
-
-        <div id="game-over-screen">
-            <h2>Thua Cuộc!</h2>
-            <p>Trái tim đã bị bắt mất...</p>
-            <button id="reset-button-gameover">Chơi Lại</button>
+        <div class="mt-4 p-4 bg-white/60 rounded-xl shadow-lg flex justify-around items-center backdrop-blur-sm">
+            <div>
+                <p class="text-lg font-bold text-red-800">Trái tim đã cứu</p>
+                <p id="score" class="text-3xl font-bold text-pink-600">0</p>
+            </div>
+            <div>
+                <p class="text-lg font-bold text-red-800">Nước đi</p>
+                <p id="moves" class="text-3xl font-bold text-pink-600">0</p>
+            </div>
         </div>
     </div>
 
+    <!-- Modal Game Over -->
+    <div id="gameOverModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
+            <h2 class="text-4xl font-bold text-red-800 mb-4">Nguy hiểm!</h2>
+            <p class="text-lg text-gray-700 mb-2">Thuốc lá đã làm hại một trái tim.</p>
+            <p class="text-xl text-gray-800 mb-6">Bạn đã bảo vệ được <span id="finalScore" class="font-bold text-pink-600">0</span> trái tim.</p>
+            <button id="restartButton" class="bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300">Chơi lại</button>
+        </div>
+    </div>
+    
+    <!-- Modal Thông điệp sức khỏe -->
+    <div id="factModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-2xl p-6 md:p-8 text-center shadow-2xl transform transition-all scale-95 max-w-md w-full">
+            <h2 class="text-2xl md:text-3xl font-bold text-blue-700 mb-4">Sự Thật & Lời Khuyên</h2>
+            <p id="factText" class="text-base md:text-lg text-gray-800 mb-3 text-left"></p>
+            <p id="adviceText" class="text-base md:text-lg text-green-700 font-semibold mb-6 text-left"></p>
+            <button id="closeFactButton" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">Đã hiểu</button>
+        </div>
+    </div>
+
+
     <script>
-        // --- CÀI ĐẶT GAME ---
-        const canvas = document.getElementById('game-board');
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const scoreValueElement = document.getElementById('score-value');
-        const heartsSavedValueElement = document.getElementById('hearts-saved-value');
-        const resetButtonMain = document.getElementById('reset-button-main');
-        const resetButtonGameOver = document.getElementById('reset-button-gameover');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const infoPopup = document.getElementById('info-popup');
-        const popupText = document.getElementById('popup-text');
-        const popupContinueButton = document.getElementById('popup-continue-button');
+        const scoreEl = document.getElementById('score');
+        const movesEl = document.getElementById('moves');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreEl = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
+        const cigaretteEl = document.getElementById('cigarette-sprite');
+        const factModal = document.getElementById('factModal');
+        const factText = document.getElementById('factText');
+        const adviceText = document.getElementById('adviceText');
+        const closeFactButton = document.getElementById('closeFactButton');
 
-        const COLS = 8;
-        const ROWS = 8;
-        const GEM_SIZE = 50;
-        const TOP_OFFSET = GEM_SIZE;
-        const GEM_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22'];
-        const ANIMATION_SPEED = 0.25;
-
-        const GEM_TYPE = { NORMAL: 'normal', H_LIGHTNING: 'h_lightning', V_LIGHTNING: 'v_lightning', BOMB: 'bomb', RAINBOW: 'rainbow', CROSS: 'cross' };
-
-        let board = [];
-        let score = 0;
-        let isProcessing = false;
-        let particles = [];
-        let isDragging = false;
-        let dragStartGem = null;
-
-        let hearts = [];
-        let monster = {};
-        let heartsSaved = 0;
-        let gameOver = false;
-        let successfulMoves = 0;
-        let backgroundParticles = [];
-        let audioStarted = false;
-        let popupTimeout;
-
-        const sounds = {
-            swap: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination(),
-            match: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
-            specialCreate: new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.05, decay: 0.3, sustain: 0.2, release: 0.3 } }).toDestination(),
-            heartRescue: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination(),
-            gameOver: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.1, decay: 0.5, sustain: 0.1, release: 0.5 } }).toDestination()
-        };
-        
-        const smokingFacts = [
-            "Hút thuốc lá gây ra 90% các ca ung thư phổi.",
-            "Khói thuốc chứa hơn 7.000 hóa chất, trong đó có hàng trăm chất độc hại và ít nhất 70 chất gây ung thư.",
-            "Thuốc lá điện tử (vape) vẫn chứa nicotine gây nghiện và nhiều hóa chất độc hại khác có thể gây tổn thương phổi nghiêm trọng.",
-            "Người hút thuốc thụ động cũng có nguy cơ mắc các bệnh về tim mạch và ung thư phổi.",
-            "Bỏ thuốc lá giúp cải thiện sức khỏe gần như ngay lập tức, giảm nguy cơ đau tim và đột quỵ.",
-            "Nicotine trong thuốc lá điện tử ảnh hưởng xấu đến sự phát triển não bộ ở thanh thiếu niên.",
-            "Hút thuốc làm tăng tốc độ lão hóa da, gây ra nếp nhăn sớm."
+        // --- Dữ liệu tuyên truyền ---
+        const HEALTH_FACTS = [
+            { fact: "Hầu hết thuốc lá điện tử chứa Nicotine, một chất gây nghiện cao có trong thuốc lá truyền thống. Nicotine đặc biệt có hại cho sự phát triển não bộ của thanh thiếu niên. (Nguồn: CDC Hoa Kỳ)", advice: "Lời khuyên: Hãy bảo vệ tương lai của bạn bằng cách nói không với tất cả các sản phẩm chứa nicotine." },
+            { fact: "Aerosol (khói) từ thuốc lá điện tử không phải là 'hơi nước' vô hại. Nó chứa các chất độc hại như kim loại nặng (niken, thiếc, chì) và các hợp chất hữu cơ dễ bay hơi. (Nguồn: WHO)", advice: "Lời khuyên: Đừng để những lời quảng cáo đánh lừa. Hít thở không khí trong lành luôn là lựa chọn tốt nhất cho lá phổi của bạn." },
+            { fact: "Sử dụng thuốc lá điện tử có liên quan đến các bệnh phổi nghiêm trọng, bao gồm 'tổn thương phổi do thuốc lá điện tử' (EVALI), có thể gây tử vong. (Nguồn: CDC Hoa Kỳ)", advice: "Lời khuyên: Mỗi lần từ chối thuốc lá điện tử là một lần bạn bảo vệ lá phổi khỏi những tổn thương không thể phục hồi." },
+            { fact: "Nicotine trong thuốc lá điện tử có thể làm tăng huyết áp và nhịp tim, làm tăng nguy cơ bị đau tim. (Nguồn: American Heart Association)", advice: "Lời khuyên: Giữ cho trái tim của bạn luôn khỏe mạnh bằng cách tránh xa nicotine dưới mọi hình thức." },
+            { fact: "Hương liệu trong thuốc lá điện tử có thể chứa diacetyl, một hóa chất liên quan đến bệnh phổi nghiêm trọng được gọi là 'phổi bỏng ngô'. (Nguồn: American Lung Association)", advice: "Lời khuyên: Những mùi hương hấp dẫn có thể che giấu những hóa chất cực kỳ nguy hiểm. Hãy lựa chọn sức khỏe thay vì hương vị nhân tạo." },
+            { fact: "Thanh thiếu niên sử dụng thuốc lá điện tử có khả năng chuyển sang hút thuốc lá truyền thống cao hơn so với những người không sử dụng. (Nguồn: National Academies of Sciences, Engineering, and Medicine)", advice: "Lời khuyên: Đừng mở cánh cửa đầu tiên dẫn đến nghiện ngập. Tránh xa thuốc lá điện tử là cách tốt nhất để không bao giờ trở thành người hút thuốc." },
+            { fact: "Pin của thiết bị thuốc lá điện tử có thể bị lỗi và gây cháy nổ, dẫn đến thương tích nghiêm trọng. (Nguồn: FDA Hoa Kỳ)", advice: "Lời khuyên: Nguy cơ cháy nổ là có thật. Đừng đánh cược sự an toàn của bản thân và những người xung quanh." }
         ];
+        let factsShown = [];
 
-        // --- CÁC HÀM LOGIC & HỖ TRỢ ---
+        // --- Cấu hình game ---
+        const GRID_SIZE = 8;
+        const GEM_COLORS = ['#FF5A5A', '#52E862', '#4BA2FF', '#C355F4', '#FFB44B', '#F8DE4F'];
+        const HEART_EMOJI = '💗';
+        const MOVES_PER_HEART_SPAWN = 3; 
+        const SPECIAL_TYPES = {
+            NONE: 'none',
+            H_BEAM: 'h_beam',
+            V_BEAM: 'v_beam',
+            BOMB: 'bomb',
+            HYPERCUBE: 'hypercube'
+        };
 
-        function findMatchLines() {
-            let allLines = [];
-            for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS - 2; c++) { let gem = board[r][c]; if (gem && gem.type !== GEM_TYPE.RAINBOW) { let line = [gem]; for (let i = c + 1; i < COLS; i++) { let nextGem = board[r][i]; if (nextGem && nextGem.color === gem.color && nextGem.type !== GEM_TYPE.RAINBOW) line.push(nextGem); else break; } if (line.length >= 3) { allLines.push(line); c += line.length - 1; } } } }
-            for (let c = 0; c < COLS; c++) { for (let r = 0; r < ROWS - 2; r++) { let gem = board[r][c]; if (gem && gem.type !== GEM_TYPE.RAINBOW) { let line = [gem]; for (let i = r + 1; i < ROWS; i++) { let nextGem = board[i][c]; if (nextGem && nextGem.color === gem.color && nextGem.type !== GEM_TYPE.RAINBOW) line.push(nextGem); else break; } if (line.length >= 3) { allLines.push(line); r += line.length - 1; } } } }
-            return allLines;
-        }
+        let gemSize;
+        let board = [];
+        let selectedGem = null;
+        let score = 0;
+        let moves = 0;
+        let isAnimating = false;
+        let isPaused = false;
+        let animations = [];
+        let cigarette = { col: Math.floor(GRID_SIZE / 2) };
         
-        function findSquareMatches() {
-            const squares = [];
-            for (let r = 0; r < ROWS - 1; r++) { for (let c = 0; c < COLS - 1; c++) { const gem1 = board[r][c], gem2 = board[r+1][c], gem3 = board[r][c+1], gem4 = board[r+1][c+1]; if (gem1 && gem2 && gem3 && gem4 && gem1.color === gem2.color && gem1.color === gem3.color && gem1.color === gem4.color && gem1.type !== GEM_TYPE.RAINBOW) squares.push([gem1, gem2, gem3, gem4]); } }
-            return squares;
-        }
+        // Biến cho cơ chế lướt
+        let startDragPos = { x: null, y: null };
+        let startGem = null;
+        let isDragging = false;
 
-        // --- KHỞI TẠO GAME ---
 
+        // --- Khởi tạo và Thiết lập Game ---
         function init() {
-            canvas.width = COLS * GEM_SIZE;
-            canvas.height = (ROWS + 1) * GEM_SIZE;
-            score = 0;
-            heartsSaved = 0;
-            successfulMoves = 0;
-            gameOver = false;
-            updateScore();
-            gameOverScreen.classList.remove('active');
-
-            monster = { col: 4, x: 4 * GEM_SIZE, y: GEM_SIZE / 2, targetCol: 4 };
-            hearts = [];
+            const container = document.getElementById('game-container');
+            const containerWidth = container.clientWidth;
+            canvas.width = containerWidth;
+            canvas.height = containerWidth;
+            gemSize = canvas.width / GRID_SIZE;
             
-            createBoard();
-            spawnNewHeart();
-            initBackgroundParticles();
+            ctx.font = `${gemSize * 0.7}px sans-serif`;
 
-            gameLoop();
+            cigarette.col = Math.floor(GRID_SIZE / 2);
+            updateCigarettePosition();
+
+            board = [];
+            score = 0;
+            moves = 0;
+            selectedGem = null;
+            isAnimating = false;
+            isPaused = false;
+            animations = [];
+            factsShown = [];
+            
+            updateScore();
+            updateMoves();
+            createBoard();
+            
+            let matches = findMatches(board);
+            while (matches.length > 0) {
+                for (const gem of matches) {
+                    let newColorIndex;
+                    do {
+                        newColorIndex = Math.floor(Math.random() * GEM_COLORS.length);
+                    } while (newColorIndex === gem.colorIndex);
+                    board[gem.row][gem.col].colorIndex = newColorIndex;
+                }
+                matches = findMatches(board);
+            }
+            
+            spawnHeartIfNeeded(true);
+            requestAnimationFrame(gameLoop);
         }
 
         function createBoard() {
-            board = [];
-            for (let row = 0; row < ROWS; row++) {
+            for (let row = 0; row < GRID_SIZE; row++) {
                 board[row] = [];
-                for (let col = 0; col < COLS; col++) {
-                    board[row][col] = createGem(row, col);
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    board[row][col] = {
+                        colorIndex: Math.floor(Math.random() * GEM_COLORS.length),
+                        isHeart: false,
+                        special: SPECIAL_TYPES.NONE,
+                        row: row,
+                        col: col,
+                        x: col * gemSize,
+                        y: row * gemSize,
+                        scale: 1,
+                        alpha: 1,
+                    };
                 }
             }
-            
-            let allMatchLines = findMatchLines();
-            while (allMatchLines.length > 0) {
-                 allMatchLines.flat().forEach(gem => {
-                    if(gem) board[gem.row][gem.col] = createGem(gem.row, gem.col);
-                 });
-                 allMatchLines = findMatchLines();
-            }
-        }
-        
-        function createGem(row, col, type = GEM_TYPE.NORMAL, color) {
-            return {
-                row: row, col: col,
-                x: col * GEM_SIZE, y: row * GEM_SIZE + TOP_OFFSET,
-                scale: 1,
-                color: color || GEM_COLORS[Math.floor(Math.random() * GEM_COLORS.length)],
-                type: type,
-                isHeart: false,
-                sparkleTimer: 0, sparkleAlpha: 0,
-                vy: 0, 
-                selectionPulse: 0
-            };
         }
 
-        function spawnNewHeart() {
-            const availableCols = [];
-            for (let c = 0; c < COLS; c++) {
-                if (!board[ROWS - 1][c] || !board[ROWS-1][c].isHeart) {
-                     availableCols.push(c);
-                }
+        // --- Vòng lặp Game và Vẽ ---
+        function gameLoop(time) {
+            if (!isPaused) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                handleAnimations(time);
+                drawBoard(time);
+                drawSelection();
             }
-            if (availableCols.length > 0) {
-                const col = availableCols[Math.floor(Math.random() * availableCols.length)];
-                const row = ROWS - 1;
-                const heart = createGem(row, col, GEM_TYPE.NORMAL, GEM_COLORS[Math.floor(Math.random() * GEM_COLORS.length)]);
-                heart.isHeart = true;
-                
-                board[row][col] = heart;
-                hearts.push(heart);
+            if(!gameOverModal.classList.contains('hidden')) {
+                 // Dừng game loop khi thua
+            } else {
+                 requestAnimationFrame(gameLoop);
             }
         }
 
-        // --- VÒNG LẶP GAME & VẼ ---
-
-        function gameLoop() {
-            if (gameOver) return;
-            handleSparkles();
-            updateEntities();
-            updateParticles();
-            updateBackgroundParticles();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        function handleSparkles() {
-            if (Math.random() < 0.05) {
-                const gem = board[Math.floor(Math.random() * ROWS)][Math.floor(Math.random() * COLS)];
-                if (gem && gem.sparkleTimer <= 0 && !gem.isHeart) gem.sparkleTimer = 60;
-            }
-        }
-
-        function updateEntities() {
-            board.flat().forEach(gem => {
-                if (gem) {
-                    const targetY = (gem.row * GEM_SIZE + TOP_OFFSET);
-                    const dy = targetY - gem.y;
-                    const ay = dy * 0.03;
-                    gem.vy += ay;
-                    gem.vy *= 0.9;
-                    gem.y += gem.vy;
-
-                    if (Math.abs(dy) < 0.1 && Math.abs(gem.vy) < 0.1) {
-                        gem.y = targetY;
-                        gem.vy = 0;
-                    }
-
-                    gem.x += (gem.col * GEM_SIZE - gem.x) * ANIMATION_SPEED;
-
-                    if (gem.scale < 1) {
-                        gem.scale -= 0.05;
-                        if (gem.scale <= 0) gem.scale = 0;
-                    }
-                    if (gem.sparkleTimer > 0) {
-                        gem.sparkleTimer--;
-                        const halfTime = 30;
-                        gem.sparkleAlpha = gem.sparkleTimer > halfTime ? 1 - (gem.sparkleTimer - halfTime) / halfTime : gem.sparkleTimer / halfTime;
-                    } else {
-                        gem.sparkleAlpha = 0;
-                    }
-                    
-                    if (gem.selectionPulse > 0) {
-                        gem.selectionPulse += 0.05;
-                        if (gem.selectionPulse > 2) gem.selectionPulse = 1;
-                    }
-                }
-            });
-            monster.x += (monster.targetCol * GEM_SIZE - monster.x) * 0.1;
-        }
-        
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBackgroundParticles();
-            drawMonster();
-            drawBoard();
-            drawParticles();
-        }
-
-        function drawMonster() {
-            const time = Date.now();
-            const centerX = monster.x + GEM_SIZE / 2;
-            const centerY = monster.y;
-
-            const smokePulse = Math.sin(time / 400) * 5 + 25;
-            const smokeGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, smokePulse);
-            smokeGradient.addColorStop(0, 'rgba(50, 50, 50, 0.8)');
-            smokeGradient.addColorStop(1, 'rgba(50, 50, 50, 0)');
-            ctx.fillStyle = smokeGradient;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, smokePulse, 0, Math.PI * 2);
-            ctx.fill();
-
-            const cigPulse = Math.sin(time / 200) * 2;
-            ctx.font = `${GEM_SIZE * 0.6 + cigPulse}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🚬', centerX, centerY);
-
-            const eyeY = centerY - 5;
-            const eyeXOffset = 10;
-            const eyeRadius = 3;
-            const eyeGlow = Math.sin(time / 300) * 3 + 5;
-            ctx.fillStyle = '#ff0000';
-            ctx.shadowColor = '#ff0000';
-            ctx.shadowBlur = eyeGlow;
-            ctx.beginPath();
-            ctx.arc(centerX - eyeXOffset, eyeY, eyeRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(centerX + eyeXOffset, eyeY, eyeRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-
-        function drawBoard() {
-            board.flat().forEach(gem => {
-                if (gem && gem.scale > 0) drawGem(gem);
-            });
-        }
-
-        function drawGem(gem) {
-            const size = GEM_SIZE * gem.scale;
-            const x = gem.x + (GEM_SIZE - size) / 2;
-            const y = gem.y + (GEM_SIZE - size) / 2;
-            const centerX = gem.x + GEM_SIZE / 2;
-            const centerY = gem.y + GEM_SIZE / 2;
-            
+        function drawGem(x, y, size, color, special, time) {
+            const s = size * 0.8;
+            const half = s / 2;
             ctx.save();
+            ctx.translate(x, y);
             
-            if (gem.selectionPulse > 0) {
-                const pulseRadius = size * 0.5 * gem.selectionPulse;
-                const pulseAlpha = 1 - (gem.selectionPulse - 1);
-                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, pulseRadius);
-                gradient.addColorStop(0, `rgba(255, 255, 255, ${pulseAlpha * 0.5})`);
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = gradient;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+
+            if (special === SPECIAL_TYPES.HYPERCUBE) {
+                for (let i = 0; i < 6; i++) {
+                    ctx.fillStyle = GEM_COLORS[(i + Math.floor(time / 200)) % 6];
+                    ctx.beginPath();
+                    ctx.moveTo(0,0);
+                    const angle1 = (i / 6) * 2 * Math.PI + (time / 1000);
+                    const angle2 = ((i+1) / 6) * 2 * Math.PI + (time/1000);
+                    ctx.arc(0,0, half, angle1, angle2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            } else {
+                ctx.fillStyle = color;
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            if (gem.isHeart) {
-                const time = Date.now();
-                const pulse = Math.sin(time / 200 + gem.col) * (size * 0.05) + (size * 0.55);
-                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(0, pulse));
-                gradient.addColorStop(0, 'rgba(255, 105, 180, 0.8)');
-                gradient.addColorStop(0.6, 'rgba(255, 105, 180, 0.4)');
-                gradient.addColorStop(1, 'rgba(255, 105, 180, 0)');
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, Math.max(0, pulse), 0, Math.PI * 2);
+                ctx.moveTo(0, -half); ctx.lineTo(half, 0); ctx.lineTo(0, half); ctx.lineTo(-half, 0);
+                ctx.closePath();
                 ctx.fill();
 
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(time / 500);
-                const sparkleSize = size * 0.8;
-                const starPulse = Math.sin(time / 150) * 0.1 + 0.9;
-                ctx.fillStyle = 'rgba(255, 255, 224, 0.9)';
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = 'white';
-                ctx.fillRect(-sparkleSize * starPulse / 2, -sparkleSize * starPulse * 0.05, sparkleSize * starPulse, sparkleSize * starPulse * 0.1);
-                ctx.fillRect(-sparkleSize * starPulse * 0.05, -sparkleSize * starPulse / 2, sparkleSize * starPulse * 0.1, sparkleSize * starPulse);
-                ctx.restore();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(0, -half); ctx.lineTo(half, 0); ctx.lineTo(0, 0);
+                ctx.closePath();
+                ctx.fill();
 
-            } else if (gem.type !== GEM_TYPE.NORMAL && gem.type !== GEM_TYPE.RAINBOW) {
-                const time = Date.now();
-                ctx.fillStyle = 'rgba(255, 69, 0, 0.4)';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, Math.max(0, size * 0.5 + Math.sin(time / 150) * 3), 0, Math.PI * 2);
+                ctx.moveTo(-half, 0); ctx.lineTo(0, half); ctx.lineTo(0, 0);
+                ctx.closePath();
                 ctx.fill();
-                ctx.fillStyle = 'rgba(255, 165, 0, 0.6)';
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, Math.max(0, size * 0.4 + Math.sin(time / 200) * 2), 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = 'rgba(255, 255, 0, 0.8)';
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, Math.max(0, size * 0.25 + Math.sin(time / 250) * 1), 0, Math.PI * 2);
-                ctx.fill();
-            } else if (gem.type === GEM_TYPE.RAINBOW) {
-                const pulse = Math.sin(Date.now() / 200) * (size * 0.05) + (size * 0.55);
-                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(0, pulse));
-                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-                gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.4)');
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, Math.max(0, pulse), 0, Math.PI * 2);
-                ctx.fill();
-            }
-            const gemColor = (gem.type === GEM_TYPE.RAINBOW) ? '#FFFFFF' : gem.color;
-            ctx.fillStyle = gemColor;
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(centerX, y + size * 0.1);
-            ctx.lineTo(x + size * 0.9, centerY);
-            ctx.lineTo(centerX, y + size * 0.9);
-            ctx.lineTo(x + size * 0.1, centerY);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.beginPath();
-            ctx.moveTo(centerX, y + size * 0.1);
-            ctx.lineTo(x + size * 0.1, centerY);
-            ctx.lineTo(centerX, centerY);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.beginPath();
-            ctx.moveTo(x + size * 0.1, centerY);
-            ctx.lineTo(centerX, y + size * 0.9);
-            ctx.lineTo(centerX, centerY);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.beginPath();
-            ctx.moveTo(centerX, y + size * 0.1);
-            ctx.lineTo(x + size * 0.3, y + size * 0.3);
-            ctx.lineTo(x + size * 0.4, y + size * 0.2);
-            ctx.closePath();
-            ctx.fill();
-            
-            if (gem.isHeart) {
-                const pulse = Math.sin(Date.now() / 200 + gem.col) * 3;
-                ctx.font = `${GEM_SIZE * 0.6 + pulse}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('💖', centerX, centerY);
-            }
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.lineWidth = size * 0.08;
-            if (gem.type === GEM_TYPE.H_LIGHTNING || gem.type === GEM_TYPE.V_LIGHTNING) {
-                const glowPulse = Math.sin(Date.now() / 150) * 5 + 10;
-                ctx.shadowBlur = glowPulse;
-                ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-                if (gem.type === GEM_TYPE.H_LIGHTNING) {
-                    const hGrad = ctx.createLinearGradient(x, centerY, x + size, centerY);
-                    hGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                    hGrad.addColorStop(0.4, 'rgba(255, 255, 255, 1)');
-                    hGrad.addColorStop(0.6, 'rgba(255, 255, 255, 1)');
-                    hGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = hGrad;
-                    ctx.fillRect(x, centerY - size * 0.075, size, size * 0.15);
-                } else {
-                    const vGrad = ctx.createLinearGradient(centerX, y, centerX, y + size);
-                    vGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                    vGrad.addColorStop(0.4, 'rgba(255, 255, 255, 1)');
-                    vGrad.addColorStop(0.6, 'rgba(255, 255, 255, 1)');
-                    vGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = vGrad;
-                    ctx.fillRect(centerX - size * 0.075, y, size * 0.15, size);
+                const pulse = Math.sin(time / 150) * 0.2 + 0.8;
+                ctx.globalAlpha = pulse;
+                if (special === SPECIAL_TYPES.H_BEAM) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(-half * 0.7, -half * 0.15, half * 1.4, half * 0.3);
+                } else if (special === SPECIAL_TYPES.V_BEAM) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(-half * 0.15, -half * 0.7, half * 0.3, half * 1.4);
+                } else if (special === SPECIAL_TYPES.BOMB) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${pulse * 0.8})`;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, half * 0.6, 0, 2 * Math.PI);
+                    ctx.fill();
                 }
             }
-            else if (gem.type === GEM_TYPE.BOMB) { ctx.beginPath(); ctx.arc(centerX, centerY, size * 0.2, 0, Math.PI * 2); ctx.stroke(); }
-            else if (gem.type === GEM_TYPE.CROSS) { ctx.beginPath(); ctx.moveTo(x + size * 0.25, y + size * 0.25); ctx.lineTo(x + size * 0.75, y + size * 0.75); ctx.moveTo(x + size * 0.75, y + size * 0.25); ctx.lineTo(x + size * 0.25, y + size * 0.75); ctx.stroke(); }
             
             ctx.restore();
         }
-        
-        // --- LOGIC GAME ---
 
-        canvas.addEventListener('mousedown', (e) => handleDragStart(e.clientX, e.clientY));
-        canvas.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
+        function drawBoard(time) {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    const gem = board[row][col];
+                    if (gem) {
+                        const centerX = gem.x + gemSize / 2;
+                        const centerY = gem.y + gemSize / 2;
+                        
+                        ctx.save();
+                        ctx.globalAlpha = gem.alpha;
+                        ctx.translate(centerX, centerY);
+                        ctx.scale(gem.scale, gem.scale);
+                        ctx.translate(-centerX, -centerY);
+                        
+                        const color = gem.special === SPECIAL_TYPES.HYPERCUBE ? null : GEM_COLORS[gem.colorIndex];
+                        drawGem(centerX, centerY, gemSize, color, gem.special, time);
+                        
+                        if (gem.isHeart) {
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = 'rgba(0,0,0,0)';
+                            ctx.fillText(HEART_EMOJI, centerX, centerY + gemSize * 0.05);
+                        }
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+
+        function drawSelection() {
+            if (selectedGem) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(selectedGem.col * gemSize + 2, selectedGem.row * gemSize + 2, gemSize - 4, gemSize - 4);
+            }
+        }
+
+        // --- Xử lý sự kiện người dùng (CƠ CHẾ LƯỚT) ---
+        function getEventPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches) {
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function handleDragStart(e) {
+            e.preventDefault();
+            if (isAnimating || isPaused) return;
+            const pos = getEventPos(e);
+            const col = Math.floor(pos.x / gemSize);
+            const row = Math.floor(pos.y / gemSize);
+
+            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
+                isDragging = true;
+                startDragPos = pos;
+                startGem = board[row][col];
+                selectedGem = startGem;
+            }
+        }
+
+        function handleDragMove(e) {
+            e.preventDefault();
+            if (!isDragging || isAnimating || isPaused) return;
+            
+            const pos = getEventPos(e);
+            const deltaX = pos.x - startDragPos.x;
+            const deltaY = pos.y - startDragPos.y;
+            
+            if (Math.abs(deltaX) > gemSize / 2 || Math.abs(deltaY) > gemSize / 2) {
+                let endGem = null;
+                if (Math.abs(deltaX) > Math.abs(deltaY)) { // Lướt ngang
+                    const endCol = startGem.col + (deltaX > 0 ? 1 : -1);
+                    if (endCol >= 0 && endCol < GRID_SIZE) {
+                        endGem = board[startGem.row][endCol];
+                    }
+                } else { // Lướt dọc
+                    const endRow = startGem.row + (deltaY > 0 ? 1 : -1);
+                     if (endRow >= 0 && endRow < GRID_SIZE) {
+                        endGem = board[endRow][startGem.col];
+                    }
+                }
+
+                if (endGem) {
+                    isDragging = false;
+                    selectedGem = null;
+                    processSwap(startGem, endGem);
+                }
+            }
+        }
+
+        function handleDragEnd(e) {
+            isDragging = false;
+            startGem = null;
+            selectedGem = null;
+        }
+
+        canvas.addEventListener('mousedown', handleDragStart);
+        canvas.addEventListener('mousemove', handleDragMove);
         canvas.addEventListener('mouseup', handleDragEnd);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDragStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleDragMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+        canvas.addEventListener('mouseleave', handleDragEnd);
+        canvas.addEventListener('touchstart', handleDragStart, { passive: false });
+        canvas.addEventListener('touchmove', handleDragMove, { passive: false });
         canvas.addEventListener('touchend', handleDragEnd);
 
-        function handleDragStart(clientX, clientY) {
-            if (isProcessing || gameOver) return;
-            const rect = canvas.getBoundingClientRect();
-            const col = Math.floor((clientX - rect.left) / GEM_SIZE);
-            const row = Math.floor((clientY - rect.top - TOP_OFFSET) / GEM_SIZE);
-            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
-            
-            const gem = board[row][col];
-            if (gem) {
-                gem.selectionPulse = 1;
-            }
+        // --- Logic Game Chính ---
+        async function processSwap(gem1, gem2) {
+            isAnimating = true;
+            selectedGem = null;
 
-            isDragging = true;
-            dragStartGem = { row, col };
-        }
+            const isGem1Beam = gem1.special === SPECIAL_TYPES.H_BEAM || gem1.special === SPECIAL_TYPES.V_BEAM;
+            const isGem2Beam = gem2.special === SPECIAL_TYPES.H_BEAM || gem2.special === SPECIAL_TYPES.V_BEAM;
 
-        function handleDragMove(clientX, clientY) {
-            if (!isDragging || !dragStartGem || isProcessing || gameOver) return;
-            const rect = canvas.getBoundingClientRect();
-            const col = Math.floor((clientX - rect.left) / GEM_SIZE);
-            const row = Math.floor((clientY - rect.top - TOP_OFFSET) / GEM_SIZE);
-            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) { handleDragEnd(); return; }
-            if (row !== dragStartGem.row || col !== dragStartGem.col) {
-                if (areAdjacent(dragStartGem, { row, col })) {
-                    swapAndProcess(dragStartGem, { row, col });
+            if (isGem1Beam && isGem2Beam) {
+                let gemsToClear = new Set([gem1, gem2]);
+                for(let c=0; c<GRID_SIZE; c++) { if(board[gem1.row][c]) gemsToClear.add(board[gem1.row][c]); }
+                for(let r=0; r<GRID_SIZE; r++) { if(board[r][gem2.col]) gemsToClear.add(board[r][gem2.col]); }
+                moves++;
+                updateMoves();
+                await cascadeMatches(Array.from(gemsToClear));
+            } else if (gem1.special === SPECIAL_TYPES.HYPERCUBE || gem2.special === SPECIAL_TYPES.HYPERCUBE) {
+                const hypercube = gem1.special === SPECIAL_TYPES.HYPERCUBE ? gem1 : gem2;
+                const otherGem = hypercube === gem1 ? gem2 : gem1;
+                let gemsToClear = new Set([hypercube]);
+                if (otherGem.special !== SPECIAL_TYPES.HYPERCUBE) {
+                    const targetColorIndex = otherGem.colorIndex;
+                    for(let r=0; r<GRID_SIZE; r++) {
+                        for(let c=0; c<GRID_SIZE; c++) {
+                            if(board[r][c] && board[r][c].colorIndex === targetColorIndex) {
+                                gemsToClear.add(board[r][c]);
+                            }
+                        }
+                    }
                 }
-                handleDragEnd();
-            }
-        }
-
-        function handleDragEnd() {
-            if (dragStartGem) {
-                const gem = board[dragStartGem.row][dragStartGem.col];
-                if (gem) {
-                    gem.selectionPulse = 0;
-                }
-            }
-            isDragging = false;
-            dragStartGem = null;
-        }
-
-        async function swapAndProcess(gem1Coords, gem2Coords) {
-            isProcessing = true;
-            const gem1 = board[gem1Coords.row][gem1Coords.col];
-            const gem2 = board[gem2Coords.row][gem2Coords.col];
-
-            if (gem1) gem1.selectionPulse = 0;
-            if (gem2) gem2.selectionPulse = 0;
-            
-            sounds.swap.triggerAttackRelease("G5", "32n");
-
-            if (gem1 && gem2) {
-                if (gem1.type === GEM_TYPE.RAINBOW && gem2.type !== GEM_TYPE.RAINBOW) {
-                    await activateRainbowEffect(gem1, gem2);
-                    isProcessing = false; return;
-                }
-                if (gem2.type === GEM_TYPE.RAINBOW && gem1.type !== GEM_TYPE.RAINBOW) {
-                    await activateRainbowEffect(gem2, gem1);
-                    isProcessing = false; return;
-                }
-            }
-            
-            swapGems(gem1Coords, gem2Coords);
-            await waitForAnimations();
-            
-            const wasMoveSuccessful = await handleAllMatches([gem1Coords, gem2Coords]);
-
-            if (!wasMoveSuccessful) {
-                await sleep(100);
-                swapGems(gem1Coords, gem2Coords); await waitForAnimations();
+                moves++;
+                updateMoves();
+                await cascadeMatches(Array.from(gemsToClear));
             } else {
-                await afterSuccessfulMove();
+                await swapGems(gem1, gem2);
+                const matchInfo = findMatchesAndSpecial(gem1, gem2);
+                if (matchInfo.allMatches.length > 0) {
+                    moves++;
+                    updateMoves();
+                    await cascadeMatches(matchInfo.allMatches, matchInfo.specialToCreate);
+                } else {
+                    await swapGems(gem1, gem2);
+                }
             }
-            isProcessing = false;
+            
+            if (gameOverModal.classList.contains('hidden')) {
+                await sleep(200);
+                moveCigarette();
+                await sleep(300);
+                if (checkGameOver()) {
+                    isAnimating = false;
+                    return;
+                }
+                spawnHeartIfNeeded();
+            }
+            
+            isAnimating = false;
         }
         
-        async function afterSuccessfulMove() {
-            successfulMoves++;
+        async function cascadeMatches(initialMatches, specialToCreate = null) {
+            let gemsToClear = new Set(initialMatches);
+            let processedSpecials = new Set();
             
-            const heartsToMove = [...hearts];
-            heartsToMove.sort((a, b) => b.row - a.row);
+            while(true) {
+                let newGemsFromExplosion = new Set();
+                let foundNewExplosion = false;
+                for(const gem of gemsToClear) {
+                    if(gem.special !== SPECIAL_TYPES.NONE && !processedSpecials.has(gem)) {
+                        foundNewExplosion = true;
+                        processedSpecials.add(gem);
+                        getSpecialEffectGems(gem).forEach(g => newGemsFromExplosion.add(g));
+                    }
+                }
+                if(!foundNewExplosion) break;
+                newGemsFromExplosion.forEach(g => gemsToClear.add(g));
+            }
 
-            for(const heart of heartsToMove) {
-                if (heart.row > 0) {
-                    const gemAbove = board[heart.row - 1][heart.col];
-                    if (gemAbove && !gemAbove.isHeart) {
-                        board[heart.row][heart.col] = gemAbove;
-                        board[heart.row - 1][heart.col] = heart;
-                        
-                        heart.row--;
-                        gemAbove.row++;
+            const savedAHeart = await handleMatches(Array.from(gemsToClear), specialToCreate);
+            if (savedAHeart) {
+                await showFact();
+            }
+
+            await sleep(150);
+            await shiftAndRefill();
+            
+            const nextMatches = findMatches(board);
+            if (nextMatches.length > 0) {
+                await cascadeMatches(nextMatches);
+            } else {
+                 await moveHearts();
+            }
+        }
+
+        function getSpecialEffectGems(gem) {
+            let affected = new Set();
+            if (gem.special === SPECIAL_TYPES.H_BEAM) {
+                for(let c=0; c<GRID_SIZE; c++) { if(board[gem.row][c]) affected.add(board[gem.row][c]); }
+            } else if (gem.special === SPECIAL_TYPES.V_BEAM) {
+                for(let r=0; r<GRID_SIZE; r++) { if(board[r][gem.col]) affected.add(board[r][gem.col]); }
+            } else if (gem.special === SPECIAL_TYPES.BOMB) {
+                for(let r = gem.row - 1; r <= gem.row + 1; r++) {
+                    for(let c = gem.col - 1; c <= gem.col + 1; c++) {
+                        if(r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && board[r][c]) {
+                            affected.add(board[r][c]);
+                        }
                     }
                 }
             }
-            await waitForAnimations();
-
-            await handleAllMatches(null, true);
-
-            if (successfulMoves % 5 === 0) {
-                spawnNewHeart();
-            }
-
-            if (hearts.some(h => h.row === 0)) {
-                triggerGameOver();
-            }
-
-            if (hearts.length > 0) {
-                const highestHeart = hearts.reduce((prev, current) => (prev.row < current.row) ? prev : current);
-                monster.targetCol = highestHeart.col;
-            }
+            return affected;
         }
 
-        function triggerGameOver() {
-            gameOver = true;
-            sounds.gameOver.triggerAttackRelease("C2", "2n");
-            const lostHeart = hearts.find(h => h.row === 0);
-            if (lostHeart) monster.targetCol = lostHeart.col;
-            gameOverScreen.classList.add('active');
+        function swapGems(gem1, gem2) {
+            const r1 = gem1.row, c1 = gem1.col;
+            const r2 = gem2.row, c2 = gem2.col;
+            board[r1][c1] = gem2;
+            board[r2][c2] = gem1;
+            gem1.row = r2; gem1.col = c2;
+            gem2.row = r1; gem2.col = c1;
+            const p1 = animate(gem1, { x: c2 * gemSize, y: r2 * gemSize }, 150);
+            const p2 = animate(gem2, { x: c1 * gemSize, y: r1 * gemSize }, 150);
+            return Promise.all([p1, p2]);
         }
-
-        async function handleAllMatches(swappedCoords, isAutoCheck = false) {
-            let madeAMatch = false;
-            let firstPass = true;
-            let comboCounter = 0;
-            while (true) {
-                let allLines = findMatchLines(); let allSquares = findSquareMatches();
-                if (allLines.length === 0 && allSquares.length === 0) break;
-                
-                comboCounter++;
-                const note = Tone.Frequency("C4").transpose(comboCounter * 2);
-                sounds.match.triggerAttackRelease(note, "16n");
-
-                madeAMatch = true;
-                let gemsToDestroy = new Set(); let gemToCreate = null;
-                if (firstPass && swappedCoords && !isAutoCheck) {
-                    let horizontalLines = allLines.filter(line => line.length >= 3 && line[0].row === line[1].row);
-                    let verticalLines = allLines.filter(line => line.length >= 3 && line[0].col === line[1].col);
-                    let intersectionPoints = [];
-                    horizontalLines.forEach(hLine => { verticalLines.forEach(vLine => { const intersection = hLine.find(hGem => vLine.some(vGem => hGem === vGem)); if (intersection) intersectionPoints.push(intersection); }); });
-                    const swappedIntersection = intersectionPoints.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col));
-                    if (swappedIntersection) gemToCreate = { row: swappedIntersection.row, col: swappedIntersection.col, type: GEM_TYPE.RAINBOW, color: swappedIntersection.color };
-                    if (!gemToCreate) { const square = allSquares.find(sq => sq.some(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col))); if (square) { const swappedGemInSquare = square.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col)); gemToCreate = { row: swappedGemInSquare.row, col: swappedGemInSquare.col, type: GEM_TYPE.CROSS, color: swappedGemInSquare.color }; } }
-                    if (!gemToCreate) { const line5 = allLines.find(line => line.length >= 5); if (line5) { const swappedGemInLine = line5.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col)); if (swappedGemInLine) gemToCreate = { row: swappedGemInLine.row, col: swappedGemInLine.col, type: GEM_TYPE.BOMB, color: swappedGemInLine.color }; } }
-                    if (!gemToCreate) { const line4 = allLines.find(line => line.length === 4); if (line4) { const swappedGemInLine = line4.find(gem => swappedCoords.some(coords => gem.row === coords.row && gem.col === coords.col)); if (swappedGemInLine) gemToCreate = { row: swappedGemInLine.row, col: swappedGemInLine.col, type: line4[0].row === line4[1].row ? GEM_TYPE.H_LIGHTNING : GEM_TYPE.V_LIGHTNING, color: swappedGemInLine.color }; } }
+        
+        function findMatches(currentBoard) {
+            const matches = new Set();
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE - 2; c++) {
+                    const gem1 = currentBoard[r][c];
+                    const gem2 = currentBoard[r][c+1];
+                    const gem3 = currentBoard[r][c+2];
+                    if (gem1 && gem2 && gem3 && gem1.colorIndex === gem2.colorIndex && gem2.colorIndex === gem3.colorIndex) {
+                        matches.add(gem1); matches.add(gem2); matches.add(gem3);
+                    }
                 }
-                firstPass = false;
-                
-                let specialEffectPromises = [];
-                const allMatchedGems = [...allLines.flat(), ...allSquares.flat()];
-                allMatchedGems.forEach(gem => {
-                    if (gem.type === GEM_TYPE.H_LIGHTNING) specialEffectPromises.push(animateLightning(gem, 'h'));
-                    else if (gem.type === GEM_TYPE.V_LIGHTNING) specialEffectPromises.push(animateLightning(gem, 'v'));
-                    else if (gem.type === GEM_TYPE.BOMB) specialEffectPromises.push(animateExplosion(gem));
-                    else if (gem.type === GEM_TYPE.CROSS) specialEffectPromises.push(animateExplosion(gem));
-                });
-                await Promise.all(specialEffectPromises);
+            }
+            for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_SIZE - 2; r++) {
+                     const gem1 = currentBoard[r][c];
+                    const gem2 = currentBoard[r+1][c];
+                    const gem3 = currentBoard[r+2][c];
+                    if (gem1 && gem2 && gem3 && gem1.colorIndex === gem2.colorIndex && gem2.colorIndex === gem3.colorIndex) {
+                        matches.add(gem1); matches.add(gem2); matches.add(gem3);
+                    }
+                }
+            }
+            return Array.from(matches);
+        }
 
-                allSquares.flat().forEach(gem => gemsToDestroy.add(gem));
-                allMatchedGems.forEach(gem => {
-                    if (gem.type === GEM_TYPE.H_LIGHTNING) for (let c = 0; c < COLS; c++) gemsToDestroy.add(board[gem.row][c]);
-                    else if (gem.type === GEM_TYPE.V_LIGHTNING) for (let r = 0; r < ROWS; r++) gemsToDestroy.add(board[r][gem.col]);
-                    else if (gem.type === GEM_TYPE.BOMB) { for (let r = gem.row - 1; r <= gem.row + 1; r++) for (let c = gem.col - 1; c <= gem.col + 1; c++) { if (r >= 0 && r < ROWS && c >= 0 && c < COLS) gemsToDestroy.add(board[r][c]); } }
-                    else if (gem.type === GEM_TYPE.CROSS) { for (let i = -Math.max(ROWS, COLS); i < Math.max(ROWS, COLS); i++) { if (board[gem.row + i] && board[gem.row + i][gem.col + i]) gemsToDestroy.add(board[gem.row + i][gem.col + i]); if (board[gem.row + i] && board[gem.row + i][gem.col - i]) gemsToDestroy.add(board[gem.row + i][gem.col - i]); } }
-                });
-                
-                allMatchedGems.forEach(gem => gemsToDestroy.add(gem));
-                if (gemToCreate) { const gem = board[gemToCreate.row][gemToCreate.col]; gemsToDestroy.delete(gem); }
+        function findMatchesAndSpecial(gem1, gem2) {
+            let allMatches = new Set();
+            let specialToCreate = null;
+            
+            const checkLine = (line) => {
+                let matches = [];
+                for(let i=0; i<line.length - 2; i++) {
+                    if(line[i] && line[i+1] && line[i+2] && line[i].colorIndex === line[i+1].colorIndex && line[i+1].colorIndex === line[i+2].colorIndex) {
+                        let len = 3;
+                        while(i+len < line.length && line[i].colorIndex === line[i+len].colorIndex) len++;
+                        let currentMatch = [];
+                        for(let j=0; j<len; j++) currentMatch.push(line[i+j]);
+                        matches.push(currentMatch);
+                        i += len - 1;
+                    }
+                }
+                return matches;
+            }
 
-                let rescuedHearts = [];
-                [...gemsToDestroy].filter(Boolean).forEach(gem => {
+            const hMatches1 = checkLine(board[gem1.row]);
+            const vMatches1 = checkLine(board.map(r => r[gem1.col]));
+            const hMatches2 = checkLine(board[gem2.row]);
+            const vMatches2 = checkLine(board.map(r => r[gem2.col]));
+            
+            const allFoundMatches = [...hMatches1, ...vMatches1, ...hMatches2, ...vMatches2];
+            allFoundMatches.forEach(m => m.forEach(g => allMatches.add(g)));
+
+            const hMatches = [...hMatches1, ...hMatches2];
+            const vMatches = [...vMatches1, ...vMatches2];
+
+            let bestMatch = {len: 0, match: null, type: null, isCross: false};
+
+            for(const match of allFoundMatches) {
+                if(match.includes(gem1) || match.includes(gem2)) {
+                    if (match.length >= 5) {
+                        bestMatch = { len: match.length, match, type: (match[0].row === match[1].row) ? 'h' : 'v', isCross: false };
+                        break;
+                    }
+                    if (match.length === 4 && bestMatch.len < 4) {
+                        bestMatch = { len: 4, match, type: (match[0].row === match[1].row) ? 'h' : 'v', isCross: false };
+                    }
+                }
+            }
+            
+            const intersection = hMatches.flat().filter(gem => vMatches.flat().includes(gem));
+            if (intersection.length > 0 && allMatches.size >= 5) {
+                bestMatch = { len: 5, match: intersection, type: 'cross', isCross: true };
+            }
+
+
+            if (bestMatch.len >= 5 && !bestMatch.isCross) {
+                specialToCreate = { special: SPECIAL_TYPES.HYPERCUBE, colorIndex: -1 };
+            } else if (bestMatch.isCross) {
+                 specialToCreate = { special: SPECIAL_TYPES.BOMB, colorIndex: gem1.colorIndex };
+            } else if (bestMatch.len === 4) {
+                specialToCreate = { special: bestMatch.type === 'h' ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM, colorIndex: gem1.colorIndex };
+            }
+            
+            if(specialToCreate && bestMatch.match) {
+                 const creationGem = bestMatch.match.includes(gem1) ? gem1 : gem2;
+                 specialToCreate.row = creationGem.row;
+                 specialToCreate.col = creationGem.col;
+            }
+
+            return { allMatches: Array.from(allMatches), specialToCreate };
+        }
+        
+        async function handleMatches(matches, specialToCreate) {
+            const promises = [];
+            let heartSaved = false;
+            matches.forEach(gem => {
+                if(specialToCreate && gem.row === specialToCreate.row && gem.col === specialToCreate.col) {
+                    // Skip
+                } else {
                     if (gem.isHeart) {
-                        const heartIndex = hearts.findIndex(h => h === gem);
-                        if (heartIndex > -1) {
-                            rescuedHearts.push(hearts.splice(heartIndex, 1)[0]);
-                        }
+                        score++;
+                        updateScore();
+                        heartSaved = true;
                     }
-                });
-                
-                if (rescuedHearts.length > 0) {
-                    await Promise.all(rescuedHearts.map(h => animateHeartRescue(h)));
-                    heartsSaved += rescuedHearts.length;
-                    updateScore();
-                    await showInfoPopup();
+                    const p = animate(gem, { scale: 0, alpha: 0 }, 200);
+                    p.then(() => { board[gem.row][gem.col] = null; });
+                    promises.push(p);
                 }
+            });
+            await Promise.all(promises);
 
-                await animateRemoval([...gemsToDestroy].filter(Boolean));
-                score += [...gemsToDestroy].filter(Boolean).length * 10; updateScore();
-                [...gemsToDestroy].filter(Boolean).forEach(gem => { board[gem.row][gem.col] = null; });
-                if (gemToCreate) {
-                    board[gemToCreate.row][gemToCreate.col] = createGem(gemToCreate.row, gemToCreate.col, gemToCreate.type, gemToCreate.color);
-                    sounds.specialCreate.triggerAttackRelease("C5", "8n");
-                }
-                
-                await applyGravityAndRefill();
+            if (specialToCreate) {
+                const gem = board[specialToCreate.row][specialToCreate.col];
+                gem.special = specialToCreate.special;
+                gem.colorIndex = specialToCreate.colorIndex;
+                gem.isHeart = false;
+                await animate(gem, {scale: 1.5}, 150).then(() => animate(gem, {scale: 1}, 150));
             }
-            return madeAMatch;
+            return heartSaved;
         }
 
-        async function applyGravityAndRefill() {
-            for (let col = 0; col < COLS; col++) {
-                let emptyRow = ROWS - 1;
-                for (let row = ROWS - 1; row >= 0; row--) {
-                    const gem = board[row][col];
-                    if (gem && !gem.isHeart) {
-                        if (emptyRow !== row) {
-                            gem.row = emptyRow;
-                            board[row][col] = null;
-                            board[emptyRow][col] = gem;
-                        }
-                        emptyRow--;
-                    } else if (board[row][col] && board[row][col].isHeart) {
-                        emptyRow = row - 1;
+        async function shiftAndRefill() {
+            const shiftPromises = [];
+            for (let c = 0; c < GRID_SIZE; c++) {
+                let emptySlots = 0;
+                for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                    if (board[r][c] === null) {
+                        emptySlots++;
+                    } else if (emptySlots > 0) {
+                        const gem = board[r][c];
+                        board[r + emptySlots][c] = gem;
+                        board[r][c] = null;
+                        gem.row += emptySlots;
+                        shiftPromises.push(animate(gem, { y: gem.row * gemSize }, 300));
                     }
                 }
             }
-            
-            for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (board[r][c] === null) { board[r][c] = createGem(r, c); board[r][c].y = -GEM_SIZE + TOP_OFFSET; } } }
-            
-            await waitForAnimations();
-        }
+            await Promise.all(shiftPromises);
 
-
-        function updateScore() {
-            const oldScore = parseInt(scoreValueElement.textContent);
-            const oldHearts = parseInt(heartsSavedValueElement.textContent);
-
-            if (oldScore !== score) {
-                scoreValueElement.classList.add('pulsate');
-            }
-            if (oldHearts !== heartsSaved) {
-                heartsSavedValueElement.classList.add('pulsate');
-            }
-
-            scoreValueElement.textContent = score;
-            heartsSavedValueElement.textContent = heartsSaved;
-        }
-        
-        function areAdjacent(gem1, gem2) { const rowDiff = Math.abs(gem1.row - gem2.row); const colDiff = Math.abs(gem1.col - gem2.col); return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1); }
-        function swapGems(gem1Coords, gem2Coords) { const gem1 = board[gem1Coords.row][gem1Coords.col]; const gem2 = board[gem2Coords.row][gem2Coords.col]; board[gem1Coords.row][gem1Coords.col] = gem2; board[gem2Coords.row][gem2Coords.col] = gem1; if(gem1 && gem2){ [gem1.row, gem2.row] = [gem2.row, gem1.row]; [gem1.col, gem2.col] = [gem2.col, gem1.col]; } }
-        async function activateRainbowEffect(rainbowGem, otherGem) { const colorToDestroy = otherGem.color; let gemsToDestroy = new Set([rainbowGem, otherGem]); let targetGems = []; board.flat().forEach(gem => { if (gem && gem.color === colorToDestroy) targetGems.push(gem); }); await animateEffect(300, (progress) => { const easeOut = 1 - Math.pow(1 - progress, 3); targetGems.forEach(target => { ctx.beginPath(); ctx.moveTo(rainbowGem.x + GEM_SIZE/2, rainbowGem.y + GEM_SIZE/2); const destX = target.x + GEM_SIZE/2; const destY = target.y + GEM_SIZE/2; ctx.lineTo(rainbowGem.x + GEM_SIZE/2 + (destX - (rainbowGem.x + GEM_SIZE/2)) * easeOut, rainbowGem.y + GEM_SIZE/2 + (destY - (rainbowGem.y + GEM_SIZE/2)) * easeOut); ctx.strokeStyle = `rgba(255, 255, 255, ${1 - progress})`; ctx.lineWidth = 5; ctx.stroke(); }); }); targetGems.forEach(gem => gemsToDestroy.add(gem)); await animateRemoval([...gemsToDestroy].filter(Boolean)); score += [...gemsToDestroy].filter(Boolean).length * 10; updateScore(); [...gemsToDestroy].filter(Boolean).forEach(gem => { board[gem.row][gem.col] = null; }); await applyGravityAndRefill(); await handleAllMatches(null); }
-        async function animateRemoval(matches) { matches.forEach(gem => { if(gem && !gem.isHeart) { createParticles(gem.x + GEM_SIZE/2, gem.y + GEM_SIZE/2, gem.color, 5); gem.scale = 0.99; }}); await sleep(250); }
-        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-        function waitForAnimations() { return new Promise(resolve => { const check = () => { if ([...board.flat()].every(g => !g || (Math.abs(g.x - g.col*GEM_SIZE) < 0.1 && Math.abs(g.y - (g.row*GEM_SIZE + TOP_OFFSET)) < 0.1 && Math.abs(g.vy) < 0.1))) resolve(); else requestAnimationFrame(check); }; check(); }); }
-        function createParticles(x, y, color, count) { for (let i = 0; i < count; i++) { particles.push({ x, y, vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4, alpha: 1, color: color }); } }
-        function updateParticles() { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.alpha -= 0.02; if (p.alpha <= 0) particles.splice(i, 1); } }
-        function drawParticles() { particles.forEach(p => { ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); ctx.restore(); }); }
-        function animateEffect(duration, drawCallback) { return new Promise(resolve => { const startTime = Date.now(); function loop() { const elapsedTime = Date.now() - startTime; const progress = Math.min(elapsedTime / duration, 1); draw(); drawCallback(progress); if (progress < 1) requestAnimationFrame(loop); else { draw(); resolve(); } } loop(); }); }
-        async function animateLightning(gem, direction) { const x = gem.x + GEM_SIZE / 2; const y = gem.y + GEM_SIZE / 2; createParticles(x, y, 'white', 30); await animateEffect(200, (progress) => { ctx.strokeStyle = `rgba(255, 255, 255, ${1 - progress})`; ctx.lineWidth = 10 * (1 - progress); ctx.beginPath(); if (direction === 'h') { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); } else { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); } ctx.stroke(); }); }
-        async function animateExplosion(gem) { const x = gem.x + GEM_SIZE / 2; const y = gem.y + GEM_SIZE / 2; createParticles(x, y, 'white', 50); await animateEffect(300, (progress) => { ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * (1 - progress)})`; ctx.beginPath(); ctx.arc(x, y, GEM_SIZE * 2 * progress, 0, Math.PI * 2); ctx.fill(); }); }
-        
-        async function animateHeartRescue(heart) {
-            sounds.heartRescue.triggerAttackRelease(["C5", "E5", "G5", "C6"], "16n", Tone.now());
-            const flyHeart = { x: heart.x, y: heart.y, scale: 1 };
-            const destX = heartsSavedValueElement.getBoundingClientRect().left - canvas.getBoundingClientRect().left;
-            const destY = heartsSavedValueElement.getBoundingClientRect().top - canvas.getBoundingClientRect().top;
-
-            await animateEffect(500, (progress) => {
-                const easeIn = progress * progress;
-                flyHeart.x += (destX - flyHeart.x) * easeIn * 0.1;
-                flyHeart.y += (destY - flyHeart.y) * easeIn * 0.1;
-                flyHeart.scale = 1 - progress;
-                
-                ctx.font = `${GEM_SIZE * 0.6 * flyHeart.scale}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.globalAlpha = 1 - progress;
-                ctx.fillText('💖', flyHeart.x + GEM_SIZE/2, flyHeart.y + GEM_SIZE/2);
-                ctx.globalAlpha = 1;
-
-                if (Math.random() < 0.5) {
-                    createParticles(flyHeart.x + GEM_SIZE/2, flyHeart.y + GEM_SIZE/2, '#ffc0cb', 1);
+            const refillPromises = [];
+            for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    if (board[r][c] === null) {
+                        const newGem = {
+                            colorIndex: Math.floor(Math.random() * GEM_COLORS.length),
+                            isHeart: false, special: SPECIAL_TYPES.NONE,
+                            row: r, col: c,
+                            x: c * gemSize, y: (r - GRID_SIZE) * gemSize,
+                            scale: 1, alpha: 1,
+                        };
+                        board[r][c] = newGem;
+                        refillPromises.push(animate(newGem, { y: r * gemSize }, 400));
+                    }
                 }
-            });
+            }
+            await Promise.all(refillPromises);
         }
-        
-        function initBackgroundParticles() {
-            backgroundParticles = [];
-            for (let i = 0; i < 50; i++) {
-                backgroundParticles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    radius: Math.random() * 2 + 1,
-                    alpha: Math.random() * 0.5 + 0.2,
-                    vy: Math.random() * 0.5 + 0.1
-                });
+
+        function spawnHeartIfNeeded(isFirst = false) {
+             if (isFirst || (moves > 0 && moves % MOVES_PER_HEART_SPAWN === 0)) {
+                let availableCols = [];
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (board[GRID_SIZE - 1][c] && !board[GRID_SIZE - 1][c].isHeart) {
+                        availableCols.push(c);
+                    }
+                }
+                if (availableCols.length > 0) {
+                    const col = availableCols[Math.floor(Math.random() * availableCols.length)];
+                    const gem = board[GRID_SIZE - 1][col];
+                    gem.isHeart = true;
+                    gem.special = SPECIAL_TYPES.NONE;
+                    animate(gem, {scale: 1.5}, 150).then(() => animate(gem, {scale: 1}, 150));
+                }
             }
         }
 
-        function updateBackgroundParticles() {
-            backgroundParticles.forEach(p => {
-                p.y += p.vy;
-                if (p.y > canvas.height) {
-                    p.y = 0;
-                    p.x = Math.random() * canvas.width;
+        async function moveHearts() {
+            const movePromises = [];
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const gem = board[r][c];
+                    if (gem && gem.isHeart) {
+                        const newRow = r - 1;
+                        if (newRow < 0) continue;
+                        const gemAbove = board[newRow][c];
+                        
+                        board[newRow][c] = gem;
+                        board[r][c] = gemAbove;
+                        
+                        gem.row = newRow;
+                        if (gemAbove) gemAbove.row = r;
+                        
+                        movePromises.push(animate(gem, { y: newRow * gemSize }, 200));
+                        if (gemAbove) {
+                           movePromises.push(animate(gemAbove, { y: r * gemSize }, 200));
+                        }
+                    }
                 }
-            });
+            }
+            await Promise.all(movePromises);
         }
 
-        function drawBackgroundParticles() {
-            backgroundParticles.forEach(p => {
-                ctx.save();
-                ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            });
+        function moveCigarette() {
+            let highestHeart = null;
+            let minRow = GRID_SIZE;
+
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (board[r][c] && board[r][c].isHeart) {
+                        if (r < minRow) {
+                            minRow = r;
+                            highestHeart = board[r][c];
+                        }
+                    }
+                }
+            }
+
+            if (highestHeart) {
+                if (cigarette.col < highestHeart.col) {
+                    cigarette.col++;
+                } else if (cigarette.col > highestHeart.col) {
+                    cigarette.col--;
+                }
+            }
+            updateCigarettePosition();
         }
 
-        function showInfoPopup() {
-            return new Promise(resolve => {
-                isProcessing = true;
-                const fact = smokingFacts[Math.floor(Math.random() * smokingFacts.length)];
-                popupText.textContent = fact;
-                infoPopup.classList.add('active');
+        function updateCigarettePosition() {
+            cigaretteEl.style.left = `${cigarette.col * gemSize}px`;
+        }
+        
+        function checkGameOver() {
+            if(board[0][cigarette.col] && board[0][cigarette.col].isHeart) {
+                showGameOver();
+                return true;
+            }
+            return false;
+        }
 
-                const onContinue = () => {
-                    clearTimeout(popupTimeout);
-                    hideInfoPopup();
-                    popupContinueButton.onclick = null;
+        // --- Giao diện người dùng và Tiện ích ---
+        function updateScore() { scoreEl.textContent = score; }
+        function updateMoves() { movesEl.textContent = moves; }
+
+        function showGameOver() {
+            isAnimating = true;
+            finalScoreEl.textContent = score;
+            gameOverModal.classList.remove('hidden');
+            setTimeout(() => gameOverModal.querySelector('div').classList.add('scale-100'), 10);
+        }
+
+        async function showFact() {
+            isPaused = true;
+            let availableFacts = HEALTH_FACTS.filter(obj => !factsShown.includes(obj));
+            if (availableFacts.length === 0) {
+                factsShown = []; // Reset nếu đã hiển thị hết
+                availableFacts = HEALTH_FACTS;
+            }
+            const factObject = availableFacts[Math.floor(Math.random() * availableFacts.length)];
+            factsShown.push(factObject);
+            factText.textContent = factObject.fact;
+            adviceText.textContent = factObject.advice;
+            factModal.classList.remove('hidden');
+            await new Promise(resolve => {
+                const listener = () => {
+                    closeFactButton.removeEventListener('click', listener);
+                    factModal.classList.add('hidden');
+                    isPaused = false;
                     resolve();
                 };
+                closeFactButton.addEventListener('click', listener);
+            });
+        }
+        
+        closeFactButton.addEventListener('click', () => {
+             factModal.classList.add('hidden');
+             isPaused = false;
+        });
 
-                popupContinueButton.onclick = onContinue;
-                popupTimeout = setTimeout(onContinue, 5000);
+        restartButton.addEventListener('click', () => {
+            gameOverModal.classList.add('hidden');
+            gameOverModal.querySelector('div').classList.remove('scale-100');
+            init();
+        });
+
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        // --- Hệ thống Animation ---
+        function animate(target, toProperties, duration) {
+            return new Promise(resolve => {
+                animations.push({
+                    target,
+                    toProperties,
+                    duration,
+                    onComplete: resolve,
+                    startProperties: Object.keys(toProperties).reduce((acc, key) => {
+                        acc[key] = target[key];
+                        return acc;
+                    }, {}),
+                    startTime: Date.now()
+                });
             });
         }
 
-        function hideInfoPopup() {
-            infoPopup.classList.remove('active');
-            isProcessing = false;
-        }
+        function handleAnimations() {
+            const now = Date.now();
+            for (let i = animations.length - 1; i >= 0; i--) {
+                const anim = animations[i];
+                const elapsed = now - anim.startTime;
+                const progress = Math.min(elapsed / anim.duration, 1);
 
-        function startAudio() {
-            if (!audioStarted) {
-                Tone.start();
-                audioStarted = true;
+                for (const key in anim.toProperties) {
+                    const start = anim.startProperties[key];
+                    const to = anim.toProperties[key];
+                    anim.target[key] = start + (to - start) * progress;
+                }
+
+                if (progress === 1) {
+                    anim.onComplete();
+                    animations.splice(i, 1);
+                }
             }
         }
-        canvas.addEventListener('mousedown', startAudio, { once: true });
-        canvas.addEventListener('touchstart', startAudio, { once: true });
+        
+        window.onload = init;
+        window.onresize = init;
 
-
-        scoreValueElement.addEventListener('animationend', () => scoreValueElement.classList.remove('pulsate'));
-        heartsSavedValueElement.addEventListener('animationend', () => heartsSavedValueElement.classList.remove('pulsate'));
-        resetButtonMain.addEventListener('click', init);
-        resetButtonGameOver.addEventListener('click', init);
-
-        init();
     </script>
 </body>
 </html>
