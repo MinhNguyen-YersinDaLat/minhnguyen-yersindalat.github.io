@@ -13,14 +13,15 @@
             font-family: 'Be Vietnam Pro', sans-serif;
             touch-action: none;
             overflow: hidden;
-            background-color: #fecaca;
+            background-color: #4a5568; /* gray-700 */
         }
         canvas {
-            background-color: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.5);
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
             cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         .danger-zone {
             position: absolute;
@@ -33,34 +34,68 @@
         }
         #cigarette-sprite {
             position: absolute;
-            top: -15px;
+            top: -50px;
             transition: left 0.3s ease-in-out;
-            width: 60px;
-            height: 60px;
+            width: 120px;
+            height: 120px;
             display: flex;
             justify-content: center;
             align-items: center;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
         }
         .cigarette-body {
             position: relative;
-            font-size: 2.25rem; /* 36px */
-            line-height: 2.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            width: 80px;
+            height: 24px;
+            transform: rotate(-20deg);
+        }
+        .cigar-main {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 75%;
+            height: 100%;
+            background: linear-gradient(to bottom, #ffffff, #e2e8f0);
+            border: 1px solid #94a3b8;
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+        }
+        .cigar-ash {
+            position: absolute;
+            left: -6px;
+            top: -2px;
+            width: 12px;
+            height: 28px;
+            background: linear-gradient(to right, #475569, #94a3b8, #64748b);
+            border-radius: 50%;
+            box-shadow: 0 0 5px #f97316, 0 0 8px #f97316;
+        }
+        .cigar-filter {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 25%;
+            height: 100%;
+            background: linear-gradient(to bottom, #f59e0b, #b45309);
+            border: 1px solid #92400e;
+            border-left: 2px solid #000;
+            border-radius: 0 4px 4px 0;
         }
         .eye {
             position: absolute;
-            width: 6px;
-            height: 6px;
-            background-color: #ef4444; /* red-500 */
+            z-index: 2;
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;
             border-radius: 50%;
-            box-shadow: 0 0 5px #ef4444, 0 0 8px #ef4444;
+            box-shadow: 0 0 8px #ef4444, 0 0 12px #ef4444, 0 0 16px #ef4444;
             animation: eye-glow 1.5s infinite alternate;
         }
-        .eye1 { top: 12px; left: 10px; }
-        .eye2 { top: 12px; left: 20px; }
+        .eye1 { top: 7px; left: 15px; }
+        .eye2 { top: 7px; left: 35px; }
         @keyframes eye-glow {
-            from { opacity: 0.7; box-shadow: 0 0 3px #ef4444, 0 0 5px #ef4444; }
-            to { opacity: 1; box-shadow: 0 0 5px #ef4444, 0 0 8px #ef4444; }
+            from { opacity: 0.7; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.1); }
         }
         .smoke {
             position: absolute;
@@ -69,20 +104,45 @@
             animation: smoke-rise 4s infinite;
             opacity: 0;
         }
-        .smoke1 { width: 15px; height: 15px; left: 22px; bottom: 30px; animation-delay: 0s; }
-        .smoke2 { width: 20px; height: 20px; left: 15px; bottom: 35px; animation-delay: 1s; }
-        .smoke3 { width: 12px; height: 12px; left: 30px; bottom: 32px; animation-delay: 2s; }
+        .smoke1 { width: 30px; height: 30px; left: 44px; bottom: 60px; animation-delay: 0s; }
+        .smoke2 { width: 40px; height: 40px; left: 30px; bottom: 70px; animation-delay: 1s; }
+        .smoke3 { width: 24px; height: 24px; left: 60px; bottom: 64px; animation-delay: 2s; }
+        .smoke4, .smoke5 { display: none; }
+        .evolved .smoke4 { display: block; width: 36px; height: 36px; left: 50px; bottom: 76px; animation-delay: 0.5s; }
+        .evolved .smoke5 { display: block; width: 28px; height: 28px; left: 36px; bottom: 66px; animation-delay: 1.5s; }
+
         @keyframes smoke-rise {
             0% { transform: translateY(0) scale(1); opacity: 0.8; }
-            100% { transform: translateY(-40px) scale(2.5); opacity: 0; }
+            100% { transform: translateY(-60px) scale(2.5); opacity: 0; }
+        }
+        .crack {
+            position: absolute;
+            z-index: 2;
+            width: 3px;
+            height: 15px;
+            background: #ff4500;
+            box-shadow: 0 0 4px #ff4500, 0 0 6px #ff4500, 0 0 8px #ff0000;
+            border-radius: 2px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s ease-out;
+        }
+        .crack1 { top: 5px; left: 25px; transform: rotate(25deg) scale(0); }
+        .crack2 { top: 2px; left: 45px; transform: rotate(-35deg) scale(0); height: 18px; }
+        .evolved .crack {
+            opacity: 1;
+            transform: rotate(25deg) scale(1);
+        }
+        .evolved .crack2 {
+             transform: rotate(-35deg) scale(1);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-red-200 via-gray-200 to-red-300 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 flex items-center justify-center min-h-screen p-4">
 
     <div class="w-full max-w-md mx-auto text-center">
-        <h1 class="text-3xl md:text-4xl font-bold text-red-900 mb-2" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">Bảo Vệ Trái Tim</h1>
-        <p class="text-red-800 mb-4">Mỗi trái tim được cứu là một thông điệp sức khỏe!</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-white mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">Bảo Vệ Trái Tim</h1>
+        <p class="text-gray-300 mb-4" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Mỗi trái tim được cứu là một thông điệp sức khỏe!</p>
 
         <div id="game-container" class="relative">
              <div class="danger-zone">
@@ -90,30 +150,37 @@
                     <div class="smoke smoke1"></div>
                     <div class="smoke smoke2"></div>
                     <div class="smoke smoke3"></div>
+                    <div class="smoke smoke4"></div>
+                    <div class="smoke smoke5"></div>
                     <div class="cigarette-body">
+                        <div class="cigar-main">
+                           <div class="cigar-ash"></div>
+                        </div>
+                        <div class="cigar-filter"></div>
                         <div class="eye eye1"></div>
                         <div class="eye eye2"></div>
-                        🚬
+                        <div class="crack crack1"></div>
+                        <div class="crack crack2"></div>
                     </div>
                 </div>
              </div>
             <canvas id="gameCanvas"></canvas>
         </div>
 
-        <div class="mt-4 p-4 bg-white/60 rounded-xl shadow-lg flex justify-around items-center backdrop-blur-sm">
+        <div class="mt-4 p-4 bg-black/20 rounded-2xl shadow-lg flex justify-around items-center backdrop-blur-sm border border-white/10">
             <div>
-                <p class="text-lg font-bold text-red-800">Trái tim đã cứu</p>
-                <p id="score" class="text-3xl font-bold text-pink-600">0</p>
+                <p class="text-lg font-bold text-white/70">Trái tim đã cứu</p>
+                <p id="score" class="text-3xl font-bold text-white">0</p>
             </div>
             <div>
-                <p class="text-lg font-bold text-red-800">Nước đi</p>
-                <p id="moves" class="text-3xl font-bold text-pink-600">0</p>
+                <p class="text-lg font-bold text-white/70">Nước đi</p>
+                <p id="moves" class="text-3xl font-bold text-white">0</p>
             </div>
         </div>
     </div>
 
     <!-- Modal Game Over -->
-    <div id="gameOverModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50">
+    <div id="gameOverModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
             <h2 class="text-4xl font-bold text-red-800 mb-4">Nguy hiểm!</h2>
             <p class="text-lg text-gray-700 mb-2">Thuốc lá đã làm hại một trái tim.</p>
@@ -123,7 +190,7 @@
     </div>
     
     <!-- Modal Thông điệp sức khỏe -->
-    <div id="factModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
+    <div id="factModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-6 md:p-8 text-center shadow-2xl transform transition-all scale-95 max-w-md w-full">
             <h2 class="text-2xl md:text-3xl font-bold text-blue-700 mb-4">Sự Thật & Lời Khuyên</h2>
             <p id="factText" class="text-base md:text-lg text-gray-800 mb-3 text-left"></p>
@@ -161,9 +228,10 @@
 
         // --- Cấu hình game ---
         const GRID_SIZE = 8;
-        const GEM_COLORS = ['#FF5A5A', '#52E862', '#4BA2FF', '#C355F4', '#FFB44B', '#F8DE4F'];
+        const GEM_COLORS = ['#FF3131', '#00FF7F', '#1E90FF', '#FF00FF', '#FF8C00', '#FFFF00'];
         const HEART_EMOJI = '💗';
         const MOVES_PER_HEART_SPAWN = 3; 
+        const LUNGE_CHANCE = 0.25;
         const SPECIAL_TYPES = {
             NONE: 'none',
             H_BEAM: 'h_beam',
@@ -180,9 +248,9 @@
         let isAnimating = false;
         let isPaused = false;
         let animations = [];
-        let cigarette = { col: Math.floor(GRID_SIZE / 2) };
+        let particles = [];
+        let cigarette = { col: Math.floor(GRID_SIZE / 2), level: 1 };
         
-        // Biến cho cơ chế lướt
         let startDragPos = { x: null, y: null };
         let startGem = null;
         let isDragging = false;
@@ -199,6 +267,8 @@
             ctx.font = `${gemSize * 0.7}px sans-serif`;
 
             cigarette.col = Math.floor(GRID_SIZE / 2);
+            cigarette.level = 1;
+            cigaretteEl.classList.remove('evolved');
             updateCigarettePosition();
 
             board = [];
@@ -208,6 +278,7 @@
             isAnimating = false;
             isPaused = false;
             animations = [];
+            particles = [];
             factsShown = [];
             
             updateScore();
@@ -255,7 +326,8 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 handleAnimations(time);
                 drawBoard(time);
-                drawSelection();
+                drawParticles();
+                drawSelection(time);
             }
             if(!gameOverModal.classList.contains('hidden')) {
                  // Dừng game loop khi thua
@@ -264,18 +336,33 @@
             }
         }
 
-        function drawGem(x, y, size, color, special, time) {
-            const s = size * 0.8;
+        function drawGem(x, y, size, color, special, isHeart, time) {
+            const s = size * 0.85;
             const half = s / 2;
+            const pulse = Math.sin(time / 150) * 0.2 + 0.8;
+
             ctx.save();
             ctx.translate(x, y);
             
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-            ctx.shadowBlur = 8;
-            ctx.shadowOffsetX = 3;
-            ctx.shadowOffsetY = 3;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 4;
+            ctx.shadowOffsetY = 4;
+
+            if (isHeart) {
+                const heartPulse = Math.sin(time / 300) * 0.15 + 0.9;
+                const heartGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, half * heartPulse * 1.3);
+                heartGlow.addColorStop(0, 'rgba(255, 182, 193, 0.8)');
+                heartGlow.addColorStop(1, 'rgba(255, 182, 193, 0)');
+                ctx.fillStyle = heartGlow;
+                ctx.beginPath();
+                ctx.arc(0, 0, half * 1.3, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
             if (special === SPECIAL_TYPES.HYPERCUBE) {
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+                ctx.shadowBlur = 20;
                 for (let i = 0; i < 6; i++) {
                     ctx.fillStyle = GEM_COLORS[(i + Math.floor(time / 200)) % 6];
                     ctx.beginPath();
@@ -286,39 +373,90 @@
                     ctx.closePath();
                     ctx.fill();
                 }
+                const pulseCore = Math.sin(time / 200) * 0.2 + 0.8;
+                ctx.fillStyle = `rgba(255, 255, 255, ${pulseCore})`;
+                ctx.beginPath();
+                ctx.arc(0, 0, half * 0.3, 0, 2 * Math.PI);
+                ctx.fill();
+
             } else {
-                ctx.fillStyle = color;
+                const shadeColor = (col, percent) => {
+                    let f=parseInt(col.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
+                    return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+                };
+
+                const lightColor = shadeColor(color, 0.6);
+                const darkColor = shadeColor(color, -0.6);
+
+                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, half);
+                grad.addColorStop(0, lightColor);
+                grad.addColorStop(1, color);
+                
+                ctx.fillStyle = grad;
                 ctx.beginPath();
                 ctx.moveTo(0, -half); ctx.lineTo(half, 0); ctx.lineTo(0, half); ctx.lineTo(-half, 0);
                 ctx.closePath();
                 ctx.fill();
+                
+                ctx.strokeStyle = darkColor;
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
                 ctx.beginPath();
-                ctx.moveTo(0, -half); ctx.lineTo(half, 0); ctx.lineTo(0, 0);
+                ctx.moveTo(-half * 0.8, -half * 0.2);
+                ctx.lineTo(0, -half * 0.8);
+                ctx.lineTo(half * 0.2, -half * 0.6);
                 ctx.closePath();
                 ctx.fill();
 
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-                ctx.beginPath();
-                ctx.moveTo(-half, 0); ctx.lineTo(0, half); ctx.lineTo(0, 0);
-                ctx.closePath();
-                ctx.fill();
-
-                const pulse = Math.sin(time / 150) * 0.2 + 0.8;
-                ctx.globalAlpha = pulse;
-                if (special === SPECIAL_TYPES.H_BEAM) {
+                ctx.save();
+                if (special === SPECIAL_TYPES.H_BEAM || special === SPECIAL_TYPES.V_BEAM) {
+                    const beamPulse = Math.sin(time / 250) * 2.0 + 3.0;
                     ctx.fillStyle = 'white';
-                    ctx.fillRect(-half * 0.7, -half * 0.15, half * 1.4, half * 0.3);
-                } else if (special === SPECIAL_TYPES.V_BEAM) {
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(-half * 0.15, -half * 0.7, half * 0.3, half * 1.4);
+                    ctx.shadowColor = 'white';
+                    ctx.shadowBlur = 20 * pulse;
+                    if(special === SPECIAL_TYPES.H_BEAM) {
+                        const beamWidth = half * 0.8 * beamPulse;
+                        const beamHeight = half * 0.15;
+                        const tipOffset = beamHeight * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(-beamWidth / 2, 0);
+                        ctx.lineTo(-beamWidth / 2 + tipOffset, -beamHeight / 2);
+                        ctx.lineTo(beamWidth / 2 - tipOffset, -beamHeight / 2);
+                        ctx.lineTo(beamWidth / 2, 0);
+                        ctx.lineTo(beamWidth / 2 - tipOffset, beamHeight / 2);
+                        ctx.lineTo(-beamWidth / 2 + tipOffset, beamHeight / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                    } else {
+                        const beamHeight = half * 0.8 * beamPulse;
+                        const beamWidth = half * 0.15;
+                        const tipOffset = beamWidth * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(0, -beamHeight / 2);
+                        ctx.lineTo(beamWidth / 2, -beamHeight / 2 + tipOffset);
+                        ctx.lineTo(beamWidth / 2, beamHeight / 2 - tipOffset);
+                        ctx.lineTo(0, beamHeight / 2);
+                        ctx.lineTo(-beamWidth / 2, beamHeight / 2 - tipOffset);
+                        ctx.lineTo(-beamWidth / 2, -beamHeight / 2 + tipOffset);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
                 } else if (special === SPECIAL_TYPES.BOMB) {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${pulse * 0.8})`;
+                    ctx.scale(pulse, pulse);
+                    ctx.fillStyle = `rgba(255, 255, 255, 0.8)`;
                     ctx.beginPath();
                     ctx.arc(0, 0, half * 0.6, 0, 2 * Math.PI);
                     ctx.fill();
+                    ctx.fillStyle = `hsl(${time / 10 % 60}, 100%, 50%)`;
+                    ctx.shadowColor = `hsl(${time / 10 % 60}, 100%, 50%)`;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(0, -half * 0.5, size * 0.05, 0, 2 * Math.PI);
+                    ctx.fill();
                 }
+                ctx.restore();
             }
             
             ctx.restore();
@@ -339,23 +477,50 @@
                         ctx.translate(-centerX, -centerY);
                         
                         const color = gem.special === SPECIAL_TYPES.HYPERCUBE ? null : GEM_COLORS[gem.colorIndex];
-                        drawGem(centerX, centerY, gemSize, color, gem.special, time);
+                        drawGem(centerX, centerY, gemSize, color, gem.special, gem.isHeart, time);
                         
                         if (gem.isHeart) {
+                            const heartPulse = Math.sin(time / 300) * 0.75 + 1.25;
+                            ctx.save();
+                            ctx.translate(centerX, centerY);
+                            ctx.scale(heartPulse, heartPulse);
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
                             ctx.shadowColor = 'rgba(0,0,0,0)';
-                            ctx.fillText(HEART_EMOJI, centerX, centerY + gemSize * 0.05);
+                            ctx.font = `${gemSize * 0.6}px sans-serif`;
+                            ctx.fillText(HEART_EMOJI, 0, 0);
+                            ctx.restore();
                         }
                         ctx.restore();
                     }
                 }
             }
         }
+        
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.02;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
 
-        function drawSelection() {
+        function drawSelection(time) {
             if (selectedGem) {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                const pulse = Math.sin(time / 100) * 0.5 + 0.5;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`;
                 ctx.lineWidth = 4;
                 ctx.strokeRect(selectedGem.col * gemSize + 2, selectedGem.row * gemSize + 2, gemSize - 4, gemSize - 4);
             }
@@ -474,9 +639,7 @@
             }
             
             if (gameOverModal.classList.contains('hidden')) {
-                await sleep(200);
-                moveCigarette();
-                await sleep(300);
+                await moveCigarette();
                 if (checkGameOver()) {
                     isAnimating = false;
                     return;
@@ -546,8 +709,8 @@
             board[r2][c2] = gem1;
             gem1.row = r2; gem1.col = c2;
             gem2.row = r1; gem2.col = c1;
-            const p1 = animate(gem1, { x: c2 * gemSize, y: r2 * gemSize }, 150);
-            const p2 = animate(gem2, { x: c1 * gemSize, y: r1 * gemSize }, 150);
+            const p1 = animate(gem1, { x: c2 * gemSize, y: r2 * gemSize }, 150, easing.easeInOutQuad);
+            const p2 = animate(gem2, { x: c1 * gemSize, y: r1 * gemSize }, 150, easing.easeInOutQuad);
             return Promise.all([p1, p2]);
         }
         
@@ -655,7 +818,18 @@
                         updateScore();
                         heartSaved = true;
                     }
-                    const p = animate(gem, { scale: 0, alpha: 0 }, 200);
+                    for(let i=0; i<10; i++) {
+                        particles.push({
+                            x: gem.x + gemSize / 2,
+                            y: gem.y + gemSize / 2,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            size: Math.random() * 4 + 2,
+                            color: GEM_COLORS[gem.colorIndex],
+                            alpha: 1
+                        });
+                    }
+                    const p = animate(gem, { scale: 0, alpha: 0 }, 200, easing.easeInQuad);
                     p.then(() => { board[gem.row][gem.col] = null; });
                     promises.push(p);
                 }
@@ -667,7 +841,7 @@
                 gem.special = specialToCreate.special;
                 gem.colorIndex = specialToCreate.colorIndex;
                 gem.isHeart = false;
-                await animate(gem, {scale: 1.5}, 150).then(() => animate(gem, {scale: 1}, 150));
+                await animate(gem, {scale: 1.5}, 150, easing.easeOutQuad).then(() => animate(gem, {scale: 1}, 150, easing.easeInQuad));
             }
             return heartSaved;
         }
@@ -684,7 +858,7 @@
                         board[r + emptySlots][c] = gem;
                         board[r][c] = null;
                         gem.row += emptySlots;
-                        shiftPromises.push(animate(gem, { y: gem.row * gemSize }, 300));
+                        shiftPromises.push(animate(gem, { y: gem.row * gemSize }, 300, easing.easeOutQuad));
                     }
                 }
             }
@@ -702,7 +876,7 @@
                             scale: 1, alpha: 1,
                         };
                         board[r][c] = newGem;
-                        refillPromises.push(animate(newGem, { y: r * gemSize }, 400));
+                        refillPromises.push(animate(newGem, { y: r * gemSize }, 400, easing.easeOutQuad));
                     }
                 }
             }
@@ -713,7 +887,7 @@
              if (isFirst || (moves > 0 && moves % MOVES_PER_HEART_SPAWN === 0)) {
                 let availableCols = [];
                 for (let c = 0; c < GRID_SIZE; c++) {
-                    if (board[GRID_SIZE - 1][c] && !board[GRID_SIZE - 1][c].isHeart) {
+                    if (board[GRID_SIZE - 1][c] && !board[GRID_SIZE - 1][c].isHeart && board[GRID_SIZE - 1][c].special === SPECIAL_TYPES.NONE) {
                         availableCols.push(c);
                     }
                 }
@@ -722,7 +896,7 @@
                     const gem = board[GRID_SIZE - 1][col];
                     gem.isHeart = true;
                     gem.special = SPECIAL_TYPES.NONE;
-                    animate(gem, {scale: 1.5}, 150).then(() => animate(gem, {scale: 1}, 150));
+                    animate(gem, {scale: 1.5}, 150, easing.easeOutQuad).then(() => animate(gem, {scale: 1}, 150, easing.easeInQuad));
                 }
             }
         }
@@ -743,9 +917,9 @@
                         gem.row = newRow;
                         if (gemAbove) gemAbove.row = r;
                         
-                        movePromises.push(animate(gem, { y: newRow * gemSize }, 200));
+                        movePromises.push(animate(gem, { y: newRow * gemSize }, 200, easing.easeInOutQuad));
                         if (gemAbove) {
-                           movePromises.push(animate(gemAbove, { y: r * gemSize }, 200));
+                           movePromises.push(animate(gemAbove, { y: r * gemSize }, 200, easing.easeInOutQuad));
                         }
                     }
                 }
@@ -753,7 +927,7 @@
             await Promise.all(movePromises);
         }
 
-        function moveCigarette() {
+        async function moveCigarette() {
             let highestHeart = null;
             let minRow = GRID_SIZE;
 
@@ -769,12 +943,25 @@
             }
 
             if (highestHeart) {
+                if (Math.random() < LUNGE_CHANCE && cigarette.level > 1) {
+                    const originalCol = cigarette.col;
+                    const targetCol = highestHeart.col;
+                    
+                    cigaretteEl.style.transition = 'left 0.1s ease-in';
+                    cigaretteEl.style.left = `${targetCol * gemSize}px`;
+                    await sleep(300);
+                    cigaretteEl.style.transition = 'left 0.4s ease-out';
+                    cigaretteEl.style.left = `${originalCol * gemSize}px`;
+                    await sleep(400);
+                }
+
                 if (cigarette.col < highestHeart.col) {
                     cigarette.col++;
                 } else if (cigarette.col > highestHeart.col) {
                     cigarette.col--;
                 }
             }
+            cigaretteEl.style.transition = 'left 0.3s ease-in-out';
             updateCigarettePosition();
         }
 
@@ -791,7 +978,13 @@
         }
 
         // --- Giao diện người dùng và Tiện ích ---
-        function updateScore() { scoreEl.textContent = score; }
+        function updateScore() { 
+            scoreEl.textContent = score;
+            if (score === 5 && cigarette.level === 1) {
+                cigarette.level = 2;
+                cigaretteEl.classList.add('evolved');
+            }
+        }
         function updateMoves() { movesEl.textContent = moves; }
 
         function showGameOver() {
@@ -836,9 +1029,15 @@
         });
 
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
+        
         // --- Hệ thống Animation ---
-        function animate(target, toProperties, duration) {
+        const easing = {
+            easeInOutQuad: t => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+            easeInQuad: t => t * t,
+            easeOutQuad: t => t * (2 - t)
+        };
+
+        function animate(target, toProperties, duration, easeFunc = easing.easeInOutQuad) {
             return new Promise(resolve => {
                 animations.push({
                     target,
@@ -849,7 +1048,8 @@
                         acc[key] = target[key];
                         return acc;
                     }, {}),
-                    startTime: Date.now()
+                    startTime: Date.now(),
+                    easeFunc
                 });
             });
         }
@@ -859,7 +1059,8 @@
             for (let i = animations.length - 1; i >= 0; i--) {
                 const anim = animations[i];
                 const elapsed = now - anim.startTime;
-                const progress = Math.min(elapsed / anim.duration, 1);
+                const progressLinear = Math.min(elapsed / anim.duration, 1);
+                const progress = anim.easeFunc(progressLinear);
 
                 for (const key in anim.toProperties) {
                     const start = anim.startProperties[key];
@@ -867,7 +1068,7 @@
                     anim.target[key] = start + (to - start) * progress;
                 }
 
-                if (progress === 1) {
+                if (progressLinear === 1) {
                     anim.onComplete();
                     animations.splice(i, 1);
                 }
