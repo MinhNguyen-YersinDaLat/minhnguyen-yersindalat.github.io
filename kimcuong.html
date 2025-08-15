@@ -34,10 +34,10 @@
         }
         #cigarette-sprite {
             position: absolute;
-            top: 0;
+            top: -22px;
             transition: left 0.3s ease-in-out;
-            width: 60px;
-            height: 60px;
+            width: 90px;
+            height: 90px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -45,20 +45,20 @@
         }
         .cigarette-body {
             position: relative;
-            font-size: 2.25rem; /* 36px */
-            line-height: 2.5rem;
+            font-size: 3.375rem;
+            line-height: 1;
         }
         .eye {
             position: absolute;
-            width: 8px;
-            height: 8px;
+            width: 12px;
+            height: 12px;
             background-color: #ef4444; /* red-500 */
             border-radius: 50%;
             box-shadow: 0 0 5px #ef4444, 0 0 8px #ef4444, 0 0 10px #ef4444;
             animation: eye-glow 1s infinite alternate;
         }
-        .eye1 { top: 12px; left: 10px; }
-        .eye2 { top: 12px; left: 20px; }
+        .eye1 { top: 18px; left: 15px; }
+        .eye2 { top: 18px; left: 30px; }
         @keyframes eye-glow {
             from { opacity: 0.7; transform: scale(0.5); }
             to { opacity: 1; transform: scale(1.5); }
@@ -102,6 +102,20 @@
             border-style: solid;
             border-color: #1f2937 transparent transparent transparent;
         }
+        .smoke {
+            position: absolute;
+            background: rgba(20, 20, 20, 0.5); /* Đổi màu khói thành đen hơn */
+            border-radius: 50%;
+            animation: smoke-rise 4s infinite;
+            opacity: 0;
+        }
+        .smoke1 { width: 15px; height: 15px; left: 45px; bottom: 50px; animation-delay: 0s; }
+        .smoke2 { width: 20px; height: 20px; left: 35px; bottom: 55px; animation-delay: 1s; }
+        .smoke3 { width: 12px; height: 12px; left: 55px; bottom: 52px; animation-delay: 2s; }
+        @keyframes smoke-rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-60px) scale(2.5); opacity: 0; }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 flex items-center justify-center min-h-screen p-4">
@@ -122,6 +136,9 @@
                             <div class="eye eye1"></div>
                             <div class="eye eye2"></div>
                             🚬
+                            <div class="smoke smoke1"></div>
+                            <div class="smoke smoke2"></div>
+                            <div class="smoke smoke3"></div>
                         </div>
                         <div id="threat-bubble">
                             <p id="threat-text"></p>
@@ -191,10 +208,23 @@
             { fact: "Nicotine trong thuốc lá điện tử có thể làm tăng huyết áp và nhịp tim, làm tăng nguy cơ bị đau tim. (Nguồn: American Heart Association)", advice: "Lời khuyên: Giữ cho trái tim của bạn luôn khỏe mạnh bằng cách tránh xa nicotine dưới mọi hình thức." },
             { fact: "Hương liệu trong thuốc lá điện tử có thể chứa diacetyl, một hóa chất liên quan đến bệnh phổi nghiêm trọng được gọi là 'phổi bỏng ngô'. (Nguồn: American Lung Association)", advice: "Lời khuyên: Những mùi hương hấp dẫn có thể che giấu những hóa chất cực kỳ nguy hiểm. Hãy lựa chọn sức khỏe thay vì hương vị nhân tạo." },
             { fact: "Thanh thiếu niên sử dụng thuốc lá điện tử có khả năng chuyển sang hút thuốc lá truyền thống cao hơn so với những người không sử dụng. (Nguồn: National Academies of Sciences, Engineering, and Medicine)", advice: "Lời khuyên: Đừng mở cánh cửa đầu tiên dẫn đến nghiện ngập. Tránh xa thuốc lá điện tử là cách tốt nhất để không bao giờ trở thành người hút thuốc." },
-            { fact: "Pin của thiết bị thuốc lá điện tử có thể bị lỗi và gây cháy nổ, dẫn đến thương tích nghiêm trọng. (Nguồn: FDA Hoa Kỳ)", advice: "Lời khuyên: Nguy cơ cháy nổ là có thật. Đừng đánh cược sự an toàn của bản thân và những người xung quanh." }
+            { fact: "Pin của thiết bị thuốc lá điện tử có thể bị lỗi và gây cháy nổ, dẫn đến thương tích nghiêm trọng. (Nguồn: FDA Hoa Kỳ)", advice: "Lời khuyên: Nguy cơ cháy nổ là có thật. Đừng đánh cược sự an toàn của bản thân và những người xung quanh." },
+            { fact: "Nicotine có thể ảnh hưởng tiêu cực đến trí nhớ và khả năng tập trung, đặc biệt là ở lứa tuổi thanh thiếu niên khi não bộ vẫn đang phát triển. (Nguồn: U.S. Surgeon General)", advice: "Lời khuyên: Đừng để nicotine cản trở việc học tập và phát triển bản thân. Một bộ não khỏe mạnh là tài sản quý giá nhất." },
+            { fact: "Sử dụng thuốc lá điện tử có thể gây ra các vấn đề về răng miệng như viêm nướu, khô miệng và tăng nguy cơ sâu răng. (Nguồn: American Dental Association)", advice: "Lời khuyên: Một nụ cười đẹp bắt đầu từ sức khỏe răng miệng tốt. Hãy giữ cho nụ cười của bạn luôn rạng rỡ bằng cách tránh xa thuốc lá." },
+            { fact: "Nhiều loại tinh dầu thuốc lá điện tử được bán trên thị trường chợ đen, không rõ nguồn gốc và có thể chứa các chất cấm hoặc hóa chất độc hại không được kiểm soát. (Nguồn: WHO)", advice: "Lời khuyên: Đừng bao giờ thử những sản phẩm không rõ nguồn gốc. Sức khỏe của bạn đáng giá hơn nhiều." }
         ];
         let factsShown = [];
-        const THREATS = ["Ngươi sẽ bị ung thư phổi!", "Trái tim ngươi đang yếu dần...", "Ta sẽ lấy đi hơi thở của ngươi!", "Da ngươi sẽ sớm nhăn nheo.", "Nghiện ngập là không thể tránh khỏi!"];
+        const THREATS = [
+            "Ngươi sẽ bị ung thư phổi!", 
+            "Trái tim ngươi đang yếu dần...", 
+            "Ta sẽ lấy đi hơi thở của ngươi!", 
+            "Da ngươi sẽ sớm nhăn nheo.", 
+            "Nghiện ngập là không thể tránh khỏi!",
+            "Ho khan sẽ là bạn đồng hành của ngươi!",
+            "Đừng mong có một giấc ngủ ngon!",
+            "Trí nhớ của ngươi sẽ suy giảm!",
+            "Ta đang phá hủy từng tế bào của ngươi..."
+        ];
         let threatInterval = null;
 
         // --- Cấu hình game ---
@@ -226,7 +256,6 @@
         let startGem = null;
         let isDragging = false;
 
-        // --- SỬA LỖI: Thêm hàm showThreat ---
         function showThreat() {
             if (isPaused || !gameOverModal.classList.contains('hidden')) return;
             const threat = THREATS[Math.floor(Math.random() * THREATS.length)];
@@ -963,10 +992,6 @@
         // --- Giao diện người dùng và Tiện ích ---
         function updateScore() { 
             scoreEl.textContent = score;
-            if (score === 5 && cigarette.level === 1) {
-                cigarette.level = 2;
-                cigaretteEl.classList.add('evolved');
-            }
         }
         function updateMoves() { movesEl.textContent = moves; }
 
