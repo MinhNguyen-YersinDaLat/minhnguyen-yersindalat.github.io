@@ -23,42 +23,35 @@
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        .danger-zone {
-            position: absolute;
-            top: -50px;
-            left: 0;
-            right: 0;
-            height: 50px;
-            z-index: 10;
-            pointer-events: none;
-        }
         #cigarette-sprite {
             position: absolute;
-            top: -22px;
-            transition: left 0.3s ease-in-out;
-            width: 90px;
-            height: 90px;
+            top: -50px;
+            transition: left 0.3s ease-in-out, transform 0.2s ease-in-out;
+            width: 60px;
+            height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+            pointer-events: none;
+            z-index: 20;
         }
         .cigarette-body {
             position: relative;
-            font-size: 3.375rem;
-            line-height: 1;
+            font-size: 2.25rem; /* 36px */
+            line-height: 2.5rem;
         }
         .eye {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             background-color: #ef4444; /* red-500 */
             border-radius: 50%;
             box-shadow: 0 0 5px #ef4444, 0 0 8px #ef4444, 0 0 10px #ef4444;
             animation: eye-glow 1s infinite alternate;
         }
-        .eye1 { top: 18px; left: 15px; }
-        .eye2 { top: 18px; left: 30px; }
+        .eye1 { top: 12px; left: 10px; }
+        .eye2 { top: 12px; left: 20px; }
         @keyframes eye-glow {
             from { opacity: 0.7; transform: scale(0.5); }
             to { opacity: 1; transform: scale(1.5); }
@@ -73,11 +66,11 @@
         }
         #threat-bubble {
             position: absolute;
-            bottom: 100%;
+            bottom: 110%;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #1f2937; /* gray-800 */
-            color: #f87171; /* red-400 */
+            background-color: #1f2937;
+            color: #f87171;
             padding: 8px 12px;
             border-radius: 8px;
             font-size: 0.8rem;
@@ -104,42 +97,95 @@
         }
         .smoke {
             position: absolute;
-            background: rgba(20, 20, 20, 0.5); /* Đổi màu khói thành đen hơn */
+            background: rgba(20, 20, 20, 0.5);
             border-radius: 50%;
             animation: smoke-rise 4s infinite;
             opacity: 0;
         }
-        .smoke1 { width: 15px; height: 15px; left: 45px; bottom: 50px; animation-delay: 0s; }
-        .smoke2 { width: 20px; height: 20px; left: 35px; bottom: 55px; animation-delay: 1s; }
-        .smoke3 { width: 12px; height: 12px; left: 55px; bottom: 52px; animation-delay: 2s; }
+        .smoke1 { width: 15px; height: 15px; left: 25px; bottom: 30px; animation-delay: 0s; }
+        .smoke2 { width: 20px; height: 20px; left: 15px; bottom: 35px; animation-delay: 1s; }
+        .smoke3 { width: 12px; height: 12px; left: 35px; bottom: 32px; animation-delay: 2s; }
+        .smoke4, .smoke5 { display: none; }
+        .evolved .smoke4 { display: block; width: 18px; height: 18px; left: 30px; bottom: 38px; animation-delay: 0.5s; }
+        .evolved .smoke5 { display: block; width: 14px; height: 14px; left: 18px; bottom: 33px; animation-delay: 1.5s; }
         @keyframes smoke-rise {
             0% { transform: translateY(0) scale(1); opacity: 0.8; }
             100% { transform: translateY(-60px) scale(2.5); opacity: 0; }
+        }
+        .crack {
+            position: absolute;
+            width: 3px;
+            height: 15px;
+            background: #ff4500;
+            box-shadow: 0 0 4px #ff4500, 0 0 6px #ff4500, 0 0 8px #ff0000;
+            border-radius: 2px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s ease-out;
+        }
+        .crack1 { top: 20px; left: 25px; transform: rotate(25deg) scale(0); }
+        .crack2 { top: 18px; left: 45px; transform: rotate(-35deg) scale(0); height: 18px; }
+        .evolved .crack {
+            opacity: 1;
+            transform: rotate(25deg) scale(1);
+        }
+        .evolved .crack2 {
+             transform: rotate(-35deg) scale(1);
+        }
+        .health-bar-bg {
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 9999px;
+            padding: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .health-bar {
+            background: linear-gradient(to right, #ef4444, #f87171);
+            height: 16px;
+            border-radius: 9999px;
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px #ef4444;
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8">
+    <div class="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8">
         
+        <!-- Cột Nhiệm vụ -->
+        <div class="w-full md:w-1/4 order-2 md:order-1">
+            <div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+                <h2 class="text-xl font-bold text-white/80 mb-2">Mục Tiêu</h2>
+                <div class="health-bar-bg mb-4">
+                    <div id="health-bar" class="health-bar" style="width: 100%;"></div>
+                </div>
+                <div id="quest-list" class="space-y-2">
+                    <!-- Quest items will be generated by JS -->
+                </div>
+            </div>
+        </div>
+
         <!-- Cột Game chính -->
-        <div class="w-full max-w-md text-center">
-            <div class="mb-16">
+        <div class="w-full max-w-md text-center order-1 md:order-2">
+            <div class="mb-8">
                 <h1 id="game-title" class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-300 via-white to-pink-400 text-transparent bg-clip-text mb-2">Bảo Vệ Trái Tim</h1>
-                <p class="text-gray-300" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Mỗi trái tim được cứu là một thông điệp sức khỏe!</p>
+                <p class="text-gray-300" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Tiêu diệt quái vật thuốc lá!</p>
             </div>
 
             <div id="game-container" class="relative">
-                 <div class="danger-zone">
+                 <div id="cigarette-wrapper" class="absolute top-[-50px] left-0 right-0 flex justify-center pointer-events-none z-20" style="height: 50px;">
                     <div id="cigarette-sprite">
                          <div class="cigarette-body">
                             <div class="eye eye1"></div>
                             <div class="eye eye2"></div>
+                            <div class="crack crack1"></div>
+                            <div class="crack crack2"></div>
                             🚬
-                            <div class="smoke smoke1"></div>
-                            <div class="smoke smoke2"></div>
-                            <div class="smoke smoke3"></div>
                         </div>
+                        <div class="smoke smoke1"></div>
+                        <div class="smoke smoke2"></div>
+                        <div class="smoke smoke3"></div>
+                        <div class="smoke smoke4"></div>
+                        <div class="smoke smoke5"></div>
                         <div id="threat-bubble">
                             <p id="threat-text"></p>
                         </div>
@@ -150,17 +196,30 @@
         </div>
 
         <!-- Cột thông tin -->
-        <div class="flex flex-row md:flex-col gap-6 w-full md:w-auto">
-            <div class="flex-1 p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+        <div class="w-full md:w-1/4 order-3 flex flex-col gap-6">
+             <div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+                <p class="text-lg font-bold text-white/70">Cấp Độ</p>
+                <p id="level" class="text-4xl font-bold text-white">1</p>
+            </div>
+             <div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
                 <p class="text-lg font-bold text-white/70">Trái tim đã cứu</p>
                 <p id="score" class="text-4xl font-bold text-white">0</p>
             </div>
-            <div class="flex-1 p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+             <div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
                 <p class="text-lg font-bold text-white/70">Nước đi</p>
                 <p id="moves" class="text-4xl font-bold text-white">0</p>
             </div>
         </div>
 
+    </div>
+    
+    <!-- Modal Chiến Thắng -->
+    <div id="winModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
+            <h2 class="text-4xl font-bold text-green-600 mb-4">Chiến Thắng!</h2>
+            <p id="win-level-text" class="text-lg text-gray-700 mb-6"></p>
+            <button id="nextLevelButton" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">Tiếp tục</button>
+        </div>
     </div>
 
     <!-- Modal Game Over -->
@@ -188,7 +247,11 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
         const movesEl = document.getElementById('moves');
+        const winModal = document.getElementById('winModal');
+        const nextLevelButton = document.getElementById('nextLevelButton');
+        const winLevelText = document.getElementById('win-level-text');
         const gameOverModal = document.getElementById('gameOverModal');
         const finalScoreEl = document.getElementById('finalScore');
         const restartButton = document.getElementById('restartButton');
@@ -199,6 +262,8 @@
         const closeFactButton = document.getElementById('closeFactButton');
         const threatBubble = document.getElementById('threat-bubble');
         const threatText = document.getElementById('threat-text');
+        const healthBar = document.getElementById('health-bar');
+        const questList = document.getElementById('quest-list');
 
         // --- Dữ liệu tuyên truyền ---
         const HEALTH_FACTS = [
@@ -250,7 +315,9 @@
         let isPaused = false;
         let animations = [];
         let particles = [];
-        let cigarette = { col: Math.floor(GRID_SIZE / 2) };
+        let cigarette = { col: Math.floor(GRID_SIZE / 2), level: 1 };
+        let currentLevel = 1;
+        let quest = {};
         
         let startDragPos = { x: null, y: null };
         let startGem = null;
@@ -268,6 +335,35 @@
         }
 
         // --- Khởi tạo và Thiết lập Game ---
+        function setupLevel(level) {
+            currentLevel = level;
+            levelEl.textContent = level;
+            
+            const baseRequirement = 15 + (level - 1) * 5;
+            const numTargets = Math.min(2 + level, 6);
+            
+            quest = {
+                targets: {},
+                collected: {},
+                completed: {},
+                totalDamage: 0,
+                maxDamage: 0
+            };
+
+            let availableColors = [...Array(GEM_COLORS.length).keys()];
+            for(let i=0; i<numTargets; i++) {
+                if(availableColors.length === 0) break;
+                const colorIndex = availableColors.splice(Math.floor(Math.random() * availableColors.length), 1)[0];
+                const requirement = Math.floor(baseRequirement * (Math.random() * 0.4 + 0.8));
+                quest.targets[colorIndex] = requirement;
+                quest.collected[colorIndex] = 0;
+                quest.completed[colorIndex] = false;
+                quest.maxDamage += requirement;
+            }
+            updateQuestUI();
+            healthBar.style.width = '100%';
+        }
+
         function init() {
             const container = document.getElementById('game-container');
             const containerWidth = container.clientWidth;
@@ -278,6 +374,8 @@
             ctx.font = `${gemSize * 0.7}px sans-serif`;
 
             cigarette.col = Math.floor(GRID_SIZE / 2);
+            cigarette.level = 1;
+            cigaretteEl.classList.remove('evolved');
             updateCigarettePosition();
 
             board = [];
@@ -295,6 +393,7 @@
 
             updateScore();
             updateMoves();
+            setupLevel(1);
             createBoard();
             
             let matches = findMatches(board);
@@ -341,9 +440,7 @@
                 drawParticles();
                 drawSelection(time);
             }
-            if(!gameOverModal.classList.contains('hidden')) {
-                 if (threatInterval) clearInterval(threatInterval);
-            } else {
+            if(gameOverModal.classList.contains('hidden') && winModal.classList.contains('hidden')) {
                  requestAnimationFrame(gameLoop);
             }
         }
@@ -650,13 +747,14 @@
                 }
             }
             
-            if (gameOverModal.classList.contains('hidden')) {
+            if (gameOverModal.classList.contains('hidden') && winModal.classList.contains('hidden')) {
                 await moveCigarette();
                 if (checkGameOver()) {
                     isAnimating = false;
                     return;
                 }
                 spawnHeartIfNeeded();
+                checkWinCondition();
             }
             
             isAnimating = false;
@@ -821,6 +919,8 @@
         async function handleMatches(matches, specialToCreate) {
             const promises = [];
             let heartSaved = false;
+            let collectedForQuest = {};
+
             matches.forEach(gem => {
                 if(specialToCreate && gem.row === specialToCreate.row && gem.col === specialToCreate.col) {
                     // Skip
@@ -829,6 +929,11 @@
                         score++;
                         updateScore();
                         heartSaved = true;
+                    }
+                    const colorIdx = gem.colorIndex;
+                    if(quest.targets[colorIdx] !== undefined && !quest.completed[colorIdx]) {
+                        if(!collectedForQuest[colorIdx]) collectedForQuest[colorIdx] = 0;
+                        collectedForQuest[colorIdx]++;
                     }
                     for(let i=0; i<10; i++) {
                         particles.push({
@@ -847,6 +952,8 @@
                 }
             });
             await Promise.all(promises);
+            
+            await updateQuestProgress(collectedForQuest);
 
             if (specialToCreate) {
                 const gem = board[specialToCreate.row][specialToCreate.col];
@@ -990,8 +1097,84 @@
         }
 
         // --- Giao diện người dùng và Tiện ích ---
+        function updateQuestUI() {
+            questList.innerHTML = '';
+            for (const colorIdx in quest.targets) {
+                const remaining = Math.max(0, quest.targets[colorIdx] - quest.collected[colorIdx]);
+                const isCompleted = remaining === 0;
+                
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-2 rounded-lg transition-all ${isCompleted ? 'bg-green-500/30' : 'bg-black/20'}`;
+                item.innerHTML = `
+                    <div class="w-6 h-6 rounded-full" style="background-color: ${GEM_COLORS[colorIdx]}"></div>
+                    <span class="font-bold text-white">${remaining}</span>
+                `;
+                questList.appendChild(item);
+            }
+        }
+        
+        async function updateQuestProgress(collected) {
+            let didComplete = false;
+            for (const colorIdx in collected) {
+                const amount = collected[colorIdx];
+                if (quest.completed[colorIdx]) {
+                    await attackMonster(colorIdx, amount);
+                    continue;
+                };
+                
+                const before = quest.collected[colorIdx];
+                quest.collected[colorIdx] = Math.min(quest.targets[colorIdx], before + amount);
+                const after = quest.collected[colorIdx];
+                const overflow = (before + amount) - after;
+
+                if (after === quest.targets[colorIdx] && !quest.completed[colorIdx]) {
+                    quest.completed[colorIdx] = true;
+                    didComplete = true;
+                    await attackMonster(colorIdx, overflow + (after - before));
+                }
+            }
+            updateQuestUI();
+            if (didComplete) {
+                // Optional: add a sound or visual effect for completing a quest item
+            }
+        }
+
+        async function attackMonster(colorIndex, amount) {
+            const targetEl = document.getElementById('cigarette-sprite');
+            const targetRect = targetEl.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            for(let i=0; i<amount; i++) {
+                const p = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: gemSize * 0.2,
+                    color: GEM_COLORS[colorIndex],
+                    alpha: 1
+                };
+                particles.push(p);
+                
+                const targetX = targetRect.left - canvasRect.left + targetRect.width / 2;
+                const targetY = targetRect.top - canvasRect.top + targetRect.height / 2;
+
+                await animate(p, {x: targetX, y: targetY}, 500, easing.easeInQuad);
+                p.alpha = 0; // Make particle disappear on hit
+                
+                quest.totalDamage++;
+                const healthPercent = Math.max(0, 100 - (quest.totalDamage / quest.maxDamage) * 100);
+                healthBar.style.width = `${healthPercent}%`;
+                
+                cigaretteEl.style.transform = 'scale(1.2)';
+                setTimeout(() => cigaretteEl.style.transform = 'scale(1)', 200);
+            }
+        }
+
         function updateScore() { 
             scoreEl.textContent = score;
+            if (score === 5 && cigarette.level === 1) {
+                cigarette.level = 2;
+                cigaretteEl.classList.add('evolved');
+            }
         }
         function updateMoves() { movesEl.textContent = moves; }
 
@@ -1000,6 +1183,15 @@
             finalScoreEl.textContent = score;
             gameOverModal.classList.remove('hidden');
             setTimeout(() => gameOverModal.querySelector('div').classList.add('scale-100'), 10);
+        }
+
+        function checkWinCondition() {
+            if (quest.totalDamage >= quest.maxDamage) {
+                isAnimating = true;
+                winLevelText.textContent = `Bạn đã hoàn thành màn ${currentLevel}!`;
+                winModal.classList.remove('hidden');
+                setTimeout(() => winModal.querySelector('div').classList.add('scale-100'), 10);
+            }
         }
 
         async function showFact() {
@@ -1034,6 +1226,13 @@
             gameOverModal.classList.add('hidden');
             gameOverModal.querySelector('div').classList.remove('scale-100');
             init();
+        });
+
+        nextLevelButton.addEventListener('click', () => {
+            winModal.classList.add('hidden');
+            winModal.querySelector('div').classList.remove('scale-100');
+            setupLevel(currentLevel + 1);
+            createBoard();
         });
 
         function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
