@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Game Kim Cương: Bảo Vệ Trái Tim</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            touch-action: none;
+            overflow: hidden;
+            background-color: #4a5568; /* gray-700 */
+        }
+        canvas {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        #cigarette-sprite {
+            position: absolute;
+            top: -50px;
+            transition: left 0.3s ease-in-out, transform 0.2s ease-in-out;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+            pointer-events: none;
+            z-index: 20;
+        
+            transform: scale(2);
+            transform-origin: bottom center;
+        }
+        .cigarette-body {
+            position: relative;
+            font-size: 2.25rem; /* 36px */
+            line-height: 2.5rem;
+        }
+        .eye {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444; /* red-500 */
+            border-radius: 50%;
+            box-shadow: 0 0 5px #ef4444, 0 0 8px #ef4444, 0 0 10px #ef4444;
+            animation: eye-glow 1s infinite alternate;
+        }
+        .eye1 { top: 12px; left: 10px; }
+        .eye2 { top: 12px; left: 20px; }
+        @keyframes eye-glow {
+            from { opacity: 0.7; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1.5); }
+        }
+        #game-title {
+            animation: sparkle 5s infinite linear;
+        }
+        @keyframes sparkle {
+            0% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); }
+            50% { text-shadow: 2px 2px 8px rgba(236, 72, 153, 0.5); }
+            100% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); }
+        }
+        #threat-bubble {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1f2937;
+            color: #f87171;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        #threat-bubble.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #threat-bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+        .smoke {
+            position: absolute;
+            background: rgba(20, 20, 20, 0.5);
+            border-radius: 50%;
+            animation: smoke-rise 4s infinite;
+            opacity: 0;
+        }
+        .smoke1 { width: 15px; height: 15px; left: 25px; bottom: 30px; animation-delay: 0s; }
+        .smoke2 { width: 20px; height: 20px; left: 15px; bottom: 35px; animation-delay: 1s; }
+        .smoke3 { width: 12px; height: 12px; left: 35px; bottom: 32px; animation-delay: 2s; }
+        .smoke4, .smoke5 { display: none; }
+        .evolved .smoke4 { display: block; width: 18px; height: 18px; left: 30px; bottom: 38px; animation-delay: 0.5s; }
+        .evolved .smoke5 { display: block; width: 14px; height: 14px; left: 18px; bottom: 33px; animation-delay: 1.5s; }
+        @keyframes smoke-rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-60px) scale(2.5); opacity: 0; }
+        }
+        .crack {
+            position: absolute;
+            width: 3px;
+            height: 15px;
+            background: #ff4500;
+            box-shadow: 0 0 4px #ff4500, 0 0 6px #ff4500, 0 0 8px #ff0000;
+            border-radius: 2px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s ease-out;
+        }
+        .crack1 { top: 20px; left: 25px; transform: rotate(25deg) scale(0); }
+        .crack2 { top: 18px; left: 45px; transform: rotate(-35deg) scale(0); height: 18px; }
+        .evolved .crack {
+            opacity: 1;
+            transform: rotate(25deg) scale(1);
+        }
+        .evolved .crack2 {
+             transform: rotate(-35deg) scale(1);
+        }
+        .health-bar-bg {
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 9999px;
+            padding: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .health-bar {
+            background: linear-gradient(to right, #ef4444, #f87171);
+            height: 16px;
+            border-radius: 9999px;
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px #ef4444;
+        }
+    
+/* Title container positioning and animations */
+.title-container {
+    position: absolute;
+    left: 8%; /* move a bit right for balance */
+    top: 28%; /* slightly lower than 20% for balance with goal board */
+    transform: translateY(-50%);
+    text-align: left;
+    animation: fadeInScale 1s ease forwards;
+}
+.title-container h1 {
+    animation: fadeInScale 1s ease forwards;
+}
+.title-container p {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: .15em solid #fff;
+    animation: typing 3s steps(30, end), blink-caret .75s step-end infinite;
+}
+
+@keyframes fadeInScale {
+    0% { opacity: 0; transform: translateY(-50%) scale(0.8); }
+    100% { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: #fff; }
+}
+
+</style>
+</head>
+<body class="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 flex items-center justify-center min-h-screen p-4 pt-[140px]">
+<div class="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8">
+<!-- Cột Nhiệm vụ -->
+<div class="w-full md:w-1/4 order-2 md:order-1">
+<div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+<h2 class="text-xl font-bold text-white/80 mb-2">Mục Tiêu</h2>
+<div class="health-bar-bg mb-4">
+<div class="health-bar" id="health-bar" style="width: 100%;"></div>
+</div>
+<div class="space-y-2" id="quest-list">
+<!-- Quest items will be generated by JS -->
+</div>
+</div>
+</div>
+<!-- Cột Game chính -->
+<div class="mb-8 text-left md:text-left md:ml-[12px]">
+
+<div class="title-container">
+    <h1 class="to-pink-400 bg-clip-text bg-gradient-to-r from-pink-300 md:text-4xl text-4xl mb-2 text-3xl text-transparent via-white font-bold" id="game-title" style="white-space: nowrap">Bảo Vệ Trái Tim</h1>
+<p class="text-gray-200 italic text-xl md:text-2xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2); white-space: nowrap">Tiêu diệt quái vật thuốc lá!</p>
+</div>
+
+</div><div class="w-full max-w-md text-center order-1 md:order-2">
+<div class="relative" id="game-container">
+<div class="absolute top-[0px] left-0 right-0 flex justify-center pointer-events-none z-20" id="cigarette-wrapper" style="height: 50px;">
+<div id="cigarette-sprite">
+<div class="cigarette-body">
+<div class="eye eye1"></div>
+<div class="eye eye2"></div>
+<div class="crack crack1"></div>
+<div class="crack crack2"></div>
+                            🚬
+                        </div>
+<div class="smoke smoke1"></div>
+<div class="smoke smoke2"></div>
+<div class="smoke smoke3"></div>
+<div class="smoke smoke4"></div>
+<div class="smoke smoke5"></div>
+<div id="threat-bubble">
+<p id="threat-text"></p>
+</div>
+</div>
+</div>
+<canvas id="gameCanvas"></canvas>
+</div>
+</div>
+<!-- Cột thông tin -->
+<div class="w-full md:w-1/4 order-3 flex flex-col gap-6">
+<div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+<p class="text-lg font-bold text-white/70">Cấp Độ</p>
+<p class="text-4xl font-bold text-white" id="level">1</p>
+</div>
+<div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+<p class="text-lg font-bold text-white/70">Trái tim đã cứu</p>
+<p class="text-4xl font-bold text-white" id="score">0</p>
+</div>
+<div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+<p class="text-lg font-bold text-white/70">Nước đi</p>
+<p class="text-4xl font-bold text-white" id="moves">0</p>
+</div>
+</div>
+</div>
+<!-- Modal Chiến Thắng -->
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="winModal">
+<div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
+<h2 class="text-4xl font-bold text-green-600 mb-4">Chiến Thắng!</h2>
+<p class="text-lg text-gray-700 mb-6" id="win-level-text"></p>
+<button class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300" id="nextLevelButton">Tiếp tục</button>
+</div>
+</div>
+<!-- Modal Game Over -->
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="gameOverModal">
+<div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
+<h2 class="text-4xl font-bold text-red-800 mb-4">Nguy hiểm!</h2>
+<p class="text-lg text-gray-700 mb-2">Thuốc lá đã làm hại một trái tim.</p>
+<p class="text-xl text-gray-800 mb-6">Bạn đã bảo vệ được <span class="font-bold text-pink-600" id="finalScore">0</span> trái tim.</p>
+<button class="bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300" id="restartButton">Chơi lại</button>
+</div>
+</div>
+<!-- Modal Thông điệp sức khỏe -->
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm" id="factModal">
+<div class="bg-white rounded-2xl p-6 md:p-8 text-center shadow-2xl transform transition-all scale-95 max-w-md w-full">
+<h2 class="text-2xl md:text-3xl font-bold text-blue-700 mb-4">Sự Thật &amp; Lời Khuyên</h2>
+<p class="text-base md:text-lg text-gray-800 mb-3 text-left" id="factText"></p>
+<p class="text-base md:text-lg text-green-700 font-semibold mb-6 text-left" id="adviceText"></p>
+<button class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300" id="closeFactButton">Đã hiểu</button>
+</div>
+</div>
+<script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const movesEl = document.getElementById('moves');
+        const winModal = document.getElementById('winModal');
+        const nextLevelButton = document.getElementById('nextLevelButton');
+        const winLevelText = document.getElementById('win-level-text');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreEl = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
+
+const levelUpModal = document.getElementById('levelUpModal');
+const continueLevelUpButton = document.getElementById('continueLevelUpButton');
+const levelUpNextLevelEl = document.getElementById('levelUpNextLevel');
+if (continueLevelUpButton) {
+    continueLevelUpButton.addEventListener('click', () => {
+        if (levelUpModal) levelUpModal.classList.add('hidden');
+        currentLevel += 1;
+        levelEl.textContent = currentLevel;
+        if (typeof refreshTargets === 'function') refreshTargets();
+        window.levelUpPending = false;
+    });
+}
+
+        const cigaretteEl = document.getElementById('cigarette-sprite');
+        
+        const CIG_SCALE = 2;
+const factModal = document.getElementById('factModal');
+        const factText = document.getElementById('factText');
+        const adviceText = document.getElementById('adviceText');
+        const closeFactButton = document.getElementById('closeFactButton');
+        const threatBubble = document.getElementById('threat-bubble');
+        const threatText = document.getElementById('threat-text');
+        const healthBar = document.getElementById('health-bar');
+        const questList = document.getElementById('quest-list');
+
+        // --- Dữ liệu tuyên truyền ---
+        const HEALTH_FACTS = [
+            { fact: "Hầu hết thuốc lá điện tử chứa Nicotine, một chất gây nghiện cao có trong thuốc lá truyền thống. Nicotine đặc biệt có hại cho sự phát triển não bộ của thanh thiếu niên. (Nguồn: CDC Hoa Kỳ)", advice: "Lời khuyên: Hãy bảo vệ tương lai của bạn bằng cách nói không với tất cả các sản phẩm chứa nicotine." },
+            { fact: "Aerosol (khói) từ thuốc lá điện tử không phải là 'hơi nước' vô hại. Nó chứa các chất độc hại như kim loại nặng (niken, thiếc, chì) và các hợp chất hữu cơ dễ bay hơi. (Nguồn: WHO)", advice: "Lời khuyên: Đừng để những lời quảng cáo đánh lừa. Hít thở không khí trong lành luôn là lựa chọn tốt nhất cho lá phổi của bạn." },
+            { fact: "Sử dụng thuốc lá điện tử có liên quan đến các bệnh phổi nghiêm trọng, bao gồm 'tổn thương phổi do thuốc lá điện tử' (EVALI), có thể gây tử vong. (Nguồn: CDC Hoa Kỳ)", advice: "Lời khuyên: Mỗi lần từ chối thuốc lá điện tử là một lần bạn bảo vệ lá phổi khỏi những tổn thương không thể phục hồi." },
+            { fact: "Nicotine trong thuốc lá điện tử có thể làm tăng huyết áp và nhịp tim, làm tăng nguy cơ bị đau tim. (Nguồn: American Heart Association)", advice: "Lời khuyên: Giữ cho trái tim của bạn luôn khỏe mạnh bằng cách tránh xa nicotine dưới mọi hình thức." },
+            { fact: "Hương liệu trong thuốc lá điện tử có thể chứa diacetyl, một hóa chất liên quan đến bệnh phổi nghiêm trọng được gọi là 'phổi bỏng ngô'. (Nguồn: American Lung Association)", advice: "Lời khuyên: Những mùi hương hấp dẫn có thể che giấu những hóa chất cực kỳ nguy hiểm. Hãy lựa chọn sức khỏe thay vì hương vị nhân tạo." },
+            { fact: "Thanh thiếu niên sử dụng thuốc lá điện tử có khả năng chuyển sang hút thuốc lá truyền thống cao hơn so với những người không sử dụng. (Nguồn: National Academies of Sciences, Engineering, and Medicine)", advice: "Lời khuyên: Đừng mở cánh cửa đầu tiên dẫn đến nghiện ngập. Tránh xa thuốc lá điện tử là cách tốt nhất để không bao giờ trở thành người hút thuốc." },
+            { fact: "Pin của thiết bị thuốc lá điện tử có thể bị lỗi và gây cháy nổ, dẫn đến thương tích nghiêm trọng. (Nguồn: FDA Hoa Kỳ)", advice: "Lời khuyên: Nguy cơ cháy nổ là có thật. Đừng đánh cược sự an toàn của bản thân và những người xung quanh." },
+            { fact: "Nicotine có thể ảnh hưởng tiêu cực đến trí nhớ và khả năng tập trung, đặc biệt là ở lứa tuổi thanh thiếu niên khi não bộ vẫn đang phát triển. (Nguồn: U.S. Surgeon General)", advice: "Lời khuyên: Đừng để nicotine cản trở việc học tập và phát triển bản thân. Một bộ não khỏe mạnh là tài sản quý giá nhất." },
+            { fact: "Sử dụng thuốc lá điện tử có thể gây ra các vấn đề về răng miệng như viêm nướu, khô miệng và tăng nguy cơ sâu răng. (Nguồn: American Dental Association)", advice: "Lời khuyên: Một nụ cười đẹp bắt đầu từ sức khỏe răng miệng tốt. Hãy giữ cho nụ cười của bạn luôn rạng rỡ bằng cách tránh xa thuốc lá." },
+            { fact: "Nhiều loại tinh dầu thuốc lá điện tử được bán trên thị trường chợ đen, không rõ nguồn gốc và có thể chứa các chất cấm hoặc hóa chất độc hại không được kiểm soát. (Nguồn: WHO)", advice: "Lời khuyên: Đừng bao giờ thử những sản phẩm không rõ nguồn gốc. Sức khỏe của bạn đáng giá hơn nhiều." }
+        ];
+        let factsShown = [];
+        const THREATS = [
+            "Ngươi sẽ bị ung thư phổi!", 
+            "Trái tim ngươi đang yếu dần...", 
+            "Ta sẽ lấy đi hơi thở của ngươi!", 
+            "Da ngươi sẽ sớm nhăn nheo.", 
+            "Nghiện ngập là không thể tránh khỏi!",
+            "Ho khan sẽ là bạn đồng hành của ngươi!",
+            "Đừng mong có một giấc ngủ ngon!",
+            "Trí nhớ của ngươi sẽ suy giảm!",
+            "Ta đang phá hủy từng tế bào của ngươi..."
+        ];
+        let threatInterval = null;
+
+        // --- Cấu hình game ---
+        const GRID_SIZE = 8;
+        const GEM_COLORS = ['#FF3131', '#00FF7F', '#1E90FF', '#FF00FF', '#FF8C00', '#FFFF00'];
+        const HEART_EMOJI = '💗';
+        const MOVES_PER_HEART_SPAWN = 3; 
+        const LUNGE_CHANCE = 0.25;
+        const SPECIAL_TYPES = {
+            NONE: 'none',
+            H_BEAM: 'h_beam',
+            V_BEAM: 'v_beam',
+            BOMB: 'bomb',
+            HYPERCUBE: 'hypercube'
+        };
+
+        let gemSize;
+        let board = [];
+        let selectedGem = null;
+        let score = 0;
+        let moves = 0;
+        let isAnimating = false;
+        let isPaused = false;
+        let animations = [];
+        let particles = [];
+        let cigarette = { col: Math.floor(GRID_SIZE / 2), level: 1 };
+        let currentLevel = 1;
+        let currentPhase = 0; // wave/phase counter within a level
+let quest = {};
+        
+        let startDragPos = { x: null, y: null };
+        let startGem = null;
+        let isDragging = false;
+
+        function showThreat() {
+            if (isPaused || !gameOverModal.classList.contains('hidden')) return;
+            const threat = THREATS[Math.floor(Math.random() * THREATS.length)];
+            threatText.textContent = threat;
+            threatBubble.classList.add('visible');
+
+            setTimeout(() => {
+                threatBubble.classList.remove('visible');
+            }, 3000);
+        }
+
+        // --- Khởi tạo và Thiết lập Game ---
+        function setupLevel(level) {
+            currentLevel = level;
+            levelEl.textContent = level;
+            
+            
+            currentPhase = 0; // reset wave at new level
+const baseRequirement = 15 + (level - 1) * 5;
+            const numTargets = Math.min(2 + level, 6);
+            
+            quest = {
+                targets: {},
+                collected: {},
+                completed: {},
+                totalDamage: 0,
+                maxDamage: 0
+            };
+
+            let availableColors = [...Array(GEM_COLORS.length).keys()];
+            for(let i=0; i<numTargets; i++) {
+                if(availableColors.length === 0) break;
+                const colorIndex = availableColors.splice(Math.floor(Math.random() * availableColors.length), 1)[0];
+                const requirement = Math.floor(baseRequirement * (Math.random() * 0.4 + 0.8));
+                quest.targets[colorIndex] = requirement;
+                quest.collected[colorIndex] = 0;
+                quest.completed[colorIndex] = false;
+                quest.maxDamage += requirement;
+            }
+            updateQuestUI();
+            healthBar.style.width = '0%';
+        }
+        function refreshTargets() {
+            // Increase phase and re-roll a harder set of targets (more colors),
+            // while KEEPING quest.totalDamage / quest.maxDamage so health stays the same.
+            currentPhase += 1;
+            const baseRequirement = 15 + (currentLevel - 1) * 5;
+            const numTargets = Math.min(2 + currentLevel + currentPhase, 6);
+
+            // Recreate only targets/collected/completed; do NOT touch totalDamage/maxDamage
+            quest.targets = {};
+            quest.collected = {};
+            quest.completed = {};
+
+            let availableColors = [...Array(GEM_COLORS.length).keys()];
+            for (let i = 0; i < numTargets; i++) {
+                if (availableColors.length === 0) break;
+                const colorIndex = availableColors.splice(Math.floor(Math.random() * availableColors.length), 1)[0];
+                const requirement = Math.floor(baseRequirement * (Math.random() * 0.4 + 0.8));
+                quest.targets[colorIndex] = requirement;
+                quest.collected[colorIndex] = 0;
+                quest.completed[colorIndex] = false;
+                // quest.maxDamage stays unchanged to preserve the current health percentage
+            }
+            updateQuestUI();
+        
+            // Reset progress bar for new targets (phase)
+            healthBar.style.width = '0%';
+}
+
+
+        function init() {
+            const container = document.getElementById('game-container');
+            const containerWidth = container.clientWidth;
+            canvas.width = containerWidth;
+            canvas.height = containerWidth;
+            gemSize = canvas.width / GRID_SIZE;
+            
+            ctx.font = `${gemSize * 0.7}px sans-serif`;
+
+            cigarette.col = Math.floor(GRID_SIZE / 2);
+            cigarette.level = 1;
+            cigaretteEl.classList.remove('evolved');
+            updateCigarettePosition();
+
+            board = [];
+            score = 0;
+            moves = 0;
+            selectedGem = null;
+            isAnimating = false;
+            isPaused = false;
+            animations = [];
+            particles = [];
+            factsShown = [];
+            
+            if (threatInterval) clearInterval(threatInterval);
+            threatInterval = setInterval(showThreat, 5000);
+
+            updateScore();
+            updateMoves();
+            setupLevel(1);
+            createBoard();
+            
+            let matches = findMatches(board);
+            while (matches.length > 0) {
+                for (const gem of matches) {
+                    let newColorIndex;
+                    do {
+                        newColorIndex = Math.floor(Math.random() * GEM_COLORS.length);
+                    } while (newColorIndex === gem.colorIndex);
+                    board[gem.row][gem.col].colorIndex = newColorIndex;
+                }
+                matches = findMatches(board);
+            }
+            
+            spawnHeartIfNeeded(true);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function createBoard() {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                board[row] = [];
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    board[row][col] = {
+                        colorIndex: Math.floor(Math.random() * GEM_COLORS.length),
+                        isHeart: false,
+                        special: SPECIAL_TYPES.NONE,
+                        row: row,
+                        col: col,
+                        x: col * gemSize,
+                        y: row * gemSize,
+                        scale: 1,
+                        alpha: 1,
+                    };
+                }
+            }
+        }
+
+        // --- Vòng lặp Game và Vẽ ---
+        function gameLoop(time) {
+            if (!isPaused) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                handleAnimations(time);
+                drawBoard(time);
+                drawParticles();
+                drawSelection(time);
+            }
+            if(gameOverModal.classList.contains('hidden') && winModal.classList.contains('hidden')) {
+                 requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function drawGem(x, y, size, color, special, isHeart, time) {
+            const s = size * 0.85;
+            const half = s / 2;
+            const pulse = Math.sin(time / 150) * 0.2 + 0.8;
+
+            ctx.save();
+            ctx.translate(x, y);
+            
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 4;
+            ctx.shadowOffsetY = 4;
+
+            if (isHeart) {
+                const heartPulse = Math.sin(time / 300) * 0.15 + 0.9;
+                const heartGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, half * heartPulse * 1.3);
+                heartGlow.addColorStop(0, 'rgba(255, 182, 193, 0.8)');
+                heartGlow.addColorStop(1, 'rgba(255, 182, 193, 0)');
+                ctx.fillStyle = heartGlow;
+                ctx.beginPath();
+                ctx.arc(0, 0, half * 1.3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (special === SPECIAL_TYPES.HYPERCUBE) {
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+                ctx.shadowBlur = 20;
+                for (let i = 0; i < 6; i++) {
+                    ctx.fillStyle = GEM_COLORS[(i + Math.floor(time / 200)) % 6];
+                    ctx.beginPath();
+                    ctx.moveTo(0,0);
+                    const angle1 = (i / 6) * 2 * Math.PI + (time / 1000);
+                    const angle2 = ((i+1) / 6) * 2 * Math.PI + (time/1000);
+                    ctx.arc(0,0, half, angle1, angle2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                const pulseCore = Math.sin(time / 200) * 0.2 + 0.8;
+                ctx.fillStyle = `rgba(255, 255, 255, ${pulseCore})`;
+                ctx.beginPath();
+                ctx.arc(0, 0, half * 0.3, 0, 2 * Math.PI);
+                ctx.fill();
+
+            } else {
+                const shadeColor = (col, percent) => {
+                    let f=parseInt(col.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
+                    return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+                };
+
+                const lightColor = shadeColor(color, 0.6);
+                const darkColor = shadeColor(color, -0.6);
+
+                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, half);
+                grad.addColorStop(0, lightColor);
+                grad.addColorStop(1, color);
+                
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(0, -half); ctx.lineTo(half, 0); ctx.lineTo(0, half); ctx.lineTo(-half, 0);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = darkColor;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                ctx.moveTo(-half * 0.8, -half * 0.2);
+                ctx.lineTo(0, -half * 0.8);
+                ctx.lineTo(half * 0.2, -half * 0.6);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.save();
+                if (special === SPECIAL_TYPES.H_BEAM || special === SPECIAL_TYPES.V_BEAM) {
+                    const beamPulse = Math.sin(time / 250) * 2.0 + 3.0;
+                    ctx.fillStyle = 'white';
+                    ctx.shadowColor = 'white';
+                    ctx.shadowBlur = 20 * pulse;
+                    if(special === SPECIAL_TYPES.H_BEAM) {
+                        const beamWidth = half * 0.8 * beamPulse;
+                        const beamHeight = half * 0.15;
+                        const tipOffset = beamHeight * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(-beamWidth / 2, 0);
+                        ctx.lineTo(-beamWidth / 2 + tipOffset, -beamHeight / 2);
+                        ctx.lineTo(beamWidth / 2 - tipOffset, -beamHeight / 2);
+                        ctx.lineTo(beamWidth / 2, 0);
+                        ctx.lineTo(beamWidth / 2 - tipOffset, beamHeight / 2);
+                        ctx.lineTo(-beamWidth / 2 + tipOffset, beamHeight / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                    } else {
+                        const beamHeight = half * 0.8 * beamPulse;
+                        const beamWidth = half * 0.15;
+                        const tipOffset = beamWidth * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(0, -beamHeight / 2);
+                        ctx.lineTo(beamWidth / 2, -beamHeight / 2 + tipOffset);
+                        ctx.lineTo(beamWidth / 2, beamHeight / 2 - tipOffset);
+                        ctx.lineTo(0, beamHeight / 2);
+                        ctx.lineTo(-beamWidth / 2, beamHeight / 2 - tipOffset);
+                        ctx.lineTo(-beamWidth / 2, -beamHeight / 2 + tipOffset);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                } else if (special === SPECIAL_TYPES.BOMB) {
+                    ctx.scale(pulse, pulse);
+                    ctx.fillStyle = `rgba(255, 255, 255, 0.8)`;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, half * 0.6, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = `hsl(${time / 10 % 60}, 100%, 50%)`;
+                    ctx.shadowColor = `hsl(${time / 10 % 60}, 100%, 50%)`;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(0, -half * 0.5, size * 0.05, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawBoard(time) {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    const gem = board[row][col];
+                    if (gem) {
+                        const centerX = gem.x + gemSize / 2;
+                        const centerY = gem.y + gemSize / 2;
+                        
+                        ctx.save();
+                        ctx.globalAlpha = gem.alpha;
+                        ctx.translate(centerX, centerY);
+                        ctx.scale(gem.scale, gem.scale);
+                        ctx.translate(-centerX, -centerY);
+                        
+                        const color = gem.special === SPECIAL_TYPES.HYPERCUBE ? null : GEM_COLORS[gem.colorIndex];
+                        drawGem(centerX, centerY, gemSize, color, gem.special, gem.isHeart, time);
+                        
+                        if (gem.isHeart) {
+                            const heartPulse = Math.sin(time / 300) * 0.75 + 1.25;
+                            ctx.save();
+                            ctx.translate(centerX, centerY);
+                            ctx.scale(heartPulse, heartPulse);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = 'rgba(0,0,0,0)';
+                            ctx.font = `${gemSize * 0.6}px sans-serif`;
+                            ctx.fillText(HEART_EMOJI, 0, 0);
+                            ctx.restore();
+                        }
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+        
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.02;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        function drawSelection(time) {
+            if (selectedGem) {
+                const pulse = Math.sin(time / 100) * 0.5 + 0.5;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`;
+                ctx.lineWidth = 4;
+                ctx.strokeRect(selectedGem.col * gemSize + 2, selectedGem.row * gemSize + 2, gemSize - 4, gemSize - 4);
+            }
+        }
+
+        // --- Xử lý sự kiện người dùng (CƠ CHẾ LƯỚT) ---
+        function getEventPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches) {
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function handleDragStart(e) {
+            e.preventDefault();
+            if (isAnimating || isPaused) return;
+            const pos = getEventPos(e);
+            const col = Math.floor(pos.x / gemSize);
+            const row = Math.floor(pos.y / gemSize);
+
+            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
+                isDragging = true;
+                startDragPos = pos;
+                startGem = board[row][col];
+                selectedGem = startGem;
+            }
+        }
+
+        function handleDragMove(e) {
+            e.preventDefault();
+            if (!isDragging || isAnimating || isPaused) return;
+            
+            const pos = getEventPos(e);
+            const deltaX = pos.x - startDragPos.x;
+            const deltaY = pos.y - startDragPos.y;
+            
+            if (Math.abs(deltaX) > gemSize / 2 || Math.abs(deltaY) > gemSize / 2) {
+                let endGem = null;
+                if (Math.abs(deltaX) > Math.abs(deltaY)) { // Lướt ngang
+                    const endCol = startGem.col + (deltaX > 0 ? 1 : -1);
+                    if (endCol >= 0 && endCol < GRID_SIZE) {
+                        endGem = board[startGem.row][endCol];
+                    }
+                } else { // Lướt dọc
+                    const endRow = startGem.row + (deltaY > 0 ? 1 : -1);
+                     if (endRow >= 0 && endRow < GRID_SIZE) {
+                        endGem = board[endRow][startGem.col];
+                    }
+                }
+
+                if (endGem) {
+                    isDragging = false;
+                    selectedGem = null;
+                    processSwap(startGem, endGem);
+                }
+            }
+        }
+
+        function handleDragEnd(e) {
+            isDragging = false;
+            startGem = null;
+            selectedGem = null;
+        }
+
+        canvas.addEventListener('mousedown', handleDragStart);
+        canvas.addEventListener('mousemove', handleDragMove);
+        canvas.addEventListener('mouseup', handleDragEnd);
+        canvas.addEventListener('mouseleave', handleDragEnd);
+        canvas.addEventListener('touchstart', handleDragStart, { passive: false });
+        canvas.addEventListener('touchmove', handleDragMove, { passive: false });
+        canvas.addEventListener('touchend', handleDragEnd);
+
+        // --- Logic Game Chính ---
+        async function processSwap(gem1, gem2) {
+            isAnimating = true;
+            selectedGem = null;
+
+            const isGem1Beam = gem1.special === SPECIAL_TYPES.H_BEAM || gem1.special === SPECIAL_TYPES.V_BEAM;
+            const isGem2Beam = gem2.special === SPECIAL_TYPES.H_BEAM || gem2.special === SPECIAL_TYPES.V_BEAM;
+
+            if (isGem1Beam && isGem2Beam) {
+                let gemsToClear = new Set([gem1, gem2]);
+                for(let c=0; c<GRID_SIZE; c++) { if(board[gem1.row][c]) gemsToClear.add(board[gem1.row][c]); }
+                for(let r=0; r<GRID_SIZE; r++) { if(board[r][gem2.col]) gemsToClear.add(board[r][gem2.col]); }
+                moves++;
+                updateMoves();
+                await cascadeMatches(Array.from(gemsToClear));
+            } else if (gem1.special === SPECIAL_TYPES.HYPERCUBE || gem2.special === SPECIAL_TYPES.HYPERCUBE) {
+                const hypercube = gem1.special === SPECIAL_TYPES.HYPERCUBE ? gem1 : gem2;
+                const otherGem = hypercube === gem1 ? gem2 : gem1;
+                let gemsToClear = new Set([hypercube]);
+                if (otherGem.special !== SPECIAL_TYPES.HYPERCUBE) {
+                    const targetColorIndex = otherGem.colorIndex;
+                    for(let r=0; r<GRID_SIZE; r++) {
+                        for(let c=0; c<GRID_SIZE; c++) {
+                            if(board[r][c] && board[r][c].colorIndex === targetColorIndex) {
+                                gemsToClear.add(board[r][c]);
+                            }
+                        }
+                    }
+                }
+                moves++;
+                updateMoves();
+                await cascadeMatches(Array.from(gemsToClear));
+            } else {
+                await swapGems(gem1, gem2);
+                const matchInfo = findMatchesAndSpecial(gem1, gem2);
+                if (matchInfo.allMatches.length > 0) {
+                    moves++;
+                    updateMoves();
+                    await cascadeMatches(matchInfo.allMatches, matchInfo.specialToCreate);
+                } else {
+                    await swapGems(gem1, gem2);
+                }
+            }
+            
+            if (gameOverModal.classList.contains('hidden') && winModal.classList.contains('hidden')) {
+                await moveCigarette();
+                if (checkGameOver()) {
+                    isAnimating = false;
+                    return;
+                }
+                spawnHeartIfNeeded();
+                checkWinCondition();
+            }
+            
+            isAnimating = false;
+        }
+        
+        async function cascadeMatches(initialMatches, specialToCreate = null) {
+            let gemsToClear = new Set(initialMatches);
+            let processedSpecials = new Set();
+            
+            while(true) {
+                let newGemsFromExplosion = new Set();
+                let foundNewExplosion = false;
+                for(const gem of gemsToClear) {
+                    if(gem.special !== SPECIAL_TYPES.NONE && !processedSpecials.has(gem)) {
+                        foundNewExplosion = true;
+                        processedSpecials.add(gem);
+                        getSpecialEffectGems(gem).forEach(g => newGemsFromExplosion.add(g));
+                    }
+                }
+                if(!foundNewExplosion) break;
+                newGemsFromExplosion.forEach(g => gemsToClear.add(g));
+            }
+
+            const savedAHeart = await handleMatches(Array.from(gemsToClear), specialToCreate);
+            if (savedAHeart) {
+                await showFact();
+            }
+
+            await sleep(150);
+            await shiftAndRefill();
+            
+            const nextMatches = findMatches(board);
+            if (nextMatches.length > 0) {
+                await cascadeMatches(nextMatches);
+            } else {
+                 await moveHearts();
+            }
+        }
+
+        function getSpecialEffectGems(gem) {
+            let affected = new Set();
+            if (gem.special === SPECIAL_TYPES.H_BEAM) {
+                for(let c=0; c<GRID_SIZE; c++) { if(board[gem.row][c]) affected.add(board[gem.row][c]); }
+            } else if (gem.special === SPECIAL_TYPES.V_BEAM) {
+                for(let r=0; r<GRID_SIZE; r++) { if(board[r][gem.col]) affected.add(board[r][gem.col]); }
+            } else if (gem.special === SPECIAL_TYPES.BOMB) {
+                for(let r = gem.row - 1; r <= gem.row + 1; r++) {
+                    for(let c = gem.col - 1; c <= gem.col + 1; c++) {
+                        if(r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && board[r][c]) {
+                            affected.add(board[r][c]);
+                        }
+                    }
+                }
+            }
+            return affected;
+        }
+
+        function swapGems(gem1, gem2) {
+            const r1 = gem1.row, c1 = gem1.col;
+            const r2 = gem2.row, c2 = gem2.col;
+            board[r1][c1] = gem2;
+            board[r2][c2] = gem1;
+            gem1.row = r2; gem1.col = c2;
+            gem2.row = r1; gem2.col = c1;
+            const p1 = animate(gem1, { x: c2 * gemSize, y: r2 * gemSize }, 150, easing.easeInOutQuad);
+            const p2 = animate(gem2, { x: c1 * gemSize, y: r1 * gemSize }, 150, easing.easeInOutQuad);
+            return Promise.all([p1, p2]);
+        }
+        
+        function findMatches(currentBoard) {
+            const matches = new Set();
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE - 2; c++) {
+                    const gem1 = currentBoard[r][c];
+                    const gem2 = currentBoard[r][c+1];
+                    const gem3 = currentBoard[r][c+2];
+                    if (gem1 && gem2 && gem3 && gem1.colorIndex === gem2.colorIndex && gem2.colorIndex === gem3.colorIndex) {
+                        matches.add(gem1); matches.add(gem2); matches.add(gem3);
+                    }
+                }
+            }
+            for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_SIZE - 2; r++) {
+                     const gem1 = currentBoard[r][c];
+                    const gem2 = currentBoard[r+1][c];
+                    const gem3 = currentBoard[r+2][c];
+                    if (gem1 && gem2 && gem3 && gem1.colorIndex === gem2.colorIndex && gem2.colorIndex === gem3.colorIndex) {
+                        matches.add(gem1); matches.add(gem2); matches.add(gem3);
+                    }
+                }
+            }
+            return Array.from(matches);
+        }
+
+        function findMatchesAndSpecial(gem1, gem2) {
+            let allMatches = new Set();
+            let specialToCreate = null;
+            
+            const checkLine = (line) => {
+                let matches = [];
+                for(let i=0; i<line.length - 2; i++) {
+                    if(line[i] && line[i+1] && line[i+2] && line[i].colorIndex === line[i+1].colorIndex && line[i+1].colorIndex === line[i+2].colorIndex) {
+                        let len = 3;
+                        while(i+len < line.length && line[i].colorIndex === line[i+len].colorIndex) len++;
+                        let currentMatch = [];
+                        for(let j=0; j<len; j++) currentMatch.push(line[i+j]);
+                        matches.push(currentMatch);
+                        i += len - 1;
+                    }
+                }
+                return matches;
+            }
+
+            const hMatches1 = checkLine(board[gem1.row]);
+            const vMatches1 = checkLine(board.map(r => r[gem1.col]));
+            const hMatches2 = checkLine(board[gem2.row]);
+            const vMatches2 = checkLine(board.map(r => r[gem2.col]));
+            
+            const allFoundMatches = [...hMatches1, ...vMatches1, ...hMatches2, ...vMatches2];
+            allFoundMatches.forEach(m => m.forEach(g => allMatches.add(g)));
+
+            const hMatches = [...hMatches1, ...hMatches2];
+            const vMatches = [...vMatches1, ...vMatches2];
+
+            let bestMatch = {len: 0, match: null, type: null, isCross: false};
+
+            for(const match of allFoundMatches) {
+                if(match.includes(gem1) || match.includes(gem2)) {
+                    if (match.length >= 5) {
+                        bestMatch = { len: match.length, match, type: (match[0].row === match[1].row) ? 'h' : 'v', isCross: false };
+                        break;
+                    }
+                    if (match.length === 4 && bestMatch.len < 4) {
+                        bestMatch = { len: 4, match, type: (match[0].row === match[1].row) ? 'h' : 'v', isCross: false };
+                    }
+                }
+            }
+            
+            const intersection = hMatches.flat().filter(gem => vMatches.flat().includes(gem));
+            if (intersection.length > 0 && allMatches.size >= 5) {
+                bestMatch = { len: 5, match: intersection, type: 'cross', isCross: true };
+            }
+
+
+            if (bestMatch.len >= 5 && !bestMatch.isCross) {
+                specialToCreate = { special: SPECIAL_TYPES.HYPERCUBE, colorIndex: -1 };
+            } else if (bestMatch.isCross) {
+                 specialToCreate = { special: SPECIAL_TYPES.BOMB, colorIndex: gem1.colorIndex };
+            } else if (bestMatch.len === 4) {
+                specialToCreate = { special: bestMatch.type === 'h' ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM, colorIndex: gem1.colorIndex };
+            }
+            
+            if(specialToCreate && bestMatch.match) {
+                 const creationGem = bestMatch.match.includes(gem1) ? gem1 : gem2;
+                 specialToCreate.row = creationGem.row;
+                 specialToCreate.col = creationGem.col;
+            }
+
+            return { allMatches: Array.from(allMatches), specialToCreate };
+        }
+        
+        async function handleMatches(matches, specialToCreate) {
+            const promises = [];
+            let heartSaved = false;
+            let collectedForQuest = {};
+
+            matches.forEach(gem => {
+                if(specialToCreate && gem.row === specialToCreate.row && gem.col === specialToCreate.col) {
+                    // Skip
+                } else {
+                    if (gem.isHeart) {
+                        score++;
+                        updateScore();
+                        heartSaved = true;
+                    }
+                    const colorIdx = gem.colorIndex;
+                    if(quest.targets[colorIdx] !== undefined && !quest.completed[colorIdx]) {
+                        if(!collectedForQuest[colorIdx]) collectedForQuest[colorIdx] = 0;
+                        collectedForQuest[colorIdx]++;
+                    }
+                    for(let i=0; i<10; i++) {
+                        particles.push({
+                            x: gem.x + gemSize / 2,
+                            y: gem.y + gemSize / 2,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            size: Math.random() * 4 + 2,
+                            color: GEM_COLORS[gem.colorIndex],
+                            alpha: 1
+                        });
+                    }
+                    const p = animate(gem, { scale: 0, alpha: 0 }, 200, easing.easeInQuad);
+                    p.then(() => { board[gem.row][gem.col] = null; });
+                    promises.push(p);
+                }
+            });
+            await Promise.all(promises);
+            
+            await updateQuestProgress(collectedForQuest);
+
+            if (specialToCreate) {
+                const gem = board[specialToCreate.row][specialToCreate.col];
+                gem.special = specialToCreate.special;
+                gem.colorIndex = specialToCreate.colorIndex;
+                gem.isHeart = false;
+                await animate(gem, {scale: 1.5}, 150, easing.easeOutQuad).then(() => animate(gem, {scale: 1}, 150, easing.easeInQuad));
+            }
+            return heartSaved;
+        }
+
+        async function shiftAndRefill() {
+            const shiftPromises = [];
+            for (let c = 0; c < GRID_SIZE; c++) {
+                let emptySlots = 0;
+                for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                    if (board[r][c] === null) {
+                        emptySlots++;
+                    } else if (emptySlots > 0) {
+                        const gem = board[r][c];
+                        board[r + emptySlots][c] = gem;
+                        board[r][c] = null;
+                        gem.row += emptySlots;
+                        shiftPromises.push(animate(gem, { y: gem.row * gemSize }, 300, easing.easeOutQuad));
+                    }
+                }
+            }
+            await Promise.all(shiftPromises);
+
+            const refillPromises = [];
+            for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    if (board[r][c] === null) {
+                        const newGem = {
+                            colorIndex: Math.floor(Math.random() * GEM_COLORS.length),
+                            isHeart: false, special: SPECIAL_TYPES.NONE,
+                            row: r, col: c,
+                            x: c * gemSize, y: (r - GRID_SIZE) * gemSize,
+                            scale: 1, alpha: 1,
+                        };
+                        board[r][c] = newGem;
+                        refillPromises.push(animate(newGem, { y: r * gemSize }, 400, easing.easeOutQuad));
+                    }
+                }
+            }
+            await Promise.all(refillPromises);
+        }
+
+        function spawnHeartIfNeeded(isFirst = false) {
+             if (isFirst || (moves > 0 && moves % MOVES_PER_HEART_SPAWN === 0)) {
+                let availableCols = [];
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (board[GRID_SIZE - 1][c] && !board[GRID_SIZE - 1][c].isHeart && board[GRID_SIZE - 1][c].special === SPECIAL_TYPES.NONE) {
+                        availableCols.push(c);
+                    }
+                }
+                if (availableCols.length > 0) {
+                    const col = availableCols[Math.floor(Math.random() * availableCols.length)];
+                    const gem = board[GRID_SIZE - 1][col];
+                    gem.isHeart = true;
+                    gem.special = SPECIAL_TYPES.NONE;
+                    animate(gem, {scale: 1.5}, 150, easing.easeOutQuad).then(() => animate(gem, {scale: 1}, 150, easing.easeInQuad));
+                }
+            }
+        }
+
+        async function moveHearts() {
+            const movePromises = [];
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const gem = board[r][c];
+                    if (gem && gem.isHeart) {
+                        const newRow = r - 1;
+                        if (newRow < 0) continue;
+                        const gemAbove = board[newRow][c];
+                        
+                        board[newRow][c] = gem;
+                        board[r][c] = gemAbove;
+                        
+                        gem.row = newRow;
+                        if (gemAbove) gemAbove.row = r;
+                        
+                        movePromises.push(animate(gem, { y: newRow * gemSize }, 200, easing.easeInOutQuad));
+                        if (gemAbove) {
+                           movePromises.push(animate(gemAbove, { y: r * gemSize }, 200, easing.easeInOutQuad));
+                        }
+                    }
+                }
+            }
+            await Promise.all(movePromises);
+        }
+
+        async function moveCigarette() {
+            let highestHeart = null;
+            let minRow = GRID_SIZE;
+
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (board[r][c] && board[r][c].isHeart) {
+                        if (r < minRow) {
+                            minRow = r;
+                            highestHeart = board[r][c];
+                        }
+                    }
+                }
+            }
+
+            if (highestHeart) {
+                if (Math.random() < LUNGE_CHANCE) {
+                    const originalCol = cigarette.col;
+                    const targetCol = highestHeart.col;
+                    
+                    cigaretteEl.style.transition = 'left 0.1s ease-in';
+                    cigaretteEl.style.left = `${targetCol * gemSize}px`;
+                    await sleep(300);
+                    cigaretteEl.style.transition = 'left 0.4s ease-out';
+                    cigaretteEl.style.left = `${originalCol * gemSize}px`;
+                    await sleep(400);
+                }
+
+                if (cigarette.col < highestHeart.col) {
+                    cigarette.col++;
+                } else if (cigarette.col > highestHeart.col) {
+                    cigarette.col--;
+                }
+            }
+            cigaretteEl.style.transition = 'left 0.3s ease-in-out';
+            updateCigarettePosition();
+        }
+
+        function updateCigarettePosition() {
+            cigaretteEl.style.left = `${cigarette.col * gemSize}px`;
+        }
+        
+        function checkGameOver() {
+            if(board[0][cigarette.col] && board[0][cigarette.col].isHeart) {
+                showGameOver();
+                return true;
+            }
+            return false;
+        }
+
+        // --- Giao diện người dùng và Tiện ích ---
+        function updateQuestUI() {
+            questList.innerHTML = '';
+            for (const colorIdx in quest.targets) {
+                const remaining = Math.max(0, quest.targets[colorIdx] - quest.collected[colorIdx]);
+                const isCompleted = remaining === 0;
+                
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-2 rounded-lg transition-all ${isCompleted ? 'bg-green-500/30' : 'bg-black/20'}`;
+                item.innerHTML = `
+                    <div class="w-6 h-6 rounded-full" style="background-color: ${GEM_COLORS[colorIdx]}"></div>
+                    <span class="font-bold text-white">${remaining}</span>
+                `;
+                questList.appendChild(item);
+            }
+        
+            // Update overall quest progress bar
+            const totalRequired = Object.values(quest.targets).reduce((a,b)=>a+b,0);
+            const totalCollectedNow = Object.values(quest.collected).reduce((a,b)=>a+b,0);
+            const progressPercent = totalRequired>0 ? Math.min(100, (totalCollectedNow/totalRequired)*100) : 0;
+            healthBar.style.width = `${progressPercent}%`;
+            if (progressPercent >= 100) {
+                isAnimating = true;
+                winLevelText.textContent = `Bạn đã hoàn thành màn ${currentLevel}!`;
+                winModal.classList.remove('hidden');
+                setTimeout(() => winModal.querySelector('div').classList.add('scale-100'), 10);
+            }
+        }
+        
+        async function updateQuestProgress(collected) {
+    // collected: map colorIdx -> amount cleared
+    let didAnyComplete = false;
+    for (const key in collected) {
+        const colorIdx = parseInt(key, 10);
+        const amount = collected[key];
+        if (!quest.targets.hasOwnProperty(colorIdx)) continue;
+
+        const before = quest.collected[colorIdx] || 0;
+        const remaining = Math.max(0, quest.targets[colorIdx] - before);
+        const used = Math.min(remaining, amount);
+
+        quest.collected[colorIdx] = before + used;
+        if (typeof quest.totalDamage === 'number') {
+            quest.totalDamage += used;
+        }
+
+        // Chỉ tấn công khi hoàn thành đủ màu này
+        if (quest.collected[colorIdx] >= quest.targets[colorIdx] && !quest.completed[colorIdx]) {
+            quest.completed[colorIdx] = true;
+            didAnyComplete = true;
+            await attackMonster(colorIdx, used);
+        }
+    }
+    updateQuestUI();
+    if (typeof checkWinCondition === 'function') checkWinCondition();
+    return didAnyComplete;
+    
+}
+
+        async function attackMonster(colorIndex, amount) {
+            const targetEl = document.getElementById('cigarette-sprite');
+            const targetRect = targetEl.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            for(let i=0; i<amount; i++) {
+                const p = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: gemSize * 0.2,
+                    color: GEM_COLORS[colorIndex],
+                    alpha: 1
+                };
+                particles.push(p);
+                
+                const targetX = targetRect.left - canvasRect.left + targetRect.width / 2;
+                const targetY = targetRect.top - canvasRect.top + targetRect.height / 2;
+
+                await animate(p, {x: targetX, y: targetY}, 500, easing.easeInQuad);
+                p.alpha = 0; // Make particle disappear on hit
+                
+                /* Progress bar update (quest progress) */
+const totalRequired = Object.values(quest.targets).reduce((a,b)=>a+b,0);
+const totalCollectedNow = Object.values(quest.collected).reduce((a,b)=>a+b,0);
+const progressPercent = totalRequired>0 ? Math.min(100, (totalCollectedNow/totalRequired)*100) : 0;
+healthBar.style.width = `${progressPercent}%`;
+if (progressPercent >= 100) {
+    isAnimating = true;
+    winLevelText.textContent = `Bạn đã hoàn thành màn ${currentLevel}!`;
+    winModal.classList.remove('hidden');
+    setTimeout(() => winModal.querySelector('div').classList.add('scale-100'), 10);
+}
+cigaretteEl.style.transform = `scale(${CIG_SCALE * 1.2})`;
+                setTimeout(() => cigaretteEl.style.transform = `scale(${CIG_SCALE})`, 200);
+            }
+        }
+
+        function updateScore() { 
+            scoreEl.textContent = score;
+            if (score === 5 && cigarette.level === 1) {
+                cigarette.level = 2;
+                cigaretteEl.classList.add('evolved');
+            }
+        }
+        function updateMoves() { movesEl.textContent = moves; }
+
+        function showGameOver() {
+            isAnimating = true;
+            finalScoreEl.textContent = score;
+            gameOverModal.classList.remove('hidden');
+            setTimeout(() => gameOverModal.querySelector('div').classList.add('scale-100'), 10);
+        }
+
+        function checkWinCondition() {
+            if (quest.totalDamage >= quest.maxDamage) {
+                isAnimating = true;
+                winLevelText.textContent = `Bạn đã hoàn thành màn ${currentLevel}!`;
+                winModal.classList.remove('hidden');
+                setTimeout(() => winModal.querySelector('div').classList.add('scale-100'), 10);
+            }
+        }
+
+        async function showFact() {
+            isPaused = true;
+            let availableFacts = HEALTH_FACTS.filter(obj => !factsShown.includes(obj));
+            if (availableFacts.length === 0) {
+                factsShown = []; // Reset nếu đã hiển thị hết
+                availableFacts = HEALTH_FACTS;
+            }
+            const factObject = availableFacts[Math.floor(Math.random() * availableFacts.length)];
+            factsShown.push(factObject);
+            factText.textContent = factObject.fact;
+            adviceText.textContent = factObject.advice;
+            factModal.classList.remove('hidden');
+            await new Promise(resolve => {
+                const listener = () => {
+                    closeFactButton.removeEventListener('click', listener);
+                    factModal.classList.add('hidden');
+                    isPaused = false;
+                    resolve();
+                };
+                closeFactButton.addEventListener('click', listener);
+            });
+        }
+        
+        closeFactButton.addEventListener('click', () => {
+             factModal.classList.add('hidden');
+             isPaused = false;
+        });
+
+        restartButton.addEventListener('click', () => {
+            gameOverModal.classList.add('hidden');
+            gameOverModal.querySelector('div').classList.remove('scale-100');
+            init();
+        });
+
+        nextLevelButton.addEventListener('click', () => {
+    // Close modal
+    winModal.classList.add('hidden');
+    const panel = winModal.querySelector('div');
+    if (panel) panel.classList.remove('scale-100');
+
+    // Reset states
+    isAnimating = false;
+    isPaused = false;
+    isDragging = false;
+    selectedGem = null;
+    startGem = null;
+
+    // Advance level and rebuild
+    setupLevel(currentLevel + 1);
+    createBoard();
+
+    // Spawn initial heart for new level (if your game uses hearts)
+    if (typeof spawnHeartIfNeeded === 'function') {
+        try { spawnHeartIfNeeded(true); } catch(e) {}
+    }
+
+    // Ensure loop continues
+    if (typeof gameLoop === 'function') requestAnimationFrame(gameLoop);
+});
+
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        
+        // --- Hệ thống Animation ---
+        const easing = {
+            easeInOutQuad: t => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+            easeInQuad: t => t * t,
+            easeOutQuad: t => t * (2 - t)
+        };
+
+        function animate(target, toProperties, duration, easeFunc = easing.easeInOutQuad) {
+            return new Promise(resolve => {
+                animations.push({
+                    target,
+                    toProperties,
+                    duration,
+                    onComplete: resolve,
+                    startProperties: Object.keys(toProperties).reduce((acc, key) => {
+                        acc[key] = target[key];
+                        return acc;
+                    }, {}),
+                    startTime: Date.now(),
+                    easeFunc
+                });
+            });
+        }
+
+        function handleAnimations() {
+            const now = Date.now();
+            for (let i = animations.length - 1; i >= 0; i--) {
+                const anim = animations[i];
+                const elapsed = now - anim.startTime;
+                const progressLinear = Math.min(elapsed / anim.duration, 1);
+                const progress = anim.easeFunc(progressLinear);
+
+                for (const key in anim.toProperties) {
+                    const start = anim.startProperties[key];
+                    const to = anim.toProperties[key];
+                    anim.target[key] = start + (to - start) * progress;
+                }
+
+                if (progressLinear === 1) {
+                    anim.onComplete();
+                    animations.splice(i, 1);
+                }
+            }
+        }
+        
+        window.onload = init;
+        window.onresize = init;
+
+    </script>
+
+<!-- Level Up Modal -->
+<div id="levelUpModal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center">
+  <div class="bg-white w-[90%] max-w-md rounded-2xl p-6 text-center transform transition-all scale-100">
+    <h2 class="text-xl font-extrabold mb-2 text-gray-900">Qua cấp độ mới!</h2>
+    <p class="text-gray-700 mb-4">Bạn đã hoàn thành mục tiêu hiện tại. Bắt đầu cấp <span id="levelUpNextLevel" class="font-bold"></span>?</p>
+    <button id="continueLevelUpButton" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">Tiếp tục</button>
+  </div>
+</div>
+
+</body>
+</html>
