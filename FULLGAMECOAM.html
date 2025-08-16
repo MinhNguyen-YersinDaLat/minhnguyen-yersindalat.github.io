@@ -403,7 +403,7 @@ body.no-scroll {
 
                 
 <button onclick="showKimCuongGame()" class="group bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700 hover:from-blue-600 hover:via-purple-600 hover:to-pink-700 text-white font-bold py-6 px-12 rounded-2xl shadow-2xl transition-all duration-500 transform hover:scale-110 hover:rotate-1 border-2 border-white/20 text-2xl" id="kimcuongBtn">
-                    <span class="mr-3">🎴</span> Game Kim Cương
+                    <span class="mr-3">💎</span> Game Kim Cương không khói
                 </button>
 <button onclick="showGuidePopup()" class="bg-white/80 backdrop-blur-sm text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-300 border border-gray-300 shadow-md hover:bg-white hover:shadow-xl hover:scale-105">
                     <span class="mr-2">📖</span> Hướng dẫn chơi
@@ -447,36 +447,42 @@ body.no-scroll {
         </div>
     </div>
     
-    <!-- Popup Hướng dẫn chơi -->
-    <div id="guidePopup" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full popup-enter border-2 border-blue-200">
-            <div class="bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-t-2xl text-white flex justify-between items-center">
-                <h2 class="text-xl font-bold">Hướng dẫn chơi</h2>
-                <button onclick="closeGuidePopup()" class="text-white hover:text-red-200 text-2xl transition-colors">&times;</button>
-            </div>
-            <div class="p-6 space-y-4">
-<div class="p-6 space-y-4">
-  <div>
-    <h3 class="font-bold text-lg text-blue-700">🎮 Game 1: Cuộc Chiến Không Khói</h3>
-    <ul class="list-disc pl-5 text-gray-600 space-y-1">
-      <li><strong>Màn 1:</strong> Di chuyển bằng phím mũi tên, nhấn <span class="font-semibold">Space</span> để xem thông tin cơ quan. Hoàn thành khi khám phá đủ 8 cơ quan.</li>
-      <li><strong>Màn 2:</strong> Mũi tên trái/phải để di chuyển, <span class="font-semibold">Space</span> để bắn chất độc. Mục tiêu đạt 5000 điểm hoặc sống sót.</li>
-      <li><strong>Màn 3:</strong> Trả lời 15 câu hỏi trắc nghiệm về tác hại của thuốc lá.</li>
-    </ul>
-  </div>
+    <!-- Popup 📖 Hướng dẫn chơi -->
+<div id="guidePopup" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-[999]">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 popup-enter relative">
+      <!-- Nút đóng -->
+      <button onclick="closeGuidePopup()" class="absolute top-2 right-3 text-2xl text-gray-500 hover:text-red-500">&times;</button>
+      
+      <!-- Nội dung -->
+      <div class="text-left space-y-6">
+          <h2 class="text-2xl font-bold text-blue-600 mb-4">📖 Hướng dẫn chơi</h2>
+          
+          <!-- Game 1 -->
+          <div>
+              <h3 class="text-xl font-semibold">🎮 Game 1: Cuộc Chiến Không Khói</h3>
+              <p class="text-gray-700 mt-2">Màn 1: Dùng phím mũi tên để di chuyển, nhấn <b>Space</b> để xem thông tin cơ quan. Hoàn thành khi khám phá đủ <b>8 cơ quan</b>.</p>
+              <p class="text-gray-700">Màn 2: Dùng phím mũi tên <b>trái/phải</b> để di chuyển, nhấn <b>Space</b> để bắn chất độc. Mục tiêu: đạt <b>5000 điểm</b> hoặc sống sót.</p>
+              <p class="text-gray-700">Màn 3: Trả lời <b>15 câu hỏi trắc nghiệm</b> về tác hại của thuốc lá.</p>
+          </div>
 
-  <div>
-    <h3 class="font-bold text-lg text-pink-700">🎴 Game 2: Flashcard giáo dục</h3>
-    <ul class="list-disc pl-5 text-gray-600 space-y-1">
-      <li>Lật thẻ để ghi nhớ và ghép đúng các cặp thông tin.</li>
-      <li>Hoàn thành nhanh để được điểm cao.</li>
-    </ul>
+          <!-- Game 2 -->
+          <div>
+              <h3 class="text-xl font-semibold">🎴 Game 2: Flashcard giáo dục</h3>
+              <p class="text-gray-700 mt-2">Lật thẻ để ghi nhớ và <b>ghép đúng các cặp thông tin</b>.</p>
+              <p class="text-gray-700">Hoàn thành nhanh để được <b>điểm cao</b>.</p>
+          </div>
+
+          <!-- Game 3 -->
+          <div>
+              <h3 class="text-xl font-semibold">💎 Game 3: Kim Cương Không Khói</h3>
+              <p class="text-gray-700 mt-2">🔄 Di chuyển chuột hoặc chạm màn hình để đổi chỗ <b>hai viên kim cương liền kề</b>.</p>
+              <p class="text-gray-700">✨ Ghép <b>3 hoặc nhiều viên cùng màu</b> để ghi điểm.</p>
+              <p class="text-gray-700">👹 <b>Mục tiêu:</b> Đánh bại <b>quái vật thuốc lá</b> và ❤️ <b>giải cứu các trái tim</b> bằng cách đạt số điểm yêu cầu.</p>
+              <p class="text-gray-700">🔥 Ghép nhanh liên tiếp để nhận <b>combo thưởng cao</b>.</p>
+          </div>
+      </div>
   </div>
 </div>
-</div>
-            </div>
-        </div>
-    </div>
 
 
     <!-- Màn hình hướng dẫn -->
