@@ -408,6 +408,12 @@ body.no-scroll {
 <button onclick="showGuidePopup()" class="bg-white/80 backdrop-blur-sm text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-300 border border-gray-300 shadow-md hover:bg-white hover:shadow-xl hover:scale-105">
                     <span class="mr-2">📖</span> Hướng dẫn chơi
                 </button>
+                <!-- Nút Cốt truyện Game -->
+<button onclick="document.getElementById('storyPopup').classList.remove('hidden')" 
+  class="mt-3 px-6 py-3 bg-purple-500 text-white rounded-xl shadow-lg hover:bg-purple-600 transition">
+  📖 Cốt truyện Game
+</button>
+
                 <button onclick="showProjectInfo()" class="bg-white/80 backdrop-blur-sm text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-300 border border-gray-300 shadow-md hover:bg-white hover:shadow-xl hover:scale-105">
                     <span class="mr-2">ℹ️</span> Thông tin dự án
                 </button>
@@ -4035,3 +4041,33 @@ function closeKimCuongGame() {
     } catch(e){}
 }
 </script>
+<!-- Popup Cốt truyện -->
+<div id="storyPopup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+  <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-center">
+    <!-- Nút đóng -->
+    <button onclick="document.getElementById('storyPopup').classList.add('hidden')" 
+      class="absolute top-2 right-3 text-2xl text-gray-500 hover:text-red-500">&times;</button>
+    
+    <h2 class="text-2xl font-bold text-purple-600 mb-4">📖 Cốt truyện Game</h2>
+    <p class="text-gray-700 mb-6">Chọn cách bạn muốn khám phá cốt truyện:</p>
+
+    <div class="flex flex-col gap-4">
+      <!-- Link Video -->
+      <a href="https://drive.google.com/file/d/14pvQEbsQZsATzxgsd_LJSTqN9R9rivFe/view?usp=sharing" target="_blank" 
+         class="flex items-center justify-center gap-2 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition">
+        🎬 Xem Video
+      </a>
+
+      <!-- Link PDF -->
+      <a href="https://drive.google.com/file/d/1_4SshxdqXFvoo6LaIBgPNEohlbo-QfrX/view?usp=sharing" target="_blank" 
+         class="flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition">
+        📕 Đọc Truyện (PDF)
+      </a>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+</body>
+</html>
