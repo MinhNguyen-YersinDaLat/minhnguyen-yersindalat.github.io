@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phụ Lục Khoa Học - Cuộc Chiến Không Khói</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@900&family=Orbitron:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glow-color: #00f0ff; /* Cyan */
+            --accent-color: #ff00ff; /* Magenta */
+            --bg-color: #0d0221;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            color: #e0e0e0;
+            background-image:
+                linear-gradient(rgba(13, 2, 33, 0.97), rgba(13, 2, 33, 0.97)),
+                url('https://www.transparenttextures.com/patterns/carbon-fibre-v2.png');
+        }
+        
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        ::-webkit-scrollbar-thumb { background: var(--glow-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #fff; }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-exo { font-family: 'Exo 2', sans-serif; }
+
+        .main-title {
+            background: linear-gradient(90deg, var(--glow-color), #ffffff, var(--glow-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: text-flicker 3s linear infinite;
+        }
+
+        @keyframes text-flicker {
+            0%, 100% { text-shadow: 0 0 8px #fff, 0 0 12px var(--glow-color), 0 0 20px var(--glow-color); opacity: 1; }
+            50% { text-shadow: 0 0 5px #fff, 0 0 8px var(--glow-color), 0 0 15px var(--glow-color); opacity: 0.95; }
+        }
+
+        .cyber-glow { text-shadow: 0 0 5px var(--glow-color), 0 0 10px var(--glow-color); }
+        
+        .cyber-panel, .data-card {
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.1), inset 0 0 10px rgba(0, 217, 255, 0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .cyber-panel:hover, .data-card:hover {
+            border-color: var(--glow-color);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2), inset 0 0 15px rgba(0, 217, 255, 0.2);
+        }
+        .data-card {
+            cursor: pointer;
+        }
+        .data-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .cyber-panel::before, .cyber-panel::after {
+            content: ''; position: absolute; width: 20px; height: 20px; transition: all 0.3s ease;
+        }
+        .cyber-panel::before { top: -5px; left: -5px; border-top: 2px solid var(--glow-color); border-left: 2px solid var(--glow-color); }
+        .cyber-panel::after { bottom: -5px; right: -5px; border-bottom: 2px solid var(--glow-color); border-right: 2px solid var(--glow-color); }
+
+        .cyber-button {
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px var(--accent-color);
+            color: var(--accent-color);
+        }
+        .cyber-button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--accent-color), 0 0 30px var(--accent-color);
+            text-shadow: none;
+            transform: scale(1.05) translateY(-2px);
+        }
+
+        .timeline-item {
+            position: relative; padding-left: 3rem; padding-bottom: 2rem;
+            border-left: 2px solid rgba(0, 217, 255, 0.3);
+            transition: background-color 0.3s ease;
+        }
+        .timeline-item:last-child { border-left: 2px solid transparent; }
+        .timeline-item.highlighted { background-color: rgba(0, 240, 255, 0.1); }
+        .timeline-dot {
+            position: absolute; left: -0.7rem; top: 0; width: 1.25rem; height: 1.25rem;
+            border-radius: 50%; background-color: var(--bg-color);
+            border: 3px solid var(--glow-color); box-shadow: 0 0 10px var(--glow-color);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .timeline-item.highlighted .timeline-dot {
+            transform: scale(1.3);
+            background-color: #fff;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 1s ease-out forwards; opacity: 0; }
+        .fade-in-delay-1 { animation-delay: 0.2s; }
+        .fade-in-delay-2 { animation-delay: 0.4s; }
+        .fade-in-delay-3 { animation-delay: 0.6s; }
+
+        #modal-overlay {
+            position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px); z-index: 50;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        #modal-overlay.visible { opacity: 1; visibility: visible; }
+        #modal-content {
+            transform: scale(0.95); transition: transform 0.3s ease;
+        }
+        #modal-overlay.visible #modal-content { transform: scale(1); }
+
+        /* THÊM MỚI: CSS cho nút toàn màn hình */
+        #fullscreen-btn {
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+        }
+        #fullscreen-btn:hover {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: var(--glow-color);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <canvas id="background-canvas"></canvas>
+
+    <!-- THÊM MỚI: Nút toàn màn hình -->
+    <div id="fullscreen-container" class="fixed top-4 right-4 z-50">
+        <button id="fullscreen-btn" title="Toàn màn hình" class="w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300">
+            <svg id="icon-fullscreen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4-4l5-5m11 5v-4m0 0h-4m4 4l-5-5" />
+            </svg>
+            <svg id="icon-exit-fullscreen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <main class="max-w-5xl mx-auto relative z-10">
+        <!-- TIÊU ĐỀ CHÍNH -->
+        <header class="text-center mb-12 fade-in">
+            <h1 class="font-exo text-4xl md:text-6xl font-black main-title mb-4 uppercase tracking-wider">
+                Phụ Lục Khoa Học
+            </h1>
+            <p class="text-lg text-gray-300 font-orbitron">Cơ sở dữ liệu cho dự án "Cuộc Chiến Không Khói"</p>
+        </header>
+
+        <!-- NÚT QUAY VỀ -->
+        <div class="text-center mb-12 fade-in fade-in-delay-1">
+            <a href="index.html" class="cyber-button font-orbitron text-lg font-bold py-3 px-8 rounded-lg inline-block">
+                VỀ GIAO DIỆN CHÍNH
+            </a>
+        </div>
+
+        <!-- TÓM TẮT -->
+        <section class="mb-12 fade-in fade-in-delay-1">
+            <div class="cyber-panel rounded-lg p-6">
+                <h2 class="font-orbitron text-2xl font-bold mb-4 border-b-2 border-cyan-400/50 pb-2 cyber-glow uppercase">Tóm Tắt</h2>
+                <p class="text-base leading-relaxed">
+                    Tài liệu này tổng hợp và trích dẫn các nguồn thông tin khoa học uy tín được sử dụng làm nền tảng cho việc xây dựng nội dung giáo dục trong bộ trò chơi "Cuộc Chiến Không Khói". Các thông tin tập trung vào thành phần độc hại trong thuốc lá (bao gồm cả thuốc lá điện tử), tác động của chúng lên các cơ quan trong cơ thể, và lợi ích của việc cai thuốc.
+                </p>
+            </div>
+        </section>
+
+        <!-- 1. THÀNH PHẦN HÓA HỌC -->
+        <section class="mb-12 fade-in fade-in-delay-2">
+            <div class="cyber-panel rounded-lg p-6">
+                <h2 class="font-orbitron text-2xl font-bold mb-4 border-b-2 border-cyan-400/50 pb-2 cyber-glow uppercase">1. Thành phần hóa học & Các chất gây hại</h2>
+                <p class="mb-6">Khói thuốc lá chứa hơn **7.000 hợp chất hóa học**, trong đó ít nhất **70 chất** đã được chứng minh là tác nhân gây ung thư. Nhấp vào từng thẻ để xem chi tiết.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="data-card rounded-lg p-4 text-center" onclick="showModal('nicotine')">
+                        <h3 class="font-orbitron text-xl font-semibold text-cyan-300">Nicotine</h3>
+                        <p class="text-sm text-gray-400">Chất gây nghiện chính</p>
+                    </div>
+                    <div class="data-card rounded-lg p-4 text-center" onclick="showModal('tar')">
+                        <h3 class="font-orbitron text-xl font-semibold text-cyan-300">Hắc ín (Tar)</h3>
+                        <p class="text-sm text-gray-400">Hỗn hợp gây ung thư</p>
+                    </div>
+                    <div class="data-card rounded-lg p-4 text-center" onclick="showModal('co')">
+                        <h3 class="font-orbitron text-xl font-semibold text-cyan-300">Carbon Monoxide</h3>
+                        <p class="text-sm text-gray-400">Khí độc chiếm oxy</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. TÁC HẠI CỦA THUỐC LÁ ĐIỆN TỬ -->
+        <section class="mb-12 fade-in fade-in-delay-3">
+            <div class="cyber-panel rounded-lg p-6">
+                <h2 class="font-orbitron text-2xl font-bold mb-4 border-b-2 border-cyan-400/50 pb-2 cyber-glow uppercase">2. Tác hại của thuốc lá điện tử (Vape)</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="data-card rounded-lg p-4 text-center" onclick="showModal('eliquid')">
+                        <h3 class="font-orbitron text-xl font-semibold text-cyan-300">Dung dịch (E-liquid)</h3>
+                        <p class="text-sm text-gray-400">Hóa chất khi đun nóng</p>
+                    </div>
+                    <div class="data-card rounded-lg p-4 text-center" onclick="showModal('aerosol')">
+                        <h3 class="font-orbitron text-xl font-semibold text-cyan-300">"Hơi" (Aerosol)</h3>
+                        <p class="text-sm text-gray-400">Không phải hơi nước</p>
+                    </div>
+                    <div class="data-card rounded-lg p-4 text-center" onclick="showModal('evali')">
+                        <h3 class="font-orbitron text-xl font-semibold text-cyan-300">EVALI</h3>
+                        <p class="text-sm text-gray-400">Tổn thương phổi cấp</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. DÒNG THỜI GIAN PHỤC HỒI -->
+        <section class="mb-12 fade-in fade-in-delay-3">
+            <div class="cyber-panel rounded-lg p-6">
+                <h2 class="font-orbitron text-2xl font-bold mb-6 border-b-2 border-cyan-400/50 pb-2 cyber-glow uppercase">3. Dòng thời gian phục hồi sinh lý</h2>
+                <div id="timeline-container" class="relative">
+                    <!-- Các mục timeline sẽ được tạo bằng JS -->
+                </div>
+                <p class="text-sm text-gray-400 mt-4 text-right italic">*(Nguồn: Tổng hợp từ WHO và American Cancer Society)*</p>
+            </div>
+        </section>
+
+        <!-- 4. TÀI LIỆU THAM KHẢO -->
+        <section class="mb-12 fade-in fade-in-delay-3">
+            <div class="cyber-panel rounded-lg p-6">
+                <h2 class="font-orbitron text-2xl font-bold mb-4 border-b-2 border-cyan-400/50 pb-2 cyber-glow uppercase">4. Danh mục tài liệu tham khảo</h2>
+                <div class="space-y-3 text-sm leading-relaxed">
+                    <p>1. Benowitz, N. L. (2010). Nicotine Addiction. *The New England Journal of Medicine*, *362*(24), 2295–2303.</p>
+                    <p>2. Centers for Disease Control and Prevention (CDC). (2020). *Outbreak of Lung Injury Associated with the Use of E-Cigarette, or Vaping, Products*.</p>
+                    <p>3. International Agency for Research on Cancer (IARC). (2004). *Tobacco Smoke and Involuntary Smoking*. IARC Monographs, Vol. 83.</p>
+                    <p>4. National Academies of Sciences, Engineering, and Medicine. (2018). *Public Health Consequences of E-Cigarettes*.</p>
+                    <p>5. U.S. Department of Health and Human Services. (2010). *How Tobacco Smoke Causes Disease: A Report of the Surgeon General*.</p>
+                    <p>6. World Health Organization (WHO). (2023). *Tobacco Fact Sheet*.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="modal-overlay">
+        <div id="modal-content" class="cyber-panel rounded-lg p-6 max-w-2xl w-full">
+            <div class="flex justify-between items-start mb-4">
+                <h2 id="modal-title" class="font-orbitron text-2xl font-bold cyber-glow uppercase"></h2>
+                <button id="modal-close-btn" class="text-4xl leading-none text-red-500 hover:text-white transition-colors">&times;</button>
+            </div>
+            <div id="modal-body" class="max-h-[60vh] overflow-y-auto pr-4">
+                <!-- Nội dung modal sẽ được chèn vào đây -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- NÂNG CẤP TOÀN DIỆN VỚI JAVASCRIPT ---
+
+        // --- 1. ÂM THANH TƯƠNG TÁC (SOUND UX) ---
+        let audioInitialized = false;
+        const sounds = {};
+
+        function initAudio() {
+            sounds.click = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.01, release: 0.1 } }).toDestination();
+            sounds.hover = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.001, decay: 0.05, sustain: 0.01, release: 0.1 } }).toDestination();
+            sounds.openModal = new Tone.FMSynth({ harmonicity: 1.5, modulationIndex: 5, envelope: { attack: 0.01, decay: 0.2, release: 0.2 } }).toDestination();
+            sounds.closeModal = new Tone.Synth({ oscillator: { type: "square" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.1 } }).toDestination();
+            
+            const ambientSynth = new Tone.AMSynth({
+                harmonicity: 1.5,
+                envelope: { attack: 2, release: 2 },
+                modulation: { type: "sine" },
+                modulationEnvelope: { attack: 2, release: 2 }
+            }).toDestination();
+            ambientSynth.volume.value = -25;
+            new Tone.Loop(time => {
+                ambientSynth.triggerAttackRelease("C2", "8n", time);
+            }, "4m").start(0);
+
+            Tone.Transport.start();
+            audioInitialized = true;
+        }
+
+        document.body.addEventListener('click', async () => {
+            if (!audioInitialized) {
+                await Tone.start();
+                initAudio();
+            }
+        }, { once: true });
+
+        // --- 2. CƠ SỞ DỮ LIỆU CHO MODAL ---
+        const modalData = {
+            nicotine: {
+                title: "Nicotine (C₁₀H₁₄N₂)",
+                content: `<p>Là một hợp chất alkaloid, chất gây nghiện chính. Nicotine tác động lên não trong vòng 10-20 giây, kích thích giải phóng dopamine, tạo ra vòng lặp nghiện ngập (Benowitz, 2010). Nó cũng gây tăng nhịp tim và co thắt mạch máu.</p>`
+            },
+            tar: {
+                title: "Hắc ín (Tar)",
+                content: `<p>Là hỗn hợp các hạt rắn, chứa các chất gây ung thư mạnh như hydrocarbon thơm đa vòng (PAHs). Hắc ín tích tụ trong phổi, làm tê liệt và phá hủy các lông mao (cilia), là tác nhân chính gây ung thư phổi (IARC, 2004).</p>`
+            },
+            co: {
+                title: "Carbon Monoxide (CO)",
+                content: `<p>Là khí độc không màu, không mùi. CO liên kết với hemoglobin mạnh hơn oxy 200-250 lần, làm giảm khả năng vận chuyển oxy của máu đến các mô, buộc tim và não phải làm việc quá sức (U.S. Department of Health and Human Services, 2010).</p>`
+            },
+            eliquid: {
+                title: "Dung dịch (E-liquid)",
+                content: `<p>Khi các chất như propylene glycol và glycerin bị đun nóng, chúng có thể phân hủy và tạo ra các hợp chất độc hại mới như **formaldehyde** và **acrolein** (National Academies of Sciences, Engineering, and Medicine, 2018).</p>`
+            },
+            aerosol: {
+                title: '"Hơi" (Aerosol)',
+                content: `<p>Aerosol từ vape chứa các hạt siêu mịn có thể xâm nhập sâu vào phổi, các kim loại nặng (niken, thiếc, chì) từ cuộn dây đốt và các hợp chất hữu cơ dễ bay hơi.</p>`
+            },
+            evali: {
+                title: "EVALI",
+                content: `<p>Là một tình trạng tổn thương phổi cấp tính nghiêm trọng liên quan đến việc sử dụng thuốc lá điện tử, đã được CDC Hoa Kỳ ghi nhận (CDC, 2020).</p>`
+            }
+        };
+
+        const timelineData = [
+            { time: "20 phút", effect: "Nhịp tim và huyết áp bắt đầu giảm về mức bình thường.", color: "cyan" },
+            { time: "12 giờ", effect: "Nồng độ Carbon Monoxide trong máu trở lại bình thường.", color: "cyan" },
+            { time: "1 năm", effect: "Nguy cơ mắc bệnh tim mạch vành giảm 50% so với người hút thuốc.", color: "cyan" },
+            { time: "5 năm", effect: "Nguy cơ đột quỵ giảm xuống mức của người không hút thuốc.", color: "cyan" },
+            { time: "10 năm", effect: "Nguy cơ tử vong do ung thư phổi giảm khoảng 50%.", color: "cyan" },
+            { time: "15 năm", effect: "Nguy cơ mắc bệnh tim mạch vành trở lại mức của người chưa bao giờ hút thuốc.", color: "pink" }
+        ];
+
+        // --- 3. LOGIC HIỂN THỊ MODAL VÀ TƯƠNG TÁC ---
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showModal(key) {
+            const data = modalData[key];
+            if (!data) return;
+
+            if (audioInitialized) sounds.openModal.triggerAttackRelease("C4", "0.2s");
+            
+            modalTitle.textContent = data.title;
+            modalBody.innerHTML = data.content;
+            modalOverlay.classList.add('visible');
+        }
+
+        function hideModal() {
+            if (audioInitialized) sounds.closeModal.triggerAttackRelease("C3", "0.1s");
+            modalOverlay.classList.remove('visible');
+        }
+
+        modalCloseBtn.addEventListener('click', hideModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                hideModal();
+            }
+        });
+
+        // --- 4. TẠO DÒNG THỜI GIAN TƯƠNG TÁC ---
+        const timelineContainer = document.getElementById('timeline-container');
+        timelineData.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'timeline-item';
+            div.innerHTML = `
+                <div class="timeline-dot"></div>
+                <h3 class="font-orbitron text-xl font-semibold text-${item.color}-300">${item.time}</h3>
+                <p>${item.effect}</p>
+            `;
+            div.addEventListener('mouseenter', () => {
+                div.classList.add('highlighted');
+                if (audioInitialized) sounds.hover.triggerAttackRelease("A5", "0.05s");
+            });
+            div.addEventListener('mouseleave', () => {
+                div.classList.remove('highlighted');
+            });
+            timelineContainer.appendChild(div);
+        });
+
+        // --- 5. NỀN CANVAS ĐỘNG ---
+        const canvas = document.getElementById('background-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        function setupCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particlesArray = [];
+            const numberOfParticles = (canvas.width * canvas.height) / 12000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 1.5) + 0.5;
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let directionX = (Math.random() * .4) - .2;
+                let directionY = (Math.random() * .4) - .2;
+                particlesArray.push({x, y, directionX, directionY, size});
+            }
+        }
+
+        function connect(){
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                    + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/8) * (canvas.height/8)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = `rgba(0, 240, 255, ${opacityValue})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                let p = particlesArray[i];
+                if (p.x > canvas.width || p.x < 0) { p.directionX = -p.directionX; }
+                if (p.y > canvas.height || p.y < 0) { p.directionY = -p.directionY; }
+                p.x += p.directionX;
+                p.y += p.directionY;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 240, 255, 0.8)';
+                ctx.fill();
+            }
+            connect();
+        }
+
+        window.addEventListener('resize', setupCanvas);
+        setupCanvas();
+        animate();
+
+        // --- THÊM MỚI: LOGIC CHO NÚT TOÀN MÀN HÌNH ---
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const iconFullscreen = document.getElementById('icon-fullscreen');
+        const iconExitFullscreen = document.getElementById('icon-exit-fullscreen');
+
+        function toggleFullScreen() {
+            if (audioInitialized) sounds.click.triggerAttackRelease("G5", "8n");
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Lỗi khi bật toàn màn hình: ${err.message} (${err.name})`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function updateFullscreenIcons() {
+            const isFullscreen = !!document.fullscreenElement;
+            iconFullscreen.classList.toggle('hidden', isFullscreen);
+            iconExitFullscreen.classList.toggle('hidden', !isFullscreen);
+        }
+
+        fullscreenBtn.addEventListener('click', toggleFullScreen);
+        document.addEventListener('fullscreenchange', updateFullscreenIcons);
+
+    </script>
+</body>
+</html>
