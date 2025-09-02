@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hội Thoại: Cuộc Chiến Hơi Thở Xanh</title>
+    <!-- Thêm thư viện Tone.js cho âm thanh -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+        :root {
+            --primary-color: #00b4d8;
+            --dark-color: #0d1b2a;
+            --text-color: #e5e7eb;
+            --glow-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+            --border-color: rgba(0, 180, 216, 0.3);
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--dark-color);
+            font-family: 'Roboto Condensed', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* --- NÂNG CẤP: HIỆU ỨNG NỀN --- */
+        #background-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .particle {
+            position: absolute;
+            background: white; /* Thay đổi để hiệu ứng glow đẹp hơn */
+            border-radius: 50%;
+            opacity: 0;
+            /* Cập nhật animation để có hiệu ứng lấp lánh */
+            animation: rise-and-twinkle 15s infinite linear;
+        }
+        /* Keyframe mới cho hiệu ứng lấp lánh */
+        @keyframes rise-and-twinkle {
+            0% {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 0;
+            }
+            10%, 90% {
+                opacity: 0.8;
+                box-shadow: 0 0 8px 2px white, 0 0 12px 4px var(--primary-color);
+            }
+            50% {
+                opacity: 0.4;
+                box-shadow: 0 0 4px 1px white, 0 0 8px 2px var(--primary-color);
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.2);
+                opacity: 0;
+                box-shadow: none;
+            }
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            height: 90%;
+            max-height: 600px;
+            background: rgba(17, 24, 39, 0.85); /* Tăng độ mờ để nền nổi bật hơn */
+            backdrop-filter: blur(5px); /* Hiệu ứng làm mờ nền phía sau */
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 40px rgba(0, 180, 216, 0.3), inset 0 0 15px rgba(0, 180, 216, 0.2);
+            border-radius: 15px;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 1; /* Đảm bảo container nổi lên trên nền */
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .game-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #f9fafb;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            margin: 0;
+        }
+        .game-slogan {
+            font-size: 1.1em;
+            color: var(--primary-color);
+            text-shadow: var(--glow-shadow);
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.5em;
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+        .story-text p {
+            margin: 0;
+            padding: 0;
+        }
+        .typing-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.5em;
+            background-color: var(--primary-color);
+            animation: blink 0.7s infinite;
+            margin-left: 5px;
+            vertical-align: bottom;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex; /* Dàn các nút bấm */
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap; /* Cho phép các nút xuống dòng trên màn hình nhỏ */
+        }
+        button {
+            padding: 15px 30px;
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: var(--dark-color);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 18px;
+            text-shadow: none;
+        }
+        button:hover {
+            background: #48cae4;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 180, 216, 0.4);
+        }
+        button:disabled {
+            background: #555;
+            border-color: #777;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        /* NÂNG CẤP: Nút phụ */
+        .secondary-button {
+            background: transparent;
+            color: var(--primary-color);
+        }
+        .secondary-button:hover {
+            background: rgba(0, 180, 216, 0.2);
+        }
+        
+        /* CSS cho các từ được nhấn mạnh trong hội thoại */
+        @keyframes subtle-glow {
+            0%, 100% { text-shadow: 0 0 6px currentColor, 0 0 12px currentColor; }
+            50% { text-shadow: 0 0 12px currentColor, 0 0 24px currentColor; }
+        }
+        .emphasis { 
+            animation: subtle-glow 2.5s ease-in-out infinite; 
+        }
+        /* CẬP NHẬT: Thay thế các lớp màu cũ */
+        .text-harmful { color: #ef4444; } /* Màu đỏ cảnh báo cho thông tin gây hại */
+        .text-helpful { color: #4ade80; } /* Màu xanh lá cây tươi sáng cho thông tin tốt */
+        .font-bold { font-weight: 700; }
+
+        #copyright {
+            position: fixed; bottom: 0; left: 0; width: 100%; text-align: center;
+            font-size: 13px; padding: 6px 0; font-family: 'Roboto', sans-serif;
+            z-index: 9999; pointer-events: none; color: rgba(255, 255, 255, 0.85);
+            background: transparent; opacity: 0; animation: fadeIn 2s ease forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <!-- NÂNG CẤP: Thêm div cho hiệu ứng nền -->
+    <div id="background-wrap"></div>
+
+    <!-- Màn hình bắt đầu -->
+    <div id="intro-container" class="container">
+        <div class="header">
+            <h1 class="game-title">CUỘC CHIẾN HƠI THỞ XANH</h1>
+            <p class="game-slogan">Bảo vệ từng nhịp thở — Nói không với thuốc lá</p>
+        </div>
+        <div class="content">
+            <p>Sẵn sàng khám phá lời thoại mở đầu cho cuộc chiến?</p>
+        </div>
+        <div class="footer">
+            <button id="start-button">Bắt đầu</button>
+        </div>
+    </div>
+
+    <!-- Màn hình hội thoại (ẩn ban đầu) -->
+    <div id="story-container" class="container hidden">
+        <div class="header">
+            <h1 class="game-title">CUỘC CHIẾN HƠI THỞ XANH</h1>
+            <p class="game-slogan">Bảo vệ từng nhịp thở — Nói không với thuốc lá</p>
+        </div>
+        <div class="content story-content">
+            <div id="story-text-container" class="story-text">
+                <p id="story-text"></p><span id="cursor" class="typing-cursor"></span>
+            </div>
+        </div>
+        <div class="footer">
+            <!-- NÂNG CẤP: Thêm nút Bỏ qua -->
+            <button id="skip-button" class="secondary-button">Bỏ qua</button>
+            <button id="next-button">Tiếp theo</button>
+        </div>
+    </div>
+    
+    <!-- MÀN HÌNH LỰA CHỌN SAU HỘI THOẠI (THAY THẾ) -->
+    <div id="end-dialogue-container" class="container hidden">
+         <div class="header">
+            <h1 class="game-title">KẾT THÚC HỘI THOẠI</h1>
+            <p class="game-slogan">Lựa chọn con đường của bạn.</p>
+        </div>
+        <div class="content">
+            <p style="font-size: 1.2em;">Bạn đã nắm rõ thông điệp. <br>Giờ là lúc quyết định hành động tiếp theo.</p>
+        </div>
+        <div class="footer">
+            <button id="replay-button" class="secondary-button">Xem lại hội thoại</button>
+            <button id="play-game-button">Vào Game</button>
+            <button id="home-button" class="secondary-button">Về màn hình chính</button>
+        </div>
+    </div>
+
+    <div id="copyright">
+        © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
+    </div>
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        const dialogueLines = [
+            "“Tiếng kêu cứu không chỉ vọng lên từ <span class='text-harmful font-bold emphasis'>trái tim</span>, <span class='text-harmful font-bold emphasis'>lá phổi</span> hay <span class='text-harmful font-bold emphasis'>bộ não</span>…”",
+            "“...mà còn từ chính những <span class='text-helpful font-bold emphasis'>bạn trẻ</span> đang bị <span class='text-harmful font-bold emphasis'>khói thuốc</span> và <span class='text-harmful font-bold emphasis'>thuốc lá điện tử</span> lôi kéo.”",
+            "“<span class='text-harmful font-bold emphasis'>Khói độc</span> đang tràn tới, với hàng trăm chất hóa học <span class='text-harmful font-bold emphasis'>nguy hiểm</span>, âm thầm bào mòn sự sống.”",
+            "“Nhưng <span class='text-helpful font-bold emphasis'>tri thức</span> và <span class='text-helpful font-bold emphasis'>ý chí</span> chính là vũ khí mạnh nhất. Giờ là lúc <span class='text-helpful font-bold emphasis'>hành động!</span>”",
+            "“Hãy nâng vũ khí của mình, <span class='text-helpful font-bold emphasis'>bắn tan</span> những làn khói mờ dối trá, <span class='text-helpful font-bold emphasis'>quét sạch</span> kẻ thù vô hình.”",
+            "“Mỗi viên đạn <span class='text-helpful font-bold emphasis'>ánh sáng</span> bạn bắn ra không chỉ cứu lấy một cơ quan…”",
+            "“...mà còn là một <span class='text-helpful font-bold emphasis'>lời khẳng định</span>: <span class='text-harmful font-bold emphasis'>Thuốc lá</span> không bao giờ chiến thắng ý chí con người!”"
+        ];
+
+        // --- ÂM THANH ---
+        let isAudioStarted = false;
+        const typingSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+        typingSynth.volume.value = -20;
+        const confirmSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination();
+        confirmSynth.volume.value = -10;
+        const startMissionSynth = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.5 } }).toDestination();
+        startMissionSynth.volume.value = -8;
+        const backgroundMusic = new Tone.AMSynth({
+            harmonicity: 1.5,
+            envelope: { attack: 2, decay: 0.2, sustain: 0.5, release: 0.8 },
+            modulationEnvelope: { attack: 0.5, decay: 0.01, sustain: 1, release: 0.5 }
+        }).toDestination();
+        backgroundMusic.volume.value = -25;
+        const musicLoop = new Tone.Loop(time => {
+            backgroundMusic.triggerAttackRelease("C2", "2n", time);
+            backgroundMusic.triggerAttackRelease("G2", "2n", time + Tone.Time("2n").toSeconds());
+            backgroundMusic.triggerAttackRelease("Eb3", "2n", time + Tone.Time("1n").toSeconds());
+        }, "1m").start(0);
+        Tone.Transport.bpm.value = 70;
+        
+        // --- LOGIC HIỂN THỊ ---
+        const introContainer = document.getElementById('intro-container');
+        const storyContainer = document.getElementById('story-container');
+        const endDialogueContainer = document.getElementById('end-dialogue-container'); // Mới
+        const startButton = document.getElementById('start-button');
+        const nextButton = document.getElementById('next-button');
+        const skipButton = document.getElementById('skip-button');
+        const storyTextElement = document.getElementById('story-text');
+        const cursorElement = document.getElementById('cursor');
+        // Nút mới
+        const replayButton = document.getElementById('replay-button');
+        const playGameButton = document.getElementById('play-game-button');
+        const homeButton = document.getElementById('home-button');
+
+        let currentLine = 0;
+        let isTyping = false;
+        let typingTimeout;
+
+        function typeWriter(text, i = 0) {
+            isTyping = true;
+            nextButton.disabled = true;
+            skipButton.disabled = false;
+            if (i < text.length) {
+                if (text[i] === '<') {
+                    const closingTagIndex = text.indexOf('>', i);
+                    const tag = text.substring(i, closingTagIndex + 1);
+                    storyTextElement.innerHTML += tag;
+                    i = closingTagIndex;
+                } else {
+                    storyTextElement.innerHTML += text.charAt(i);
+                    if (text.charAt(i) !== ' ' && isAudioStarted) {
+                        typingSynth.triggerAttackRelease("C6", "32n");
+                    }
+                }
+                typingTimeout = setTimeout(() => typeWriter(text, i + 1), 40);
+            } else {
+                storyTextElement.innerHTML = text; // Đảm bảo màu được áp dụng
+                isTyping = false;
+                nextButton.disabled = false;
+                skipButton.disabled = true;
+                cursorElement.style.display = 'inline-block';
+            }
+        }
+
+        function showNextLine() {
+            if (currentLine < dialogueLines.length) {
+                cursorElement.style.display = 'none';
+                storyTextElement.innerHTML = '';
+                typeWriter(dialogueLines[currentLine]);
+                currentLine++;
+            }
+            if (currentLine === dialogueLines.length) {
+                nextButton.innerText = 'BẮT ĐẦU NHIỆM VỤ';
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            if (!isAudioStarted) {
+                Tone.start().then(() => {
+                    isAudioStarted = true;
+                    Tone.Transport.start();
+                });
+            }
+            introContainer.classList.add('hidden');
+            storyContainer.classList.remove('hidden');
+            showNextLine();
+        });
+
+        nextButton.addEventListener('click', () => {
+            if(isAudioStarted) confirmSynth.triggerAttackRelease("G4", "8n");
+            
+            if (isTyping) {
+                 clearTimeout(typingTimeout);
+                 isTyping = false;
+                 storyTextElement.innerHTML = dialogueLines[currentLine-1];
+                 nextButton.disabled = false;
+                 skipButton.disabled = true;
+                 cursorElement.style.display = 'inline-block';
+                 return;
+            }
+
+            if (currentLine < dialogueLines.length) {
+                showNextLine();
+            } else {
+                // Chuyển sang màn hình lựa chọn
+                if(isAudioStarted) startMissionSynth.triggerAttackRelease("C5", "4n");
+                storyContainer.classList.add('hidden');
+                endDialogueContainer.classList.remove('hidden');
+            }
+        });
+
+        skipButton.addEventListener('click', () => {
+            if (!isTyping) return;
+            clearTimeout(typingTimeout);
+            isTyping = false;
+            currentLine = dialogueLines.length - 1;
+            storyTextElement.innerHTML = dialogueLines[currentLine];
+            currentLine++;
+            nextButton.innerText = 'BẮT ĐẦU NHIỆM VỤ';
+            nextButton.disabled = false;
+            skipButton.disabled = true;
+            cursorElement.style.display = 'inline-block';
+        });
+
+        // --- EVENT LISTENERS CHO CÁC NÚT MỚI ---
+        replayButton.addEventListener('click', () => {
+            if(isAudioStarted) confirmSynth.triggerAttackRelease("E4", "8n");
+            endDialogueContainer.classList.add('hidden');
+            storyContainer.classList.remove('hidden');
+            currentLine = 0;
+            nextButton.innerText = 'Tiếp theo'; // Reset lại tên nút
+            showNextLine();
+        });
+
+        playGameButton.addEventListener('click', () => {
+            window.location.href = 'gamebansung.html';
+        });
+
+        homeButton.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // --- HIỆU ỨNG NỀN ---
+        function createParticles() {
+            const bgWrap = document.getElementById('background-wrap');
+            const particleCount = 50;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 5 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                particle.style.animationDuration = `${Math.random() * 10 + 8}s`;
+                bgWrap.appendChild(particle);
+            }
+        }
+        createParticles();
+    </script>
+</body>
+</html>
+

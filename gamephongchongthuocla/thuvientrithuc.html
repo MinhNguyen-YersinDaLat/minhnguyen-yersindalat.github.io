@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anh Hùng Tí Hon Minh - Cuộc Phiêu Lưu Trong Cơ Thể</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Tone.js for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 10px currentColor); }
+            50% { filter: brightness(1.2) drop-shadow(0 0 20px currentColor); }
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes smoke {
+            0% { opacity: 0.6; transform: translateY(0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-30px) scale(1.5) rotate(10deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        .float { animation: float 4s ease-in-out infinite; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .glow { animation: glow 3s ease-in-out infinite; }
+        .sparkle { animation: sparkle 2s ease-in-out infinite; }
+        .smoke { animation: smoke 3s ease-in-out infinite; }
+        .bounce { animation: bounce 2s infinite; }
+        
+        .hero-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .organ-card, .toxin-card, .character-card {
+            cursor: pointer;
+        }
+
+        .organ-card {
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .organ-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .toxin-card {
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            border: 2px solid #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+             transition: all 0.3s ease;
+        }
+         .toxin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content-container {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-tab-button {
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .modal-tab-button.active {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #fde047; /* yellow-300 */
+        }
+    </style>
+</head>
+<div id="copyright">
+    © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap');
+
+#copyright {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    padding: 6px 0;
+    font-family: 'Roboto', Arial, Helvetica, sans-serif;
+    z-index: 9999;
+    pointer-events: none;
+
+    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+
+    opacity: 0;
+    animation: fadeIn 2s ease forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+</style>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 min-h-screen">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-10 left-10 w-2 h-2 bg-white rounded-full sparkle"></div>
+        <div class="absolute top-32 right-20 w-1 h-1 bg-yellow-300 rounded-full sparkle" style="animation-delay: 0.5s;"></div>
+        <div class="absolute bottom-20 left-1/4 w-1.5 h-1.5 bg-blue-300 rounded-full sparkle" style="animation-delay: 1s;"></div>
+        <div class="absolute top-1/2 right-10 w-1 h-1 bg-pink-300 rounded-full sparkle" style="animation-delay: 1.5s;"></div>
+        <div class="absolute bottom-32 right-1/3 w-2 h-2 bg-purple-300 rounded-full sparkle" style="animation-delay: 2s;"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto p-6">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 mb-4 bounce">
+                Thư Viện Tri Thức
+            </h1>
+            <p class="text-lg md:text-xl text-white/80 font-semibold">nơi Minh truy cập để lấy “vũ khí thông tin” chống lại lời dối trá của Nicotine.</p>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="flex flex-wrap justify-center gap-4 mb-12">
+            <a href="index.html" class="nav-button glass-effect text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                🏠 Về Trang Chính
+            </a>
+            <button onclick="showSection('hero')" data-section="hero" class="nav-button glass-effect text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                ✨ Nhân Vật Chính
+            </button>
+            <button onclick="showSection('organs')" data-section="organs" class="nav-button glass-effect text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                🏙️ Cơ Quan Thành Phố
+            </button>
+            <button onclick="showSection('toxins')" data-section="toxins" class="nav-button glass-effect text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                ☠️ Chất Độc Hại
+            </button>
+            <button onclick="showSection('recovery')" data-section="recovery" class="nav-button glass-effect text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                ⏰ Timeline Phục Hồi
+            </button>
+            <button id="fullscreen-btn" class="nav-button glass-effect text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                ⛶ Toàn Màn Hình
+            </button>
+        </div>
+
+        <!-- Hero Section -->
+        <div id="hero" class="section">
+            <div class="hero-card rounded-3xl p-8 mb-8">
+                <h2 class="text-4xl font-black text-white text-center mb-8">🦸‍♂️ Minh - Anh Hùng Tí Hon</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Standing Pose -->
+                    <div onclick="showInfo('minh')" class="character-card glass-effect rounded-2xl p-6 text-center cursor-pointer">
+                        <h3 class="font-bold text-xl mb-6 text-white">⚡ Tư Thế Đứng</h3>
+                        <div class="h-80 flex items-center justify-center bg-gradient-to-b from-blue-400/20 to-cyan-400/20 rounded-xl">
+                            <div class="float">
+                                <!-- Hero Body -->
+                                <div class="relative">
+                                    <!-- Epic Golden Aura -->
+                                    <div class="absolute -inset-8 bg-gradient-to-r from-yellow-400/40 via-yellow-300/50 to-yellow-400/40 rounded-full glow"></div>
+                                    <div class="absolute -inset-6 bg-gradient-to-r from-yellow-200/30 via-yellow-100/40 to-yellow-200/30 rounded-full sparkle"></div>
+                                    <div class="absolute -inset-4 bg-gradient-to-r from-yellow-300/20 via-yellow-200/30 to-yellow-300/20 rounded-full glow"></div>
+                                    
+                                    <!-- Flying Cape -->
+                                    <div class="absolute -right-8 top-2 w-16 h-24 bg-gradient-to-b from-red-500 via-red-600 to-red-800 rounded-b-3xl transform rotate-20 glow shadow-2xl border-2 border-red-400 float">
+                                        <!-- Cape flowing effect -->
+                                        <div class="absolute -right-2 top-4 w-4 h-16 bg-red-600 rounded-r-2xl transform rotate-12 opacity-80"></div>
+                                        <div class="absolute -right-1 top-8 w-2 h-12 bg-red-700 rounded-r-xl transform rotate-6 opacity-60"></div>
+                                        <!-- Wind lines -->
+                                        <div class="absolute -left-4 top-6 w-3 h-0.5 bg-white/40 rounded-full"></div>
+                                        <div class="absolute -left-3 top-10 w-2 h-0.5 bg-white/30 rounded-full"></div>
+                                        <div class="absolute -left-2 top-14 w-1 h-0.5 bg-white/20 rounded-full"></div>
+                                    </div>
+                                    
+                                    <!-- Main Body -->
+                                    <div class="w-20 h-28 bg-gradient-to-b from-blue-400 via-blue-600 to-blue-800 rounded-2xl relative shadow-2xl border-2 border-blue-300">
+                                        <!-- Head -->
+                                        <div class="absolute -top-8 left-2 w-16 h-16 bg-gradient-to-b from-orange-100 to-orange-200 rounded-full border-4 border-gold shadow-2xl">
+                                            <!-- Cool Sunglasses -->
+                                            <div class="absolute top-3 left-1 w-14 h-6 bg-black rounded-full border-2 border-gray-700">
+                                                <div class="w-5 h-4 bg-blue-900 rounded-full absolute top-1 left-1"></div>
+                                                <div class="w-5 h-4 bg-blue-900 rounded-full absolute top-1 right-1"></div>
+                                                <div class="w-2 h-1 bg-gray-600 absolute top-2 left-1/2 transform -translate-x-1/2"></div>
+                                            </div>
+                                            <!-- Confident smile -->
+                                            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-3 border-b-3 border-black rounded-full"></div>
+                                            <!-- Epic Hair -->
+                                            <div class="absolute -top-3 left-1 w-14 h-6 bg-gradient-to-r from-amber-700 to-amber-900 rounded-t-full shadow-lg"></div>
+                                        </div>
+                                        
+                                        <!-- Chest Symbol -->
+                                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-10 h-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 rounded-full border-3 border-yellow-600 glow shadow-xl">
+                                            <div class="absolute top-1 left-1 w-8 h-8 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-full">
+                                                <span class="absolute top-2 left-2.5 text-sm font-black text-blue-900">M</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Arms -->
+                                        <div class="absolute -left-4 top-8 w-6 h-12 bg-gradient-to-b from-blue-400 to-blue-700 rounded-full shadow-xl border border-blue-300"></div>
+                                        <div class="absolute -right-4 top-8 w-6 h-12 bg-gradient-to-b from-blue-400 to-blue-700 rounded-full shadow-xl border border-blue-300"></div>
+                                        
+                                        <!-- Legs -->
+                                        <div class="absolute bottom-0 left-2 w-6 h-16 bg-gradient-to-b from-blue-500 to-blue-800 rounded-b-full shadow-xl border border-blue-400"></div>
+                                        <div class="absolute bottom-0 right-2 w-6 h-16 bg-gradient-to-b from-blue-500 to-blue-800 rounded-b-full shadow-xl border border-blue-400"></div>
+                                        
+                                        <!-- Epic Boots -->
+                                        <div class="absolute -bottom-2 left-1 w-8 h-5 bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-full shadow-xl border-2 border-yellow-400"></div>
+                                        <div class="absolute -bottom-2 right-1 w-8 h-5 bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-full shadow-xl border-2 border-yellow-400"></div>
+                                        
+                                        <!-- Power Lines -->
+                                        <div class="absolute top-12 left-3 w-1 h-8 bg-yellow-300 opacity-60 glow"></div>
+                                        <div class="absolute top-12 right-3 w-1 h-8 bg-yellow-300 opacity-60 glow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-white/80 mt-4 font-semibold">🔥 Siêu anh hùng hào quang rực rỡ!</p>
+                    </div>
+
+                    <!-- Walking Pose -->
+                    <div onclick="showInfo('minh')" class="character-card glass-effect rounded-2xl p-6 text-center cursor-pointer">
+                        <h3 class="font-bold text-xl mb-6 text-white">🏃‍♂️ Tư Thế Đi</h3>
+                        <div class="h-80 flex items-center justify-center bg-gradient-to-b from-green-400/20 to-emerald-400/20 rounded-xl">
+                            <div class="float">
+                                <div class="relative transform rotate-6">
+                                    <!-- Cape flowing -->
+                                    <div class="absolute -right-8 top-2 w-14 h-22 bg-gradient-to-b from-red-500 to-red-700 rounded-b-2xl transform rotate-20 glow"></div>
+                                    
+                                    <!-- Main Body -->
+                                    <div class="w-20 h-28 bg-gradient-to-b from-blue-500 to-blue-700 rounded-2xl relative shadow-2xl">
+                                        <!-- Head -->
+                                        <div class="absolute -top-8 left-2 w-16 h-16 bg-gradient-to-b from-orange-200 to-orange-300 rounded-full border-4 border-blue-600 shadow-lg">
+                                            <!-- Eyes -->
+                                            <div class="absolute top-4 left-3 w-3 h-3 bg-black rounded-full">
+                                                <div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div>
+                                            </div>
+                                            <div class="absolute top-4 right-3 w-3 h-3 bg-black rounded-full">
+                                                <div class="w-1 h-1 bg-white rounded-full absolute top-0.5 right-0.5"></div>
+                                            </div>
+                                            <!-- Determined expression -->
+                                            <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-4 h-2 bg-black rounded-full"></div>
+                                            <!-- Hair flowing -->
+                                            <div class="absolute -top-2 left-1 w-14 h-4 bg-amber-800 rounded-t-full transform -rotate-12"></div>
+                                        </div>
+                                        
+                                        <!-- Chest Symbol -->
+                                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-yellow-400 rounded-full border-2 border-yellow-600 glow">
+                                            <span class="absolute top-1 left-2.5 text-xs font-bold text-blue-800">M</span>
+                                        </div>
+                                        
+                                        <!-- Arms in motion -->
+                                        <div class="absolute -left-6 top-4 w-6 h-12 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full shadow-lg transform rotate-45"></div>
+                                        <div class="absolute -right-2 top-12 w-6 h-12 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full shadow-lg transform -rotate-30"></div>
+                                        
+                                        <!-- Legs in running position -->
+                                        <div class="absolute bottom-0 left-0 w-6 h-16 bg-gradient-to-b from-blue-600 to-blue-800 rounded-b-full shadow-lg transform rotate-30"></div>
+                                        <div class="absolute bottom-0 right-4 w-6 h-16 bg-gradient-to-b from-blue-600 to-blue-800 rounded-b-full shadow-lg transform -rotate-45"></div>
+                                        
+                                        <!-- Motion lines -->
+                                        <div class="absolute -left-8 top-10 w-4 h-1 bg-white/50 rounded-full"></div>
+                                        <div class="absolute -left-6 top-14 w-3 h-1 bg-white/40 rounded-full"></div>
+                                        <div class="absolute -left-4 top-18 w-2 h-1 bg-white/30 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-white/80 mt-4 font-semibold">Lao vào hành động!</p>
+                    </div>
+
+                    <!-- Talking Pose -->
+                    <div onclick="showInfo('minh')" class="character-card glass-effect rounded-2xl p-6 text-center cursor-pointer">
+                        <h3 class="font-bold text-xl mb-6 text-white">💬 Tư Thế Nói Chuyện</h3>
+                        <div class="h-80 flex items-center justify-center bg-gradient-to-b from-yellow-400/20 to-orange-400/20 rounded-xl">
+                            <div class="float">
+                                <div class="relative">
+                                    <!-- Speech bubble -->
+                                    <div class="absolute -top-16 -right-12 bg-white rounded-2xl p-3 shadow-xl border-2 border-blue-300 bounce">
+                                        <span class="text-blue-800 font-bold text-sm">Xin chào! 👋</span>
+                                        <div class="absolute bottom-0 left-6 w-0 h-0 border-l-4 border-r-4 border-t-8 border-transparent border-t-white transform translate-y-full"></div>
+                                    </div>
+                                    
+                                    <!-- Cape -->
+                                    <div class="absolute -right-6 top-4 w-12 h-20 bg-gradient-to-b from-red-500 to-red-700 rounded-b-2xl glow"></div>
+                                    
+                                    <!-- Main Body -->
+                                    <div class="w-20 h-28 bg-gradient-to-b from-blue-500 to-blue-700 rounded-2xl relative shadow-2xl">
+                                        <!-- Head -->
+                                        <div class="absolute -top-8 left-2 w-16 h-16 bg-gradient-to-b from-orange-200 to-orange-300 rounded-full border-4 border-blue-600 shadow-lg">
+                                            <!-- Eyes -->
+                                            <div class="absolute top-4 left-3 w-3 h-3 bg-black rounded-full">
+                                                <div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div>
+                                            </div>
+                                            <div class="absolute top-4 right-3 w-3 h-3 bg-black rounded-full">
+                                                <div class="w-1 h-1 bg-white rounded-full absolute top-0.5 right-0.5"></div>
+                                            </div>
+                                            <!-- Happy smile -->
+                                            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-4 border-b-3 border-black rounded-full"></div>
+                                            <!-- Hair -->
+                                            <div class="absolute -top-2 left-2 w-12 h-4 bg-amber-800 rounded-t-full"></div>
+                                        </div>
+                                        
+                                        <!-- Chest Symbol glowing -->
+                                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-yellow-400 rounded-full border-2 border-yellow-600 glow">
+                                            <span class="absolute top-1 left-2.5 text-xs font-bold text-blue-800">M</span>
+                                        </div>
+                                        
+                                        <!-- Arms gesturing -->
+                                        <div class="absolute -left-6 top-6 w-6 h-12 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full shadow-lg transform rotate-45"></div>
+                                        <div class="absolute -right-6 top-6 w-6 h-12 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full shadow-lg transform -rotate-45"></div>
+                                        
+                                        <!-- Legs -->
+                                        <div class="absolute bottom-0 left-2 w-6 h-16 bg-gradient-to-b from-blue-600 to-blue-800 rounded-b-full shadow-lg"></div>
+                                        <div class="absolute bottom-0 right-2 w-6 h-16 bg-gradient-to-b from-blue-600 to-blue-800 rounded-b-full shadow-lg"></div>
+                                        
+                                        <!-- Boots -->
+                                        <div class="absolute -bottom-2 left-1 w-8 h-4 bg-yellow-600 rounded-full shadow-lg"></div>
+                                        <div class="absolute -bottom-2 right-1 w-8 h-4 bg-yellow-600 rounded-full shadow-lg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-white/80 mt-4 font-semibold">Giao tiếp thân thiện!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organs Section -->
+        <div id="organs" class="section hidden">
+            <div class="glass-effect rounded-3xl p-8 mb-8">
+                <h2 class="text-4xl font-black text-white text-center mb-8">🏙️ Cơ Quan Thành Phố</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Brain -->
+                    <div onclick="showInfo('brain')" class="organ-card bg-gradient-to-b from-pink-400/30 to-purple-500/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-pink-200">🧠 Não Bộ</h3>
+                        <div class="h-40 flex items-center justify-center">
+                            <div class="glow">
+                                <div class="w-24 h-20 bg-gradient-to-b from-pink-400 to-pink-600 rounded-t-full relative shadow-2xl border-2 border-pink-300">
+                                    <!-- Brain wrinkles -->
+                                    <div class="absolute inset-2 bg-pink-300 rounded-t-full">
+                                        <div class="absolute top-2 left-1 w-8 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-4 left-2 w-6 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-6 left-1 w-7 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-8 left-2 w-5 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-10 left-1 w-6 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-2 right-1 w-8 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-4 right-2 w-6 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-6 right-1 w-7 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-8 right-2 w-5 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-10 right-1 w-6 h-1 bg-pink-500 rounded-full"></div><div class="absolute top-1 left-1/2 transform -translate-x-1/2 w-0.5 h-14 bg-pink-600"></div>
+                                    </div>
+                                    <!-- Cute face -->
+                                    <div class="absolute top-6 left-6 w-3 h-3 bg-black rounded-full"><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div></div><div class="absolute top-6 right-6 w-3 h-3 bg-black rounded-full"><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 right-0.5"></div></div><div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-6 h-3 border-b-2 border-black rounded-full"></div><div class="absolute top-8 left-3 w-2 h-2 bg-pink-200 rounded-full opacity-60"></div><div class="absolute top-8 right-3 w-2 h-2 bg-pink-200 rounded-full opacity-60"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-pink-200 text-sm font-semibold">💖 Não bộ thông minh dễ thương</p>
+                    </div>
+
+                    <!-- Lungs -->
+                    <div onclick="showInfo('lungs')" class="organ-card bg-gradient-to-b from-blue-400/30 to-blue-600/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-blue-200">🫁 Phổi</h3>
+                        <div class="h-40 flex items-center justify-center relative">
+                            <div class="flex gap-2">
+                                <div class="w-12 h-24 bg-gradient-to-b from-pink-400 to-pink-600 rounded-tl-3xl rounded-bl-3xl rounded-tr-xl rounded-br-xl relative shadow-xl border-2 border-pink-300"><div class="absolute top-4 left-1/2 transform -translate-x-1/2 w-1 h-8 bg-pink-700"></div><div class="absolute top-6 left-3 w-1 h-6 bg-pink-700 transform rotate-45"></div><div class="absolute top-6 right-3 w-1 h-6 bg-pink-700 transform -rotate-45"></div><div class="absolute top-10 left-2 w-1 h-4 bg-pink-700 transform rotate-30"></div><div class="absolute top-10 right-2 w-1 h-4 bg-pink-700 transform -rotate-30"></div><div class="absolute top-8 left-3 w-2 h-2 bg-black rounded-full"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 left-0.5"></div></div><div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-4 h-2 border-b-2 border-black rounded-full"></div><div class="absolute top-12 left-2 w-1 h-1 bg-pink-200 rounded-full"></div><div class="absolute top-14 right-2 w-1 h-1 bg-pink-200 rounded-full"></div><div class="absolute bottom-6 left-3 w-1 h-1 bg-pink-200 rounded-full"></div></div>
+                                <div class="w-12 h-24 bg-gradient-to-b from-pink-400 to-pink-600 rounded-tr-3xl rounded-br-3xl rounded-tl-xl rounded-bl-xl relative shadow-xl border-2 border-pink-300"><div class="absolute top-4 left-1/2 transform -translate-x-1/2 w-1 h-8 bg-pink-700"></div><div class="absolute top-6 left-3 w-1 h-6 bg-pink-700 transform rotate-45"></div><div class="absolute top-6 right-3 w-1 h-6 bg-pink-700 transform -rotate-45"></div><div class="absolute top-10 left-2 w-1 h-4 bg-pink-700 transform rotate-30"></div><div class="absolute top-10 right-2 w-1 h-4 bg-pink-700 transform -rotate-30"></div><div class="absolute top-8 right-3 w-2 h-2 bg-black rounded-full"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 right-0.5"></div></div><div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-4 h-2 border-b-2 border-black rounded-full"></div><div class="absolute top-12 right-2 w-1 h-1 bg-pink-200 rounded-full"></div><div class="absolute top-14 left-2 w-1 h-1 bg-pink-200 rounded-full"></div><div class="absolute bottom-6 right-3 w-1 h-1 bg-pink-200 rounded-full"></div></div>
+                            </div>
+                        </div>
+                        <p class="text-blue-200 text-sm font-semibold">💨 Cặp phổi hồng dễ thương</p>
+                    </div>
+
+                    <!-- Heart -->
+                    <div onclick="showInfo('heart')" class="organ-card bg-gradient-to-b from-pink-500/30 to-red-600/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-pink-200">❤️ Tim</h3>
+                        <div class="h-40 flex items-center justify-center">
+                            <div class="pulse">
+                                <div class="w-16 h-16 bg-gradient-to-b from-pink-500 to-red-600 transform rotate-45 relative shadow-2xl border-2 border-pink-300"><div class="w-8 h-8 bg-pink-500 rounded-full absolute -top-4 -left-4 border-2 border-pink-300"></div><div class="w-8 h-8 bg-pink-500 rounded-full absolute -top-4 -right-4 border-2 border-pink-300"></div><div class="absolute top-2 left-2 w-2 h-2 bg-black rounded-full transform -rotate-45"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 left-0.5"></div></div><div class="absolute top-2 right-2 w-2 h-2 bg-black rounded-full transform -rotate-45"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 right-0.5"></div></div><div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 -rotate-45 w-4 h-2 border-b-2 border-black rounded-full"></div><div class="absolute inset-3 bg-gradient-to-b from-yellow-200 to-pink-300 rounded opacity-70 glow"><div class="absolute top-1 left-1 w-1 h-1 bg-white rounded-full sparkle"></div><div class="absolute bottom-1 right-1 w-1 h-1 bg-white rounded-full sparkle" style="animation-delay: 0.5s;"></div></div><div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-4 h-8 bg-pink-600 rounded-b border-2 border-pink-400"></div><div class="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-4 bg-pink-600 rounded-r border-2 border-pink-400"></div><div class="absolute top-4 left-1 w-1 h-1 bg-pink-200 rounded-full opacity-60 transform -rotate-45"></div><div class="absolute top-4 right-1 w-1 h-1 bg-pink-200 rounded-full opacity-60 transform -rotate-45"></div></div>
+                            </div>
+                        </div>
+                        <p class="text-pink-200 text-sm font-semibold">💕 Nhà máy tình yêu ấm áp</p>
+                    </div>
+
+                    <!-- Liver -->
+                    <div onclick="showInfo('liver')" class="organ-card bg-gradient-to-b from-amber-600/30 to-amber-800/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-amber-200">🫀 Gan</h3>
+                        <div class="h-40 flex items-center justify-center relative">
+                            <div class="w-20 h-16 bg-gradient-to-b from-amber-600 to-amber-800 relative shadow-xl"><div class="w-18 h-14 bg-amber-700 absolute top-1 left-1 border-2 border-amber-500" style="clip-path: polygon(0 0, 100% 20%, 85% 100%, 0 80%);"><div class="absolute top-2 left-2 w-12 h-2 bg-amber-600 rounded-full opacity-70"></div><div class="absolute top-5 left-3 w-10 h-2 bg-amber-600 rounded-full opacity-70"></div><div class="absolute top-8 left-2 w-8 h-2 bg-amber-600 rounded-full opacity-70"></div><div class="absolute top-4 left-6 w-2 h-2 bg-black rounded-full"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 left-0.5"></div></div><div class="absolute top-4 left-10 w-2 h-2 bg-black rounded-full"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 right-0.5"></div></div><div class="absolute bottom-4 left-8 w-4 h-2 border-b-2 border-black rounded-full"></div><div class="absolute top-3 left-1/2 w-0.5 h-8 bg-amber-800 opacity-60"></div></div><div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-4 bg-yellow-600 rounded-b border border-yellow-500"></div></div>
+                        </div>
+                        <p class="text-amber-200 text-sm font-semibold">💛 Gan nâu dễ thương</p>
+                    </div>
+
+                    <!-- Mouth/Throat -->
+                    <div onclick="showInfo('mouth')" class="organ-card bg-gradient-to-b from-pink-500/30 to-pink-700/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-pink-200">👄 Miệng/Họng</h3>
+                        <div class="h-40 flex items-center justify-center"><div class="w-20 h-12 bg-gradient-to-b from-pink-500 to-pink-700 rounded-full relative shadow-xl border-2 border-pink-400"><div class="w-18 h-10 bg-pink-600 rounded-full absolute top-1 left-1"><div class="w-12 h-4 bg-red-800 rounded-full absolute top-3 left-3"></div><div class="w-1 h-2 bg-white absolute top-2 left-5 rounded-b"></div><div class="w-1 h-2 bg-white absolute top-2 left-7 rounded-b"></div><div class="w-1 h-2 bg-white absolute top-2 left-9 rounded-b"></div><div class="w-1 h-2 bg-white absolute top-2 left-11 rounded-b"></div><div class="w-1 h-2 bg-white absolute top-2 left-13 rounded-b"></div><div class="w-1 h-2 bg-white absolute bottom-2 left-5 rounded-t"></div><div class="w-1 h-2 bg-white absolute bottom-2 left-7 rounded-t"></div><div class="w-1 h-2 bg-white absolute bottom-2 left-9 rounded-t"></div><div class="w-1 h-2 bg-white absolute bottom-2 left-11 rounded-t"></div><div class="w-1 h-2 bg-white absolute bottom-2 left-13 rounded-t"></div><div class="w-8 h-2 bg-red-400 rounded-full absolute bottom-3 left-5"></div><div class="absolute -top-2 left-4 w-2 h-2 bg-black rounded-full"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 left-0.5"></div></div><div class="absolute -top-2 right-4 w-2 h-2 bg-black rounded-full"><div class="w-0.5 h-0.5 bg-white rounded-full absolute top-0.5 right-0.5"></div></div></div></div></div>
+                        <p class="text-pink-200 text-sm font-semibold">😊 Miệng hồng với răng trắng</p>
+                    </div>
+
+                    <!-- Blood Vessels -->
+                    <div onclick="showInfo('blood')" class="organ-card bg-gradient-to-b from-red-400/30 to-red-600/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-red-200">🩸 Mạch Máu</h3>
+                        <div class="h-40 flex items-center justify-center"><div class="relative w-full"><div class="w-full h-4 bg-gradient-to-r from-red-500 via-red-400 to-red-500 rounded-full glow shadow-lg"></div><div class="w-4 h-4 bg-red-600 rounded-full absolute top-0 left-4 float shadow-lg border-2 border-red-400"></div><div class="w-3 h-3 bg-red-700 rounded-full absolute top-0.5 right-8 float shadow-lg border-2 border-red-500" style="animation-delay: 0.5s;"></div><div class="w-3 h-3 bg-red-600 rounded-full absolute top-0.5 left-16 float shadow-lg border-2 border-red-400" style="animation-delay: 1s;"></div><div class="w-2 h-2 bg-red-800 rounded-full absolute top-1 right-20 float shadow-lg border border-red-600" style="animation-delay: 1.5s;"></div><div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full"></div></div></div>
+                        <p class="text-red-200 text-sm font-semibold">Xa lộ ánh sáng đỏ</p>
+                    </div>
+
+                    <!-- Skin -->
+                    <div onclick="showInfo('skin')" class="organ-card bg-gradient-to-b from-orange-400/30 to-orange-600/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-orange-200">🧱 Da</h3>
+                        <div class="h-40 flex items-center justify-center"><div class="w-20 h-20 bg-gradient-to-b from-orange-400 to-orange-600 rounded-xl relative shadow-xl"><div class="absolute inset-2 bg-orange-300 rounded-lg border-2 border-orange-500"></div><div class="w-1 h-12 bg-orange-700 absolute top-3 left-3 transform rotate-12"></div><div class="w-1 h-8 bg-orange-700 absolute top-6 right-4 transform -rotate-12"></div><div class="w-12 h-1 bg-orange-700 absolute bottom-5 left-2 transform rotate-6"></div><div class="w-8 h-1 bg-orange-700 absolute top-8 left-6 transform -rotate-6"></div><div class="w-3 h-3 bg-orange-800 rounded-full absolute top-2 right-2 opacity-70"></div><div class="w-2 h-2 bg-orange-800 rounded-full absolute bottom-3 left-4 opacity-70"></div><div class="absolute -inset-1 bg-gradient-to-r from-orange-300/20 via-orange-200/40 to-orange-300/20 rounded-xl"></div></div></div>
+                        <p class="text-orange-200 text-sm font-semibold">Tường thành có vết nứt</p>
+                    </div>
+
+                    <!-- Immune System -->
+                    <div onclick="showInfo('immune')" class="organ-card bg-gradient-to-b from-blue-400/30 to-blue-600/30 rounded-2xl p-6 text-center">
+                        <h3 class="font-bold text-xl mb-4 text-blue-200">🛡️ Miễn Dịch</h3>
+                        <div class="h-40 flex items-center justify-center"><div class="w-16 h-20 bg-gradient-to-b from-blue-600 to-blue-800 relative shadow-2xl rounded-t-2xl"><div class="w-12 h-6 bg-blue-700 absolute top-3 left-2 rounded border-2 border-blue-500"></div><div class="w-2 h-4 bg-blue-600 absolute top-0 left-2"></div><div class="w-2 h-4 bg-blue-600 absolute top-0 left-6"></div><div class="w-2 h-4 bg-blue-600 absolute top-0 right-2"></div><div class="w-2 h-4 bg-blue-600 absolute top-0 right-6"></div><div class="w-3 h-3 bg-white rounded-full absolute top-8 left-3 border-2 border-blue-400 float"><div class="w-1 h-1 bg-blue-600 rounded-full absolute top-0.5 left-1"></div></div><div class="w-3 h-3 bg-white rounded-full absolute top-8 right-3 border-2 border-blue-400 float" style="animation-delay: 0.5s;"><div class="w-1 h-1 bg-blue-600 rounded-full absolute top-0.5 right-1"></div></div><div class="w-3 h-3 bg-white rounded-full absolute bottom-6 left-4 border-2 border-blue-400 float" style="animation-delay: 1s;"><div class="w-1 h-1 bg-blue-600 rounded-full absolute top-0.5 left-1"></div></div><div class="w-3 h-3 bg-white rounded-full absolute bottom-6 right-4 border-2 border-blue-400 float" style="animation-delay: 1.5s;"><div class="w-1 h-1 bg-blue-600 rounded-full absolute top-0.5 right-1"></div></div><div class="absolute -inset-2 border-2 border-blue-300 rounded-t-2xl opacity-50 glow"></div></div></div>
+                        <p class="text-blue-200 text-sm font-semibold">Pháo đài trắng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toxins Section -->
+        <div id="toxins" class="section hidden">
+            <div class="glass-effect rounded-3xl p-8 mb-8">
+                <h2 class="text-4xl font-black text-white text-center mb-8">☠️ Chất Độc Hại</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Nicotine -->
+                    <div onclick="showInfo('nicotine')" class="toxin-card rounded-2xl p-6 text-center text-white"><h3 class="font-bold text-xl mb-4 text-red-400">🚬 Nicotine</h3><div class="h-48 flex items-center justify-center"><div class="float"><div class="w-16 h-24 bg-gradient-to-b from-gray-800 to-black rounded-lg relative shadow-2xl border-2 border-red-600"><div class="w-12 h-12 bg-gradient-to-b from-gray-700 to-black rounded-full absolute -top-6 left-2 border-3 border-red-700 shadow-2xl"><div class="w-3 h-3 bg-red-600 rounded-full absolute top-2 left-1 glow shadow-lg"><div class="w-1 h-1 bg-red-300 rounded-full absolute top-1 left-1 sparkle"></div></div><div class="w-3 h-3 bg-red-600 rounded-full absolute top-2 right-1 glow shadow-lg"><div class="w-1 h-1 bg-red-300 rounded-full absolute top-1 right-1 sparkle"></div></div><div class="w-8 h-3 border-b-3 border-red-700 rounded-full absolute bottom-1 left-2 transform rotate-180"></div><div class="w-1 h-2 bg-white absolute bottom-2 left-3 transform rotate-12"></div><div class="w-1 h-2 bg-white absolute bottom-2 right-3 transform -rotate-12"></div><div class="w-10 h-4 bg-black rounded-t-full absolute -top-3 left-1 border border-gray-600"></div><div class="w-1 h-3 bg-red-800 absolute -top-2 left-2 transform rotate-12"></div><div class="w-1 h-3 bg-red-800 absolute -top-2 right-2 transform -rotate-12"></div></div><div class="w-14 h-18 bg-black rounded-lg absolute top-3 left-1 border-2 border-red-700 shadow-xl"><div class="w-2 h-12 bg-red-900 absolute top-2 left-6 border border-red-800"></div><div class="w-1 h-1 bg-red-500 rounded-full absolute top-4 left-7 glow"></div><div class="w-1 h-1 bg-red-500 rounded-full absolute top-8 left-7 glow"></div><div class="w-1 h-2 bg-gray-600 absolute top-1 left-1 transform rotate-45"></div><div class="w-1 h-2 bg-gray-600 absolute top-1 right-1 transform -rotate-45"></div></div><div class="w-2 h-8 bg-gray-200 absolute -right-3 top-6 rounded border-2 border-gray-400 shadow-lg"><div class="w-3 h-3 bg-orange-600 absolute -top-2 -left-0.5 glow pulse"></div><div class="w-1 h-1 bg-gray-500 rounded-full absolute top-1 left-0.5"></div><div class="w-2 h-2 bg-gray-700 rounded-full absolute -top-4 left-0 opacity-70 smoke"></div><div class="w-1 h-1 bg-gray-800 rounded-full absolute -top-6 left-0.5 opacity-50 smoke" style="animation-delay: 0.5s;"></div></div><div class="w-6 h-4 bg-gray-900 rounded absolute -left-2 bottom-2 border-2 border-red-700 shadow-lg"><div class="w-4 h-2 bg-red-800 absolute top-1 left-1 rounded opacity-80"></div></div><div class="absolute -inset-2 bg-gradient-to-r from-red-900/20 via-black/30 to-red-900/20 rounded-lg"></div></div></div></div><p class="text-red-300 text-sm font-semibold">👹 Ác quỷ môi giới tội lỗi</p></div>
+                    <div onclick="showInfo('co')" class="toxin-card rounded-2xl p-6 text-center text-white"><h3 class="font-bold text-xl mb-4 text-red-400">☁️ Carbon Monoxide</h3><div class="h-48 flex items-center justify-center"><div class="float"><div class="w-22 h-18 bg-gradient-to-b from-gray-800 via-black to-gray-900 rounded-full relative shadow-2xl border-2 border-red-700"><div class="w-4 h-4 bg-red-600 rounded-full absolute top-3 left-4 glow shadow-xl"><div class="w-2 h-2 bg-red-300 rounded-full absolute top-1 left-1 sparkle"></div><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div></div><div class="w-4 h-4 bg-red-600 rounded-full absolute top-3 right-4 glow shadow-xl"><div class="w-2 h-2 bg-red-300 rounded-full absolute top-1 right-1 sparkle"></div><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 right-0.5"></div></div><div class="w-10 h-3 border-b-4 border-red-700 rounded-full absolute bottom-3 left-6 transform rotate-180"></div><div class="w-1 h-2 bg-white absolute bottom-4 left-7 transform rotate-12"></div><div class="w-1 h-2 bg-white absolute bottom-4 left-9 transform -rotate-12"></div><div class="w-1 h-2 bg-white absolute bottom-4 right-7 transform rotate-12"></div><div class="w-1 h-2 bg-white absolute bottom-4 right-9 transform -rotate-12"></div><div class="absolute inset-0 bg-black opacity-50 rounded-full"></div><div class="w-6 h-6 bg-gray-700 rounded-full absolute -top-3 left-1 opacity-70 smoke border border-red-600"></div><div class="w-4 h-4 bg-gray-800 rounded-full absolute -top-2 right-2 opacity-60 smoke border border-red-600" style="animation-delay: 0.5s;"></div><div class="w-3 h-3 bg-black rounded-full absolute top-1 left-10 opacity-50 smoke border border-red-600" style="animation-delay: 1s;"></div><div class="w-5 h-5 bg-gray-600 rounded-full absolute -bottom-2 left-3 opacity-60 smoke border border-red-600" style="animation-delay: 1.5s;"></div><div class="w-4 h-4 bg-gray-700 rounded-full absolute -bottom-1 right-4 opacity-50 smoke border border-red-600" style="animation-delay: 2s;"></div><div class="absolute -inset-3 border-3 border-red-600 rounded-full opacity-40 glow"></div><div class="absolute -inset-5 border-2 border-red-700 rounded-full opacity-20 glow"></div><div class="w-2 h-4 bg-red-800 absolute top-6 left-1/2 transform -translate-x-1/2"></div><div class="w-1 h-2 bg-red-800 absolute top-8 left-7"></div><div class="w-1 h-2 bg-red-800 absolute top-8 right-7"></div></div></div></div><p class="text-red-300 text-sm font-semibold">💀 Linh hồn chết chóc đen tối</p></div>
+                    <div onclick="showInfo('tar')" class="toxin-card rounded-2xl p-6 text-center text-white"><h3 class="font-bold text-xl mb-4 text-yellow-400">🫧 Hắc Ín</h3><div class="h-48 flex items-center justify-center"><div class="float"><div class="w-16 h-16 bg-gradient-to-b from-yellow-900 to-black rounded-full relative shadow-2xl"><div class="w-12 h-12 bg-black rounded-full absolute top-2 left-2 opacity-80"><div class="w-2 h-6 bg-black absolute -bottom-4 left-2 rounded-b-full opacity-70"></div><div class="w-1 h-4 bg-black absolute -bottom-2 right-3 rounded-b-full opacity-60"></div><div class="w-3 h-8 bg-black absolute -bottom-6 left-5 rounded-b-full opacity-80"></div></div><div class="w-3 h-3 bg-yellow-600 rounded-full absolute top-1 left-1 opacity-70"></div><div class="w-2 h-2 bg-yellow-600 rounded-full absolute bottom-2 right-2 opacity-60"></div><div class="w-1 h-1 bg-yellow-600 rounded-full absolute top-4 right-1 opacity-50"></div><div class="w-2 h-2 bg-yellow-700 rounded-full absolute top-6 left-3 opacity-60"></div><div class="absolute -inset-1 bg-gradient-to-r from-yellow-800/20 via-black/40 to-yellow-800/20 rounded-full"></div></div></div></div><p class="text-gray-300 text-sm font-semibold">Khối nhầy bám nhớp</p></div>
+                    <div onclick="showInfo('particles')" class="toxin-card rounded-2xl p-6 text-center text-white"><h3 class="font-bold text-xl mb-4 text-red-400">⚫ Hạt Siêu Nhỏ</h3><div class="h-48 flex items-center justify-center relative"><div class="float"><div class="w-3 h-3 bg-black rounded-full shadow-lg border border-gray-600"><div class="w-1 h-1 bg-red-500 rounded-full absolute top-1 left-1 glow"></div></div></div><div class="float absolute top-12 left-16" style="animation-delay: 0.3s;"><div class="w-2 h-2 bg-black rounded-full shadow-lg border border-gray-600"><div class="w-0.5 h-0.5 bg-red-500 rounded-full absolute top-0.5 left-0.5 glow"></div></div></div><div class="float absolute bottom-16 right-12" style="animation-delay: 0.7s;"><div class="w-2.5 h-2.5 bg-black rounded-full shadow-lg border border-gray-600"><div class="w-0.5 h-0.5 bg-red-500 rounded-full absolute top-1 left-1 glow"></div></div></div><div class="float absolute top-20 right-20" style="animation-delay: 1s;"><div class="w-1.5 h-1.5 bg-black rounded-full shadow-lg border border-gray-600"><div class="w-0.5 h-0.5 bg-red-500 rounded-full absolute top-0.5 left-0.5 glow"></div></div></div><div class="float absolute bottom-12 left-20" style="animation-delay: 1.3s;"><div class="w-1 h-1 bg-black rounded-full shadow-lg border border-gray-600"><div class="w-0.5 h-0.5 bg-red-500 rounded-full glow"></div></div></div><div class="absolute inset-0 border border-red-500 rounded-full opacity-20 glow"></div></div><p class="text-gray-300 text-sm font-semibold">Bụi đen li ti, mắt đỏ</p></div>
+                    <div onclick="showInfo('acrolein')" class="toxin-card rounded-2xl p-6 text-center text-white"><h3 class="font-bold text-xl mb-4 text-cyan-400">🔥 Acrolein</h3><div class="h-48 flex items-center justify-center"><div class="glow"><div class="w-12 h-20 bg-gradient-to-t from-blue-600 via-cyan-400 to-cyan-200 relative shadow-2xl rounded-t-full"><div class="w-8 h-14 bg-gradient-to-t from-blue-300 via-cyan-300 to-white absolute top-3 left-2 rounded-t-full opacity-80"></div><div class="w-2 h-2 bg-red-500 rounded-full absolute top-6 left-3 glow"></div><div class="w-2 h-2 bg-red-500 rounded-full absolute top-6 right-3 glow"></div><div class="w-4 h-1 bg-red-600 absolute bottom-8 left-4 rounded-full"></div><div class="w-2 h-4 bg-cyan-200 absolute -top-2 left-3 rounded-t-full opacity-60 float"></div><div class="w-1 h-3 bg-white absolute -top-1 right-4 rounded-t-full opacity-80 float" style="animation-delay: 0.5s;"></div><div class="w-12 h-4 bg-blue-800 absolute bottom-0 left-0 rounded-b"></div></div></div></div><p class="text-gray-300 text-sm font-semibold">Ngọn lửa xanh độc ác</p></div>
+                    <div onclick="showInfo('formaldehyde')" class="toxin-card rounded-2xl p-6 text-center text-white"><h3 class="font-bold text-xl mb-4 text-green-400">🧪 Formaldehyde</h3><div class="h-48 flex items-center justify-center"><div class="float"><div class="w-12 h-20 bg-gradient-to-b from-green-300 to-green-600 rounded-t-2xl relative shadow-2xl border-2 border-green-200"><div class="w-8 h-14 bg-gradient-to-b from-green-400 to-green-700 rounded-t-2xl absolute top-2 left-2 opacity-90"><div class="w-6 h-10 bg-green-500 rounded-t-xl absolute top-2 left-1 opacity-80"></div><div class="w-1 h-1 bg-yellow-400 rounded-full absolute top-3 left-2 sparkle"></div><div class="w-1 h-1 bg-yellow-400 rounded-full absolute top-6 right-2 sparkle" style="animation-delay: 0.5s;"></div><div class="w-0.5 h-0.5 bg-yellow-400 rounded-full absolute top-8 left-3 sparkle" style="animation-delay: 1s;"></div></div><div class="w-6 h-3 bg-gray-600 absolute top-0 left-3 rounded-t border border-gray-500"></div><div class="w-8 h-4 bg-red-600 absolute bottom-4 left-2 rounded border border-red-500"><div class="w-6 h-2 bg-white absolute top-1 left-1 rounded text-xs flex items-center justify-center"><span class="text-red-600 text-xs font-bold">⚠</span></div></div><div class="w-2 h-2 bg-green-400 rounded-full absolute -top-2 left-5 opacity-60 smoke"></div></div></div></div><p class="text-gray-300 text-sm font-semibold">Lọ thủy tinh hóa chất</p></div>
+                    <div onclick="showInfo('benzene')" class="toxin-card rounded-2xl p-6 text-center text-white"><h3 class="font-bold text-xl mb-4 text-purple-400">⭕ Benzene</h3><div class="h-48 flex items-center justify-center"><div class="glow"><div class="w-18 h-18 border-4 border-purple-600 rounded-full relative shadow-2xl bg-gradient-to-r from-purple-900 via-black to-purple-900"><div class="w-4 h-4 bg-purple-600 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2 sparkle border-2 border-red-500 shadow-xl"><div class="w-2 h-2 bg-red-500 rounded-full absolute top-1 left-1 glow"></div></div><div class="w-4 h-4 bg-purple-600 rounded-full absolute top-2 right-0 sparkle border-2 border-red-500 shadow-xl" style="animation-delay: 0.3s;"><div class="w-2 h-2 bg-red-500 rounded-full absolute top-1 right-1 glow"></div></div><div class="w-4 h-4 bg-purple-600 rounded-full absolute bottom-2 right-0 sparkle border-2 border-red-500 shadow-xl" style="animation-delay: 0.6s;"><div class="w-2 h-2 bg-red-500 rounded-full absolute bottom-1 right-1 glow"></div></div><div class="w-4 h-4 bg-purple-600 rounded-full absolute bottom-0 left-1/2 transform -translate-x-1/2 sparkle border-2 border-red-500 shadow-xl" style="animation-delay: 0.9s;"><div class="w-2 h-2 bg-red-500 rounded-full absolute bottom-1 left-1 glow"></div></div><div class="w-4 h-4 bg-purple-600 rounded-full absolute bottom-2 left-0 sparkle border-2 border-red-500 shadow-xl" style="animation-delay: 1.2s;"><div class="w-2 h-2 bg-red-500 rounded-full absolute bottom-1 left-1 glow"></div></div><div class="w-4 h-4 bg-purple-600 rounded-full absolute top-2 left-0 sparkle border-2 border-red-500 shadow-xl" style="animation-delay: 1.5s;"><div class="w-2 h-2 bg-red-500 rounded-full absolute top-1 left-1 glow"></div></div><div class="absolute top-4 left-4 w-10 h-1 bg-red-600 transform rotate-60 opacity-80 glow shadow-lg"></div><div class="absolute top-4 right-4 w-10 h-1 bg-red-600 transform -rotate-60 opacity-80 glow shadow-lg"></div><div class="absolute bottom-4 left-4 w-10 h-1 bg-red-600 transform -rotate-60 opacity-80 glow shadow-lg"></div><div class="absolute bottom-4 right-4 w-10 h-1 bg-red-600 transform rotate-60 opacity-80 glow shadow-lg"></div><div class="absolute top-1/2 left-0 w-10 h-1 bg-red-600 opacity-80 glow shadow-lg"></div><div class="absolute top-1/2 right-0 w-10 h-1 bg-red-600 opacity-80 glow shadow-lg"></div><div class="w-8 h-8 bg-gradient-to-r from-purple-800 to-black rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pulse border-3 border-red-700 shadow-2xl"><div class="w-4 h-4 bg-red-600 rounded-full absolute top-2 left-2 glow"><div class="w-2 h-2 bg-red-300 rounded-full absolute top-1 left-1 sparkle"></div><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div></div></div><div class="absolute -inset-3 border-3 border-purple-600 rounded-full opacity-40 glow"></div><div class="absolute -inset-5 border-2 border-red-600 rounded-full opacity-30 glow"></div><div class="absolute -inset-7 border border-purple-700 rounded-full opacity-20 glow"></div><div class="w-1 h-4 bg-red-700 absolute -top-2 left-1/2 transform -translate-x-1/2"></div><div class="w-1 h-4 bg-red-700 absolute -bottom-2 left-1/2 transform -translate-x-1/2"></div><div class="w-4 h-1 bg-red-700 absolute top-1/2 -left-2 transform -translate-y-1/2"></div><div class="w-4 h-1 bg-red-700 absolute top-1/2 -right-2 transform -translate-y-1/2"></div></div></div></div><p class="text-red-300 text-sm font-semibold">👁️ Vòng tròn ma thuật tử thần</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recovery Timeline Section -->
+        <div id="recovery" class="section hidden">
+            <div class="glass-effect rounded-3xl p-8 mb-8 text-white">
+                <h2 class="text-4xl font-black text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">⏰ Dòng Thời Gian Phục Hồi Kỳ Diệu</h2>
+                <p class="text-center text-lg mb-8 text-white/80">Cơ thể bạn có khả năng tự chữa lành đáng kinh ngạc. Hãy xem điều gì xảy ra khi bạn ngừng hút thuốc.</p>
+                <div class="space-y-6">
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-cyan-300">20</div><div class="text-sm">phút</div></div><div class="border-l-2 border-cyan-400 pl-4">Nhịp tim và huyết áp bắt đầu giảm xuống mức bình thường. Sự tuần hoàn máu ở tay và chân được cải thiện.</div></div>
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-cyan-300">12</div><div class="text-sm">giờ</div></div><div class="border-l-2 border-cyan-400 pl-4">Nồng độ Carbon Monoxide (CO) trong máu giảm xuống mức bình thường, cho phép oxy lưu thông tốt hơn đến các cơ quan.</div></div>
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-cyan-300">48</div><div class="text-sm">giờ</div></div><div class="border-l-2 border-cyan-400 pl-4">Các đầu dây thần kinh bắt đầu tái tạo. Khả năng khứu giác và vị giác được cải thiện rõ rệt.</div></div>
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-green-300">1-9</div><div class="text-sm">tháng</div></div><div class="border-l-2 border-green-400 pl-4">Ho và khó thở giảm đáng kể. Các lông mao (cilia) trong phổi bắt đầu hoạt động trở lại, tăng khả năng làm sạch phổi và giảm nguy cơ nhiễm trùng.</div></div>
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-green-300">1</div><div class="text-sm">năm</div></div><div class="border-l-2 border-green-400 pl-4">Nguy cơ mắc bệnh tim mạch vành giảm xuống còn một nửa so với người hút thuốc.</div></div>
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-yellow-300">5</div><div class="text-sm">năm</div></div><div class="border-l-2 border-yellow-400 pl-4">Nguy cơ đột quỵ giảm xuống tương đương với người chưa bao giờ hút thuốc.</div></div>
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-yellow-300">10</div><div class="text-sm">năm</div></div><div class="border-l-2 border-yellow-400 pl-4">Nguy cơ tử vong do ung thư phổi giảm khoảng một nửa. Nguy cơ ung thư miệng, họng, thực quản, bàng quang, thận và tuyến tụy cũng giảm đáng kể.</div></div>
+                    <div class="flex items-start"><div class="w-16 text-center mr-4"><div class="text-2xl font-bold text-pink-400">15</div><div class="text-sm">năm</div></div><div class="border-l-2 border-pink-400 pl-4">Nguy cơ mắc bệnh tim mạch vành trở lại mức của người chưa bao giờ hút thuốc. Cơ thể bạn đã hoàn thành một cuộc đại tu tuyệt vời!</div></div>
+                </div>
+                 <div class="mt-8 text-right">
+                    <a href="https://www.who.int/news-room/questions-and-answers/item/tobacco-health-benefits-of-smoking-cessation" target="_blank" class="text-blue-300 hover:text-yellow-300 transition-colors">Nguồn: Tổ chức Y tế Thế giới (WHO) &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Popup -->
+    <div id="info-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="modal-content-container glass-effect text-white w-full max-w-2xl rounded-2xl p-6 md:p-8 border-2 border-purple-400/50 transform scale-95 opacity-0">
+            <div class="flex justify-between items-start mb-4">
+                <h3 id="modal-title" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500"></h3>
+                <button onclick="hideInfo()" class="text-white text-4xl leading-none hover:text-red-400 transition-colors">&times;</button>
+            </div>
+            
+            <div id="modal-tabs" class="flex border-b border-white/20 mb-4"></div>
+
+            <div id="modal-content" class="text-white/90 text-base md:text-lg leading-relaxed max-h-[50vh] overflow-y-auto pr-2"></div>
+            
+            <div id="modal-source" class="mt-6 text-right"></div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- SOUND EFFECTS SETUP ---
+        const masterVolume = -10; // Set master volume in Decibels
+        const clickSound = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 0.1 } }).toDestination();
+        clickSound.volume.value = masterVolume;
+        const openModalSound = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination();
+        openModalSound.volume.value = masterVolume;
+        const closeModalSound = new Tone.Synth({ oscillator: { type: "square" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+        closeModalSound.volume.value = masterVolume;
+        const switchTabSound = new Tone.Synth({ oscillator: { type: "sawtooth" }, envelope: { attack: 0.001, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination();
+        switchTabSound.volume.value = masterVolume;
+
+        // Start audio context on any user interaction
+        document.body.addEventListener('click', async () => {
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+                console.log("Audio context started.");
+            }
+        }, { once: true });
+
+
+        // --- DATABASE FOR POPUP INFORMATION ---
+        const infoData = {
+            minh: {
+                title: "🦸‍♂️ Minh – Chiến Binh Ánh Sáng",
+                source: "", // No source for fictional character
+                sourceName: "",
+                tabs: {
+                    info: {
+                        title: "Thông Tin & Ngoại Hình",
+                        content: `
+                            <h4 class="text-xl font-bold mb-2 text-yellow-300">1. Thông tin cơ bản</h4>
+                            <ul class="list-disc list-inside space-y-2 mb-4">
+                                <li><strong>Tên:</strong> Minh (ánh sáng, sáng suốt) – đại diện cho ý chí mạnh mẽ và sự hiểu biết.</li>
+                                <li><strong>Tuổi:</strong> 12–14 (độ tuổi học sinh – dễ đồng cảm và dễ truyền tải thông điệp).</li>
+                                <li><strong>Vai trò:</strong> Người hùng bảo vệ Thành Phố Cơ Thể khỏi hiểm họa của thuốc lá và thuốc lá điện tử.</li>
+                            </ul>
+                            <h4 class="text-xl font-bold mb-2 text-yellow-300">2. Ngoại hình</h4>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>Bộ giáp xanh dương:</strong> Biểu tượng cho bầu không khí trong lành, lá phổi khỏe mạnh.</li>
+                                <li><strong>Logo chữ M màu vàng:</strong> Tượng trưng cho Minh và Mind (ý chí sáng suốt).</li>
+                                <li><strong>Áo choàng đỏ:</strong> Biểu tượng cho lòng dũng cảm, sự kiên định chống lại cám dỗ.</li>
+                                <li><strong>Kính bảo hộ đen:</strong> Bảo vệ khỏi làn khói độc hại, tạo phong thái chiến binh công nghệ.</li>
+                                <li><strong>Mũ nâu:</strong> Giữ sự gần gũi, giản dị.</li>
+                                <li><strong>Giày vàng:</strong> Đồng bộ với logo, gợi năng lượng tích cực.</li>
+                            </ul>
+                        `
+                    },
+                    skills: {
+                        title: "Tính Cách & Kỹ Năng",
+                        content: `
+                            <h4 class="text-xl font-bold mb-2 text-yellow-300">3. Tính cách</h4>
+                            <ul class="list-disc list-inside space-y-2 mb-4">
+                                <li><strong>Gan dạ:</strong> Không sợ khói thuốc hay quái vật độc hại.</li>
+                                <li><strong>Thông minh:</strong> Luôn tìm cách phản đòn bằng tri thức và lý lẽ khoa học.</li>
+                                <li><strong>Kiên định:</strong> Không bị lung lay trước sự dụ dỗ như “thử một chút cho vui”.</li>
+                                <li><strong>Truyền cảm hứng:</strong> Trở thành tấm gương cho những người khác trong Thành Phố Cơ Thể.</li>
+                            </ul>
+                             <h4 class="text-xl font-bold mb-2 text-yellow-300">4. Vũ khí & Kỹ năng</h4>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>Pháo Năng Lượng:</strong> Phát ra tia sáng tiêu diệt khói thuốc và hơi độc.</li>
+                                <li><strong>Lá Chắn Tri Thức:</strong> Tạo khiên bảo vệ bằng sự hiểu biết về tác hại của thuốc lá.</li>
+                                <li><strong>Kho Thư Viện Tri Thức:</strong> Nơi lấy ra sự thật khoa học để phản bác những lời dối trá.</li>
+                                <li><strong>Ý Chí Kiên Định:</strong> Sức mạnh ý chí để phá tan sự thao túng của Nicotine.</li>
+                            </ul>
+                        `
+                    },
+                    message: {
+                        title: "Biểu Tượng & Thông Điệp",
+                        content: `
+                             <h4 class="text-xl font-bold mb-2 text-yellow-300">5. Biểu tượng & Thông điệp</h4>
+                             <p class="mb-4">Minh chính là đại diện cho ý thức của mỗi người trẻ khi đối diện với thuốc lá và thuốc lá điện tử.</p>
+                             <ul class="list-disc list-inside space-y-2 mb-4">
+                                <li>Áo giáp xanh + áo choàng đỏ = <strong>Sức khỏe + Dũng cảm</strong>.</li>
+                                <li>Logo M vàng = <strong>Ánh sáng tri thức, sức mạnh từ sự hiểu biết</strong>.</li>
+                             </ul>
+                             <div class="mt-4 p-4 bg-black/20 rounded-lg">
+                                <p class="text-center text-xl font-bold text-yellow-300">“Đừng để thuốc lá hay thuốc lá điện tử điều khiển cơ thể bạn.”</p>
+                                <p class="text-center text-xl font-bold text-yellow-300 mt-2">“Kiến thức và ý chí là vũ khí mạnh nhất để bảo vệ sức khỏe.”</p>
+                             </div>
+                        `
+                    }
+                }
+            },
+            // --- ORGANS ---
+            brain: {
+                title: "🧠 Não Bộ",
+                source: "https://www.cdc.gov/tobacco/basic_information/health_effects/brain_health/index.html",
+                sourceName: "CDC Hoa Kỳ",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Não bộ là trung tâm chỉ huy của cơ thể, chịu trách nhiệm cho mọi suy nghĩ, cảm xúc và hành động.</p><ul class="list-disc list-inside space-y-2"><li><strong>Điều khiển tư duy:</strong> Xử lý thông tin, học tập, ghi nhớ và giải quyết vấn đề.</li><li><strong>Điều hòa cảm xúc:</strong> Tạo ra các cảm xúc như vui, buồn, sợ hãi.</li><li><strong>Kiểm soát vận động:</strong> Điều khiển mọi cử động của cơ thể, từ đi bộ đến các hành động phức tạp.</li><li><strong>Duy trì sự sống:</strong> Tự động điều chỉnh các chức năng thiết yếu như nhịp thở, nhịp tim và nhiệt độ cơ thể.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4"><strong>Nicotine</strong> trong thuốc lá và thuốc lá điện tử tác động trực tiếp lên não bộ chỉ trong 10 giây, gây ra những hậu quả nghiêm trọng.</p><ul class="list-disc list-inside space-y-2"><li><strong>Gây nghiện:</strong> Kích thích giải phóng <strong>dopamine</strong> tạo cảm giác thỏa mãn giả tạo, dẫn đến nghiện và lệ thuộc.</li><li><strong>Nguy cơ đột quỵ:</strong> Hút thuốc làm tăng nguy cơ đột quỵ lên 2-4 lần do làm hỏng mạch máu não và tăng khả năng hình thành cục máu đông.</li><li><strong>Suy giảm nhận thức:</strong> Gây tổn thương và làm mỏng vỏ não, dẫn đến suy giảm trí nhớ, khả năng học tập và tăng nguy cơ mắc bệnh Alzheimer.</li></ul>`
+                    }
+                }
+            },
+            lungs: {
+                title: "🫁 Phổi",
+                source: "https://www.lung.org/quit-smoking/smoking-facts/impact-of-smoking",
+                sourceName: "American Lung Association",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Phổi là cơ quan chính của hệ hô hấp, có nhiệm vụ trao đổi khí để duy trì sự sống.</p><ul class="list-disc list-inside space-y-2"><li><strong>Hít Oxy:</strong> Khi hít vào, phổi lấy oxy từ không khí và đưa vào máu.</li><li><strong>Thải Carbon Dioxide:</strong> Máu mang khí carbon dioxide (chất thải) từ cơ thể đến phổi để thở ra ngoài.</li><li><strong>Hệ thống lọc:</strong> Các lông mao (cilia) trong đường thở hoạt động như một bộ lọc, giữ lại bụi bẩn và vi khuẩn.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4">Hơn 7,000 hóa chất trong khói thuốc lá, bao gồm cả thuốc lá điện tử, tàn phá lá phổi của bạn.</p><ul class="list-disc list-inside space-y-2"><li><strong>Phá hủy Lông mao:</strong> Khói thuốc làm tê liệt và giết chết các lông mao, khiến chất độc và chất nhầy tích tụ, gây ho mạn tính ("ho của người hút thuốc").</li><li><strong>Bệnh phổi tắc nghẽn mạn tính (COPD):</strong> Phá hủy các túi khí (phế nang), khiến việc thở trở nên vô cùng khó khăn và không thể chữa khỏi.</li><li><strong>Ung thư phổi:</strong> Hút thuốc là nguyên nhân của gần 90% các ca ung thư phổi. Các chất độc trực tiếp làm biến đổi DNA của tế bào phổi.</li></ul>`
+                    }
+                }
+            },
+            heart: {
+                title: "❤️ Tim",
+                source: "https://www.heart.org/en/healthy-living/healthy-lifestyle/quit-smoking-tobacco/how-smoking-and-nicotine-damage-your-body",
+                sourceName: "American Heart Association",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Tim là một máy bơm cơ bắp hoạt động không ngừng nghỉ để duy trì sự sống.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bơm máu giàu Oxy:</strong> Tim bơm máu đã được oxy hóa từ phổi đến mọi tế bào trong cơ thể.</li><li><strong>Thu hồi máu nghèo Oxy:</strong> Tim nhận lại máu đã khử oxy và bơm nó đến phổi để nạp lại oxy.</li><li><strong>Duy trì huyết áp:</strong> Sức co bóp của tim tạo ra huyết áp, đẩy máu đi khắp hệ thống tuần hoàn.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4">Hút thuốc là một trong những nguyên nhân hàng đầu gây ra bệnh tim mạch, kể cả thuốc lá điện tử.</p><ul class="list-disc list-inside space-y-2"><li><strong>Tăng gánh nặng cho tim:</strong> Nicotine làm tim đập nhanh hơn, tăng huyết áp và buộc tim phải làm việc quá sức.</li><li><strong>Xơ vữa động mạch:</strong> Hóa chất độc hại làm hỏng thành mạch máu, gây tích tụ mảng bám, làm hẹp và cứng động mạch, dẫn đến đau tim và đột quỵ.</li><li><strong>Giảm Oxy trong máu:</strong> Khí Carbon Monoxide (CO) trong khói thuốc chiếm chỗ của oxy trong máu, khiến tim và cơ thể bị thiếu dưỡng khí.</li></ul>`
+                    }
+                }
+            },
+            liver: {
+                title: "🫀 Gan",
+                source: "https://britishlivertrust.org.uk/information-and-support/living-with-a-liver-condition/alcohol-and-drugs/smoking/",
+                sourceName: "British Liver Trust",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Gan là nhà máy hóa chất của cơ thể, thực hiện hơn 500 chức năng quan trọng.</p><ul class="list-disc list-inside space-y-2"><li><strong>Giải độc:</strong> Lọc và loại bỏ các chất độc hại ra khỏi máu.</li><li><strong>Sản xuất mật:</strong> Tạo ra dịch mật cần thiết cho việc tiêu hóa chất béo.</li><li><strong>Chuyển hóa:</strong> Chuyển hóa thức ăn thành năng lượng và dự trữ vitamin, khoáng chất.</li><li><strong>Tổng hợp Protein:</strong> Sản xuất các protein quan trọng cho quá trình đông máu và các chức năng khác.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4">Các chất độc từ thuốc lá buộc gan phải làm việc quá sức để giải độc, dẫn đến những tổn thương lâu dài.</p><ul class="list-disc list-inside space-y-2"><li><strong>Stress Oxy hóa:</strong> Gây tổn thương tế bào gan, làm suy giảm chức năng giải độc tự nhiên của cơ thể.</li><li><strong>Tăng nguy cơ ung thư gan:</strong> Người hút thuốc có nguy cơ mắc ung thư gan cao hơn đáng kể.</li><li><strong>Tương tác thuốc:</strong> Hút thuốc có thể thay đổi cách gan xử lý thuốc, làm giảm hiệu quả điều trị hoặc tăng độc tính.</li></ul>`
+                    }
+                }
+            },
+            mouth: {
+                title: "👄 Miệng & Họng",
+                source: "https://www.cdc.gov/tobacco/basic_information/health_effects/oral_health/index.html",
+                sourceName: "CDC Hoa Kỳ",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Miệng và họng là cửa ngõ của hệ tiêu hóa và hô hấp.</p><ul class="list-disc list-inside space-y-2"><li><strong>Ăn và nếm:</strong> Bắt đầu quá trình tiêu hóa bằng cách nhai và cảm nhận hương vị.</li><li><strong>Nói:</strong> Hình thành âm thanh và lời nói.</li><li><strong>Thở:</strong> Là một phần của đường dẫn khí vào phổi.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4">Là nơi tiếp xúc đầu tiên, miệng và họng phải chịu đựng sự tấn công trực tiếp từ các hóa chất độc hại.</p><ul class="list-disc list-inside space-y-2"><li><strong>Ung thư miệng, họng:</strong> Hút thuốc là nguyên nhân chính gây ra các loại ung thư này.</li><li><strong>Bệnh nướu răng:</strong> Làm giảm lưu lượng máu đến nướu, gây viêm, tụt nướu và cuối cùng là mất răng.</li><li><strong>Hôi miệng và răng ố vàng:</strong> Hắc ín bám vào răng gây ố vàng vĩnh viễn, trong khi các hóa chất khác gây hôi miệng mạn tính.</li></ul>`
+                    }
+                }
+            },
+            blood: {
+                title: "🩸 Mạch Máu",
+                source: "https://www.heart.org/en/healthy-living/healthy-lifestyle/quit-smoking-tobacco/how-smoking-and-nicotine-damage-your-body",
+                sourceName: "American Heart Association",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Hệ thống mạch máu là mạng lưới giao thông của cơ thể, vận chuyển máu đến mọi nơi.</p><ul class="list-disc list-inside space-y-2"><li><strong>Vận chuyển Oxy & Dinh dưỡng:</strong> Đưa máu giàu oxy và chất dinh dưỡng từ tim và phổi đến các tế bào.</li><li><strong>Loại bỏ chất thải:</strong> Mang các chất thải như CO2 trở về phổi và thận để xử lý.</li><li><strong>Điều hòa nhiệt độ:</strong> Giúp duy trì nhiệt độ cơ thể ổn định.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4">Hút thuốc làm tổn hại toàn bộ hệ thống mạch máu, từ những động mạch lớn nhất đến các mao mạch nhỏ nhất.</p><ul class="list-disc list-inside space-y-2"><li><strong>Làm cứng và hẹp mạch máu:</strong> Gây ra bệnh xơ vữa động mạch, làm giảm lưu lượng máu.</li><li><strong>Tăng nguy cơ máu đông:</strong> Làm cho máu trở nên đặc và dính hơn, dễ hình thành các cục máu đông chết người.</li><li><strong>Bệnh động mạch ngoại biên:</strong> Gây đau đớn ở chân khi đi lại do tắc nghẽn mạch máu và có thể dẫn đến cắt cụt chi.</li></ul>`
+                    }
+                }
+            },
+            skin: {
+                title: "🧱 Da",
+                source: "https://www.aad.org/public/everyday-care/skin-care-secrets/anti-aging/how-smoking-ages-your-skin",
+                sourceName: "American Academy of Dermatology",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Da là cơ quan lớn nhất của cơ thể, đóng vai trò là lớp áo giáp bảo vệ.</p><ul class="list-disc list-inside space-y-2"><li><strong>Rào cản bảo vệ:</strong> Chống lại vi khuẩn, virus và các tác nhân gây hại từ môi trường.</li><li><strong>Điều hòa nhiệt độ:</strong> Giữ ấm cơ thể khi trời lạnh và làm mát khi trời nóng qua việc tiết mồ hôi.</li><li><strong>Cảm giác:</strong> Cho phép chúng ta cảm nhận được xúc giác, nhiệt độ và cơn đau.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4">Hút thuốc cướp đi vẻ tươi trẻ của làn da và đẩy nhanh quá trình lão hóa một cách rõ rệt.</p><ul class="list-disc list-inside space-y-2"><li><strong>Lão hóa sớm:</strong> Phá hủy collagen và elastin, gây ra nếp nhăn sâu, đặc biệt là quanh mắt và miệng.</li><li><strong>Da xỉn màu:</strong> Làm co mạch máu, giảm lượng oxy và chất dinh dưỡng đến da, khiến da trở nên tái, xám và không đều màu.</li><li><strong>Chậm lành vết thương:</strong> Giảm lưu lượng máu khiến các vết cắt và vết trầy xước lâu lành hơn và dễ để lại sẹo xấu.</li></ul>`
+                    }
+                }
+            },
+            immune: {
+                title: "🛡️ Hệ Miễn Dịch",
+                source: "https://www.cdc.gov/tobacco/basic_information/health_effects/immune-system/index.html",
+                sourceName: "CDC Hoa Kỳ",
+                tabs: {
+                    function: {
+                        title: "Chức Năng",
+                        content: `<p class="mb-4">Hệ miễn dịch là đội quân bảo vệ cơ thể, chống lại những kẻ xâm lược gây bệnh.</p><ul class="list-disc list-inside space-y-2"><li><strong>Nhận diện kẻ thù:</strong> Xác định và phân biệt các tác nhân gây bệnh như vi khuẩn, virus, nấm.</li><li><strong>Tấn công và tiêu diệt:</strong> Triển khai các tế bào chiến binh (như tế bào bạch cầu) để tiêu diệt những kẻ xâm lược.</li><li><strong>Ghi nhớ:</strong> Tạo ra "trí nhớ miễn dịch" để có thể phản ứng nhanh hơn và mạnh hơn nếu cùng một kẻ thù tấn công trở lại.</li></ul>`
+                    },
+                    harm: {
+                        title: "Tác Hại Thuốc Lá",
+                        content: `<p class="mb-4">Hút thuốc làm suy yếu nghiêm trọng hệ thống phòng thủ của cơ thể, khiến bạn dễ bị tấn công hơn.</p><ul class="list-disc list-inside space-y-2"><li><strong>Suy yếu "binh lính":</strong> Làm giảm số lượng và hiệu quả của các tế bào miễn dịch, khiến cơ thể khó chống lại nhiễm trùng.</li><li><strong>Gây viêm mạn tính:</strong> Đặt cơ thể vào tình trạng viêm nhiễm liên tục, làm tăng nguy cơ mắc nhiều bệnh.</li><li><strong>Tăng nguy cơ bệnh tự miễn:</strong> Có thể khiến hệ miễn dịch bị "nhầm lẫn" và tấn công chính các tế bào khỏe mạnh của cơ thể (ví dụ: bệnh viêm khớp dạng thấp).</li></ul>`
+                    }
+                }
+            },
+            // --- TOXINS ---
+            nicotine: {
+                title: "🚬 Nicotine",
+                source: "https://nida.nih.gov/publications/drugfacts/nicotine-e-cigarettes",
+                sourceName: "NIDA Hoa Kỳ",
+                tabs: {
+                    harm: {
+                        title: "Tác Hại",
+                        content: `<p class="mb-4">Nicotine là một hợp chất alkaloid có trong cây thuốc lá. Đây là lý do chính khiến việc bỏ thuốc trở nên khó khăn.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bản chất:</strong> Một chất kích thích thần kinh cực mạnh. Khi vào cơ thể, nó nhanh chóng đi đến não và kích hoạt giải phóng adrenaline và dopamine.</li><li><strong>Cơ chế tác động:</strong> Nó bắt chước một chất dẫn truyền thần kinh gọi là acetylcholine, ảnh hưởng đến nhịp tim, sự co cơ, và quan trọng nhất là các "trung tâm tưởng thưởng" trong não, tạo ra cảm giác dễ chịu tạm thời nhưng lại gây ra một vòng luẩn quẩn nghiện ngập.</li><li><strong>Tác hại:</strong> Gây co mạch máu, tăng huyết áp, tăng nhịp tim, và là chất gây nghiện chính khiến người dùng tiếp tục tiếp xúc với hàng ngàn chất độc khác trong khói thuốc.</li></ul>`
+                    },
+                    prevention: {
+                        title: "Phòng Chống & Thông Điệp",
+                        content: `<p class="mb-4 text-center text-2xl font-bold text-yellow-300">"Đừng để Nicotine kiểm soát bạn. Sức mạnh thực sự là nói KHÔNG!"</p><p>Hiểu rằng cảm giác "thư giãn" mà nicotine mang lại chỉ là giả tạo và tạm thời. Hãy tìm đến những phương pháp giảm căng thẳng lành mạnh hơn như thể thao, thiền định, hoặc trò chuyện với bạn bè. Mỗi lần bạn từ chối điếu thuốc là một lần bạn chiến thắng và giành lại quyền kiểm soát cuộc sống của mình.</p>`
+                    }
+                }
+            },
+            co: {
+                title: "☁️ Carbon Monoxide (CO)",
+                source: "https://www.lung.org/quit-smoking/smoking-facts/whats-in-a-cigarette/carbon-monoxide",
+                sourceName: "American Lung Association",
+                tabs: {
+                    harm: {
+                        title: "Tác Hại",
+                        content: `<p class="mb-4">Carbon Monoxide là một loại khí độc không màu, không mùi được tạo ra khi thuốc lá cháy.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bản chất:</strong> Một loại khí độc hại sinh ra từ sự đốt cháy không hoàn toàn.</li><li><strong>Cơ chế tác động:</strong> CO có ái lực với <strong>hemoglobin</strong> (protein vận chuyển oxy trong hồng cầu) cao hơn oxy khoảng 200 lần. Khi hít phải, CO sẽ chiếm chỗ của oxy, khiến các tế bào và mô trong cơ thể bị "chết ngạt".</li><li><strong>Tác hại:</strong> Làm giảm lượng oxy đến tim, não và các cơ quan quan trọng khác. Góp phần gây ra các cơn đau tim, đột quỵ và làm tổn thương thành mạch máu.</li></ul>`
+                    },
+                    prevention: {
+                        title: "Phòng Chống & Thông Điệp",
+                        content: `<p class="mb-4 text-center text-2xl font-bold text-yellow-300">"Chọn không khí trong lành, chọn sự sống. Tránh xa khói thuốc!"</p><p>Mỗi hơi thuốc bạn hít vào đều chứa khí độc CO, cướp đi lượng oxy quý giá mà cơ thể bạn cần để hoạt động. Hãy nhớ rằng, lá phổi của bạn được sinh ra để hít thở không khí trong lành, không phải khói độc.</p>`
+                    }
+                }
+            },
+            tar: {
+                title: "🫧 Hắc Ín (Nhựa Thuốc Lá)",
+                source: "https://www.cancer.org/cancer/risk-prevention/tobacco/carcinogens-in-tobacco-products.html",
+                sourceName: "American Cancer Society",
+                tabs: {
+                    harm: {
+                        title: "Tác Hại",
+                        content: `<p class="mb-4">Hắc ín là một hỗn hợp dính, màu nâu của hàng trăm hóa chất, bao gồm nhiều chất gây ung thư, được tạo ra khi thuốc lá cháy.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bản chất:</strong> Một hỗn hợp dạng nhựa chứa các hạt rắn, bao gồm các chất gây ung thư (carcinogen) như benzopyrene.</li><li><strong>Cơ chế tác động:</strong> Khi hít vào, hắc ín bao phủ và làm tê liệt các lông mao trong phổi. Nó tích tụ lại, làm tắc nghẽn đường thở và phá hủy các túi khí (phế nang).</li><li><strong>Tác hại:</strong> Là nguyên nhân chính gây ung thư phổi, ung thư vòm họng. Gây ra bệnh khí phế thũng, viêm phế quản mạn tính và làm răng, ngón tay bị ố vàng.</li></ul>`
+                    },
+                    prevention: {
+                        title: "Phòng Chống & Thông Điệp",
+                        content: `<p class="mb-4 text-center text-2xl font-bold text-yellow-300">"Mỗi điếu thuốc là một lớp hắc ín phủ lên phổi bạn. Hãy giữ cho lá phổi của bạn trong sạch."</p><p>Hãy hình dung hắc ín giống như nhựa đường trải trên một con đường. Bạn có muốn thứ đó lấp đầy lá phổi của mình không? Mỗi ngày không hút thuốc là một cơ hội để phổi của bạn tự làm sạch và phục hồi.</p>`
+                    }
+                }
+            },
+             particles: {
+                title: "⚫ Hạt Siêu Nhỏ (PM2.5)",
+                source: "https://www.epa.gov/pm-pollution/particulate-matter-pm-basics",
+                sourceName: "EPA Hoa Kỳ",
+                tabs: {
+                    harm: {
+                        title: "Tác Hại",
+                        content: `<p class="mb-4">Khói thuốc lá chứa một lượng lớn các hạt vật chất siêu nhỏ (đường kính dưới 2.5 micromet), có khả năng xâm nhập sâu vào cơ thể.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bản chất:</strong> Các hạt rắn và lỏng cực nhỏ lơ lửng trong không khí.</li><li><strong>Cơ chế tác động:</strong> Do kích thước siêu nhỏ, chúng có thể đi sâu vào tận cùng của phổi (phế nang) và thậm chí đi vào máu, di chuyển đến mọi cơ quan trong cơ thể.</li><li><strong>Tác hại:</strong> Gây viêm nhiễm toàn thân, làm hỏng thành mạch máu, góp phần gây ra các bệnh tim mạch, bệnh hô hấp và làm trầm trọng thêm bệnh hen suyễn.</li></ul>`
+                    },
+                    prevention: {
+                        title: "Phòng Chống & Thông Điệp",
+                        content: `<p class="mb-4 text-center text-2xl font-bold text-yellow-300">"Những kẻ thù vô hình là nguy hiểm nhất. Đừng hít vào những hạt độc từ khói thuốc."</p><p>Ngay cả khi bạn không nhìn thấy chúng, hàng triệu hạt độc đang tấn công cơ thể bạn trong mỗi làn khói. Bảo vệ bản thân và những người xung quanh bằng cách tạo ra một môi trường không khói thuốc.</p>`
+                    }
+                }
+            },
+            acrolein: {
+                title: "🔥 Acrolein",
+                source: "https://wwwn.cdc.gov/TSP/ToxFAQs/ToxFAQsDetails.aspx?faqid=753&toxid=199",
+                sourceName: "CDC/ATSDR",
+                tabs: {
+                    harm: {
+                        title: "Tác Hại",
+                        content: `<p class="mb-4">Acrolein là một hóa chất cực kỳ độc hại trong khói thuốc, được hình thành từ việc đốt cháy glycerol trong giấy và chất phụ gia. Chất này cũng có trong hơi của thuốc lá điện tử.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bản chất:</strong> Một aldehyde không bão hòa, có mùi hăng, cay nồng.</li><li><strong>Cơ chế tác động:</strong> Là một chất gây kích ứng mạnh mẽ, nó tấn công và phá hủy vĩnh viễn các lông mao trong phổi, ngăn cản cơ chế làm sạch tự nhiên của hệ hô hấp.</li><li><strong>Tác hại:</strong> Góp phần trực tiếp gây ra Bệnh phổi tắc nghẽn mạn tính (COPD). Nó cũng có liên quan đến bệnh tim và được coi là một chất có khả năng gây ung thư.</li></ul>`
+                    },
+                    prevention: {
+                        title: "Phòng Chống & Thông Điệp",
+                        content: `<p class="mb-4 text-center text-2xl font-bold text-yellow-300">"Đừng để lá phổi của bạn bị 'đốt cháy' bởi Acrolein. Hãy dập tắt điếu thuốc ngay hôm nay."</p><p>Acrolein gây ra những tổn thương không thể phục hồi cho hệ hô hấp của bạn. Mỗi lần bạn quyết định không hút thuốc, bạn đang bảo vệ lá phổi khỏi sự tấn công tàn bạo của hóa chất này.</p>`
+                    }
+                }
+            },
+            formaldehyde: {
+                title: "🧪 Formaldehyde",
+                source: "https://www.cancer.gov/about-cancer/causes-prevention/risk/substances/formaldehyde",
+                sourceName: "Viện Ung thư Quốc gia Hoa Kỳ",
+                tabs: {
+                    harm: {
+                        title: "Tác Hại",
+                        content: `<p class="mb-4">Formaldehyde, một chất thường được dùng để ướp xác, cũng là một thành phần nguy hiểm trong khói thuốc lá và hơi thuốc lá điện tử.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bản chất:</strong> Một hợp chất hữu cơ, được Cơ quan Nghiên cứu Ung thư Quốc tế (IARC) xếp vào nhóm 1: chất gây ung thư cho người.</li><li><strong>Cơ chế tác động:</strong> Gây kích ứng mạnh cho mắt, mũi, họng và da. Khi hít phải, nó có thể gây tổn thương DNA của tế bào.</li><li><strong>Tác hại:</strong> Gây ra các bệnh về đường hô hấp và là một nguyên nhân đã được biết đến gây ra bệnh bạch cầu dòng tủy (một loại ung thư máu) và ung thư vòm họng.</li></ul>`
+                    },
+                    prevention: {
+                        title: "Phòng Chống & Thông Điệp",
+                        content: `<p class="mb-4 text-center text-2xl font-bold text-yellow-300">"Cơ thể bạn không phải là phòng thí nghiệm để ướp hóa chất. Hãy bảo vệ nó khỏi Formaldehyde."</p><p>Bạn sẽ không bao giờ uống một chai hóa chất bảo quản, vậy tại sao lại hít nó vào phổi? Hãy tôn trọng cơ thể của bạn. Nó xứng đáng được nhận những gì trong lành nhất.</p>`
+                    }
+                }
+            },
+            benzene: {
+                title: "⭕ Benzene",
+                source: "https://www.cdc.gov/niosh/topics/benzene/default.html",
+                sourceName: "CDC Hoa Kỳ",
+                tabs: {
+                    harm: {
+                        title: "Tác Hại",
+                        content: `<p class="mb-4">Benzene là một dung môi công nghiệp và là một chất gây ung thư mạnh được tìm thấy với nồng độ cao trong khói thuốc lá.</p><ul class="list-disc list-inside space-y-2"><li><strong>Bản chất:</strong> Một hợp chất hữu cơ thơm, được xếp vào nhóm 1 các chất gây ung thư cho người. Khoảng một nửa số ca phơi nhiễm benzene ở người là do hút thuốc.</li><li><strong>Cơ chế tác động:</strong> Sau khi vào cơ thể, benzene gây tổn thương tủy xương, nơi sản xuất các tế bào máu. Nó làm thay đổi DNA của tế bào tủy, dẫn đến sản xuất các tế bào máu bất thường.</li><li><strong>Tác hại:</strong> Là nguyên nhân chính gây ra bệnh bạch cầu cấp dòng tủy (AML), một loại ung thư máu và tủy xương tiến triển nhanh.</li></ul>`
+                    },
+                    prevention: {
+                        title: "Phòng Chống & Thông Điệp",
+                        content: `<p class="mb-4 text-center text-2xl font-bold text-yellow-300">"Mỗi hơi thuốc có thể là một bước gần hơn đến ung thư máu. Hãy chọn sức khỏe, không phải Benzene."</p><p>Sức khỏe của bạn là vô giá. Đừng đánh đổi nó lấy những nguy cơ tiềm ẩn trong khói thuốc. Lựa chọn không hút thuốc là bạn đang lựa chọn một tương lai khỏe mạnh cho hệ thống máu và toàn bộ cơ thể.</p>`
+                    }
+                }
+            }
+        };
+
+        // --- MODAL SCRIPT ---
+        const modal = document.getElementById('info-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const modalTabsContainer = document.getElementById('modal-tabs');
+        const modalSourceContainer = document.getElementById('modal-source');
+        let currentInfoKey = null;
+
+        function showInfo(key) {
+            if (Tone.context.state === 'running') {
+                openModalSound.triggerAttackRelease("C4", "0.2");
+            }
+            currentInfoKey = key;
+            const data = infoData[key];
+            if (!data) return;
+
+            modalTitle.innerHTML = data.title;
+            modalTabsContainer.innerHTML = '';
+            
+            // Create tab buttons
+            Object.keys(data.tabs).forEach(tabKey => {
+                const tab = data.tabs[tabKey];
+                const button = document.createElement('button');
+                button.textContent = tab.title;
+                button.className = 'modal-tab-button px-4 py-2 rounded-t-lg text-white/70 font-semibold';
+                button.onclick = () => switchInfoTab(key, tabKey);
+                modalTabsContainer.appendChild(button);
+            });
+            
+            // Set source link
+            if (data.source && data.sourceName) {
+                modalSourceContainer.innerHTML = `<a href="${data.source}" target="_blank" class="text-blue-300 hover:text-yellow-300 transition-colors">Nguồn: ${data.sourceName} &rarr;</a>`;
+                modalSourceContainer.style.display = 'block';
+            } else {
+                modalSourceContainer.innerHTML = '';
+                modalSourceContainer.style.display = 'none';
+            }
+
+            // Show first tab by default
+            switchInfoTab(key, Object.keys(data.tabs)[0]);
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content-container').classList.remove('scale-95', 'opacity-0');
+        }
+
+        function switchInfoTab(key, tabKey) {
+            if (Tone.context.state === 'running') {
+                switchTabSound.triggerAttackRelease("G4", "0.1");
+            }
+            const data = infoData[key];
+            if (!data || !data.tabs[tabKey]) return;
+
+            modalContent.innerHTML = data.tabs[tabKey].content;
+            
+            // Update active button style
+            const buttons = modalTabsContainer.querySelectorAll('button');
+            buttons.forEach(button => {
+                if (button.textContent === data.tabs[tabKey].title) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+
+        function hideInfo() {
+            if (Tone.context.state === 'running') {
+                closeModalSound.triggerAttackRelease("C3", "0.2");
+            }
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-content-container').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                 modal.classList.add('pointer-events-none');
+            }, 300); // Wait for transition to finish
+        }
+        
+        // Close modal when clicking on the backdrop
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                hideInfo();
+            }
+        });
+
+
+        // --- NAVIGATION SCRIPT ---
+        function showSection(sectionName) {
+            if (Tone.context.state === 'running') {
+                clickSound.triggerAttackRelease("C5", "0.1");
+            }
+
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            const activeSection = document.getElementById(sectionName);
+            if (activeSection) activeSection.classList.remove('hidden');
+            
+            const buttons = document.querySelectorAll('.nav-button');
+            buttons.forEach(button => {
+                button.classList.remove('bg-white/30');
+                button.classList.add('glass-effect');
+            });
+            
+            const activeButton = document.querySelector(`.nav-button[data-section="${sectionName}"]`);
+            if (activeButton) {
+                activeButton.classList.remove('glass-effect');
+                activeButton.classList.add('bg-white/30');
+            }
+        }
+        
+        // --- FULLSCREEN SCRIPT ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Lỗi khi bật toàn màn hình: ${err.message} (${err.name})`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
+
+        document.addEventListener('DOMContentLoaded', () => {
+             // It's better to initialize audio on the first user interaction, so we set up a listener for it.
+            document.body.addEventListener('click', async () => {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                    console.log("Audio context started.");
+                }
+            }, { once: true });
+
+            showSection('hero');
+        });
+
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'fixed w-1 h-1 bg-white rounded-full pointer-events-none sparkle';
+            sparkle.style.left = `${Math.random() * window.innerWidth}px`;
+            sparkle.style.top = `${Math.random() * window.innerHeight}px`;
+            sparkle.style.animationDelay = `${Math.random() * 2}s`;
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 3000);
+        }
+
+        setInterval(createSparkle, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cốt Truyện: Cuộc Chiến Không Khói</title>
+    <!-- Thêm thư viện Tone.js cho âm thanh -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+        :root {
+            --primary-color: #00b4d8;
+            --dark-color: #0d1b2a;
+            --text-color: #e5e7eb;
+            --glow-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+            --border-color: rgba(0, 180, 216, 0.3);
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--dark-color);
+            font-family: 'Roboto Condensed', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            height: 90%;
+            max-height: 600px;
+            background: rgba(17, 24, 39, 0.8);
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 40px rgba(0, 180, 216, 0.3), inset 0 0 15px rgba(0, 180, 216, 0.2);
+            border-radius: 15px;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .game-title {
+            font-size: 3em;
+            font-weight: 700;
+            color: #f9fafb;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            margin: 0;
+        }
+        .game-slogan {
+            font-size: 1.2em;
+            color: var(--primary-color);
+            text-shadow: var(--glow-shadow);
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.5em;
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+        .story-text p {
+            margin: 0;
+            padding: 0;
+        }
+        .typing-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.5em;
+            background-color: var(--primary-color);
+            animation: blink 0.7s infinite;
+            margin-left: 5px;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        button {
+            padding: 15px 30px;
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: var(--dark-color);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 18px;
+            text-shadow: none;
+        }
+        button:hover {
+            background: var(--light-blue);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 180, 216, 0.4);
+        }
+        button:disabled {
+            background: #555;
+            border-color: #777;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<div id="copyright">
+    © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap');
+
+#copyright {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    padding: 6px 0;
+    font-family: 'Roboto', Arial, Helvetica, sans-serif;
+    z-index: 9999;
+    pointer-events: none;
+
+    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+
+    opacity: 0;
+    animation: fadeIn 2s ease forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+</style>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+<body>
+    <div id="intro-container" class="container">
+         <div class="header">
+            <h1 class="game-title">CUỘC CHIẾN KHÔNG KHÓI</h1>
+            <p class="game-slogan">Bảo vệ từng nhịp thở — Nói không với thuốc lá</p>
+        </div>
+        <div class="content">
+            <p>Hành trình bảo vệ Thành Phố Cơ Thể sắp bắt đầu.</p>
+        </div>
+        <div class="footer">
+            <button id="start-story-button">KHÁM PHÁ NGOẠI TRUYỆN</button>
+        </div>
+    </div>
+
+    <div id="story-container" class="container hidden">
+        <div class="header">
+            <h1 class="game-title">CUỘC CHIẾN KHÔNG KHÓI</h1>
+            <p class="game-slogan">Bảo vệ từng nhịp thở — Nói không với thuốc lá</p>
+        </div>
+        <div class="content story-content">
+            <div id="story-text-container" class="story-text">
+                <p id="story-text"></p><span id="cursor" class="typing-cursor"></span>
+            </div>
+        </div>
+        <div class="footer">
+            <button id="next-button">Tiếp theo</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CỐT TRUYỆN (ĐÃ TÓM GỌN) ---
+        const storyPanels = [
+            "Tóm tắt nhiệm vụ: Hỡi chiến binh Minh hiện thân của ý chí (Mind), bạn đã chiến đấu anh dũng bên trong Thành Phố Cơ Thể.",
+            "Quái vật Thuốc Lá cùng các tay sai và tên chủ mưu Nicotine xảo quyệt đã bị ý chí kiên định của bạn đánh bại.",
+            "Nhưng nguồn gốc của sự tha hóa vẫn còn đó. Hang ổ của chúng, NHÀ MÁY KHÓI ĐỘC, vẫn đang hoạt động.",
+            "Nhà máy này liên tục sản xuất ra một đội quân xe tăng như: Thuốc lá điếu truyền thống, Thuốc lá điện tử, Thuốc lá nung nóng, Thuốc lào độc hại, sẵn sàng cho một cuộc xâm lăng mới.",
+            "Đây là trận chiến cuối cùng. Hãy chỉ huy siêu xe tăng Lá Phổi Xanh và chấm dứt mối đe dọa này vĩnh viễn.",
+            "Nhiệm vụ của bạn: Tổng tấn công nhà máy, phá hủy căn cứ địch và bảo vệ tương lai của chúng ta. Chúc may mắn!"
+        ];
+
+        // --- THIẾT LẬP ÂM THANH ---
+        let isAudioStarted = false;
+
+        const typingSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
+        }).toDestination();
+        typingSynth.volume.value = -20;
+
+        const confirmSynth = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
+        }).toDestination();
+        confirmSynth.volume.value = -10;
+
+        const backgroundMusic = new Tone.AMSynth({
+            harmonicity: 1.5,
+            envelope: { attack: 2, decay: 0.2, sustain: 0.5, release: 0.8 },
+            modulationEnvelope: { attack: 0.5, decay: 0.01, sustain: 1, release: 0.5 }
+        }).toDestination();
+        backgroundMusic.volume.value = -25;
+
+        const musicLoop = new Tone.Loop(time => {
+            backgroundMusic.triggerAttackRelease("C2", "2n", time);
+            backgroundMusic.triggerAttackRelease("G2", "2n", time + Tone.Time("2n").toSeconds());
+            backgroundMusic.triggerAttackRelease("Eb3", "2n", time + Tone.Time("1n").toSeconds());
+        }, "1m").start(0);
+        Tone.Transport.bpm.value = 70;
+
+        // --- LOGIC HIỂN THỊ ---
+        const introContainer = document.getElementById('intro-container');
+        const storyContainer = document.getElementById('story-container');
+        const startStoryButton = document.getElementById('start-story-button');
+        const nextButton = document.getElementById('next-button');
+        const storyTextElement = document.getElementById('story-text');
+        const cursorElement = document.getElementById('cursor');
+
+        let currentPanel = 0;
+        let isTyping = false;
+        let typingTimeout;
+
+        function typeWriter(text, i = 0) {
+            isTyping = true;
+            if (i < text.length) {
+                storyTextElement.innerHTML += text.charAt(i);
+                if (text.charAt(i) !== ' ' && isAudioStarted) {
+                    typingSynth.triggerAttackRelease("C6", "32n");
+                }
+                typingTimeout = setTimeout(() => typeWriter(text, i + 1), 40);
+            } else {
+                nextButton.disabled = false;
+                cursorElement.style.display = 'inline-block';
+                isTyping = false;
+            }
+        }
+
+        function showNextPanel() {
+            if (currentPanel < storyPanels.length) {
+                nextButton.disabled = true;
+                cursorElement.style.display = 'none';
+                storyTextElement.innerHTML = '';
+                typeWriter(storyPanels[currentPanel]);
+                currentPanel++;
+            }
+
+            if (currentPanel === storyPanels.length) {
+                nextButton.innerText = 'BẮT ĐẦU CHIẾN DỊCH';
+            }
+        }
+
+        startStoryButton.addEventListener('click', () => {
+             // Khởi động âm thanh trong lần tương tác đầu tiên của người dùng
+            if (!isAudioStarted) {
+                Tone.start().then(() => {
+                    Tone.Transport.start();
+                    isAudioStarted = true;
+                    console.log("Audio context started and music playing.");
+                });
+            }
+            introContainer.classList.add('hidden');
+            storyContainer.classList.remove('hidden');
+            showNextPanel();
+        });
+
+
+        nextButton.addEventListener('click', () => {
+            if(isAudioStarted) {
+                confirmSynth.triggerAttackRelease("G4", "8n");
+            }
+            
+            if (isTyping) {
+                 clearTimeout(typingTimeout);
+                 isTyping = false;
+                 storyTextElement.innerHTML = storyPanels[currentPanel-1];
+                 nextButton.disabled = false;
+                 cursorElement.style.display = 'inline-block';
+                 return;
+            }
+
+            if (currentPanel < storyPanels.length) {
+                showNextPanel();
+            } else {
+                window.location.href = 'BANXETANGTEST_fixed.html';
+            }
+        });
+    </script>
+</body>
+</html>
+

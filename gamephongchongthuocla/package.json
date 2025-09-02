@@ -1,0 +1,53 @@
+{
+  "name": "cuoc-chien-khong-khoi",
+  "version": "1.0.0",
+  "description": "Game giáo dục phòng chống thuốc lá",
+  "main": "main.js",
+  "author": "Thầy Nguyên",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "clean": "rimraf dist build",
+    "obfuscate": "node scripts/obfuscate.js",
+    "prebuild": "npm run clean && npm run obfuscate",
+    "pack": "electron-packager . CuocChienKhongKhoi --platform=win32 --arch=x64 --icon=icon.ico --out=build --overwrite",
+    "dist": "npm run prebuild && electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.0.0",
+    "javascript-obfuscator": "^4.1.0",
+    "rimraf": "^5.0.1"
+  },
+  "build": {
+    "appId": "com.cuocchien.khongkhoi",
+    "productName": "Cuộc Chiến Không Khói",
+    "asar": true,
+    "directories": {
+      "buildResources": "./",
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "splash.html",
+      "icon.ico",
+      "logo.png",
+      "dist/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "icon.ico",
+      "artifactName": "CuocChienKhongKhoi-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
