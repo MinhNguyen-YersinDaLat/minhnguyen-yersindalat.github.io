@@ -10,8 +10,10 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Metal+Mania&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet">
 
     <style>
+        /* --- General Styles --- */
         body {
             font-family: 'Be Vietnam Pro', sans-serif;
             touch-action: none;
@@ -28,13 +30,13 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            /* cursor is set by JS */
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
+        /* --- Character / Monster Styles --- */
         #character-container {
             position: absolute;
-            top: -95px; /* Điều chỉnh vị trí để phù hợp với kích thước mới */
+            top: -95px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -62,284 +64,111 @@
             animation: idle-spasm 6s ease-in-out infinite;
             transition: transform 0.3s ease;
         }
-        #character-container.coughing #cigarette-svg {
-            animation: cough-shake 0.5s ease-in-out;
-        }
+        #character-container.coughing #cigarette-svg { animation: cough-shake 0.5s ease-in-out; }
         @keyframes cough-shake {
-            0%, 100% { transform: translate(0, 0); }
-            20% { transform: translate(-8px, 5px) rotate(-3deg); }
-            40% { transform: translate(8px, -5px) rotate(3deg); }
-            60% { transform: translate(-5px, 3px) rotate(-2deg); }
-            80% { transform: translate(5px, -3px) rotate(2deg); }
+            0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-8px, 5px) rotate(-3deg); } 40% { transform: translate(8px, -5px) rotate(3deg); } 60% { transform: translate(-5px, 3px) rotate(-2deg); } 80% { transform: translate(5px, -3px) rotate(2deg); }
         }
         @keyframes idle-spasm {
-            0%, 100% { transform: translate(0, 0) rotate(0); }
-            10% { transform: translate(-2px, 2px) rotate(-1deg); }
-            20% { transform: translate(2px, -2px) rotate(1deg); }
-            30% { transform: translate(-3px, 0px) rotate(-1.5deg); }
-            40% { transform: translate(3px, 1px) rotate(1.5deg); }
-            50% { transform: translate(0, 0) rotate(0); }
-            70% { transform: translate(0, 0) rotate(0); }
-            72% { transform: translate(5px, -5px) rotate(3deg); }
-            74% { transform: translate(0, 0) rotate(0); }
+            0%, 100% { transform: translate(0, 0) rotate(0); } 10% { transform: translate(-2px, 2px) rotate(-1deg); } 20% { transform: translate(2px, -2px) rotate(1deg); } 30% { transform: translate(-3px, 0px) rotate(-1.5deg); } 40% { transform: translate(3px, 1px) rotate(1.5deg); } 50% { transform: translate(0, 0) rotate(0); } 70% { transform: translate(0, 0) rotate(0); } 72% { transform: translate(5px, -5px) rotate(3deg); } 74% { transform: translate(0, 0) rotate(0); }
         }
-        .cigarette-body-shape { fill: url(#paper-gradient); }
-        .filter-shape { fill: #6b3520; }
-        .ash-shape { fill: #333; }
-        .ember-shape { fill: #ff4500; filter: url(#emberGlow); animation: ember-flicker 1.5s infinite alternate; }
-        @keyframes ember-flicker {
-            from { opacity: 0.9; }
-            to { opacity: 1; }
-        }
-        .eye-socket { fill: #1a0000; }
-        .eye-ball { fill: #dc143c; }
-        .eye-pupil { fill: #000; transition: transform 0.1s linear; }
-        .eye-vein { stroke: #8b0000; stroke-width: 0.5; fill: none; }
-        .mouth { fill: #1a1a1a; transition: d 0.3s ease-in-out; }
-        .crack { fill: none; stroke: #4e2a1d; stroke-width: 1.2; }
-        .stain { fill: #704214; opacity: 0.6; }
-        .spark { fill: #ffdd00; animation: spark-fly 1.5s infinite linear; }
-        @keyframes spark-fly {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(-30px, var(--y-end)) scale(0); opacity: 0; }
-        }
+        .cigarette-body-shape { fill: url(#paper-gradient); } .filter-shape { fill: #6b3520; } .ash-shape { fill: #333; } .ember-shape { fill: #ff4500; filter: url(#emberGlow); animation: ember-flicker 1.5s infinite alternate; }
+        @keyframes ember-flicker { from { opacity: 0.9; } to { opacity: 1; } }
+        .eye-socket { fill: #1a0000; } .eye-ball { fill: #dc143c; } .eye-pupil { fill: #000; transition: transform 0.1s linear; } .eye-vein { stroke: #8b0000; stroke-width: 0.5; fill: none; } .mouth { fill: #1a1a1a; transition: d 0.3s ease-in-out; } .crack { fill: none; stroke: #4e2a1d; stroke-width: 1.2; } .stain { fill: #704214; opacity: 0.6; } .spark { fill: #ffdd00; animation: spark-fly 1.5s infinite linear; }
+        @keyframes spark-fly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(-30px, var(--y-end)) scale(0); opacity: 0; } }
         .smoke-container { position: absolute; left: -120px; top: 50%; transform: translateY(-50%); width: 200px; height: 200px; pointer-events: none; filter: url(#smokeFilter); }
-        .smoke-wisp {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: wisp-rise 12s infinite linear;
-            opacity: 0;
-        }
-        @keyframes wisp-rise {
-            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
-            15% { opacity: 0.8; }
-            100% { transform: translate(-120px, var(--y-end)) scale(2.5); opacity: 0; }
-        }
-        .smoke-wisp:nth-child(1) { width: 60px; height: 60px; animation-delay: 0s; --y-end: -80px; }
-        .smoke-wisp:nth-child(2) { width: 80px; height: 80px; animation-delay: 4s; --y-end: 50px; }
-        .smoke-wisp:nth-child(3) { width: 50px; height: 50px; animation-delay: 8s; --y-end: -20px; }
-        #threat-bubble {
-            position: absolute; bottom: 100%; left: 50%; margin-bottom: 10px; background-color: #110d0d; color: #ff4500;
-            padding: 15px 22px; border-radius: 12px; border: 2px solid #ff4500; font-size: 1.3rem; font-family: 'Metal Mania', cursive;
-            letter-spacing: 1px; opacity: 0; transform: translateY(20px) scale(0.9) translateX(-50%);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); white-space: nowrap; box-shadow: 0 0 25px rgba(255, 69, 0, 0.7);
-        }
+        .smoke-wisp { position: absolute; background: white; border-radius: 50%; animation: wisp-rise 12s infinite linear; opacity: 0; }
+        @keyframes wisp-rise { 0% { transform: translate(0, 0) scale(0.5); opacity: 0; } 15% { opacity: 0.8; } 100% { transform: translate(-120px, var(--y-end)) scale(2.5); opacity: 0; } }
+        .smoke-wisp:nth-child(1) { width: 60px; height: 60px; animation-delay: 0s; --y-end: -80px; } .smoke-wisp:nth-child(2) { width: 80px; height: 80px; animation-delay: 4s; --y-end: 50px; } .smoke-wisp:nth-child(3) { width: 50px; height: 50px; animation-delay: 8s; --y-end: -20px; }
+        #threat-bubble { position: absolute; bottom: 100%; left: 50%; margin-bottom: 10px; background-color: #110d0d; color: #ff4500; padding: 15px 22px; border-radius: 12px; border: 2px solid #ff4500; font-size: 1.3rem; font-family: 'Metal Mania', cursive; letter-spacing: 1px; opacity: 0; transform: translateY(20px) scale(0.9) translateX(-50%); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); white-space: nowrap; box-shadow: 0 0 25px rgba(255, 69, 0, 0.7); }
         #threat-bubble.visible { opacity: 1; transform: translateY(0) scale(1) translateX(-50%); }
+        #monster-name { position: absolute; top: 50%; left: 230px; transform: translateY(-50%); white-space: nowrap; }
 
-        #monster-name {
-            position: absolute;
-            top: 50%;
-            left: 230px; /* Điều chỉnh vị trí cho phù hợp */
-            transform: translateY(-50%);
-            white-space: nowrap;
-        }
-
+        /* --- UI & Game Elements --- */
         #game-title { animation: sparkle 5s infinite linear; }
-        @keyframes sparkle {
-            0% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); }
-            50% { text-shadow: 2px 2px 8px rgba(236, 72, 153, 0.5); }
-            100% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); }
-        }
-        .health-bar-bg {
-            background-color: rgba(0,0,0,0.3);
-            border-radius: 9999px;
-            padding: 4px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .health-bar {
-            background: linear-gradient(to right, #ef4444, #f87171);
-            height: 16px;
-            border-radius: 9999px;
-            transition: width 0.5s ease-out;
-            box-shadow: 0 0 10px #ef4444;
-        }
-        #custom-cursor {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ff4500;
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            z-index: 9999;
-            transition: transform 0.1s ease-out;
-            /* display is set by JS */
-        }
-        /* Màn hình chờ */
-        #start-screen {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            padding: 1rem;
-        }
+        @keyframes sparkle { 0% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); } 50% { text-shadow: 2px 2px 8px rgba(236, 72, 153, 0.5); } 100% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); } }
+        .progress-bar-bg { background-color: rgba(0,0,0,0.3); border-radius: 9999px; padding: 4px; border: 1px solid rgba(255,255,255,0.1); }
+        .progress-bar { background: linear-gradient(to right, #ef4444, #f87171); height: 16px; border-radius: 9999px; transition: width 0.5s ease-out; box-shadow: 0 0 10px #ef4444; }
+        #custom-cursor { position: fixed; width: 20px; height: 20px; border: 2px solid #ff4500; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 9999; transition: transform 0.1s ease-out; }
         
-        .tutorial-icon {
-            height: 60px;
-            margin: 0 auto 0.5rem auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .tutorial-gem-container {
-            width: 50px;
-            height: 50px;
-            position: relative;
-        }
-        .tutorial-gem {
-            width: 100%;
-            height: 100%;
-            transform: rotate(45deg);
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.5);
-            box-shadow: inset 2px 2px 5px rgba(255,255,255,0.4), inset -2px -2px 5px rgba(0,0,0,0.3);
-        }
-        .tutorial-gem-bomb {
-            background: radial-gradient(circle, #6bb5ff, #1E90FF);
-        }
-        .tutorial-gem-bomb::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 60%;
-            height: 60%;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px white;
-        }
-        .tutorial-gem-beam {
-            background: radial-gradient(circle, #ff7b7b, #FF3131);
-        }
-        .tutorial-gem-beam::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 25%;
-            background-color: white;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px white;
-        }
-        .tutorial-gem-hypercube {
-            background: conic-gradient(from 0deg, #FF3131, #FFFF00, #00FF7F, #1E90FF, #FF00FF, #FF8C00, #FF3131);
-            animation: spin 4s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(45deg); }
-            to { transform: rotate(405deg); }
-        }
+        /* --- Screens & Modals --- */
+        #start-screen { position: fixed; inset: 0; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 1rem; }
+        .tutorial-icon { height: 60px; margin: 0 auto 0.5rem auto; display: flex; align-items: center; justify-content: center; }
+        .tutorial-gem-container { width: 50px; height: 50px; position: relative; }
+        .tutorial-gem { width: 100%; height: 100%; transform: rotate(45deg); border-radius: 8px; position: relative; overflow: hidden; border: 2px solid rgba(255,255,255,0.5); box-shadow: inset 2px 2px 5px rgba(255,255,255,0.4), inset -2px -2px 5px rgba(0,0,0,0.3); }
+        .tutorial-gem-bomb { background: radial-gradient(circle, #6bb5ff, #1E90FF); }
+        .tutorial-gem-bomb::after { content: ''; position: absolute; top: 50%; left: 50%; width: 60%; height: 60%; background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px white; }
+        .tutorial-gem-beam { background: radial-gradient(circle, #ff7b7b, #FF3131); }
+        .tutorial-gem-beam::after { content: ''; position: absolute; top: 50%; left: 50%; width: 100%; height: 25%; background-color: white; transform: translate(-50%, -50%); box-shadow: 0 0 10px white; }
+        .tutorial-gem-hypercube { background: conic-gradient(from 0deg, #FF3131, #FFFF00, #00FF7F, #1E90FF, #FF00FF, #FF8C00, #FF3131); animation: spin 4s linear infinite; }
+        @keyframes spin { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
 
-        /* --- GIAO DIỆN NÚT MỚI --- */
-        .ui-button {
+        /* --- UI Buttons --- */
+        .ui-button { position: fixed; z-index: 101; width: 44px; height: 44px; background: rgba(10, 20, 30, 0.5); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 50%; color: rgba(236, 72, 153, 0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.3s ease; box-shadow: 0 0 15px rgba(236, 72, 153, 0.2), inset 0 0 5px rgba(236, 72, 153, 0.1); }
+        .ui-button:hover { background: rgba(20, 40, 60, 0.7); color: white; border-color: rgba(236, 72, 153, 0.8); box-shadow: 0 0 25px rgba(236, 72, 153, 0.5), inset 0 0 10px rgba(236, 72, 153, 0.2); transform: scale(1.1); }
+        #fullscreen-btn { top: 1rem; right: 1rem; }
+        #back-to-menu-btn { bottom: 1rem; right: 1rem; }
+
+        /* --- Copyright --- */
+        #copyright {
             position: fixed;
-            z-index: 101; /* Above start screen */
-            width: 44px;
-            height: 44px;
-            background: rgba(10, 20, 30, 0.5);
-            border: 1px solid rgba(236, 72, 153, 0.3);
-            border-radius: 50%;
-            color: rgba(236, 72, 153, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(236, 72, 153, 0.2), inset 0 0 5px rgba(236, 72, 153, 0.1);
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            padding: 6px 0;
+            font-family: 'Roboto', Arial, Helvetica, sans-serif;
+            z-index: 9999;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.85);
+            background: transparent;
+            opacity: 0;
+            animation: fadeIn 2s ease forwards;
         }
-        .ui-button:hover {
-            background: rgba(20, 40, 60, 0.7);
-            color: white;
-            border-color: rgba(236, 72, 153, 0.8);
-            box-shadow: 0 0 25px rgba(236, 72, 153, 0.5), inset 0 0 10px rgba(236, 72, 153, 0.2);
-            transform: scale(1.1);
-        }
-        #fullscreen-btn {
-            top: 1rem;
-            right: 1rem;
-        }
-        #back-to-menu-btn {
-            bottom: 1rem;
-            right: 1rem;
-        }
+        @keyframes fadeIn { to { opacity: 1; } }
     </style>
 </head>
-<div id="copyright">
-    © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
-</div>
+<body class="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 flex items-center justify-center min-h-screen p-4">
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap');
+<!-- Audio Element -->
+<audio id="bg-music" src="nhackimcuong.mp3" loop></audio>
 
-#copyright {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font-size: 13px;
-    padding: 6px 0;
-    font-family: 'Roboto', Arial, Helvetica, sans-serif;
-    z-index: 9999;
-    pointer-events: none;
-
-    color: rgba(255, 255, 255, 0.85);
-    background: transparent;
-
-    opacity: 0;
-    animation: fadeIn 2s ease forwards;
-}
-
-@keyframes fadeIn {
-    to { opacity: 1; }
-}
-</style>
-
-<script>
-document.getElementById("year").textContent = new Date().getFullYear();
-</script>
-
-<body class="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 flex items-end justify-center min-h-screen p-4">
-
-<!-- Nút Toàn màn hình -->
-<button id="fullscreen-btn" class="ui-button" title="Toàn màn hình">
+<!-- UI Buttons -->
+<button id="fullscreen-btn" class="ui-button" title="Toàn màn hình" aria-label="Chế độ toàn màn hình">
     <svg id="fullscreen-icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
     <svg id="fullscreen-icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
 </button>
-
-<!-- Nút Về màn hình chính -->
-<button id="back-to-menu-btn" class="ui-button hidden" title="Về màn hình chính">
+<button id="back-to-menu-btn" class="ui-button hidden" title="Về màn hình chính" aria-label="Về màn hình chính">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
 </button>
 
-<!-- Màn hình chờ -->
+<!-- Start Screen -->
 <div id="start-screen">
     <h1 class="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-white to-pink-400 mb-4" id="game-title-start">Bảo Vệ Trái Tim</h1>
     <p class="text-gray-200 italic text-xl md:text-2xl mb-8 max-w-2xl">Quái vật thuốc lá đang đến gần. Hãy dùng trí tuệ của bạn để ghép các viên kim cương, cứu lấy những trái tim và đẩy lùi mối đe dọa!</p>
-    <div id="start-buttons" class="flex flex-col sm:flex-row gap-4">
-        <button id="easy-mode-btn" class="bg-green-600 text-white font-bold py-4 px-10 rounded-full text-2xl hover:scale-105 transition-transform">Dễ (1 Màn)</button>
-        <button id="hard-mode-btn" class="bg-red-600 text-white font-bold py-4 px-10 rounded-full text-2xl hover:scale-105 transition-transform">Khó (3 Màn)</button>
-        <button id="free-mode-btn" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-full text-2xl hover:scale-105 transition-transform">Tự Do</button>
+    <div id="start-buttons" class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-8 items-start max-w-3xl w-full">
+        <div class="flex flex-col items-center">
+            <button id="easy-mode-btn" class="w-full bg-green-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:scale-105 transition-transform">Dễ (1 Màn)</button>
+            <p class="text-gray-400 text-sm mt-2 px-4">Hoàn thành để có thể trải nghiệm cốt truyện.</p>
+        </div>
+        <div class="flex flex-col items-center">
+            <button id="hard-mode-btn" class="w-full bg-red-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:scale-105 transition-transform">Khó (3 Màn)</button>
+            <p class="text-gray-400 text-sm mt-2 px-4">Hoàn thành để có thể trải nghiệm cốt truyện.</p>
+        </div>
+        <div class="flex flex-col items-center">
+            <button id="free-mode-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:scale-105 transition-transform">Tự Do</button>
+            <p class="text-gray-400 text-sm mt-2 px-4">Không trải nghiệm cốt truyện.</p>
+        </div>
+        <div class="sm:col-span-3 flex justify-center mt-4">
+             <button id="tutorial-start-btn" class="bg-yellow-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:scale-105 transition-transform">HƯỚNG DẪN</button>
+        </div>
     </div>
 </div>
 
-<!-- Modal Hướng dẫn chơi -->
-<div id="tutorial-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
+<!-- Tutorial Modal -->
+<div id="tutorial-modal" role="dialog" aria-modal="true" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
     <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 md:p-8 shadow-2xl max-w-md w-full text-white text-center">
-        <!-- Step 1: Trái Tim -->
+        <!-- Tutorial Steps will be dynamically shown here -->
         <div id="tutorial-step-1" class="tutorial-step">
             <h2 class="text-3xl font-bold text-pink-400 mb-4">Mục Tiêu: Cứu Trái Tim!</h2>
             <div class="tutorial-icon text-5xl">💗</div>
@@ -347,220 +176,110 @@ document.getElementById("year").textContent = new Date().getFullYear();
             <p class="text-lg mb-6">Hãy đưa nó lên <strong>hàng trên cùng</strong> để cứu trái tim và ghi điểm. Đừng để quái vật thuốc lá chạm tới!</p>
             <button class="tutorial-next-btn bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform hover:scale-105">Tiếp theo</button>
         </div>
-
-        <!-- Step 2: Kim cương đặc biệt -->
         <div id="tutorial-step-2" class="tutorial-step hidden">
              <h2 class="text-3xl font-bold text-yellow-400 mb-4">Sức Mạnh Đặc Biệt</h2>
              <p class="text-lg mb-4">Ghép 4 hoặc 5 viên kim cương để tạo ra các loại đặc biệt:</p>
              <div class="flex justify-around items-start text-center mb-6 space-x-2">
-                <div class="flex-1">
-                    <div class="tutorial-icon">
-                        <div class="tutorial-gem-container">
-                            <div class="tutorial-gem tutorial-gem-bomb"></div>
-                        </div>
-                    </div>
-                    <p class="font-bold">Bom</p>
-                    <p class="text-sm text-gray-300">(Ghép 5 viên hình chữ L hoặc T)</p>
-                </div>
-                <div class="flex-1">
-                    <div class="tutorial-icon">
-                        <div class="tutorial-gem-container">
-                            <div class="tutorial-gem tutorial-gem-beam"></div>
-                        </div>
-                    </div>
-                    <p class="font-bold">Tia Sáng</p>
-                    <p class="text-sm text-gray-300">(Ghép 4 viên)</p>
-                </div>
-                <div class="flex-1">
-                    <div class="tutorial-icon">
-                        <div class="tutorial-gem-container">
-                            <div class="tutorial-gem tutorial-gem-hypercube"></div>
-                        </div>
-                    </div>
-                    <p class="font-bold">Siêu Khối</p>
-                    <p class="text-sm text-gray-300">(Ghép 5 viên thẳng hàng)</p>
-                </div>
+                <div class="flex-1"><div class="tutorial-icon"><div class="tutorial-gem-container"><div class="tutorial-gem tutorial-gem-bomb"></div></div></div><p class="font-bold">Bom</p><p class="text-sm text-gray-300">(Ghép 5 viên hình chữ L hoặc T)</p></div>
+                <div class="flex-1"><div class="tutorial-icon"><div class="tutorial-gem-container"><div class="tutorial-gem tutorial-gem-beam"></div></div></div><p class="font-bold">Tia Sáng</p><p class="text-sm text-gray-300">(Ghép 4 viên)</p></div>
+                <div class="flex-1"><div class="tutorial-icon"><div class="tutorial-gem-container"><div class="tutorial-gem tutorial-gem-hypercube"></div></div></div><p class="font-bold">Siêu Khối</p><p class="text-sm text-gray-300">(Ghép 5 viên thẳng hàng)</p></div>
              </div>
              <button class="tutorial-next-btn bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform hover:scale-105">Tiếp theo</button>
         </div>
-
-        <!-- Step 3: Quái vật -->
         <div id="tutorial-step-3" class="tutorial-step hidden">
             <h2 class="text-3xl font-bold text-red-500 mb-4">Mối Đe Dọa</h2>
             <div class="tutorial-icon text-5xl">🚬</div>
             <p class="text-lg mb-4"><strong>Quái vật thuốc lá</strong> sẽ di chuyển và cố gắng "ăn" những trái tim ở hàng trên cùng.</p>
-            <p class="text-lg mb-6">Hãy ngăn chặn nó bằng cách hoàn thành <strong>mục tiêu</strong> ở bảng bên trái để qua màn!</p>
-            <button id="play-from-tutorial-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform hover:scale-105">Bắt đầu chơi!</button>
+            <p class="text-lg mb-6">Hãy ngăn chặn nó bằng cách hoàn thành mục tiêu để qua màn!</p>
+            <button class="tutorial-next-btn bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform hover:scale-105">Tiếp theo</button>
+        </div>
+        <div id="tutorial-step-4" class="tutorial-step hidden">
+            <h2 class="text-3xl font-bold text-green-400 mb-4">Hoàn Thành Mục Tiêu</h2>
+            <p class="text-lg mb-4">Thu thập đủ số lượng kim cương màu và cứu trái tim theo yêu cầu trên <strong>Bảng Mục Tiêu</strong> để gây sát thương lên quái vật.</p>
+            <div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10 mb-6 mx-auto max-w-xs">
+                <h2 class="text-xl font-bold text-white/80 mb-2">Mục Tiêu</h2>
+                <div class="progress-bar-bg mb-4"><div class="progress-bar" style="width: 40%;"></div></div>
+                <div class="flex items-center justify-between p-2 rounded-lg bg-black/20"><div class="w-6 h-6 rounded-full border-2 border-white/20" style="background-color: #FF3131"></div><span class="font-bold text-white">15</span></div>
+            </div>
+            <p class="text-lg mb-6">Thanh tiến trình sẽ đầy dần. Khi hoàn thành tất cả mục tiêu, bạn sẽ chiến thắng màn chơi!</p>
+            <button id="tutorial-finish-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform hover:scale-105">Bắt đầu chơi!</button>
         </div>
     </div>
 </div>
 
-
+<!-- Main Game Layout -->
 <div id="custom-cursor"></div>
-<div class="w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-8">
+<div class="w-full max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-center gap-4 md:gap-8">
 
-    <!-- Cột Trái (Tiêu đề & Mục Tiêu) -->
-    <div id="objective-panel" class="w-full md:w-1/4 order-2 md:order-1">
+    <!-- Left Panel (Objective) -->
+    <div id="objective-panel" class="w-full md:w-1/4 order-3 md:order-1 mt-4 md:mt-0">
         <div class="title-container text-center md:text-left mb-4">
             <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-white to-pink-400 mb-2" id="game-title">Bảo Vệ Trái Tim</h1>
             <p class="text-gray-200 italic text-lg md:text-xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Tiêu diệt quái vật thuốc lá!</p>
         </div>
         <div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
             <h2 class="text-xl font-bold text-white/80 mb-2">Mục Tiêu</h2>
-            <div class="health-bar-bg mb-4">
-                <div class="health-bar" id="health-bar" style="width: 0%;"></div>
-            </div>
-            <div class="space-y-2" id="quest-list">
-                <!-- Quest items will be generated by JS -->
-            </div>
+            <div class="progress-bar-bg mb-4"><div class="progress-bar" id="progress-bar" style="width: 0%;"></div></div>
+            <div class="space-y-2" id="quest-list"></div>
         </div>
     </div>
 
-    <!-- Cột Giữa (Game) -->
-    <div class="w-full max-w-md text-center order-1 md:order-2">
+    <!-- Center Panel (Game Board) -->
+    <div class="w-full max-w-md text-center order-2 md:order-2">
         <div class="relative" id="game-container">
             <div id="character-container">
                 <div class="character-aura"></div>
                 <svg id="cigarette-svg" viewBox="0 0 200 100">
                     <defs>
-                        <filter id="smokeFilter">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" result="turbulence" />
-                            <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="15" xChannelSelector="R" yChannelSelector="G" />
-                        </filter>
-                        <filter id="emberGlow">
-                            <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
-                            <feMerge>
-                                <feMergeNode in="coloredBlur" />
-                                <feMergeNode in="SourceGraphic" />
-                            </feMerge>
-                        </filter>
-                        <radialGradient id="paper-gradient">
-                            <stop offset="0%" stop-color="#d2b48c" />
-                            <stop offset="100%" stop-color="#c8a97e" />
-                        </radialGradient>
+                        <filter id="smokeFilter"><feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" result="turbulence" /><feDisplacementMap in2="turbulence" in="SourceGraphic" scale="15" xChannelSelector="R" yChannelSelector="G" /></filter>
+                        <filter id="emberGlow"><feGaussianBlur stdDeviation="3.5" result="coloredBlur" /><feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+                        <radialGradient id="paper-gradient"><stop offset="0%" stop-color="#d2b48c" /><stop offset="100%" stop-color="#c8a97e" /></radialGradient>
                     </defs>
-                    <path class="filter-shape" d="M160,30 L180,28 Q192,30 190,50 Q188,70 180,72 L160,70 Z" />
-                    <path class="cigarette-body-shape" d="M20,30 L160,30 L160,70 L20,70 Q10,70 10,50 Q10,30 20,30 Z" />
-                    <path class="stain" d="M110,40 C 120,35 130,45 125,55 C 120,60 110,55 110,40 Z" />
-                    <path class="stain" d="M70,60 C 75,55 85,58 80,68 Z" />
-                    <path class="crack" d="M140,45 C 145,50, 145,55, 150,60" />
-                    <path class="crack" d="M100,35 C 105,45, 95,55, 100,65" />
-                    <path class="crack" d="M40,35 L 45,65" />
-                    <path class="crack" d="M155,35 L 158,65" />
-                    <path class="ash-shape" d="M20,30 Q10,30 10,50 Q10,70 20,70 L30,70 Q25,50 30,30 Z" />
-                    <path d="M28 40 L 32 38 M28 50 L 33 50 M28 60 L 32 62" stroke="#a0522d" stroke-width="1" />
-                    <path class="ember-shape" d="M25,35 Q20,50 25,65 L20,65 Q15,50 20,35 Z" />
-                    <g id="sparks">
-                        <circle class="spark" cx="22" cy="40" r="1.5" style="animation-delay: 0s; --y-end: -20px;"></circle>
-                        <circle class="spark" cx="20" cy="50" r="1" style="animation-delay: 0.5s; --y-end: 0px;"></circle>
-                        <circle class="spark" cx="22" cy="60" r="1.5" style="animation-delay: 1s; --y-end: 20px;"></circle>
-                    </g>
-                    <g id="face">
-                        <g id="eye1_group">
-                            <circle class="eye-socket" cx="55" cy="50" r="12" />
-                            <circle class="eye-ball" cx="55" cy="50" r="11" />
-                            <path class="eye-vein" d="M50,50 C 52,47 55,47 57,50" />
-                            <path class="eye-vein" d="M57,50 C 59,53 62,53 85,50" />
-                            <circle class="eye-pupil" id="pupil1" cx="55" cy="50" r="5" />
-                        </g>
-                        <g id="eye2_group">
-                            <circle class="eye-socket" cx="80" cy="50" r="12" />
-                            <circle class="eye-ball" cx="80" cy="50" r="11" />
-                            <path class="eye-vein" d="M75,50 C 77,47 80,47 82,50" />
-                            <path class="eye-vein" d="M82,50 C 84,53 87,53 85,50" />
-                            <circle class="eye-pupil" id="pupil2" cx="80" cy="50" r="5" />
-                        </g>
-                        <path class="mouth" id="mouth-path" d="M60 65 L 64 63 L 68 65 L 72 63 L 76 65" />
-                    </g>
+                    <path class="filter-shape" d="M160,30 L180,28 Q192,30 190,50 Q188,70 180,72 L160,70 Z" /><path class="cigarette-body-shape" d="M20,30 L160,30 L160,70 L20,70 Q10,70 10,50 Q10,30 20,30 Z" /><path class="stain" d="M110,40 C 120,35 130,45 125,55 C 120,60 110,55 110,40 Z" /><path class="stain" d="M70,60 C 75,55 85,58 80,68 Z" /><path class="crack" d="M140,45 C 145,50, 145,55, 150,60" /><path class="crack" d="M100,35 C 105,45, 95,55, 100,65" /><path class="crack" d="M40,35 L 45,65" /><path class="crack" d="M155,35 L 158,65" /><path class="ash-shape" d="M20,30 Q10,30 10,50 Q10,70 20,70 L30,70 Q25,50 30,30 Z" /><path d="M28 40 L 32 38 M28 50 L 33 50 M28 60 L 32 62" stroke="#a0522d" stroke-width="1" /><path class="ember-shape" d="M25,35 Q20,50 25,65 L20,65 Q15,50 20,35 Z" /><g id="sparks"><circle class="spark" cx="22" cy="40" r="1.5" style="animation-delay: 0s; --y-end: -20px;"></circle><circle class="spark" cx="20" cy="50" r="1" style="animation-delay: 0.5s; --y-end: 0px;"></circle><circle class="spark" cx="22" cy="60" r="1.5" style="animation-delay: 1s; --y-end: 20px;"></circle></g><g id="face"><g id="eye1_group"><circle class="eye-socket" cx="55" cy="50" r="12" /><circle class="eye-ball" cx="55" cy="50" r="11" /><path class="eye-vein" d="M50,50 C 52,47 55,47 57,50" /><path class="eye-vein" d="M57,50 C 59,53 62,53 85,50" /><circle class="eye-pupil" id="pupil1" cx="55" cy="50" r="5" /></g><g id="eye2_group"><circle class="eye-socket" cx="80" cy="50" r="12" /><circle class="eye-ball" cx="80" cy="50" r="11" /><path class="eye-vein" d="M75,50 C 77,47 80,47 82,50" /><path class="eye-vein" d="M82,50 C 84,53 87,53 85,50" /><circle class="eye-pupil" id="pupil2" cx="80" cy="50" r="5" /></g><path class="mouth" id="mouth-path" d="M60 65 L 64 63 L 68 65 L 72 63 L 76 65" /></g>
                 </svg>
-                <div class="smoke-container">
-                    <div class="smoke-wisp"></div>
-                    <div class="smoke-wisp"></div>
-                    <div class="smoke-wisp"></div>
-                </div>
+                <div class="smoke-container"><div class="smoke-wisp"></div><div class="smoke-wisp"></div><div class="smoke-wisp"></div></div>
                 <div id="threat-bubble"><p id="threat-text"></p></div>
-                <div id="monster-name" class="text-center">
-                    <p class="text-lg font-bold text-red-400" style="text-shadow: 0 0 8px rgba(255, 0, 0, 0.7);">Quái vật thuốc lá</p>
-                </div>
+                <div id="monster-name" class="text-center"><p class="text-lg font-bold text-red-400" style="text-shadow: 0 0 8px rgba(255, 0, 0, 0.7);">Quái vật thuốc lá</p></div>
             </div>
             <canvas id="gameCanvas"></canvas>
         </div>
     </div>
     
-    <!-- Cột Phải (Thông tin) -->
-    <div class="w-full md:w-1/4 order-3 flex flex-row md:flex-col gap-4 md:gap-6">
-        <div class="flex-1 p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
-            <p class="text-lg font-bold text-white/70">Cấp Độ</p>
-            <p class="text-4xl font-bold text-white" id="level">1</p>
-        </div>
-        <div class="flex-1 p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
-            <p class="text-lg font-bold text-white/70">Nước đi</p>
-            <p class="text-4xl font-bold text-white" id="moves">0</p>
-        </div>
-        <div class="flex-1 p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
-            <p class="text-lg font-bold text-white/70">Trái tim đã cứu</p>
-            <p class="text-4xl font-bold text-white" id="score">0</p>
-        </div>
+    <!-- Right Panel (Stats) -->
+    <div class="w-full md:w-1/4 order-1 md:order-3 flex flex-row md:flex-col justify-around md:justify-start gap-2 md:gap-6 mb-4 md:mb-0">
+        <div class="flex-1 md:flex-auto p-2 md:p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10"><p class="text-base md:text-lg font-bold text-white/70">Cấp Độ</p><p class="text-3xl md:text-4xl font-bold text-white" id="level">1</p></div>
+        <div class="flex-1 md:flex-auto p-2 md:p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10"><p class="text-base md:text-lg font-bold text-white/70">Nước đi</p><p class="text-3xl md:text-4xl font-bold text-white" id="moves">0</p></div>
+        <div class="flex-1 md:flex-auto p-2 md:p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10"><p class="text-base md:text-lg font-bold text-white/70">Đã cứu</p><p class="text-3xl md:text-4xl font-bold text-white" id="score">0</p></div>
     </div>
 </div>
 
-
-<!-- Modal Chiến Thắng -->
-<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="winModal" tabindex="-1">
-    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
-        <h2 class="text-4xl font-bold text-green-600 mb-4">Qua Màn!</h2>
-        <p class="text-lg text-gray-700 mb-6" id="win-level-text"></p>
-        <button class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300" id="nextLevelButton">Tiếp tục</button>
-    </div>
+<!-- Game Modals -->
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="winModal" role="dialog" aria-modal="true" tabindex="-1">
+    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95"><h2 class="text-4xl font-bold text-green-600 mb-4">Qua Màn!</h2><p class="text-lg text-gray-700 mb-6" id="win-level-text"></p><button class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300" id="nextLevelButton">Tiếp tục</button></div>
+</div>
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="gameOverModal" role="dialog" aria-modal="true" tabindex="-1">
+    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95"><h2 class="text-4xl font-bold text-red-800 mb-4">Nguy hiểm!</h2><p class="text-lg text-gray-700 mb-2">Thuốc lá đã làm hại một trái tim.</p><p class="text-xl text-gray-800 mb-8">Bạn đã bảo vệ được <span class="font-bold text-pink-600" id="finalScore">0</span> trái tim.</p><div class="flex flex-col sm:flex-row gap-4 justify-center"><button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="gameOverHomeButton">Về Trang Chủ</button><button class="bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105" id="gameOverRestartButton">Chơi Lại</button></div></div>
+</div>
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm" id="factModal" role="dialog" aria-modal="true" tabindex="-1">
+    <div class="bg-white rounded-2xl p-6 md:p-8 text-center shadow-2xl transform transition-all scale-95 max-w-md w-full"><h2 class="text-2xl md:text-3xl font-bold text-blue-700 mb-4">Sự Thật & Lời Khuyên</h2><p class="text-base md:text-lg text-gray-800 mb-3 text-left" id="factText"></p><p class="text-base md:text-lg text-green-700 font-semibold mb-6 text-left" id="adviceText"></p><button class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300" id="closeFactButton">Đã hiểu</button></div>
+</div>
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="finalWinModal" role="dialog" aria-modal="true" tabindex="-1">
+    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95"><h2 class="text-4xl font-bold text-yellow-500 mb-4">CHIẾN THẮNG!</h2><p class="text-lg text-gray-700 mb-2">Bạn đã bảo vệ thành công những trái tim khỏi nanh vuốt của quái vật!</p><p class="text-xl text-gray-800 mb-6">Cảm ơn bạn đã trở thành người hùng!</p><div class="flex flex-col sm:flex-row gap-4 justify-center"><button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="restartGameButton">Chơi lại</button><button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="backToIndexButton">Về màn hình chính</button><button class="bg-yellow-500 text-white font-bold py-3 px-8 rounded-full hover:bg-yellow-600 transition-transform transform hover:scale-110 ring-4 ring-yellow-300 shadow-lg shadow-yellow-500/50" id="continueToNextGameButton">Tiếp tục</button></div></div>
 </div>
 
-<!-- Modal Game Over -->
-<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="gameOverModal" tabindex="-1">
-    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
-        <h2 class="text-4xl font-bold text-red-800 mb-4">Nguy hiểm!</h2>
-        <p class="text-lg text-gray-700 mb-2">Thuốc lá đã làm hại một trái tim.</p>
-        <p class="text-xl text-gray-800 mb-8">Bạn đã bảo vệ được <span class="font-bold text-pink-600" id="finalScore">0</span> trái tim.</p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="gameOverHomeButton">Về Trang Chủ</button>
-            <button class="bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105" id="gameOverRestartButton">Chơi Lại</button>
-        </div>
-    </div>
-</div>
-
-
-<!-- Modal Thông điệp sức khỏe -->
-<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm" id="factModal" tabindex="-1">
-    <div class="bg-white rounded-2xl p-6 md:p-8 text-center shadow-2xl transform transition-all scale-95 max-w-md w-full">
-        <h2 class="text-2xl md:text-3xl font-bold text-blue-700 mb-4">Sự Thật & Lời Khuyên</h2>
-        <p class="text-base md:text-lg text-gray-800 mb-3 text-left" id="factText"></p>
-        <p class="text-base md:text-lg text-green-700 font-semibold mb-6 text-left" id="adviceText"></p>
-        <button class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300" id="closeFactButton">Đã hiểu</button>
-    </div>
-</div>
-
-<!-- Modal Chiến Thắng Cuối Cùng -->
-<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="finalWinModal" tabindex="-1">
-    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95">
-        <h2 class="text-4xl font-bold text-yellow-500 mb-4">CHIẾN THẮNG!</h2>
-        <p class="text-lg text-gray-700 mb-2">Bạn đã bảo vệ thành công những trái tim khỏi nanh vuốt của quái vật!</p>
-        <p class="text-xl text-gray-800 mb-6">Cảm ơn bạn đã trở thành người hùng!</p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="restartGameButton">Chơi lại</button>
-            <button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="backToIndexButton">Về màn hình chính</button>
-            <button class="bg-yellow-500 text-white font-bold py-3 px-8 rounded-full hover:bg-yellow-600 transition-transform transform hover:scale-110 ring-4 ring-yellow-300 shadow-lg shadow-yellow-500/50" id="continueToNextGameButton">Tiếp tục</button>
-        </div>
-    </div>
+<!-- Copyright Notice -->
+<div id="copyright">
+    © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
 </div>
 
 <script>
-// Sử dụng IIFE để tạo scope riêng, tránh biến toàn cục
+// Using an IIFE to create a private scope, preventing global variable pollution.
 (function() {
     'use strict';
 
     // =========================================================================
-    // --- MODULE: CONSTANTS & CONFIG ---
+    // --- MODULE: CONSTANTS & CONFIGURATION ---
     // =========================================================================
-
     const CONFIG = {
         GRID_SIZE: 8,
         GEM_COLORS: ['#FF3131', '#00FF7F', '#1E90FF', '#FF00FF', '#FF8C00', '#FFFF00'],
@@ -591,317 +310,187 @@ document.getElementById("year").textContent = new Date().getFullYear();
         { fact: "Thuốc lá giết **hơn 7 triệu người/năm**, trong đó có khoảng **1,6 triệu người không hút thụ động**. (Nguồn: WHO)", advice: "Lời khuyên: Hãy tránh xa khói thuốc để bảo vệ bạn và những người xung quanh." },
         { fact: "Hút thuốc không thụ động (passive smoking) cũng gây ung thư phổi, bệnh tim và nhiều vấn đề sức khỏe nghiêm trọng. (Nguồn: CDC / IARC)", advice: "Lời khuyên: Đừng để khói thuốc xâm nhập không khí sống, giữ sạch môi trường cho phổi bạn." },
         { fact: "Hút thuốc gây tổn thương **gan, phổi, tim**, làm tăng nguy cơ mắc **COPD, nhồi máu cơ tim, đột quỵ** và nhiều loại ung thư. (Nguồn: CDC)", advice: "Lời khuyên: Mỗi hơi thuốc bạn hít vào là tổn hại cho cơ thể—ngưng ngay hôm nay để khỏe mạnh hơn." },
-        { fact: "Hút thuốc gây ung thư ở **khoảng 20% các ca ung thư**, và khoảng **80% ca ung thư phổi** là do việc hút thuốc. (Nguồn: American Cancer Society)", advice: "Lời khuyên: Bỏ thuốc sẽ giúp giảm nguy cơ mắc nhiều loại ung thư — đó là cách bảo vệ tương lai của bạn." },
-        { fact: "Hút thuốc có thể **rút ngắn tuổi thọ trung bình 10 năm** so với người không hút. (Nguồn: Wikipedia – WHO)", advice: "Lời khuyên: Chọn sống lâu hơn — nói không với thuốc lá hôm nay." },
-        { fact: "Khói thuốc lá chứa hơn **7.000 hóa chất**, trong đó có **hơn 70 chất gây ung thư**. (Nguồn: FDA)", advice: "Lời khuyên: Cơ thể bạn không nên trở thành phòng thí nghiệm—hãy giữ phổi trong lành." },
-        { fact: "Hút thuốc làm suy yếu hệ miễn dịch, làm cơ thể khó chống lại nhiễm trùng và có thể làm tổn thương miễn dịch kéo dài ngay cả sau khi bỏ thuốc. (Nguồn: Nature/CNN)", advice: "Lời khuyên: Hãy bảo vệ hệ miễn dịch của bạn—một lý do tuyệt vời để bỏ thuốc." },
-        { fact: "Tiếp xúc với khói thuốc làm tăng nguy cơ ung thư vú ở phụ nữ trẻ lên tới **70%**. (Nguồn: IARC / Wikipedia)", advice: "Lời khuyên: Bảo vệ bản thân, bảo vệ sức khỏe—tránh khói thuốc thụ động." },
-        { fact: "Hút thuốc làm giảm khả năng sinh sản—phụ nữ hút thuốc có nguy cơ vô sinh cao hơn **60%**, tăng nguy cơ sẩy thai và các vấn đề thai kỳ. (Nguồn: Wikipedia)", advice: "Lời khuyên: Hãy giữ sức khỏe sinh sản—nói không với thuốc lá để tương lai tươi sáng." },
-        { fact: "Không có mức độ hút thuốc nào là an toàn — kể cả một điếu mỗi ngày cũng tăng nguy cơ bệnh tim và ung thư. (Nguồn: WHO)", advice: "Lời khuyên: Đừng tự đánh lừa—bỏ hẳn là cách an toàn duy nhất." },
     ];
     
-    const THREATS = [
-        "Ta nếm được nỗi sợ của ngươi.",
-        "Mỗi tế bào của ngươi đang gào thét.",
-        "Ta là cái chết chậm rãi ngươi tự chọn.",
-        "Linh hồn ngươi... sẽ là làn khói tiếp theo.",
-        "Không có lối thoát đâu."
-    ];
+    const THREATS = [ "Ta nếm được nỗi sợ của ngươi.", "Mỗi tế bào của ngươi đang gào thét.", "Ta là cái chết chậm rãi ngươi tự chọn.", "Linh hồn ngươi... sẽ là làn khói tiếp theo.", "Không có lối thoát đâu." ];
 
     // =========================================================================
-    // --- MODULE: DOM ELEMENTS ---
+    // --- MODULE: DOM ELEMENTS CACHING ---
     // =========================================================================
-
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
-    const levelEl = document.getElementById('level');
-    const movesEl = document.getElementById('moves');
-    const winModal = document.getElementById('winModal');
-    const nextLevelButton = document.getElementById('nextLevelButton');
-    const winLevelText = document.getElementById('win-level-text');
-    const gameOverModal = document.getElementById('gameOverModal');
-    const finalScoreEl = document.getElementById('finalScore');
-    const factModal = document.getElementById('factModal');
-    const factText = document.getElementById('factText');
-    const adviceText = document.getElementById('adviceText');
-    const closeFactButton = document.getElementById('closeFactButton');
-    const healthBar = document.getElementById('health-bar');
-    const questList = document.getElementById('quest-list');
-    const startScreen = document.getElementById('start-screen');
-    const customCursor = document.getElementById('custom-cursor');
-    const tutorialModal = document.getElementById('tutorial-modal');
-    const tutorialSteps = document.querySelectorAll('.tutorial-step');
-    const tutorialNextBtns = document.querySelectorAll('.tutorial-next-btn');
-    const playFromTutorialBtn = document.getElementById('play-from-tutorial-btn');
-    const finalWinModal = document.getElementById('finalWinModal');
-    const restartGameButton = document.getElementById('restartGameButton');
-    const easyModeBtn = document.getElementById('easy-mode-btn');
-    const hardModeBtn = document.getElementById('hard-mode-btn');
-    const freeModeBtn = document.getElementById('free-mode-btn');
-    const backToMenuBtn = document.getElementById('back-to-menu-btn');
-    const characterContainerEl = document.getElementById('character-container');
-    const threatBubble = document.getElementById('threat-bubble');
-    const threatText = document.getElementById('threat-text');
-    const mouth = document.getElementById('mouth-path');
-    const pupil1 = document.getElementById('pupil1');
-    const pupil2 = document.getElementById('pupil2');
+    const DOMElements = {
+        canvas: document.getElementById('gameCanvas'),
+        ctx: document.getElementById('gameCanvas').getContext('2d'),
+        scoreEl: document.getElementById('score'),
+        levelEl: document.getElementById('level'),
+        movesEl: document.getElementById('moves'),
+        winModal: document.getElementById('winModal'),
+        nextLevelButton: document.getElementById('nextLevelButton'),
+        winLevelText: document.getElementById('win-level-text'),
+        gameOverModal: document.getElementById('gameOverModal'),
+        finalScoreEl: document.getElementById('finalScore'),
+        factModal: document.getElementById('factModal'),
+        factText: document.getElementById('factText'),
+        adviceText: document.getElementById('adviceText'),
+        closeFactButton: document.getElementById('closeFactButton'),
+        progressBar: document.getElementById('progress-bar'),
+        questList: document.getElementById('quest-list'),
+        startScreen: document.getElementById('start-screen'),
+        customCursor: document.getElementById('custom-cursor'),
+        tutorialModal: document.getElementById('tutorial-modal'),
+        tutorialSteps: document.querySelectorAll('.tutorial-step'),
+        tutorialNextBtns: document.querySelectorAll('.tutorial-next-btn'),
+        tutorialFinishBtn: document.getElementById('tutorial-finish-btn'),
+        finalWinModal: document.getElementById('finalWinModal'),
+        restartGameButton: document.getElementById('restartGameButton'),
+        easyModeBtn: document.getElementById('easy-mode-btn'),
+        hardModeBtn: document.getElementById('hard-mode-btn'),
+        freeModeBtn: document.getElementById('free-mode-btn'),
+        backToMenuBtn: document.getElementById('back-to-menu-btn'),
+        tutorialStartBtn: document.getElementById('tutorial-start-btn'),
+        characterContainerEl: document.getElementById('character-container'),
+        threatBubble: document.getElementById('threat-bubble'),
+        threatText: document.getElementById('threat-text'),
+        mouth: document.getElementById('mouth-path'),
+        pupil1: document.getElementById('pupil1'),
+        pupil2: document.getElementById('pupil2'),
+        copyrightYear: document.getElementById('year'),
+    };
 
     // =========================================================================
     // --- MODULE: GAME STATE ---
     // =========================================================================
-
-    let gemSize;
-    let board = [];
-    let selectedGem = null;
-    let score = 0;
-    let moves = 0;
-    let isAnimating = false;
-    let isPaused = false;
-    let animations = [];
-    let particles = [];
+    let gemSize, board = [], selectedGem = null, score = 0, moves = 0, isAnimating = false;
+    let isPaused = false, animations = [], particles = [], particlePool = [], hintTimeout = null;
     let cigarette = { col: Math.floor(CONFIG.GRID_SIZE / 2), level: 1 };
-    let currentLevel = 1;
-    let quest = {};
-    let startDragPos = { x: null, y: null };
-    let startGem = null;
-    let isDragging = false;
-    let gemCache = {}; 
-    let particlePool = [];
-    let hintTimeout = null;
-    let hintGems = [];
-    let isFreePlayMode = false;
-    let resizeTimer = null;
-    let factsShown = [];
-    let threatInterval = null;
-    let currentModal = null;
+    let currentLevel = 1, quest = {}, startDragPos = { x: null, y: null }, startGem = null;
+    let isDragging = false, gemCache = {}, hintGems = [], isFreePlayMode = false;
+    let resizeTimer = null, factsShown = [], threatInterval = null, currentModal = null, isTutorialOnly = false;
+    let animationWatchdog = null;
 
     // =========================================================================
     // --- MODULE: AUDIO MANAGER ---
     // =========================================================================
-
     const AudioManager = {
-      initialized: false,
-      started: false,
-      nodes: {},
-      sfx: {},
-      musicParts: {},
-      lastPlayed: {}, 
-      MIN_INTERVAL: 0.05, 
-
-      setup() {
-        if (this.initialized) return;
-        Tone.Destination.volume.value = -9;
-        const limiter = new Tone.Limiter(-1).toDestination();
-        const comp = new Tone.Compressor(-24, 4).connect(limiter);
-        const reverb = new Tone.Reverb({ decay: 1.5, wet: 0.2 }).connect(comp);
-        const delay = new Tone.FeedbackDelay("16n", 0.25).connect(reverb);
-        const melodySynth = new Tone.PolySynth(Tone.FMSynth, {
-            harmonicity: 2, modulationIndex: 5,
-            envelope: { attack: 0.01, decay: 0.2, release: 0.2 },
-            modulationEnvelope: { attack: 0.01, decay: 0.1, release: 0.2 }
-        }).connect(delay);
-        melodySynth.volume.value = -15;
-        const bassSynth = new Tone.MonoSynth({
-            oscillator: { type: "sine" },
-            envelope: { attack: 0.01, decay: 0.3, release: 1 },
-            filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.5, baseFrequency: 200, octaves: 2.6 }
-        }).connect(comp);
-        bassSynth.volume.value = -18;
-        const melodyPattern = new Tone.Sequence((time, note) => {
-            melodySynth.triggerAttackRelease(note, "16n", time);
-        }, ["C5", null, "E5", "G5", "E5", null, "C5", null, "D5", null, "F5", "A5", "F5", null, "D5", null], "8n");
-        const bassPattern = new Tone.Sequence((time, note) => {
-            bassSynth.triggerAttackRelease(note, "2n", time);
-        }, ["C3", "G3"], "1n");
-        const clickSynth = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.001, decay: 0.08, sustain: 0, release: 0.03 } }).connect(comp);
-        const pluck = new Tone.PluckSynth().connect(comp);
-        const noise = new Tone.NoiseSynth({ noise: { type: "pink" }, envelope: { attack: 0.005, decay: 0.15, sustain: 0 } }).connect(new Tone.Filter(1200, "bandpass").connect(comp));
-        const bombKick = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 3, oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.2 } }).connect(comp);
-        const fm = new Tone.FMSynth().connect(reverb);
-        const unlockSynth = new Tone.MetalSynth({
-            frequency: 400,
-            envelope: { attack: 0.001, decay: 0.1, release: 0.05 },
-            harmonicity: 3.1,
-            modulationIndex: 16,
-            resonance: 4000,
-            octaves: 0.5
-        }).connect(comp);
-        unlockSynth.volume.value = -18;
-        const coughSound = new Tone.NoiseSynth({
-            noise: { type: "brown" },
-            envelope: { attack: 0.1, decay: 0.3, sustain: 0 }
-        }).connect(new Tone.Filter(200, "lowpass").connect(comp));
-        coughSound.volume.value = -10;
-
-        this.sfx = { clickSynth, pluck, noise, kick: bombKick, fm, unlockSynth, coughSound };
-        this.musicParts = { melodyPattern, bassPattern };
-        Tone.Transport.bpm.value = 140;
-        this.initialized = true;
-      },
-      async start() {
-        if (this.started) return;
-        this.setup();
-        await Tone.start();
-        this.musicParts.melodyPattern.start(0);
-        this.musicParts.bassPattern.start(0);
-        Tone.Transport.start("+0.1");
-        this.started = true;
-      },
-      setMasterVolume(db) { Tone.Destination.volume.rampTo(db, 0.2); },
-      play(name, opts = {}) {
-        if (!this.initialized || !this.started) return;
-        
-        const now = Tone.now();
-        const last = this.lastPlayed[name] || 0;
-        if (now - last < this.MIN_INTERVAL && name !== 'matchSound') { // Allow match sounds to overlap
-            return; 
+        isInitialized: false, isMusicStarted: false, sfxBus: null, sfx: {},
+        async init() {
+            if (this.isInitialized) return;
+            await Tone.start();
+            this.sfxBus = new Tone.Volume(-8).toDestination();
+            this.sfx.select = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 } }).connect(this.sfxBus);
+            this.sfx.match = new Tone.PluckSynth({ attackNoise: 0.5, dampening: 4000, resonance: 0.7 }).connect(this.sfxBus);
+            this.sfx.bombKick = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 4, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).connect(this.sfxBus);
+            this.sfx.bombNoise = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0 } }).connect(this.sfxBus);
+            const beamFilter = new Tone.AutoFilter("16n").connect(this.sfxBus).start();
+            beamFilter.baseFrequency = 400; beamFilter.octaves = 3;
+            this.sfx.beam = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0 } }).connect(beamFilter);
+            this.sfx.unlock = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, release: 0.1 } }).connect(this.sfxBus);
+            this.isInitialized = true;
+        },
+        startMusic() {
+            if (!this.isMusicStarted) {
+                const music = document.getElementById("bg-music");
+                if (music && music.getAttribute('src')) { // Check if src exists before playing
+                    music.volume = 0.2; 
+                    music.play().catch(e => console.warn("Audio play failed, likely due to missing file:", e.message)); 
+                    this.isMusicStarted = true; 
+                }
+            }
+        },
+        playSfx(type) {
+            if (!this.isInitialized) return;
+            const now = Tone.now();
+            try {
+                switch (type) {
+                    case 'select': this.sfx.select.triggerAttackRelease('C7', '32n', now); break;
+                    case 'match': this.sfx.match.triggerAttackRelease('G5', '8n', now); break;
+                    case 'bomb': this.sfx.bombKick.triggerAttackRelease('C2', '8n', now); this.sfx.bombNoise.triggerAttackRelease('16n', now + 0.01); break;
+                    case 'unlock': this.sfx.unlock.triggerAttackRelease('A6', '16n', now); break;
+                    case 'beam': case 'hypercube': this.sfx.beam.triggerAttackRelease('8n', now); break;
+                }
+            } catch (e) { console.error('SFX error:', e); }
         }
-        this.lastPlayed[name] = now;
-
-        switch (name) {
-          case "selectSound": this.sfx.clickSynth.triggerAttackRelease("C5", "16n"); break;
-          case "matchSound": {
-            const intensity = Math.min(1, Math.max(0.2, (opts.intensity || 3) / 6));
-            this.sfx.pluck.triggerAttackRelease("E5", "8n", undefined, 0.4 + 0.4 * intensity);
-            break;
-          }
-          case "beamSound": this.sfx.noise.triggerAttackRelease("16n"); break;
-          case "bombSound": this.sfx.kick.triggerAttackRelease("C2", "8n"); break;
-          case "hypercubeSound": this.sfx.fm.triggerAttackRelease("A4", "8n"); break;
-          case "unlockSound": this.sfx.unlockSynth.triggerAttack(); break;
-          case "coughSound": this.sfx.coughSound.triggerAttack(); break;
-        }
-      }
     };
 
     // =========================================================================
     // --- MODULE: UI & RENDERING ---
     // =========================================================================
-    
     function showModal(modalElement, focusElement) {
         currentModal = modalElement;
         modalElement.classList.remove('hidden');
-        setTimeout(() => {
-            modalElement.querySelector('div').classList.add('scale-100');
-            if (focusElement) focusElement.focus();
-        }, 10);
+        setTimeout(() => { modalElement.querySelector('div').classList.add('scale-100'); if (focusElement) focusElement.focus(); }, 10);
     }
 
     function hideModal(modalElement) {
-        if (modalElement) {
-            modalElement.querySelector('div').classList.remove('scale-100');
-            setTimeout(() => modalElement.classList.add('hidden'), 200);
-        }
+        if (modalElement) { modalElement.querySelector('div').classList.remove('scale-100'); setTimeout(() => modalElement.classList.add('hidden'), 200); }
         currentModal = null;
     }
 
-
     function showThreat() {
-        if (isPaused || !gameOverModal.classList.contains('hidden') || characterContainerEl.classList.contains('attacking')) return;
-        AudioManager.play('beamSound');
-        threatText.textContent = THREATS[Math.floor(Math.random() * THREATS.length)];
-        mouth.setAttribute('d', 'M58 68 L 64 60 L 70 68 L 76 60 L 82 68');
-        characterContainerEl.classList.add('attacking');
-        threatBubble.classList.add('visible');
-        setTimeout(() => {
-            threatBubble.classList.remove('visible');
-            mouth.setAttribute('d', 'M60 65 L 64 63 L 68 65 L 72 63 L 76 65');
-            characterContainerEl.classList.remove('attacking');
-        }, 2000);
+        if (isPaused || !DOMElements.gameOverModal.classList.contains('hidden') || DOMElements.characterContainerEl.classList.contains('attacking')) return;
+        DOMElements.threatText.textContent = THREATS[Math.floor(Math.random() * THREATS.length)];
+        DOMElements.mouth.setAttribute('d', 'M58 68 L 64 60 L 70 68 L 76 60 L 82 68');
+        DOMElements.characterContainerEl.classList.add('attacking'); DOMElements.threatBubble.classList.add('visible');
+        setTimeout(() => { DOMElements.threatBubble.classList.remove('visible'); DOMElements.mouth.setAttribute('d', 'M60 65 L 64 63 L 68 65 L 72 63 L 76 65'); DOMElements.characterContainerEl.classList.remove('attacking'); }, 2000);
     }
 
     async function showFact() {
-        isPaused = true;
-        clearTimeout(hintTimeout);
+        isPaused = true; clearTimeout(hintTimeout);
         let availableFacts = HEALTH_FACTS.filter(obj => !factsShown.includes(obj));
         if (availableFacts.length === 0) factsShown = [];
         const factObject = availableFacts.length > 0 ? availableFacts[Math.floor(Math.random() * availableFacts.length)] : HEALTH_FACTS[0];
         factsShown.push(factObject);
-        const formattedFact = factObject.fact.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        const formattedAdvice = factObject.advice.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        factText.innerHTML = formattedFact;
-        adviceText.innerHTML = formattedAdvice;
-        
-        showModal(factModal, closeFactButton);
+        DOMElements.factText.innerHTML = factObject.fact.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        DOMElements.adviceText.innerHTML = factObject.advice.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        showModal(DOMElements.factModal, DOMElements.closeFactButton);
     }
 
     function showGameOver() {
-        AudioManager.setMasterVolume(-12);
-        isAnimating = true;
-        isPaused = true;
-        if (threatInterval) clearInterval(threatInterval);
-        finalScoreEl.textContent = score;
-        showModal(gameOverModal, gameOverRestartButton);
+        if (animationWatchdog) clearTimeout(animationWatchdog);
+        isAnimating = true; isPaused = true; if (threatInterval) clearInterval(threatInterval);
+        DOMElements.finalScoreEl.textContent = score;
+        showModal(DOMElements.gameOverModal, DOMElements.gameOverModal.querySelector('#gameOverRestartButton'));
     }
 
     function updateQuestUI() {
-        questList.innerHTML = '';
+        DOMElements.questList.innerHTML = '';
         for (const colorIdx in quest.targets) {
             const remaining = Math.max(0, quest.targets[colorIdx] - quest.collected[colorIdx]);
-            const isCompleted = remaining === 0;
             const item = document.createElement('div');
-            item.className = `flex items-center justify-between p-2 rounded-lg transition-all ${isCompleted ? 'bg-green-500/30' : 'bg-black/20'}`;
+            item.className = `flex items-center justify-between p-2 rounded-lg transition-all ${remaining === 0 ? 'bg-green-500/30' : 'bg-black/20'}`;
             item.innerHTML = `<div class="w-6 h-6 rounded-full border-2 border-white/20" style="background-color: ${CONFIG.GEM_COLORS[colorIdx]}"></div><span class="font-bold text-white">${remaining}</span>`;
-            questList.appendChild(item);
+            DOMElements.questList.appendChild(item);
         }
         const remainingHearts = Math.max(0, quest.heartsToSave - quest.heartsSaved);
-        const heartsCompleted = remainingHearts === 0;
         const heartItem = document.createElement('div');
-        heartItem.className = `flex items-center justify-between p-2 rounded-lg transition-all ${heartsCompleted ? 'bg-green-500/30' : 'bg-black/20'}`;
+        heartItem.className = `flex items-center justify-between p-2 rounded-lg transition-all ${remainingHearts === 0 ? 'bg-green-500/30' : 'bg-black/20'}`;
         heartItem.innerHTML = `<span class="text-2xl">${CONFIG.HEART_EMOJI}</span><span class="font-bold text-white">${remainingHearts}</span>`;
-        questList.appendChild(heartItem);
+        DOMElements.questList.appendChild(heartItem);
     }
 
-    function updateHealthBar() {
-        const progressPercent = quest.maxDamage > 0 ? Math.min(100, (quest.totalDamage / quest.maxDamage) * 100) : 0;
-        healthBar.style.width = `${progressPercent}%`;
-    }
-
-    function updateScore() { scoreEl.textContent = score; }
-    function updateMoves() { movesEl.textContent = moves; }
+    function updateProgressBar() { DOMElements.progressBar.style.width = `${quest.maxDamage > 0 ? Math.min(100, (quest.totalDamage / quest.maxDamage) * 100) : 0}%`; }
+    function updateScore() { DOMElements.scoreEl.textContent = score; }
+    function updateMoves() { DOMElements.movesEl.textContent = moves; }
 
     function drawBoard(time) {
+        const { ctx } = DOMElements;
         for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
             for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
                 const gem = board[row][col];
-                if (gem) {
+                if (!gem) continue;
+                ctx.save();
+                ctx.globalAlpha = gem.alpha;
+                const centerX = gem.x + gemSize / 2, centerY = gem.y + gemSize / 2;
+                ctx.translate(centerX, centerY); ctx.scale(gem.scale, gem.scale); ctx.translate(-centerX, -centerY);
+                let cacheKey = gem.special === SPECIAL_TYPES.HYPERCUBE ? SPECIAL_TYPES.HYPERCUBE : (gem.special !== SPECIAL_TYPES.NONE ? `${gem.special}_${gem.colorIndex}` : CONFIG.GEM_COLORS[gem.colorIndex]);
+                if (gemCache[cacheKey]) ctx.drawImage(gemCache[cacheKey], gem.x, gem.y, gemSize, gemSize);
+                if (gem.isLocked) ctx.drawImage(gemCache['chain'], gem.x, gem.y, gemSize, gemSize);
+                if (gem.isHeart) {
                     ctx.save();
-                    ctx.globalAlpha = gem.alpha;
-                    const centerX = gem.x + gemSize / 2;
-                    const centerY = gem.y + gemSize / 2;
-                    ctx.translate(centerX, centerY);
-                    ctx.scale(gem.scale, gem.scale);
-                    ctx.translate(-centerX, -centerY);
-                    let cacheKey;
-                    if (gem.special !== SPECIAL_TYPES.NONE && gem.special !== SPECIAL_TYPES.HYPERCUBE) {
-                        cacheKey = `${gem.special}_${gem.colorIndex}`;
-                    } else if (gem.special === SPECIAL_TYPES.HYPERCUBE) {
-                        cacheKey = SPECIAL_TYPES.HYPERCUBE;
-                    } else {
-                        cacheKey = CONFIG.GEM_COLORS[gem.colorIndex];
-                    }
-                    const cachedGem = gemCache[cacheKey];
-                    if (cachedGem) {
-                        ctx.drawImage(cachedGem, gem.x, gem.y, gemSize, gemSize);
-                    }
-                    if (gem.isLocked) {
-                        ctx.drawImage(gemCache['chain'], gem.x, gem.y, gemSize, gemSize);
-                    }
-                    if (gem.isHeart) {
-                        const heartPulse = Math.sin(time / 300) * 0.1 + 1.1;
-                        ctx.save();
-                        ctx.translate(gem.x + gemSize / 2, gem.y + gemSize / 2);
-                        ctx.scale(heartPulse, heartPulse);
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0,0,0,0)';
-                        ctx.font = `${gemSize * 0.6}px sans-serif`;
-                        ctx.fillText(CONFIG.HEART_EMOJI, 0, 0);
-                        ctx.restore();
-                    }
+                    ctx.translate(gem.x + gemSize / 2, gem.y + gemSize / 2); ctx.scale(Math.sin(time / 300) * 0.1 + 1.1, Math.sin(time / 300) * 0.1 + 1.1);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowColor = 'rgba(0,0,0,0)'; ctx.font = `${gemSize * 0.6}px sans-serif`; ctx.fillText(CONFIG.HEART_EMOJI, 0, 0);
                     ctx.restore();
                 }
+                ctx.restore();
             }
         }
     }
@@ -913,38 +502,28 @@ document.getElementById("year").textContent = new Date().getFullYear();
             const scale = 1 + 0.05 * pulse;
             const drawPulse = (gem) => {
                 if (!gem) return;
+                const { ctx } = DOMElements;
                 ctx.save();
-                const centerX = gem.x + gemSize / 2;
-                const centerY = gem.y + gemSize / 2;
-                ctx.translate(centerX, centerY);
-                ctx.scale(scale, scale);
-                ctx.translate(-centerX, -centerY);
-                ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`;
-                ctx.lineWidth = 4;
+                const centerX = gem.x + gemSize / 2, centerY = gem.y + gemSize / 2;
+                ctx.translate(centerX, centerY); ctx.scale(scale, scale); ctx.translate(-centerX, -centerY);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`; ctx.lineWidth = 4;
                 ctx.strokeRect(gem.x + 2, gem.y + 2, gemSize - 4, gemSize - 4);
                 ctx.restore();
             };
-            drawPulse(gem1);
-            drawPulse(gem2);
+            drawPulse(gem1); drawPulse(gem2);
         }
     }
 
     function drawParticles() {
+        const { ctx } = DOMElements;
         for (let i = particlePool.length - 1; i >= 0; i--) {
             const p = particlePool[i];
             if (!p.active) continue;
-            p.x += p.vx;
-            p.y += p.vy;
-            p.alpha -= 0.02;
-            if (p.alpha <= 0) {
-                p.active = false;
-            } else {
-                ctx.save();
-                ctx.globalAlpha = p.alpha;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
+            p.x += p.vx; p.y += p.vy; p.alpha -= 0.02;
+            if (p.alpha <= 0) { p.active = false; } 
+            else {
+                ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
             }
         }
@@ -952,190 +531,82 @@ document.getElementById("year").textContent = new Date().getFullYear();
 
     function drawSelection(time) {
         if (selectedGem) {
+            const { ctx } = DOMElements;
             const pulse = Math.sin(time / 100) * 0.5 + 0.5;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`;
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`; ctx.lineWidth = 4;
             ctx.strokeRect(selectedGem.col * gemSize + 2, selectedGem.row * gemSize + 2, gemSize - 4, gemSize - 4);
         }
     }
 
     async function preRenderGems() {
-        gemCache = {};
-        const promises = [];
-        const specials = Object.values(SPECIAL_TYPES);
-        const size = Math.max(1, Math.round(gemSize));
-
-        CONFIG.GEM_COLORS.forEach((col) => {
-            const canvas = renderGemCanvas(col, size);
-            if ('createImageBitmap' in window) {
-                promises.push(createImageBitmap(canvas).then(img => { gemCache[col] = img; }));
-            } else {
-                gemCache[col] = canvas;
-            }
-        });
-
+        gemCache = {}; const promises = []; const specials = Object.values(SPECIAL_TYPES); const size = Math.max(1, Math.round(gemSize));
+        CONFIG.GEM_COLORS.forEach((col) => { const canvas = renderGemCanvas(col, size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(canvas).then(img => { gemCache[col] = img; })); } else { gemCache[col] = canvas; } });
         specials.forEach(special => {
-            if (special === SPECIAL_TYPES.HYPERCUBE) {
-                const canvas = renderHypercubeCanvas(size);
-                 if ('createImageBitmap' in window) {
-                    promises.push(createImageBitmap(canvas).then(img => { gemCache[special] = img; }));
-                } else {
-                    gemCache[special] = canvas;
-                }
-            } else if (special !== SPECIAL_TYPES.NONE) {
-                CONFIG.GEM_COLORS.forEach((col, idx) => {
-                    const canvas = renderSpecialCanvas(special, col, size);
-                     if ('createImageBitmap' in window) {
-                        promises.push(createImageBitmap(canvas).then(img => { gemCache[`${special}_${idx}`] = img; }));
-                    } else {
-                        gemCache[`${special}_${idx}`] = canvas;
-                    }
-                });
-            }
+            if (special === SPECIAL_TYPES.HYPERCUBE) { const canvas = renderHypercubeCanvas(size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(canvas).then(img => { gemCache[special] = img; })); } else { gemCache[special] = canvas; } } 
+            else if (special !== SPECIAL_TYPES.NONE) { CONFIG.GEM_COLORS.forEach((col, idx) => { const canvas = renderSpecialCanvas(special, col, size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(canvas).then(img => { gemCache[`${special}_${idx}`] = img; })); } else { gemCache[`${special}_${idx}`] = canvas; } }); }
         });
-        
-        const chainCanvas = renderChainCanvas(size);
-        if ('createImageBitmap' in window) {
-            promises.push(createImageBitmap(chainCanvas).then(img => { gemCache['chain'] = img; }));
-        } else {
-            gemCache['chain'] = chainCanvas;
-        }
-
+        const chainCanvas = renderChainCanvas(size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(chainCanvas).then(img => { gemCache['chain'] = img; })); } else { gemCache['chain'] = chainCanvas; }
         await Promise.all(promises);
     }
     
     function renderGemCanvas(color, size) {
-        const offscreenCanvas = document.createElement('canvas');
-        offscreenCanvas.width = size;
-        offscreenCanvas.height = size;
-        const offscreenCtx = offscreenCanvas.getContext('2d');
-        const centerX = size / 2;
-        const centerY = size / 2;
-        const s = size * 0.85;
-        const half = s / 2;
-        
-        offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-        offscreenCtx.shadowBlur = 5;
-        offscreenCtx.shadowOffsetX = 2;
-        offscreenCtx.shadowOffsetY = 2;
-
-        const shadeColor = (col, percent) => {
-            let f = parseInt(col.slice(1), 16), t = percent < 0 ? 0 : 255, p = Math.abs(percent),
-                R = f >> 16, G = (f >> 8) & 0xff, B = f & 0xff;
-            const hex = (0x1000000 + (Math.round((t-R)*p)+R)*0x10000 + (Math.round((t-G)*p)+G)*0x100 + (Math.round((t-B)*p)+B)).toString(16).slice(1);
-            return `#${hex.padStart(6,'0')}`;
-        };
-
-        const lightColor = shadeColor(color, 0.6);
-        const darkColor = shadeColor(color, -0.6);
-        const grad = offscreenCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, half);
-        grad.addColorStop(0, lightColor);
-        grad.addColorStop(1, color);
-        
-        offscreenCtx.fillStyle = grad;
-        offscreenCtx.beginPath();
-        offscreenCtx.moveTo(centerX, centerY - half); 
-        offscreenCtx.lineTo(centerX + half, centerY); 
-        offscreenCtx.lineTo(centerX, centerY + half); 
-        offscreenCtx.lineTo(centerX - half, centerY);
-        offscreenCtx.closePath();
-        offscreenCtx.fill();
-        
-        offscreenCtx.strokeStyle = darkColor;
-        offscreenCtx.lineWidth = 2;
-        offscreenCtx.stroke();
-
+        const offscreenCanvas = document.createElement('canvas'); offscreenCanvas.width = size; offscreenCanvas.height = size;
+        const offscreenCtx = offscreenCanvas.getContext('2d'); const centerX = size / 2, centerY = size / 2; const s = size * 0.85, half = s / 2;
+        offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.2)'; offscreenCtx.shadowBlur = 5; offscreenCtx.shadowOffsetX = 2; offscreenCtx.shadowOffsetY = 2;
+        const shadeColor = (col, percent) => { let f = parseInt(col.slice(1), 16), t = percent < 0 ? 0 : 255, p = Math.abs(percent), R = f >> 16, G = (f >> 8) & 0xff, B = f & 0xff; const hex = (0x1000000 + (Math.round((t-R)*p)+R)*0x10000 + (Math.round((t-G)*p)+G)*0x100 + (Math.round((t-B)*p)+B)).toString(16).slice(1); return `#${hex.padStart(6,'0')}`; };
+        const lightColor = shadeColor(color, 0.6), darkColor = shadeColor(color, -0.6);
+        const grad = offscreenCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, half); grad.addColorStop(0, lightColor); grad.addColorStop(1, color);
+        offscreenCtx.fillStyle = grad; offscreenCtx.beginPath(); offscreenCtx.moveTo(centerX, centerY - half); offscreenCtx.lineTo(centerX + half, centerY); offscreenCtx.lineTo(centerX, centerY + half); offscreenCtx.lineTo(centerX - half, centerY); offscreenCtx.closePath(); offscreenCtx.fill();
+        offscreenCtx.strokeStyle = darkColor; offscreenCtx.lineWidth = 2; offscreenCtx.stroke();
         return offscreenCanvas;
     }
 
     function renderSpecialCanvas(special, color, size) {
-        const canvas = renderGemCanvas(color, size);
-        const ctx = canvas.getContext('2d');
-        const centerX = size / 2;
-        const centerY = size / 2;
-        const s = size * 0.85;
-        const half = s / 2;
-
-        ctx.fillStyle = 'white';
-        ctx.shadowColor = 'white';
-        ctx.shadowBlur = 10;
-
-        if(special === SPECIAL_TYPES.H_BEAM) {
-            ctx.fillRect(centerX - half, centerY - half * 0.1, s, half * 0.2);
-        } else if (special === SPECIAL_TYPES.V_BEAM) {
-            ctx.fillRect(centerX - half * 0.1, centerY - half, half * 0.2, s);
-        } else if (special === SPECIAL_TYPES.BOMB) {
-            ctx.fillStyle = `rgba(255, 255, 255, 0.8)`;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, half * 0.6, 0, 2 * Math.PI);
-            ctx.fill();
-        }
+        const canvas = renderGemCanvas(color, size); const ctx = canvas.getContext('2d'); const centerX = size / 2, centerY = size / 2; const s = size * 0.85, half = s / 2;
+        ctx.fillStyle = 'white'; ctx.shadowColor = 'white'; ctx.shadowBlur = 10;
+        if(special === SPECIAL_TYPES.H_BEAM) { ctx.fillRect(centerX - half, centerY - half * 0.1, s, half * 0.2); } 
+        else if (special === SPECIAL_TYPES.V_BEAM) { ctx.fillRect(centerX - half * 0.1, centerY - half, half * 0.2, s); } 
+        else if (special === SPECIAL_TYPES.BOMB) { ctx.fillStyle = `rgba(255, 255, 255, 0.8)`; ctx.beginPath(); ctx.arc(centerX, centerY, half * 0.6, 0, 2 * Math.PI); ctx.fill(); }
         return canvas;
     }
 
     function renderHypercubeCanvas(size) {
-        const offscreenCanvas = document.createElement('canvas');
-        offscreenCanvas.width = size;
-        offscreenCanvas.height = size;
-        const offscreenCtx = offscreenCanvas.getContext('2d');
-        const centerX = size / 2;
-        const centerY = size / 2;
-        const s = size * 0.85;
-        const half = s / 2;
-
-        offscreenCtx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-        offscreenCtx.shadowBlur = 10;
-
-        for (let i = 0; i < 6; i++) {
-            offscreenCtx.fillStyle = CONFIG.GEM_COLORS[i];
-            offscreenCtx.beginPath();
-            offscreenCtx.moveTo(centerX,centerY);
-            const angle1 = (i / 6) * 2 * Math.PI;
-            const angle2 = ((i+1) / 6) * 2 * Math.PI;
-            offscreenCtx.arc(centerX,centerY, half, angle1, angle2);
-            offscreenCtx.closePath();
-            offscreenCtx.fill();
-        }
+        const offscreenCanvas = document.createElement('canvas'); offscreenCanvas.width = size; offscreenCanvas.height = size;
+        const offscreenCtx = offscreenCanvas.getContext('2d'); const centerX = size / 2, centerY = size / 2; const s = size * 0.85, half = s / 2;
+        offscreenCtx.shadowColor = 'rgba(255, 255, 255, 0.7)'; offscreenCtx.shadowBlur = 10;
+        for (let i = 0; i < 6; i++) { offscreenCtx.fillStyle = CONFIG.GEM_COLORS[i]; offscreenCtx.beginPath(); offscreenCtx.moveTo(centerX,centerY); const angle1 = (i / 6) * 2 * Math.PI, angle2 = ((i+1) / 6) * 2 * Math.PI; offscreenCtx.arc(centerX,centerY, half, angle1, angle2); offscreenCtx.closePath(); offscreenCtx.fill(); }
         return offscreenCanvas;
     }
 
     function renderChainCanvas(size) {
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        const p = size * 0.1; // padding
-        const lw = size * 0.08; // line width
-        ctx.strokeStyle = 'rgba(200, 200, 220, 0.7)';
-        ctx.lineWidth = lw;
-        ctx.lineCap = 'round';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 4;
-
-        // Draw chain links
-        ctx.beginPath();
-        ctx.moveTo(p, p);
-        ctx.lineTo(size - p, size - p);
-        ctx.moveTo(size - p, p);
-        ctx.lineTo(p, size - p);
-        ctx.stroke();
+        const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d'); const p = size * 0.1, lw = size * 0.08;
+        ctx.strokeStyle = 'rgba(200, 200, 220, 0.7)'; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; ctx.shadowBlur = 4;
+        ctx.beginPath(); ctx.moveTo(p, p); ctx.lineTo(size - p, size - p); ctx.moveTo(size - p, p); ctx.lineTo(p, size - p); ctx.stroke();
         return canvas;
     }
-
+    
     // =========================================================================
     // --- MODULE: CORE GAME LOGIC ---
     // =========================================================================
-
     async function processSwap(gem1, gem2) {
-        if (gem1.isLocked || gem2.isLocked) return;
-        isAnimating = true;
+        if (isAnimating || isPaused || gem1.isLocked || gem2.isLocked) return;
+        isAnimating = true; 
         selectedGem = null;
+        
+        // Safety net to prevent the game from getting stuck
+        if (animationWatchdog) clearTimeout(animationWatchdog);
+        animationWatchdog = setTimeout(() => {
+            console.error("WATCHDOG: Game logic took too long. Forcing state reset.");
+            isAnimating = false;
+            isPaused = false;
+            resetHintTimer();
+        }, 5000); // 5 second timeout
+
         try {
-            const startPos1 = { row: gem1.row, col: gem1.col };
-            const startPos2 = { row: gem2.row, col: gem2.col };
+            const startPos1 = { row: gem1.row, col: gem1.col }, startPos2 = { row: gem2.row, col: gem2.col };
             if (gem1.special === SPECIAL_TYPES.HYPERCUBE || gem2.special === SPECIAL_TYPES.HYPERCUBE) {
-                moves++;
-                updateMoves();
+                moves++; updateMoves();
                 const hypercube = gem1.special === SPECIAL_TYPES.HYPERCUBE ? gem1 : gem2;
                 const otherGem = hypercube === gem1 ? gem2 : gem1;
                 await triggerHypercube(hypercube, otherGem);
@@ -1143,1168 +614,241 @@ document.getElementById("year").textContent = new Date().getFullYear();
                 await swapGems(gem1, gem2);
                 const matchInfo = findMatchesAndSpecial(startPos1, startPos2);
                 if (matchInfo.allMatches.length > 0) {
-                    moves++;
-                    updateMoves();
+                    moves++; updateMoves();
                     await cascadeMatches(matchInfo.allMatches, matchInfo.specialToCreate);
                 } else {
-                    await sleep(100);
-                    await swapGems(gem1, gem2);
+                    await sleep(100); await swapGems(gem1, gem2);
                 }
             }
-            if (gameOverModal.classList.contains('hidden') && winModal.classList.contains('hidden') && finalWinModal.classList.contains('hidden')) {
+            if (DOMElements.gameOverModal.classList.contains('hidden') && DOMElements.winModal.classList.contains('hidden') && DOMElements.finalWinModal.classList.contains('hidden')) {
                 await moveCigarette();
-                if (checkGameOver()) {
-                    return;
-                }
+                if (checkGameOver()) return;
                 spawnHeartIfNeeded();
                 checkWinCondition();
-                 if (currentLevel >= CONFIG.COUGH_START_LEVEL && moves > 0 && moves % CONFIG.COUGH_INTERVAL_MOVES === 0) {
+                if (currentLevel >= CONFIG.COUGH_START_LEVEL && moves > 0 && moves % CONFIG.COUGH_INTERVAL_MOVES === 0) {
                     await triggerCough();
                 }
                 if (!hasPossibleMoves(board)) {
                     await reshuffleBoard();
                 }
             }
+        } catch(error) { 
+            console.error("Error during swap process:", error); 
         } finally {
+            clearTimeout(animationWatchdog); // Clear the watchdog
             isAnimating = false;
             resetHintTimer();
         }
     }
 
+    // ADDED: triggerCough function
+    async function triggerCough() {
+        DOMElements.characterContainerEl.classList.add('coughing');
+        AudioManager.playSfx('bomb'); // Re-using bomb sound for impact
+
+        await sleep(500); // Wait for animation to finish
+
+        const availableGems = board.flat().filter(g => g && !g.isLocked && !g.isHeart);
+        if (availableGems.length > 0) {
+            const numToLock = Math.min(availableGems.length, Math.floor(Math.random() * 2) + 1); // Lock 1 or 2
+            for (let i = 0; i < numToLock; i++) {
+                const gemToLock = availableGems.splice(Math.floor(Math.random() * availableGems.length), 1)[0];
+                if (gemToLock) {
+                    gemToLock.isLocked = true;
+                }
+            }
+        }
+        DOMElements.characterContainerEl.classList.remove('coughing');
+    }
+
     async function cascadeMatches(initialMatches, specialToCreate = null) {
-        let gemsToClear = new Set(initialMatches);
-        let processedSpecials = new Set();
-        
-        while (true) {
-            let newGemsFromExplosion = new Set();
-            let foundNewExplosion = false;
-            for (const gem of gemsToClear) {
-                if (gem.special !== SPECIAL_TYPES.NONE && !processedSpecials.has(gem)) {
-                    foundNewExplosion = true;
-                    processedSpecials.add(gem);
-                    switch (gem.special) {
-                        case SPECIAL_TYPES.H_BEAM:
-                        case SPECIAL_TYPES.V_BEAM: AudioManager.play('beamSound'); break;
-                        case SPECIAL_TYPES.BOMB: AudioManager.play('bombSound'); break;
+        try {
+            let gemsToClear = new Set(initialMatches), processedSpecials = new Set();
+            while (true) {
+                let newGemsFromExplosion = new Set(), foundNewExplosion = false;
+                for (const gem of gemsToClear) {
+                    if (gem.special !== SPECIAL_TYPES.NONE && !processedSpecials.has(gem)) {
+                        foundNewExplosion = true; processedSpecials.add(gem);
+                        switch (gem.special) {
+                            case SPECIAL_TYPES.H_BEAM: case SPECIAL_TYPES.V_BEAM: AudioManager.playSfx('beam'); break;
+                            case SPECIAL_TYPES.BOMB: AudioManager.playSfx('bomb'); break;
+                        }
+                        getSpecialEffectGems(gem).forEach(g => newGemsFromExplosion.add(g));
                     }
-                    getSpecialEffectGems(gem).forEach(g => newGemsFromExplosion.add(g));
+                }
+                if (!foundNewExplosion) break;
+                newGemsFromExplosion.forEach(g => gemsToClear.add(g));
+            }
+            const savedAHeart = await handleMatches(Array.from(gemsToClear), specialToCreate);
+            await sleep(150); await shiftAndRefill();
+            if (savedAHeart) await showFact();
+            const matchGroups = findMatches(board, true);
+            if (matchGroups.length > 0) {
+                await cascadeMatches([...new Set(matchGroups.flat())], findSpecialFromCascade(matchGroups));
+            } else {
+                if (await moveHearts()) {
+                    const newMatchesFromHeartsGroups = findMatches(board, true);
+                    if (newMatchesFromHeartsGroups.length > 0) {
+                        await cascadeMatches([...new Set(newMatchesFromHeartsGroups.flat())], findSpecialFromCascade(newMatchesFromHeartsGroups));
+                    }
                 }
             }
-            if (!foundNewExplosion) break;
-            newGemsFromExplosion.forEach(g => gemsToClear.add(g));
-        }
-
-        const savedAHeart = await handleMatches(Array.from(gemsToClear), specialToCreate);
-        await sleep(150);
-        await shiftAndRefill();
-        
-        if (savedAHeart) {
-            await showFact();
-        }
-
-        const matchGroups = findMatches(board, true);
-        if (matchGroups.length > 0) {
-            const nextMatches = [...new Set(matchGroups.flat())];
-            const newSpecialToCreate = findSpecialFromCascade(matchGroups);
-            await cascadeMatches(nextMatches, newSpecialToCreate);
-        } else {
-            const heartsMoved = await moveHearts();
-            if (heartsMoved) {
-                const newMatchesFromHeartsGroups = findMatches(board, true);
-                 if (newMatchesFromHeartsGroups.length > 0) {
-                    const newMatchesFromHearts = [...new Set(newMatchesFromHeartsGroups.flat())];
-                    const newSpecialToCreate = findSpecialFromCascade(newMatchesFromHeartsGroups);
-                    await cascadeMatches(newMatchesFromHearts, newSpecialToCreate);
-                }
-            }
-        }
+        } catch (err) { console.error('Error in cascadeMatches:', err); if (!currentModal) { isAnimating = false; isPaused = false; resetHintTimer(); } }
     }
 
     async function handleMatches(matches, specialToCreate) {
-        if (matches.length > 0) {
-            AudioManager.play('matchSound', { intensity: matches.length });
-        }
-        const promises = [];
-        let heartSaved = false;
-        let collectedForQuest = {};
-        
-        // --- LOGIC MỞ KHÓA ---
+        if (matches.length > 0) AudioManager.playSfx('match');
+        const promises = []; let heartSaved = false; let collectedForQuest = {};
         let unlockedGems = new Set();
         matches.forEach(gem => {
-            const { row, col } = gem;
-            const neighbors = [
-                { r: row - 1, c: col }, { r: row + 1, c: col },
-                { r: row, c: col - 1 }, { r: row, c: col + 1 },
-            ];
-            neighbors.forEach(n => {
-                if (n.r >= 0 && n.r < CONFIG.GRID_SIZE && n.c >= 0 && n.c < CONFIG.GRID_SIZE) {
-                    const neighborGem = board[n.r][n.c];
-                    if (neighborGem && neighborGem.isLocked) {
-                        unlockedGems.add(neighborGem);
-                    }
-                }
-            });
+            const neighbors = [{ r: gem.row - 1, c: gem.col }, { r: gem.row + 1, c: gem.col }, { r: gem.row, c: gem.col - 1 }, { r: gem.row, c: gem.col + 1 }];
+            neighbors.forEach(n => { if (n.r >= 0 && n.r < CONFIG.GRID_SIZE && n.c >= 0 && n.c < CONFIG.GRID_SIZE) { const neighborGem = board[n.r][n.c]; if (neighborGem && neighborGem.isLocked) unlockedGems.add(neighborGem); } });
         });
-
-        unlockedGems.forEach(gem => {
-            gem.isLocked = false;
-            promises.push(
-                animate(gem, { scale: 1.2 }, 100).then(() => animate(gem, { scale: 1 }, 100))
-            );
-        });
-        if (unlockedGems.size > 0) {
-            AudioManager.play('unlockSound');
-        }
-        // --- KẾT THÚC LOGIC MỞ KHÓA ---
-
+        unlockedGems.forEach(gem => { gem.isLocked = false; promises.push(animate(gem, { scale: 1.2 }, 100).then(() => animate(gem, { scale: 1 }, 100))); });
+        if (unlockedGems.size > 0) AudioManager.playSfx('unlock');
         matches.forEach(gem => {
+            if (!board[gem.row] || board[gem.row][gem.col] !== gem) return;
             if (specialToCreate && gem.row === specialToCreate.row && gem.col === specialToCreate.col) return;
-            if (gem.isHeart) {
-                score++;
-                quest.heartsSaved++;
-                updateScore();
-                heartSaved = true;
-            }
+            if (gem.isHeart) { score++; quest.heartsSaved++; updateScore(); heartSaved = true; }
             const colorIdx = gem.colorIndex;
-            if (quest.targets[colorIdx] !== undefined) {
-                collectedForQuest[colorIdx] = (collectedForQuest[colorIdx] || 0) + 1;
-            }
+            if (quest.targets[colorIdx] !== undefined) collectedForQuest[colorIdx] = (collectedForQuest[colorIdx] || 0) + 1;
             createParticleBurst(gem.x + gemSize / 2, gem.y + gemSize / 2, CONFIG.GEM_COLORS[gem.colorIndex]);
-            
             promises.push(new Promise(async (resolve) => {
                 if (gem) {
-                    await animate(gem, { scale: 0, alpha: 0 }, CONFIG.ANIM_CLEAR_SPEED, easing.easeInQuad)
-                        .catch(console.error);
-                    if (board[gem.row]) {
-                        board[gem.row][gem.col] = null;
-                    }
-                }
-                resolve();
+                    await animate(gem, { scale: 0, alpha: 0 }, CONFIG.ANIM_CLEAR_SPEED, easing.easeInQuad).catch(console.error);
+                    if (board[gem.row] && board[gem.row][gem.col] === gem) board[gem.row][gem.col] = null;
+                } resolve();
             }));
         });
         await Promise.all(promises);
-        updateQuestProgress(collectedForQuest);
-        updateQuestUI();
-        
+        updateQuestProgress(collectedForQuest); updateProgressBar();
         if (specialToCreate) {
             let gem = board[specialToCreate.row] && board[specialToCreate.row][specialToCreate.col];
             if (!gem) {
-                gem = {
-                    row: specialToCreate.row,
-                    col: specialToCreate.col,
-                    x: specialToCreate.col * gemSize,
-                    y: specialToCreate.row * gemSize,
-                    colorIndex: (specialToCreate.colorIndex !== undefined) ? specialToCreate.colorIndex : Math.floor(Math.random() * CONFIG.GEM_COLORS.length),
-                    isHeart: false,
-                    isLocked: false,
-                    special: SPECIAL_TYPES.NONE,
-                    scale: 0,
-                    alpha: 1
-                };
+                gem = { row: specialToCreate.row, col: specialToCreate.col, x: specialToCreate.col * gemSize, y: specialToCreate.row * gemSize, colorIndex: specialToCreate.colorIndex ?? Math.floor(Math.random() * CONFIG.GEM_COLORS.length), isHeart: false, isLocked: false, special: SPECIAL_TYPES.NONE, scale: 0, alpha: 1 };
                 board[specialToCreate.row][specialToCreate.col] = gem;
             }
             gem.special = specialToCreate.special;
             if (specialToCreate.special !== SPECIAL_TYPES.HYPERCUBE) gem.colorIndex = specialToCreate.colorIndex;
             gem.isHeart = false;
-            await animate(gem, { scale: 1.5 }, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeOutQuad)
-              .then(() => animate(gem, { scale: 1 }, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeInQuad));
+            await animate(gem, { scale: 1.5 }, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeOutQuad).then(() => animate(gem, { scale: 1 }, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeInQuad));
         }
-
         return heartSaved;
     }
 
-    function findMatches(currentBoard, returnGroups = false) {
-        const matches = new Set();
-        const groups = [];
-
-        // Horizontal matches
-        for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
-            for (let c = 0; c < CONFIG.GRID_SIZE - 2;) {
-                const gem = currentBoard[r][c];
-                if (gem) {
-                    let match = [gem];
-                    for (let i = c + 1; i < CONFIG.GRID_SIZE; i++) {
-                        const nextGem = currentBoard[r][i];
-                        if (nextGem && nextGem.colorIndex === gem.colorIndex) {
-                            match.push(nextGem);
-                        } else { break; }
-                    }
-                    if (match.length >= 3) {
-                        match.forEach(m => matches.add(m));
-                        if (returnGroups) groups.push(match);
-                    }
-                    c += match.length > 1 ? match.length : 1;
-                } else { c++; }
-            }
-        }
-
-        // Vertical matches
-        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-            for (let r = 0; r < CONFIG.GRID_SIZE - 2;) {
-                const gem = currentBoard[r][c];
-                if (gem) {
-                    let match = [gem];
-                    for (let i = r + 1; i < CONFIG.GRID_SIZE; i++) {
-                        const nextGem = currentBoard[i][c];
-                        if (nextGem && nextGem.colorIndex === gem.colorIndex) {
-                            match.push(nextGem);
-                        } else { break; }
-                    }
-                    if (match.length >= 3) {
-                        match.forEach(m => matches.add(m));
-                        if (returnGroups) groups.push(match);
-                    }
-                    r += match.length > 1 ? match.length : 1;
-                } else { r++; }
-            }
-        }
-        return returnGroups ? groups : Array.from(matches);
-    }
-    
-    function findSpecialFromCascade(matchGroups) {
-        let bestSpecial = null;
-        let bestRank = 0; // 1: beam, 2: bomb, 3: hypercube
-        let processedInGroups = new Set();
-
-        // Rank 3: Hypercubes (line of 5)
-        for (const group of matchGroups) {
-            if (group.length >= 5) {
-                const middleGem = group[Math.floor(group.length / 2)];
-                if (processedInGroups.has(middleGem)) continue;
-
-                bestRank = 3;
-                bestSpecial = {
-                    special: SPECIAL_TYPES.HYPERCUBE,
-                    colorIndex: middleGem.colorIndex,
-                    row: middleGem.row,
-                    col: middleGem.col
-                };
-                group.forEach(g => processedInGroups.add(g));
-                return bestSpecial; // Found the best, return immediately
-            }
-        }
-
-        // Rank 2: Bombs (L/T shapes)
-        for (let i = 0; i < matchGroups.length; i++) {
-            for (let j = i + 1; j < matchGroups.length; j++) {
-                const group1 = matchGroups[i];
-                const group2 = matchGroups[j];
-                const intersection = group1.find(gem1 => group2.some(gem2 => gem1 === gem2));
-
-                if (intersection && !processedInGroups.has(intersection)) {
-                    if (bestRank < 2) {
-                        bestRank = 2;
-                        bestSpecial = {
-                            special: SPECIAL_TYPES.BOMB,
-                            colorIndex: intersection.colorIndex,
-                            row: intersection.row,
-                            col: intersection.col
-                        };
-                        group1.forEach(g => processedInGroups.add(g));
-                        group2.forEach(g => processedInGroups.add(g));
-                    }
-                }
-            }
-        }
-
-        // Rank 1: Beams (line of 4)
-        if (bestRank < 2) { // Only check for beams if no bomb was found
-            for (const group of matchGroups) {
-                if (group.length === 4) {
-                    const gemToReplace = group[1]; // Arbitrary choice
-                    if (processedInGroups.has(gemToReplace)) continue;
-                    
-                    if (bestRank < 1) {
-                        bestRank = 1;
-                        const isHorizontal = group[0].row === group[1].row;
-                        bestSpecial = {
-                            special: isHorizontal ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM,
-                            colorIndex: gemToReplace.colorIndex,
-                            row: gemToReplace.row,
-                            col: gemToReplace.col
-                        };
-                        group.forEach(g => processedInGroups.add(g));
-                    }
-                }
-            }
-        }
-        
-        return bestSpecial;
-    }
-
-
-    function findMatchesAndSpecial(startPos1, startPos2) {
-        const allMatches = new Set();
-        const checkLine = (line) => {
-            const res = [];
-            for (let i = 0; i < line.length - 2; i++) {
-                const g = line[i];
-                if (!g) continue;
-                let len = 1;
-                while (i + len < line.length && line[i + len] && line[i + len].colorIndex === g.colorIndex) len++;
-                if (len >= 3) {
-                    const matchGroup = line.slice(i, i + len);
-                    res.push(matchGroup);
-                    i += len - 1;
-                }
-            }
-            return res;
-        };
-        const h1 = checkLine(board[startPos1.row] || []);
-        const v1 = checkLine(board.map(r => r[startPos1.col]) || []);
-        const h2 = checkLine(board[startPos2.row] || []);
-        const v2 = checkLine(board.map(r => r[startPos2.col]) || []);
-        const groups = [h1, v1, h2, v2];
-        for (const gArr of groups) {
-            for (const match of gArr) {
-                for (const gem of match) { allMatches.add(gem); }
-            }
-        }
-        
-        let specialToCreate = null;
-        const matchesArray = Array.from(allMatches);
-
-        let intersectionGem = null;
-        const movedGem = board[startPos1.row][startPos1.col];
-        const otherGem = board[startPos2.row][startPos2.col];
-        const checkGems = [movedGem, otherGem];
-
-        for (const gem of checkGems) {
-            if (!gem || !matchesArray.includes(gem)) continue;
-
-            const horizontalMatch = matchesArray.filter(g => g.row === gem.row && g.colorIndex === gem.colorIndex);
-            const verticalMatch = matchesArray.filter(g => g.col === gem.col && g.colorIndex === gem.colorIndex);
-
-            if (horizontalMatch.length >= 3 && verticalMatch.length >= 3) {
-                intersectionGem = gem;
-                break;
-            }
-        }
-
-        if (intersectionGem) {
-            specialToCreate = {
-                special: SPECIAL_TYPES.BOMB,
-                colorIndex: intersectionGem.colorIndex,
-                row: intersectionGem.row,
-                col: intersectionGem.col
-            };
-        } else {
-            const allLineMatches = [...h1, ...v1, ...h2, ...v2].filter(match => match.some(g => g === movedGem || g === otherGem));
-            allLineMatches.sort((a, b) => b.length - a.length);
-
-            if (allLineMatches.length > 0) {
-                const longestMatch = allLineMatches[0];
-                const pivotGem = longestMatch.includes(movedGem) ? movedGem : otherGem;
-                
-                if (longestMatch.length >= 5) {
-                    specialToCreate = { special: SPECIAL_TYPES.HYPERCUBE, colorIndex: pivotGem.colorIndex, row: pivotGem.row, col: pivotGem.col };
-                } else if (longestMatch.length === 4) {
-                    const isHorizontal = longestMatch[0].row === longestMatch[1].row;
-                    specialToCreate = {
-                        special: isHorizontal ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM,
-                        colorIndex: pivotGem.colorIndex,
-                        row: pivotGem.row,
-                        col: pivotGem.col
-                    };
-                }
-            }
-        }
-
-        return { allMatches: matchesArray, specialToCreate };
-    }
-
-    async function shiftAndRefill() {
-        const shiftPromises = [];
-        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-            let emptySlots = 0;
-            for (let r = CONFIG.GRID_SIZE - 1; r >= 0; r--) {
-                if (board[r][c] === null) {
-                    emptySlots++;
-                } else if (emptySlots > 0) {
-                    const gem = board[r][c];
-                    board[r + emptySlots][c] = gem;
-                    board[r][c] = null;
-                    gem.row += emptySlots;
-                    shiftPromises.push(animate(gem, { y: gem.row * gemSize }, 300, easing.easeOutQuad));
-                }
-            }
-        }
-        await Promise.all(shiftPromises);
-        const refillPromises = [];
-        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-            for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
-                if (board[r][c] === null) {
-                    const newGem = {
-                        colorIndex: Math.floor(Math.random() * CONFIG.GEM_COLORS.length),
-                        isHeart: false,
-                        isLocked: false,
-                        special: SPECIAL_TYPES.NONE,
-                        row: r, col: c,
-                        x: c * gemSize, y: (r - CONFIG.GRID_SIZE) * gemSize,
-                        scale: 1, alpha: 1,
-                    };
-                    if (currentLevel >= 1 && isFreePlayMode && Math.random() < 0.05 * Math.min(currentLevel, 4)) {
-                        newGem.isLocked = true;
-                    }
-                    board[r][c] = newGem;
-                    refillPromises.push(animate(newGem, { y: r * gemSize }, CONFIG.ANIM_FALL_SPEED, easing.easeOutQuad));
-                }
-            }
-        }
-        await Promise.all(refillPromises);
-    }
-
-    async function reshuffleBoard() {
-        isAnimating = true;
-        const promises = [];
-        board.flat().forEach(gem => {
-            if (gem) { promises.push(animate(gem, { alpha: 0, scale: 0 }, 300)); }
-        });
-        await Promise.all(promises);
-        let attempts = 0;
-        do {
-            createBoard();
-            attempts++;
-            if (attempts > 100) { console.error("Could not generate a board with possible moves."); break; }
-        } while (!hasPossibleMoves(board));
-        const refillPromises = [];
-        board.flat().forEach(gem => {
-            if (gem) {
-                gem.alpha = 0; gem.scale = 0;
-                refillPromises.push(animate(gem, { alpha: 1, scale: 1 }, 300));
-            }
-        });
-        await Promise.all(refillPromises);
-        isAnimating = false;
-        resetHintTimer();
-    }
-
-    function checkWinCondition() {
-        const objectivesMet = quest.totalDamage >= quest.maxDamage && quest.heartsSaved >= quest.heartsToSave;
-
-        if (objectivesMet) {
-            if (isFreePlayMode) {
+    function findMatches(currentBoard, returnGroups = false) { const matches = new Set(); const groups = []; for (let r = 0; r < CONFIG.GRID_SIZE; r++) { for (let c = 0; c < CONFIG.GRID_SIZE - 2;) { const gem = currentBoard[r][c]; if (gem) { let match = [gem]; for (let i = c + 1; i < CONFIG.GRID_SIZE; i++) { const nextGem = currentBoard[r][i]; if (nextGem && nextGem.colorIndex === gem.colorIndex) { match.push(nextGem); } else { break; } } if (match.length >= 3) { match.forEach(m => matches.add(m)); if (returnGroups) groups.push(match); } c += match.length > 1 ? match.length : 1; } else { c++; } } } for (let c = 0; c < CONFIG.GRID_SIZE; c++) { for (let r = 0; r < CONFIG.GRID_SIZE - 2;) { const gem = currentBoard[r][c]; if (gem) { let match = [gem]; for (let i = r + 1; i < CONFIG.GRID_SIZE; i++) { const nextGem = currentBoard[i][c]; if (nextGem && nextGem.colorIndex === gem.colorIndex) { match.push(nextGem); } else { break; } } if (match.length >= 3) { match.forEach(m => matches.add(m)); if (returnGroups) groups.push(match); } r += match.length > 1 ? match.length : 1; } else { r++; } } } return returnGroups ? groups : Array.from(matches); }
+    function findSpecialFromCascade(matchGroups) { let bestSpecial = null; let bestRank = 0; let processedInGroups = new Set(); for (const group of matchGroups) { if (group.length >= 5) { const middleGem = group[Math.floor(group.length / 2)]; if (processedInGroups.has(middleGem)) continue; bestRank = 3; bestSpecial = { special: SPECIAL_TYPES.HYPERCUBE, colorIndex: middleGem.colorIndex, row: middleGem.row, col: middleGem.col }; group.forEach(g => processedInGroups.add(g)); return bestSpecial; } } for (let i = 0; i < matchGroups.length; i++) { for (let j = i + 1; j < matchGroups.length; j++) { const group1 = matchGroups[i]; const group2 = matchGroups[j]; const intersection = group1.find(gem1 => group2.some(gem2 => gem1 === gem2)); if (intersection && !processedInGroups.has(intersection)) { if (bestRank < 2) { bestRank = 2; bestSpecial = { special: SPECIAL_TYPES.BOMB, colorIndex: intersection.colorIndex, row: intersection.row, col: intersection.col }; group1.forEach(g => processedInGroups.add(g)); group2.forEach(g => processedInGroups.add(g)); } } } } if (bestRank < 2) { for (const group of matchGroups) { if (group.length === 4) { const gemToReplace = group[1]; if (processedInGroups.has(gemToReplace)) continue; if (bestRank < 1) { bestRank = 1; const isHorizontal = group[0].row === group[1].row; bestSpecial = { special: isHorizontal ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM, colorIndex: gemToReplace.colorIndex, row: gemToReplace.row, col: gemToReplace.col }; group.forEach(g => processedInGroups.add(g)); } } } } return bestSpecial; }
+    function findMatchesAndSpecial(startPos1, startPos2) { const allMatches = new Set(); const checkLine = (line) => { const res = []; for (let i = 0; i < line.length - 2; i++) { const g = line[i]; if (!g) continue; let len = 1; while (i + len < line.length && line[i + len] && line[i + len].colorIndex === g.colorIndex) len++; if (len >= 3) { const matchGroup = line.slice(i, i + len); res.push(matchGroup); i += len - 1; } } return res; }; const h1 = checkLine(board[startPos1.row] || []); const v1 = checkLine(board.map(r => r[startPos1.col]) || []); const h2 = checkLine(board[startPos2.row] || []); const v2 = checkLine(board.map(r => r[startPos2.col]) || []); const groups = [h1, v1, h2, v2]; for (const gArr of groups) { for (const match of gArr) { for (const gem of match) { allMatches.add(gem); } } } let specialToCreate = null; const matchesArray = Array.from(allMatches); let intersectionGem = null; const movedGem = board[startPos1.row][startPos1.col]; const otherGem = board[startPos2.row][startPos2.col]; const checkGems = [movedGem, otherGem]; for (const gem of checkGems) { if (!gem || !matchesArray.includes(gem)) continue; const horizontalMatch = matchesArray.filter(g => g.row === gem.row && g.colorIndex === gem.colorIndex); const verticalMatch = matchesArray.filter(g => g.col === gem.col && g.colorIndex === gem.colorIndex); if (horizontalMatch.length >= 3 && verticalMatch.length >= 3) { intersectionGem = gem; break; } } if (intersectionGem) { specialToCreate = { special: SPECIAL_TYPES.BOMB, colorIndex: intersectionGem.colorIndex, row: intersectionGem.row, col: intersectionGem.col }; } else { const allLineMatches = [...h1, ...v1, ...h2, ...v2].filter(match => match.some(g => g === movedGem || g === otherGem)); allLineMatches.sort((a, b) => b.length - a.length); if (allLineMatches.length > 0) { const longestMatch = allLineMatches[0]; const pivotGem = longestMatch.includes(movedGem) ? movedGem : otherGem; if (longestMatch.length >= 5) { specialToCreate = { special: SPECIAL_TYPES.HYPERCUBE, colorIndex: pivotGem.colorIndex, row: pivotGem.row, col: pivotGem.col }; } else if (longestMatch.length === 4) { const isHorizontal = longestMatch[0].row === longestMatch[1].row; specialToCreate = { special: isHorizontal ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM, colorIndex: pivotGem.colorIndex, row: pivotGem.row, col: pivotGem.col }; } } } return { allMatches: matchesArray, specialToCreate }; }
+    async function shiftAndRefill() { const shiftPromises = []; for (let c = 0; c < CONFIG.GRID_SIZE; c++) { let emptySlots = 0; for (let r = CONFIG.GRID_SIZE - 1; r >= 0; r--) { if (board[r][c] === null) { emptySlots++; } else if (emptySlots > 0) { const gem = board[r][c]; board[r + emptySlots][c] = gem; board[r][c] = null; gem.row += emptySlots; shiftPromises.push(animate(gem, { y: gem.row * gemSize }, 300, easing.easeOutQuad)); } } } await Promise.all(shiftPromises); const refillPromises = []; for (let c = 0; c < CONFIG.GRID_SIZE; c++) { for (let r = 0; r < CONFIG.GRID_SIZE; r++) { if (board[r][c] === null) { const newGem = { colorIndex: Math.floor(Math.random() * CONFIG.GEM_COLORS.length), isHeart: false, isLocked: false, special: SPECIAL_TYPES.NONE, row: r, col: c, x: c * gemSize, y: (r - CONFIG.GRID_SIZE) * gemSize, scale: 1, alpha: 1, }; if (currentLevel >= 1 && isFreePlayMode && Math.random() < 0.05 * Math.min(currentLevel, 4)) { newGem.isLocked = true; } board[r][c] = newGem; refillPromises.push(animate(newGem, { y: r * gemSize }, CONFIG.ANIM_FALL_SPEED, easing.easeOutQuad)); } } } await Promise.all(refillPromises); }
+    async function reshuffleBoard() { isAnimating = true; const promises = []; board.flat().forEach(gem => { if (gem) { promises.push(animate(gem, { alpha: 0, scale: 0 }, 300)); } }); await Promise.all(promises); let attempts = 0; do { createBoard(); attempts++; if (attempts > 100) { console.error("Could not generate a board with possible moves."); break; } } while (!hasPossibleMoves(board)); const refillPromises = []; board.flat().forEach(gem => { if (gem) { gem.alpha = 0; gem.scale = 0; refillPromises.push(animate(gem, { alpha: 1, scale: 1 }, 300)); } }); await Promise.all(refillPromises); isAnimating = false; resetHintTimer(); }
+    function checkWinCondition() { 
+        const objectivesMet = quest.totalDamage >= quest.maxDamage && quest.heartsSaved >= quest.heartsToSave; 
+        if (objectivesMet) { 
+            if (animationWatchdog) clearTimeout(animationWatchdog);
+            if (isFreePlayMode) { 
                 goToNextLevel(true); 
-            } else {
-                AudioManager.setMasterVolume(-12);
-                isAnimating = true;
-                isPaused = true;
-                if (threatInterval) clearInterval(threatInterval);
-                if (currentLevel >= CONFIG.FINAL_LEVEL) {
-                    showModal(finalWinModal, restartGameButton);
-                } else {
-                    winLevelText.textContent = `Bạn đã hoàn thành màn ${currentLevel}!`;
-                    showModal(winModal, nextLevelButton);
-                }
-            }
-        }
-    }
-
-
-    // =========================================================================
-    // --- MODULE: EVENT HANDLERS ---
-    // =========================================================================
-
-    function handlePointerStart(e) {
-        e.preventDefault();
-        if (isAnimating || isPaused) return;
-        resetHintTimer();
-        hintGems = [];
-        const pos = getEventPos(e);
-        const col = Math.floor(pos.x / gemSize);
-        const row = Math.floor(pos.y / gemSize);
-        if (row < 0 || row >= CONFIG.GRID_SIZE || col < 0 || col >= CONFIG.GRID_SIZE) {
-            selectedGem = null;
-            return;
-        }
-        const clickedGem = board[row][col];
-        if (clickedGem.isLocked) {
-            AudioManager.play('unlockSound'); // Play a sound to indicate it's locked
-            return;
-        }
-        isDragging = true;
-        startDragPos = pos;
-        startGem = clickedGem;
-        if (selectedGem) {
-            if (selectedGem === clickedGem) {
-                selectedGem = null;
-                return;
-            }
-            const isAdjacent = Math.abs(selectedGem.row - clickedGem.row) + Math.abs(selectedGem.col - clickedGem.col) === 1;
-            if (isAdjacent) {
-                processSwap(selectedGem, clickedGem);
-            } else {
-                AudioManager.play('selectSound');
-                selectedGem = clickedGem;
-            }
-        } else {
-            AudioManager.play('selectSound');
-            selectedGem = clickedGem;
-        }
-    }
-
-    function handlePointerMove(e) {
-        e.preventDefault();
-        if (!isDragging || isAnimating || isPaused) return;
-        const pos = getEventPos(e);
-        const deltaX = pos.x - startDragPos.x;
-        const deltaY = pos.y - startDragPos.y;
-        if (Math.abs(deltaX) > gemSize / 2 || Math.abs(deltaY) > gemSize / 2) {
-            let endGem = null;
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                const endCol = startGem.col + (deltaX > 0 ? 1 : -1);
-                if (endCol >= 0 && endCol < CONFIG.GRID_SIZE) {
-                    endGem = board[startGem.row][endCol];
-                }
-            } else {
-                const endRow = startGem.row + (deltaY > 0 ? 1 : -1);
-                if (endRow >= 0 && endRow < CONFIG.GRID_SIZE) {
-                    endGem = board[endRow][startGem.col];
-                }
-            }
-            if (endGem && !endGem.isLocked && startGem !== endGem) {
-                isDragging = false;
-                selectedGem = null;
-                processSwap(startGem, endGem);
-            }
-        }
-    }
-
-    function handlePointerEnd(e) {
-        isDragging = false;
-        startGem = null;
-    }
-
-    // =========================================================================
-    // --- MODULE: ANIMATION SYSTEM ---
-    // =========================================================================
-
-    const easing = {
-        easeInOutQuad: t => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-        easeInQuad: t => t * t,
-        easeOutQuad: t => t * (2 - t)
-    };
-
-    function animate(target, toProperties, duration, easeFunc = easing.easeInOutQuad) {
-        return new Promise(resolve => {
-            const startProps = {};
-            const endProps = {};
-            for (const key in toProperties) {
-                const cur = typeof target[key] === 'number' && !isNaN(target[key]) ? target[key] : 0;
-                startProps[key] = cur;
-                endProps[key] = Number(toProperties[key]);
-            }
-            animations.push({
-                target, startProperties: startProps, endProperties: endProps,
-                duration, easeFunc, startTime: performance.now(), onComplete: resolve
-            });
-        });
-    }
-
-    function handleAnimations() {
-        const now = performance.now();
-        for (let i = animations.length - 1; i >= 0; i--) {
-            const anim = animations[i];
-            const elapsed = now - (anim.startTime || now);
-            const duration = Number(anim.duration) || 0;
-            const t = duration > 0 ? Math.min(elapsed / duration, 1) : 1;
-            const progress = (typeof anim.easeFunc === 'function') ? anim.easeFunc(t) : t;
-
-            if (t >= 1) {
-                for (const key in anim.endProperties) {
-                    if (anim.target) anim.target[key] = anim.endProperties[key];
-                }
-                try {
-                    if (anim.onComplete) anim.onComplete();
-                } catch (err) {
-                    console.error('Error in animation onComplete:', err);
-                }
-                animations.splice(i, 1);
-            } else {
-                for (const key in anim.endProperties) {
-                    if (anim.target) {
-                        const start = anim.startProperties[key] || 0;
-                        const end = anim.endProperties[key];
-                        anim.target[key] = start + (end - start) * progress;
-                    }
-                }
-            }
-        }
-    }
-
-    // =========================================================================
-    // --- MODULE: INITIALIZATION & HELPERS ---
-    // =========================================================================
-
-    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-    function toggleFullScreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-            });
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
-    }
-
-    function updateFullscreenIcons() {
-        const fullscreenIconOpen = document.getElementById('fullscreen-icon-open');
-        const fullscreenIconClose = document.getElementById('fullscreen-icon-close');
-        if (document.fullscreenElement) {
-            fullscreenIconOpen.classList.add('hidden');
-            fullscreenIconClose.classList.remove('hidden');
-        } else {
-            fullscreenIconOpen.classList.remove('hidden');
-            fullscreenIconClose.classList.add('hidden');
-        }
-    }
-    
-    function trackPupil(pupilElement, e) {
-        const svgRect = characterContainerEl.getBoundingClientRect();
-        const pupilData = {
-            cx: parseFloat(pupilElement.getAttribute('cx')),
-            cy: parseFloat(pupilElement.getAttribute('cy'))
-        };
-        const pupilX = svgRect.left + (pupilData.cx / 200) * svgRect.width;
-        const pupilY = svgRect.top + (pupilData.cy / 100) * svgRect.height;
-        const angle = Math.atan2(e.clientY - pupilY, e.clientX - pupilX);
-        const maxMove = 4;
-        const moveX = Math.cos(angle) * maxMove;
-        const moveY = Math.sin(angle) * maxMove;
-        pupilElement.style.transform = `translate(${moveX}px, ${moveY}px)`;
-    }
-
-    function getParticle() {
-        for (let i = 0; i < particlePool.length; i++) {
-            if (!particlePool[i].active) return particlePool[i];
-        }
-        return null;
-    }
-
-    function createParticleBurst(x, y, color) {
-        for (let i = 0; i < 10; i++) {
-            const p = getParticle();
-            if (p) {
-                p.active = true; p.x = x; p.y = y;
-                p.vx = (Math.random() - 0.5) * 6;
-                p.vy = (Math.random() - 0.5) * 6;
-                p.size = Math.random() * 4 + 2;
-                p.color = color; p.alpha = 1;
-            }
-        }
-    }
-
-    function setupLevel(level) {
-        currentLevel = level;
-        levelEl.textContent = level;
-        const baseRequirement = 15 + (level - 1) * 8;
-        const numTargets = Math.min(2 + Math.floor(level / 2), 5);
-        quest = {
-            targets: {}, collected: {}, totalDamage: 0,
-            maxDamage: 0, heartsToSave: level, heartsSaved: 0
-        };
-        let availableColors = Array.from({ length: CONFIG.GEM_COLORS.length }, (_, i) => i);
-        for (let i = 0; i < numTargets; i++) {
-            if (availableColors.length === 0) break;
-            const colorIndex = availableColors.splice(Math.floor(Math.random() * availableColors.length), 1)[0];
-            const requirement = Math.floor(baseRequirement * (Math.random() * 0.4 + 0.8));
-            quest.targets[colorIndex] = requirement;
-            quest.collected[colorIndex] = 0;
-            quest.maxDamage += requirement;
-        }
-        updateQuestUI();
-        updateHealthBar();
-    }
-
-    async function resizeCanvas() {
-        const container = document.getElementById('game-container');
-        const containerWidth = container.clientWidth;
-        const dpr = window.devicePixelRatio || 1;
-
-        canvas.style.width = containerWidth + 'px';
-        canvas.style.height = containerWidth + 'px';
-
-        canvas.width = Math.floor(containerWidth * dpr);
-        canvas.height = Math.floor(containerWidth * dpr);
-
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        gemSize = containerWidth / CONFIG.GRID_SIZE;
-        
-        await preRenderGems();
-
-        for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
-            for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-                if(board[r] && board[r][c]) {
-                    board[r][c].x = c * gemSize;
-                    board[r][c].y = r * gemSize;
-                }
-            }
-        }
-        updateCigarettePosition();
-    }
-    
-    function onResizeDebounced() {
-        if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            resizeCanvas();
-        }, 150);
-    }
-    
-    function updateCigarettePosition(col = cigarette.col, isLunging = false) {
-        const columnCenter = (col * gemSize) + (gemSize / 2);
-        const svgScaledWidth = 200 * 0.7;
-        const translateX = columnCenter - (svgScaledWidth / 2);
-
-        let scale = 0.7;
-        let rotate = 0;
-        let translateY = 0;
-        
-        if (isLunging) {
-            scale = 0.8;
-            translateY = 10;
-        } else if (characterContainerEl.classList.contains('attacking')) {
-            scale = 0.8;
-            rotate = -5;
-        }
-
-        characterContainerEl.style.transform = `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotate}deg)`;
-    }
-
-    function createBoard() {
-        board = [];
-        for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
-            board[row] = [];
-            for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
-                let possibleColors = Array.from({ length: CONFIG.GEM_COLORS.length }, (_, i) => i);
-                
-                if (col >= 2 && board[row][col-1].colorIndex === board[row][col-2].colorIndex) {
-                    const colorToRemove = board[row][col-1].colorIndex;
-                    possibleColors = possibleColors.filter(c => c !== colorToRemove);
-                }
-
-                if (row >= 2 && board[row-1][col].colorIndex === board[row-2][col].colorIndex) {
-                    const colorToRemove = board[row-1][col].colorIndex;
-                    possibleColors = possibleColors.filter(c => c !== colorToRemove);
-                }
-
-                const colorIndex = possibleColors[Math.floor(Math.random() * possibleColors.length)];
-
-                board[row][col] = {
-                    colorIndex: colorIndex,
-                    isHeart: false,
-                    isLocked: false,
-                    special: SPECIAL_TYPES.NONE,
-                    row: row,
-                    col: col,
-                    x: col * gemSize,
-                    y: row * gemSize,
-                    scale: 1,
-                    alpha: 1,
-                };
-            }
-        }
-    }
-
-    function swapGems(gem1, gem2) {
-        const r1 = gem1.row, c1 = gem1.col;
-        const r2 = gem2.row, c2 = gem2.col;
-        board[r1][c1] = gem2;
-        board[r2][c2] = gem1;
-        gem1.row = r2; gem1.col = c2;
-        gem2.row = r1; gem2.col = c1;
-        const p1 = animate(gem1, { x: c2 * gemSize, y: r2 * gemSize }, CONFIG.ANIM_SWAP_SPEED, easing.easeInOutQuad);
-        const p2 = animate(gem2, { x: c1 * gemSize, y: r1 * gemSize }, CONFIG.ANIM_SWAP_SPEED, easing.easeInOutQuad);
-        return Promise.all([p1, p2]);
-    }
-
-    function getSpecialEffectGems(gem) {
-        let affected = new Set();
-        if (gem.special === SPECIAL_TYPES.H_BEAM) {
-            for(let c=0; c<CONFIG.GRID_SIZE; c++) { if(board[gem.row][c]) affected.add(board[gem.row][c]); }
-        } else if (gem.special === SPECIAL_TYPES.V_BEAM) {
-            for(let r=0; r<CONFIG.GRID_SIZE; r++) { if(board[r][gem.col]) affected.add(board[r][gem.col]); }
-        } else if (gem.special === SPECIAL_TYPES.BOMB) {
-            for(let r = gem.row - 1; r <= gem.row + 1; r++) {
-                for(let c = gem.col - 1; c <= gem.col + 1; c++) {
-                    if(r >= 0 && r < CONFIG.GRID_SIZE && c >= 0 && c < CONFIG.GRID_SIZE && board[r][c]) {
-                        affected.add(board[r][c]);
-                    }
-                }
-            }
-        }
-        return affected;
-    }
-
-    async function triggerHypercube(hypercube, otherGem) {
-        let gemsToClear = new Set([hypercube]);
-        AudioManager.play('hypercubeSound');
-        
-        if (otherGem.special === SPECIAL_TYPES.NONE) {
-            const targetColorIndex = otherGem.colorIndex;
-            board.flat().filter(g => g && g.colorIndex === targetColorIndex).forEach(g => gemsToClear.add(g));
+            } else { 
+                isAnimating = true; isPaused = true; 
+                if (threatInterval) clearInterval(threatInterval); 
+                if (currentLevel >= CONFIG.FINAL_LEVEL) { 
+                    showModal(DOMElements.finalWinModal, DOMElements.restartGameButton); 
+                } else { 
+                    DOMElements.winLevelText.textContent = `Bạn đã hoàn thành màn ${currentLevel}!`; 
+                    showModal(DOMElements.winModal, DOMElements.nextLevelButton); 
+                } 
+            } 
         } 
-        else if (otherGem.special && otherGem.special !== SPECIAL_TYPES.HYPERCUBE) {
-            board.flat().filter(g => g && !g.isHeart && g.colorIndex === otherGem.colorIndex)
-              .forEach(g => {
-                 if (g.special === SPECIAL_TYPES.NONE) g.special = otherGem.special;
-                 gemsToClear.add(g);
-              });
-        }
-        else { // Hypercube + Hypercube
-            board.flat().forEach(g => { if(g) gemsToClear.add(g) });
-        }
-        await cascadeMatches(Array.from(gemsToClear));
     }
-
-    function spawnHeartIfNeeded(isFirst = false) {
-         if (isFirst || (moves > 0 && moves % CONFIG.MOVES_PER_HEART_SPAWN === 0)) {
-            let availableCols = [];
-            for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-                if (board[CONFIG.GRID_SIZE - 1][c] && !board[CONFIG.GRID_SIZE - 1][c].isHeart && board[CONFIG.GRID_SIZE - 1][c].special === SPECIAL_TYPES.NONE) {
-                    availableCols.push(c);
-                }
-            }
-            if (availableCols.length > 0) {
-                const col = availableCols[Math.floor(Math.random() * availableCols.length)];
-                const gem = board[CONFIG.GRID_SIZE - 1][col];
-                gem.isHeart = true;
-                gem.special = SPECIAL_TYPES.NONE;
-                animate(gem, {scale: 1.5}, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeOutQuad)
-                    .then(() => animate(gem, {scale: 1}, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeInQuad));
-            }
-        }
-    }
-
-    async function moveHearts() {
-        const movePromises = [];
-        let movedGems = new Set();
-        let heartsDidMove = false;
-
-        for (let r = 1; r < CONFIG.GRID_SIZE; r++) {
-            for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-                const gem = board[r][c];
-                if (gem && gem.isHeart && !movedGems.has(gem)) {
-                    const gemAbove = board[r - 1][c];
-                    if (gemAbove && !gemAbove.isHeart) {
-                        heartsDidMove = true;
-                        board[r - 1][c] = gem;
-                        board[r][c] = gemAbove;
-                        
-                        gem.row = r - 1;
-                        gemAbove.row = r;
-                        
-                        movePromises.push(animate(gem, { y: gem.row * gemSize }, 200, easing.easeInOutQuad));
-                        movePromises.push(animate(gemAbove, { y: gemAbove.row * gemSize }, 200, easing.easeInOutQuad));
-                        
-                        movedGems.add(gem);
-                        movedGems.add(gemAbove);
-                    }
-                }
-            }
-        }
-        await Promise.all(movePromises);
-        return heartsDidMove;
-    }
-
-    async function moveCigarette() {
-        let highestHeart = null;
-        let minRow = CONFIG.GRID_SIZE;
-
-        board.flat().filter(g => g && g.isHeart).forEach(g => {
-            if (g.row < minRow) {
-                minRow = g.row;
-                highestHeart = g;
-            }
-        });
-
-        if (highestHeart) {
-            if (Math.random() < CONFIG.CIGARETTE_LUNGE_CHANCE) {
-                const originalCol = cigarette.col;
-                const targetCol = highestHeart.col;
-                
-                updateCigarettePosition(targetCol, true);
-                await sleep(150);
-                updateCigarettePosition(originalCol);
-                await sleep(400);
-            }
-
-            if (cigarette.col < highestHeart.col) cigarette.col++;
-            else if (cigarette.col > highestHeart.col) cigarette.col--;
-        }
-        updateCigarettePosition();
-    }
-
-    function checkGameOver() {
-        if(board[0][cigarette.col] && board[0][cigarette.col].isHeart) {
-            showGameOver();
-            return true;
-        }
-        return false;
-    }
-
-    function updateQuestProgress(collected) {
-        for (const key in collected) {
-            const colorIdx = parseInt(key, 10);
-            const amount = collected[key];
-            if (!quest.targets.hasOwnProperty(colorIdx)) continue;
-
-            const before = quest.collected[colorIdx] || 0;
-            const remaining = Math.max(0, quest.targets[colorIdx] - before);
-            const used = Math.min(remaining, amount);
-            
-            quest.collected[colorIdx] += used;
-            quest.totalDamage += used;
-        }
-        updateHealthBar();
-    }
-
-    function goToNextLevel(isFreeModeLevelUp = false) {
-        if (!isFreeModeLevelUp) {
-            hideModal(winModal);
-            AudioManager.setMasterVolume(-9);
-        }
-        isAnimating = false;
-        isPaused = false;
-        setupLevel(currentLevel + 1);
-        moves = 0; updateMoves();
-        
-        if (!isFreeModeLevelUp) {
-            do {
-                createBoard();
-            } while(!hasPossibleMoves(board));
-            spawnHeartIfNeeded(true);
-        }
-        
-        if (threatInterval) clearInterval(threatInterval);
-        threatInterval = setInterval(showThreat, CONFIG.THREAT_INTERVAL);
-    }
-
-    function hasPossibleMoves(currentBoard) {
-      for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
-        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-          if (c < CONFIG.GRID_SIZE - 1) {
-            [currentBoard[r][c], currentBoard[r][c+1]] = [currentBoard[r][c+1], currentBoard[r][c]];
-            const matches = findMatches(currentBoard);
-            [currentBoard[r][c], currentBoard[r][c+1]] = [currentBoard[r][c+1], currentBoard[r][c]];
-            if (matches.length > 0) return true;
-          }
-          if (r < CONFIG.GRID_SIZE - 1) {
-            [currentBoard[r][c], currentBoard[r+1][c]] = [currentBoard[r+1][c], currentBoard[r][c]];
-            const matches = findMatches(currentBoard);
-            [currentBoard[r][c], currentBoard[r+1][c]] = [currentBoard[r+1][c], currentBoard[r][c]];
-            if (matches.length > 0) return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    function findFirstPossibleMove() {
-      for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
-        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
-          if (c < CONFIG.GRID_SIZE - 1) {
-            [board[r][c], board[r][c+1]] = [board[r][c+1], board[r][c]];
-            const matches = findMatches(board);
-            [board[r][c], board[r][c+1]] = [board[r][c+1], board[r][c]];
-            if (matches.length > 0) return { gem1: board[r][c], gem2: board[r][c+1] };
-          }
-          if (r < CONFIG.GRID_SIZE - 1) {
-            [board[r][c], board[r+1][c]] = [board[r+1][c], board[r][c]];
-            const matches = findMatches(board);
-            [board[r][c], board[r+1][c]] = [board[r+1][c], board[r][c]];
-            if (matches.length > 0) return { gem1: board[r][c], gem2: board[r+1][c] };
-          }
-        }
-      }
-      return null;
-    }
-
-    function resetHintTimer() {
-        if (hintTimeout) clearTimeout(hintTimeout);
-        hintGems = [];
-        hintTimeout = setTimeout(() => {
-            if (!isAnimating && !isPaused) {
-                const move = findFirstPossibleMove();
-                if (move) {
-                    hintGems = [move.gem1, move.gem2];
-                }
-            }
-        }, CONFIG.HINT_TIMEOUT);
-    }
+    function handlePointerStart(e) { e.preventDefault(); if (isAnimating || isPaused) return; resetHintTimer(); hintGems = []; const pos = getEventPos(e); const col = Math.floor(pos.x / gemSize); const row = Math.floor(pos.y / gemSize); if (row < 0 || row >= CONFIG.GRID_SIZE || col < 0 || col >= CONFIG.GRID_SIZE) { selectedGem = null; return; } const clickedGem = board[row][col]; if (clickedGem.isLocked) { AudioManager.playSfx('unlock'); return; } isDragging = true; startDragPos = pos; startGem = clickedGem; if (selectedGem) { if (selectedGem === clickedGem) { selectedGem = null; return; } const isAdjacent = Math.abs(selectedGem.row - clickedGem.row) + Math.abs(selectedGem.col - clickedGem.col) === 1; if (isAdjacent) { processSwap(selectedGem, clickedGem); } else { AudioManager.playSfx('select'); selectedGem = clickedGem; } } else { AudioManager.playSfx('select'); selectedGem = clickedGem; } }
+    function handlePointerMove(e) { e.preventDefault(); if (!isDragging || isAnimating || isPaused) return; const pos = getEventPos(e); const deltaX = pos.x - startDragPos.x; const deltaY = pos.y - startDragPos.y; if (Math.abs(deltaX) > gemSize / 2 || Math.abs(deltaY) > gemSize / 2) { let endGem = null; if (Math.abs(deltaX) > Math.abs(deltaY)) { const endCol = startGem.col + (deltaX > 0 ? 1 : -1); if (endCol >= 0 && endCol < CONFIG.GRID_SIZE) { endGem = board[startGem.row][endCol]; } } else { const endRow = startGem.row + (deltaY > 0 ? 1 : -1); if (endRow >= 0 && endRow < CONFIG.GRID_SIZE) { endGem = board[endRow][startGem.col]; } } if (endGem && !endGem.isLocked && startGem !== endGem) { isDragging = false; selectedGem = null; processSwap(startGem, endGem); } } }
+    function handlePointerEnd(e) { isDragging = false; startGem = null; }
+    const easing = { easeInOutQuad: t => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t, easeInQuad: t => t * t, easeOutQuad: t => t * (2 - t) }; function animate(target, toProperties, duration, easeFunc = easing.easeInOutQuad) { return new Promise(resolve => { const startProps = {}; const endProps = {}; for (const key in toProperties) { const cur = typeof target[key] === 'number' && !isNaN(target[key]) ? target[key] : 0; startProps[key] = cur; endProps[key] = Number(toProperties[key]); } animations.push({ target, startProperties: startProps, endProperties: endProps, duration, easeFunc, startTime: performance.now(), onComplete: resolve }); }); }
+    function handleAnimations() { const now = performance.now(); for (let i = animations.length - 1; i >= 0; i--) { const anim = animations[i]; const elapsed = now - (anim.startTime || now); const duration = Number(anim.duration) || 0; const t = duration > 0 ? Math.min(elapsed / duration, 1) : 1; const progress = (typeof anim.easeFunc === 'function') ? anim.easeFunc(t) : t; if (t >= 1) { for (const key in anim.endProperties) { if (anim.target) anim.target[key] = anim.endProperties[key]; } try { if (anim.onComplete) anim.onComplete(); } catch (err) { console.error('Error in animation onComplete:', err); } animations.splice(i, 1); } else { for (const key in anim.endProperties) { if (anim.target) { const start = anim.startProperties[key] || 0; const end = anim.endProperties[key]; anim.target[key] = start + (end - start) * progress; } } } } }
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    function toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+    function updateFullscreenIcons() { const fullscreenIconOpen = document.getElementById('fullscreen-icon-open'); const fullscreenIconClose = document.getElementById('fullscreen-icon-close'); if (document.fullscreenElement) { fullscreenIconOpen.classList.add('hidden'); fullscreenIconClose.classList.remove('hidden'); } else { fullscreenIconOpen.classList.remove('hidden'); fullscreenIconClose.classList.add('hidden'); } }
+    function trackPupil(pupilElement, e) { const svgRect = DOMElements.characterContainerEl.getBoundingClientRect(); const pupilData = { cx: parseFloat(pupilElement.getAttribute('cx')), cy: parseFloat(pupilElement.getAttribute('cy')) }; const pupilX = svgRect.left + (pupilData.cx / 200) * svgRect.width; const pupilY = svgRect.top + (pupilData.cy / 100) * svgRect.height; const angle = Math.atan2(e.clientY - pupilY, e.clientX - pupilX); const maxMove = 4; const moveX = Math.cos(angle) * maxMove; const moveY = Math.sin(angle) * maxMove; pupilElement.style.transform = `translate(${moveX}px, ${moveY}px)`; }
+    function getParticle() { for (let i = 0; i < particlePool.length; i++) { if (!particlePool[i].active) return particlePool[i]; } return null; }
+    function createParticleBurst(x, y, color) { for (let i = 0; i < 10; i++) { const p = getParticle(); if (p) { p.active = true; p.x = x; p.y = y; p.vx = (Math.random() - 0.5) * 6; p.vy = (Math.random() - 0.5) * 6; p.size = Math.random() * 4 + 2; p.color = color; p.alpha = 1; } } }
+    function setupLevel(level) { currentLevel = level; DOMElements.levelEl.textContent = level; const baseRequirement = 15 + (level - 1) * 8; const numTargets = Math.min(2 + Math.floor(level / 2), 5); quest = { targets: {}, collected: {}, totalDamage: 0, maxDamage: 0, heartsToSave: level, heartsSaved: 0 }; let availableColors = Array.from({ length: CONFIG.GEM_COLORS.length }, (_, i) => i); for (let i = 0; i < numTargets; i++) { if (availableColors.length === 0) break; const colorIndex = availableColors.splice(Math.floor(Math.random() * availableColors.length), 1)[0]; const requirement = Math.floor(baseRequirement * (Math.random() * 0.4 + 0.8)); quest.targets[colorIndex] = requirement; quest.collected[colorIndex] = 0; quest.maxDamage += requirement; } updateQuestUI(); updateProgressBar(); }
+    async function resizeCanvas() { const container = document.getElementById('game-container'); const containerWidth = container.clientWidth; const dpr = window.devicePixelRatio || 1; DOMElements.canvas.style.width = containerWidth + 'px'; DOMElements.canvas.style.height = containerWidth + 'px'; DOMElements.canvas.width = Math.floor(containerWidth * dpr); DOMElements.canvas.height = Math.floor(containerWidth * dpr); DOMElements.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); gemSize = containerWidth / CONFIG.GRID_SIZE; await preRenderGems(); for (let r = 0; r < CONFIG.GRID_SIZE; r++) { for (let c = 0; c < CONFIG.GRID_SIZE; c++) { if(board[r] && board[r][c]) { board[r][c].x = c * gemSize; board[r][c].y = r * gemSize; } } } updateCigarettePosition(); }
+    function onResizeDebounced() { if (resizeTimer) clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { resizeCanvas(); }, 150); }
+    function updateCigarettePosition(col = cigarette.col, isLunging = false) { const columnCenter = (col * gemSize) + (gemSize / 2); const svgScaledWidth = 200 * 0.7; const translateX = columnCenter - (svgScaledWidth / 2); let scale = 0.7; let rotate = 0; let translateY = 0; if (isLunging) { scale = 0.8; translateY = 10; } else if (DOMElements.characterContainerEl.classList.contains('attacking')) { scale = 0.8; rotate = -5; } DOMElements.characterContainerEl.style.transform = `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotate}deg)`; }
+    function createBoard() { board = []; for (let row = 0; row < CONFIG.GRID_SIZE; row++) { board[row] = []; for (let col = 0; col < CONFIG.GRID_SIZE; col++) { let possibleColors = Array.from({ length: CONFIG.GEM_COLORS.length }, (_, i) => i); if (col >= 2 && board[row][col-1].colorIndex === board[row][col-2].colorIndex) { const colorToRemove = board[row][col-1].colorIndex; possibleColors = possibleColors.filter(c => c !== colorToRemove); } if (row >= 2 && board[row-1][col].colorIndex === board[row-2][col].colorIndex) { const colorToRemove = board[row-1][col].colorIndex; possibleColors = possibleColors.filter(c => c !== colorToRemove); } const colorIndex = possibleColors[Math.floor(Math.random() * possibleColors.length)]; board[row][col] = { colorIndex: colorIndex, isHeart: false, isLocked: false, special: SPECIAL_TYPES.NONE, row: row, col: col, x: col * gemSize, y: row * gemSize, scale: 1, alpha: 1, }; } } }
+    function swapGems(gem1, gem2) { const r1 = gem1.row, c1 = gem1.col; const r2 = gem2.row, c2 = gem2.col; board[r1][c1] = gem2; board[r2][c2] = gem1; gem1.row = r2; gem1.col = c2; gem2.row = r1; gem2.col = c1; const p1 = animate(gem1, { x: c2 * gemSize, y: r2 * gemSize }, CONFIG.ANIM_SWAP_SPEED, easing.easeInOutQuad); const p2 = animate(gem2, { x: c1 * gemSize, y: r1 * gemSize }, CONFIG.ANIM_SWAP_SPEED, easing.easeInOutQuad); return Promise.all([p1, p2]); }
+    function getSpecialEffectGems(gem) { let affected = new Set(); if (gem.special === SPECIAL_TYPES.H_BEAM) { for(let c=0; c<CONFIG.GRID_SIZE; c++) { if(board[gem.row][c]) affected.add(board[gem.row][c]); } } else if (gem.special === SPECIAL_TYPES.V_BEAM) { for(let r=0; r<CONFIG.GRID_SIZE; r++) { if(board[r][gem.col]) affected.add(board[r][gem.col]); } } else if (gem.special === SPECIAL_TYPES.BOMB) { for(let r = gem.row - 1; r <= gem.row + 1; r++) { for(let c = gem.col - 1; c <= gem.col + 1; c++) { if(r >= 0 && r < CONFIG.GRID_SIZE && c >= 0 && c < CONFIG.GRID_SIZE && board[r][c]) { affected.add(board[r][c]); } } } } return affected; }
+    async function triggerHypercube(hypercube, otherGem) { AudioManager.playSfx('hypercube'); const transformationPromises = []; if (otherGem.special && otherGem.special !== SPECIAL_TYPES.HYPERCUBE) { const gemsToTransform = board.flat().filter(g => g && !g.isHeart && g.colorIndex === otherGem.colorIndex && g.special === SPECIAL_TYPES.NONE); gemsToTransform.forEach(g => { g.special = otherGem.special; transformationPromises.push( animate(g, { scale: 1.5 }, 100).then(() => animate(g, { scale: 1 }, 100)) ); }); await Promise.all(transformationPromises); const initialCascadeSet = new Set([hypercube, otherGem, ...gemsToTransform]); await cascadeMatches(Array.from(initialCascadeSet)); } else { let gemsToClear = new Set([hypercube]); if (otherGem.special === SPECIAL_TYPES.NONE) { const targetColorIndex = otherGem.colorIndex; board.flat().filter(g => g && g.colorIndex === targetColorIndex).forEach(g => gemsToClear.add(g)); } else { board.flat().forEach(g => { if(g) gemsToClear.add(g) }); } await cascadeMatches(Array.from(gemsToClear)); } }
+    function spawnHeartIfNeeded(isFirst = false) { if (isFirst || (moves > 0 && moves % CONFIG.MOVES_PER_HEART_SPAWN === 0)) { let availableCols = []; for (let c = 0; c < CONFIG.GRID_SIZE; c++) { const gem = board[CONFIG.GRID_SIZE - 1][c]; const gemAbove = board[CONFIG.GRID_SIZE - 2] ? board[CONFIG.GRID_SIZE - 2][c] : null; const canSpawn = gem && !gem.isHeart && gem.special === SPECIAL_TYPES.NONE; const isNotBlockedByLock = !gemAbove || !gemAbove.isLocked; if (canSpawn && isNotBlockedByLock) { availableCols.push(c); } } if (availableCols.length > 0) { const col = availableCols[Math.floor(Math.random() * availableCols.length)]; const gem = board[CONFIG.GRID_SIZE - 1][col]; gem.isHeart = true; gem.special = SPECIAL_TYPES.NONE; animate(gem, {scale: 1.5}, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeOutQuad) .then(() => animate(gem, {scale: 1}, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeInQuad)); } } }
+    async function moveHearts() { const movePromises = []; let movedGems = new Set(); let heartsDidMove = false; for (let r = 1; r < CONFIG.GRID_SIZE; r++) { for (let c = 0; c < CONFIG.GRID_SIZE; c++) { const gem = board[r][c]; if (gem && gem.isHeart && !movedGems.has(gem)) { const gemAbove = board[r - 1][c]; if (gemAbove && !gemAbove.isHeart) { heartsDidMove = true; board[r - 1][c] = gem; board[r][c] = gemAbove; gem.row = r - 1; gemAbove.row = r; movePromises.push(animate(gem, { y: gem.row * gemSize }, 200, easing.easeInOutQuad)); movePromises.push(animate(gemAbove, { y: gemAbove.row * gemSize }, 200, easing.easeInOutQuad)); movedGems.add(gem); movedGems.add(gemAbove); } } } } await Promise.all(movePromises); return heartsDidMove; }
+    async function moveCigarette() { let highestHeart = null; let minRow = CONFIG.GRID_SIZE; board.flat().filter(g => g && g.isHeart).forEach(g => { if (g.row < minRow) { minRow = g.row; highestHeart = g; } }); if (highestHeart) { if (Math.random() < CONFIG.CIGARETTE_LUNGE_CHANCE) { const originalCol = cigarette.col; const targetCol = highestHeart.col; updateCigarettePosition(targetCol, true); await sleep(150); updateCigarettePosition(originalCol); await sleep(400); } if (cigarette.col < highestHeart.col) cigarette.col++; else if (cigarette.col > highestHeart.col) cigarette.col--; } updateCigarettePosition(); }
+    function checkGameOver() { if(board[0][cigarette.col] && board[0][cigarette.col].isHeart) { showGameOver(); return true; } return false; }
+    function updateQuestProgress(collected) { for (const key in collected) { const colorIdx = parseInt(key, 10); const amount = collected[key]; if (!quest.targets.hasOwnProperty(colorIdx)) continue; const before = quest.collected[colorIdx] || 0; const remaining = Math.max(0, quest.targets[colorIdx] - before); const used = Math.min(remaining, amount); quest.collected[colorIdx] += used; quest.totalDamage += used; } updateProgressBar(); }
+    function goToNextLevel(isFreeModeLevelUp = false) { if (!isFreeModeLevelUp) { hideModal(DOMElements.winModal); } isAnimating = false; isPaused = false; setupLevel(currentLevel + 1); moves = 0; updateMoves(); do { createBoard(); } while(!hasPossibleMoves(board)); spawnHeartIfNeeded(true); if (threatInterval) clearInterval(threatInterval); threatInterval = setInterval(showThreat, CONFIG.THREAT_INTERVAL); }
+    function hasPossibleMoves(currentBoard) { for (let r = 0; r < CONFIG.GRID_SIZE; r++) { for (let c = 0; c < CONFIG.GRID_SIZE; c++) { if (c < CONFIG.GRID_SIZE - 1) { const gem1 = currentBoard[r][c]; const gem2 = currentBoard[r][c+1]; if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked) continue; [currentBoard[r][c], currentBoard[r][c+1]] = [gem2, gem1]; const matches = findMatches(currentBoard); [currentBoard[r][c], currentBoard[r][c+1]] = [gem1, gem2]; if (matches.length > 0) return true; } if (r < CONFIG.GRID_SIZE - 1) { const gem1 = currentBoard[r][c]; const gem2 = currentBoard[r+1][c]; if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked) continue; [currentBoard[r][c], currentBoard[r+1][c]] = [gem2, gem1]; const matches = findMatches(currentBoard); [currentBoard[r][c], currentBoard[r+1][c]] = [gem1, gem2]; if (matches.length > 0) return true; } } } return false; }
+    function findFirstPossibleMove() { for (let r = 0; r < CONFIG.GRID_SIZE; r++) { for (let c = 0; c < CONFIG.GRID_SIZE; c++) { if (c < CONFIG.GRID_SIZE - 1) { const gem1 = board[r][c]; const gem2 = board[r][c+1]; if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked) continue; [board[r][c], board[r][c+1]] = [gem2, gem1]; const matches = findMatches(board); [board[r][c], board[r][c+1]] = [gem1, gem2]; if (matches.length > 0) return { gem1, gem2 }; } if (r < CONFIG.GRID_SIZE - 1) { const gem1 = board[r][c]; const gem2 = board[r+1][c]; if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked) continue; [board[r][c], board[r+1][c]] = [gem2, gem1]; const matches = findMatches(board); [board[r][c], board[r+1][c]] = [gem1, gem2]; if (matches.length > 0) return { gem1, gem2 }; } } } return null; }
+    function resetHintTimer() { if (hintTimeout) clearTimeout(hintTimeout); hintGems = []; hintTimeout = setTimeout(() => { if (!isAnimating && !isPaused) { const move = findFirstPossibleMove(); if (move) { hintGems = [move.gem1, move.gem2]; } } }, CONFIG.HINT_TIMEOUT); }
+    function getEventPos(e) { const rect = DOMElements.canvas.getBoundingClientRect(); return { x: e.clientX - rect.left, y: e.clientY - rect.top }; }
+    async function init() { await resizeCanvas(); DOMElements.ctx.font = `${gemSize * 0.7}px sans-serif`; cigarette.col = Math.floor(CONFIG.GRID_SIZE / 2); score = 0; moves = 0; setupLevel(1); do { createBoard(); } while (!hasPossibleMoves(board)); spawnHeartIfNeeded(true); updateCigarettePosition(); selectedGem = null; isAnimating = false; isPaused = false; animations = []; particles = []; particlePool = []; for (let i = 0; i < CONFIG.MAX_PARTICLES; i++) { particlePool.push({ active: false, x: 0, y: 0, vx: 0, vy: 0, size: 0, color: '', alpha: 0 }); } factsShown = []; if (threatInterval) clearInterval(threatInterval); threatInterval = setInterval(showThreat, CONFIG.THREAT_INTERVAL); updateScore(); updateMoves(); updateQuestUI(); updateProgressBar(); DOMElements.levelEl.textContent = currentLevel; requestAnimationFrame(gameLoop); resetHintTimer(); }
+    function gameLoop(time) { requestAnimationFrame(gameLoop); handleAnimations(time); const { ctx, canvas } = DOMElements; ctx.clearRect(0, 0, canvas.width, canvas.height); drawBoard(time); drawParticles(); drawSelection(time); drawHint(time); if (isPaused || currentModal) { return; } }
     
-    function getEventPos(e) {
-        const rect = canvas.getBoundingClientRect();
-        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    }
-
-    async function init() {
-        await resizeCanvas();
-        ctx.font = `${gemSize * 0.7}px sans-serif`;
-        
-        cigarette.col = Math.floor(CONFIG.GRID_SIZE / 2);
-        score = 0; 
-        moves = 0;
-        setupLevel(1);
-        do {
-            createBoard();
-        } while (!hasPossibleMoves(board));
-        spawnHeartIfNeeded(true);
-
-        updateCigarettePosition();
-        selectedGem = null; isAnimating = false; isPaused = false;
-        animations = []; particles = [];
-        particlePool = [];
-        for (let i = 0; i < CONFIG.MAX_PARTICLES; i++) {
-            particlePool.push({ active: false, x: 0, y: 0, vx: 0, vy: 0, size: 0, color: '', alpha: 0 });
-        }
-        factsShown = [];
-        if (threatInterval) clearInterval(threatInterval);
-        threatInterval = setInterval(showThreat, CONFIG.THREAT_INTERVAL);
-        updateScore();
-        updateMoves();
-        updateQuestUI();
-        updateHealthBar();
-        levelEl.textContent = currentLevel;
-
-        requestAnimationFrame(gameLoop);
-        resetHintTimer();
-    }
-
-    function gameLoop(time) {
-        requestAnimationFrame(gameLoop);
-        handleAnimations(time);
-
-        if (isPaused || currentModal) {
-            return;
-        }
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawBoard(time);
-        drawParticles();
-        drawSelection(time);
-        drawHint(time);
-    }
-    
+    // =========================================================================
+    // --- MODULE: EVENT LISTENERS & INITIALIZATION ---
+    // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
+        DOMElements.copyrightYear.textContent = new Date().getFullYear();
         let currentTutorialStep = 0;
-        const backToIndexButton = document.getElementById('backToIndexButton');
-        const continueToNextGameButton = document.getElementById('continueToNextGameButton');
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
-        const gameOverHomeButton = document.getElementById('gameOverHomeButton');
-        const gameOverRestartButton = document.getElementById('gameOverRestartButton');
-
-        if (fullscreenBtn) {
-            fullscreenBtn.addEventListener('click', toggleFullScreen);
-            document.addEventListener('fullscreenchange', updateFullscreenIcons);
-        }
-        if (backToIndexButton) { backToIndexButton.addEventListener('click', () => { window.location.href = 'index.html'; }); }
-        if (continueToNextGameButton) { continueToNextGameButton.addEventListener('click', () => { window.location.href = 'kimcuongquatraloicauhoi.html'; }); }
-        if (gameOverHomeButton) { gameOverHomeButton.addEventListener('click', () => { window.location.href = 'index.html'; }); }
-        if (gameOverRestartButton) { gameOverRestartButton.addEventListener('click', () => { location.reload(); }); }
+        let firstInteraction = true;
+        async function handleFirstInteraction() { if (firstInteraction) { firstInteraction = false; await AudioManager.init(); AudioManager.startMusic(); } }
+        function showTutorialStep(index) { DOMElements.tutorialSteps.forEach((step, i) => { step.classList.toggle('hidden', i !== index); }); if (index === DOMElements.tutorialSteps.length - 1) { if (isTutorialOnly) { DOMElements.tutorialFinishBtn.textContent = 'Quay Lại'; DOMElements.tutorialFinishBtn.classList.replace('bg-green-600', 'bg-blue-600'); } else { DOMElements.tutorialFinishBtn.textContent = 'Bắt đầu chơi!'; DOMElements.tutorialFinishBtn.classList.replace('bg-blue-600', 'bg-green-600'); } } }
+        function startGame(finalLevel, isFree = false) { isTutorialOnly = false; CONFIG.FINAL_LEVEL = finalLevel; isFreePlayMode = isFree; document.getElementById('objective-panel').style.visibility = 'visible'; DOMElements.startScreen.style.display = 'none'; DOMElements.tutorialModal.classList.remove('hidden'); showTutorialStep(0); }
         
-        nextLevelButton.addEventListener('click', () => {
-            goToNextLevel(false);
-        });
+        // Button Listeners
+        DOMElements.easyModeBtn.addEventListener('click', () => { handleFirstInteraction(); startGame(1, false); });
+        DOMElements.hardModeBtn.addEventListener('click', () => { handleFirstInteraction(); startGame(3, false); });
+        DOMElements.freeModeBtn.addEventListener('click', () => { handleFirstInteraction(); startGame(Infinity, true); });
+        DOMElements.tutorialStartBtn.addEventListener('click', () => { handleFirstInteraction(); isTutorialOnly = true; DOMElements.startScreen.style.display = 'none'; DOMElements.tutorialModal.classList.remove('hidden'); showTutorialStep(0); });
+        DOMElements.tutorialNextBtns.forEach(btn => btn.addEventListener('click', () => { currentTutorialStep++; if (currentTutorialStep < DOMElements.tutorialSteps.length) showTutorialStep(currentTutorialStep); }));
+        DOMElements.tutorialFinishBtn.addEventListener('click', async () => { hideModal(DOMElements.tutorialModal); currentTutorialStep = 0; if (isTutorialOnly) { DOMElements.startScreen.style.display = 'flex'; } else { DOMElements.backToMenuBtn.classList.remove('hidden'); await init(); const { canvas } = DOMElements; if (!canvas.dataset.listenersAdded) { canvas.addEventListener('pointerdown', handlePointerStart, { passive: false }); canvas.addEventListener('pointermove', handlePointerMove, { passive: false }); canvas.addEventListener('pointerup', handlePointerEnd); canvas.addEventListener('pointercancel', handlePointerEnd); window.addEventListener('resize', onResizeDebounced); canvas.dataset.listenersAdded = '1'; } } });
+        DOMElements.closeFactButton.addEventListener('click', () => { hideModal(DOMElements.factModal); isPaused = false; resetHintTimer(); });
+        DOMElements.nextLevelButton.addEventListener('click', () => goToNextLevel(false));
+        document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
+        document.getElementById('backToIndexButton').addEventListener('click', () => window.location.href = 'index.html');
+        document.getElementById('continueToNextGameButton').addEventListener('click', () => window.location.href = 'kimcuongquatraloicauhoi.html');
+        document.getElementById('gameOverHomeButton').addEventListener('click', () => window.location.href = 'index.html');
+        document.getElementById('gameOverRestartButton').addEventListener('click', () => location.reload());
+        DOMElements.restartGameButton.addEventListener('click', () => location.reload());
+        DOMElements.backToMenuBtn.addEventListener('click', () => window.location.href = 'index.html');
 
-        restartGameButton.addEventListener('click', () => { location.reload(); });
-
-        function showTutorialStep(index) {
-            tutorialSteps.forEach((step, i) => { step.classList.toggle('hidden', i !== index); });
-        }
-        function startGame(finalLevel, isFree = false) {
-            CONFIG.FINAL_LEVEL = finalLevel;
-            isFreePlayMode = isFree;
-            
-            const objectivePanel = document.getElementById('objective-panel');
-            objectivePanel.style.visibility = 'visible';
-
-            startScreen.style.display = 'none';
-            tutorialModal.classList.remove('hidden');
-            showTutorialStep(0);
-        }
-        
-        easyModeBtn.addEventListener('click', () => startGame(1, false));
-        hardModeBtn.addEventListener('click', () => startGame(3, false));
-        freeModeBtn.addEventListener('click', () => startGame(Infinity, true));
-
-        const isTouch = window.matchMedia('(pointer: coarse)').matches;
-        if (isTouch) {
-            document.body.style.cursor = 'auto';
-            customCursor.style.display = 'none';
-            canvas.style.cursor = 'auto';
-        } else {
-            document.body.style.cursor = 'none';
-            customCursor.style.display = 'block';
-            canvas.style.cursor = 'none';
-            let rafScheduled = false;
-            let lastMouseEvent = null;
+        // General Listeners
+        document.addEventListener('fullscreenchange', updateFullscreenIcons);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && currentModal) { const closeButton = currentModal.querySelector('button'); if (closeButton) closeButton.click(); } });
+        if (!window.matchMedia('(pointer: coarse)').matches) {
+            document.body.style.cursor = 'none'; DOMElements.customCursor.style.display = 'block'; DOMElements.canvas.style.cursor = 'none';
+            let rafScheduled = false, lastMouseEvent = null;
             document.addEventListener('mousemove', (e) => {
                 lastMouseEvent = e;
-                if (!rafScheduled) {
-                    rafScheduled = true;
-                    requestAnimationFrame(() => {
-                        if (lastMouseEvent) {
-                            customCursor.style.left = lastMouseEvent.clientX + 'px';
-                            customCursor.style.top = lastMouseEvent.clientY + 'px';
-                            if (startScreen.style.display === 'none') {
-                                trackPupil(pupil1, lastMouseEvent);
-                                trackPupil(pupil2, lastMouseEvent);
-                            }
-                        }
-                        rafScheduled = false;
-                    });
-                }
+                if (!rafScheduled) { rafScheduled = true; requestAnimationFrame(() => { if (lastMouseEvent) { DOMElements.customCursor.style.left = lastMouseEvent.clientX + 'px'; DOMElements.customCursor.style.top = lastMouseEvent.clientY + 'px'; if (DOMElements.startScreen.style.display === 'none') { trackPupil(DOMElements.pupil1, lastMouseEvent); trackPupil(DOMElements.pupil2, lastMouseEvent); } } rafScheduled = false; }); }
             });
         }
-        tutorialNextBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentTutorialStep++;
-                if (currentTutorialStep < tutorialSteps.length) {
-                    showTutorialStep(currentTutorialStep);
-                }
-            });
-        });
-        playFromTutorialBtn.addEventListener('click', async () => {
-            tutorialModal.classList.add('hidden');
-            backToMenuBtn.classList.remove('hidden');
-            await AudioManager.start();
-            await init();
-            canvas.addEventListener('pointerdown', handlePointerStart, { passive: false });
-            canvas.addEventListener('pointermove', handlePointerMove, { passive: false });
-            canvas.addEventListener('pointerup', handlePointerEnd);
-            canvas.addEventListener('pointercancel', handlePointerEnd);
-            window.addEventListener('resize', onResizeDebounced);
-        });
-        backToMenuBtn.addEventListener('click', () => { window.location.href = 'index.html'; });
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) { Tone.Transport.pause(); } 
-            else if (AudioManager.started) { Tone.Transport.start(); }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && currentModal) {
-                const closeButton = currentModal.querySelector('button');
-                if (closeButton) closeButton.click();
-            }
-        });
-
-        closeFactButton.addEventListener('click', () => {
-            hideModal(factModal);
-            isPaused = false;
-            resetHintTimer();
-        });
-
     });
-    window.addEventListener('beforeunload', () => {
-        if (threatInterval) clearInterval(threatInterval);
-        if (hintTimeout) clearTimeout(hintTimeout);
-    });
+    window.addEventListener('beforeunload', () => { if (threatInterval) clearInterval(threatInterval); if (hintTimeout) clearTimeout(hintTimeout); });
 
-})(); // Kết thúc IIFE
+})(); // End of IIFE
+
+// --- Global Safety Handlers ---
+function safeUnpauseIfNoModal() {
+    try {
+        const modalIds = ['winModal','gameOverModal','factModal','tutorial-modal','finalWinModal'];
+        let isModalVisible = modalIds.some(id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden'); });
+        if (!isModalVisible) {
+            if (typeof isAnimating !== 'undefined') isAnimating = false;
+            if (typeof isPaused !== 'undefined') isPaused = false;
+            if (typeof resetHintTimer === 'function') resetHintTimer();
+        }
+    } catch (e) { console.warn('safeUnpauseIfNoModal error:', e); }
+}
+window.addEventListener('error', (ev) => { console.error('Unhandled error:', ev.message || ev); setTimeout(safeUnpauseIfNoModal, 50); });
 </script>
 </body>
 </html>
+
