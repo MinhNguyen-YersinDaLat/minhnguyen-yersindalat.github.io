@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Game Kim Cương: Thử Thách Quái Vật</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Metal+Mania&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/4a2129a3a2.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            touch-action: manipulation;
+            overflow: hidden;
+            animation: vignette-pulse 8s infinite alternate ease-in-out;
+            background-color: #0c0a09; /* Darker base for neon */
+        }
+        @keyframes vignette-pulse {
+            from { background: radial-gradient(ellipse at center, #1a1111 50%, #000000 100%); }
+            to { background: radial-gradient(ellipse at center, #110a0a 40%, #000000 100%); }
+        }
+        canvas {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        /* --- Character / Monster Styles --- */
+        #character-container {
+            position: absolute;
+            top: -95px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: none;
+            z-index: 20;
+        }
+        .character-aura {
+            position: absolute;
+            width: 250px;
+            height: 150px;
+            background: radial-gradient(ellipse at center, rgba(139, 0, 0, 0.3) 0%, rgba(139, 0, 0, 0) 70%);
+            border-radius: 50%;
+            animation: aura-pulse 4s infinite alternate ease-in-out;
+            z-index: -1;
+        }
+        @keyframes aura-pulse {
+            from { transform: scale(1); opacity: 0.7; }
+            to { transform: scale(1.2); opacity: 0.4; }
+        }
+        #cigarette-svg {
+            width: 240px; 
+            height: 120px; 
+            filter: drop-shadow(0 5px 20px rgba(0, 0, 0, 0.8));
+            animation: idle-spasm 6s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+        #character-container.coughing #cigarette-svg { animation: cough-shake 0.5s ease-in-out; }
+        @keyframes cough-shake {
+            0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-8px, 5px) rotate(-3deg); } 40% { transform: translate(8px, -5px) rotate(3deg); } 60% { transform: translate(-5px, 3px) rotate(-2deg); } 80% { transform: translate(5px, -3px) rotate(2deg); }
+        }
+        @keyframes idle-spasm {
+            0%, 100% { transform: translate(0, 0) rotate(0); } 10% { transform: translate(-2px, 2px) rotate(-1deg); } 20% { transform: translate(2px, -2px) rotate(1deg); } 30% { transform: translate(-3px, 0px) rotate(-1.5deg); } 40% { transform: translate(3px, 1px) rotate(1.5deg); } 50% { transform: translate(0, 0) rotate(0); } 70% { transform: translate(0, 0) rotate(0); } 72% { transform: translate(5px, -5px) rotate(3deg); } 74% { transform: translate(0, 0) rotate(0); }
+        }
+
+        /* --- NEW MONSTER STYLES --- */
+        .ember-shape { fill: #ff4500; filter: url(#emberGlow); animation: ember-flicker 1.5s infinite alternate; }
+        @keyframes ember-flicker { from { opacity: 0.9; } to { opacity: 1; } }
+        
+        /* Monster 1: Ho Hen */
+        .monster-cough-body { fill: url(#sickly-paper-gradient); }
+        .monster-cough-filter { fill: #8B4513; } /* SaddleBrown */
+        .monster-cough-stain { fill: #556B2F; opacity: 0.6; } /* DarkOliveGreen */
+        .monster-cough-crack { stroke: #6B4226; }
+        .monster-cough-eye-ball { fill: #FF4500; } /* OrangeRed */
+        .monster-cough-eye-vein { stroke: #8B0000; } /* DarkRed */
+
+        /* Monster 2: Tham Lam */
+        .monster-greedy-body { fill: url(#shiny-paper-gradient); }
+        .monster-greedy-filter { fill: #DAA520; } /* GoldenRod */
+        .monster-greedy-eye-ball { fill: #FFD700; } /* Gold */
+        .monster-greedy-pupil { animation: pupil-heartbeat 1s infinite; }
+        @keyframes pupil-heartbeat { 50% { transform: scale(1.2); } }
+
+        /* Monster 3: Ao Anh */
+        .monster-illusion-body { fill: url(#illusion-gradient); animation: illusion-flow 10s linear infinite; }
+        @keyframes illusion-flow { to { background-position: 200% center; } }
+        .monster-illusion-filter { fill: #4B0082; } /* Indigo */
+        .monster-illusion-eye-ball { fill: url(#hypno-gradient); }
+        .monster-illusion-pupil { fill: transparent; }
+        .monster-illusion-ember { fill: url(#rainbow-ember); animation: rainbow-spin 4s linear infinite; }
+        @keyframes rainbow-spin { to { transform: rotate(360deg); } }
+
+        .spark { fill: #ffdd00; animation: spark-fly 1.5s infinite linear; }
+        @keyframes spark-fly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(-30px, var(--y-end)) scale(0); opacity: 0; } }
+        .smoke-container { position: absolute; left: -120px; top: 50%; transform: translateY(-50%); width: 200px; height: 200px; pointer-events: none; filter: url(#smokeFilter); }
+        .smoke-wisp { position: absolute; background: white; border-radius: 50%; animation: wisp-rise 12s infinite linear; opacity: 0; }
+        @keyframes wisp-rise { 0% { transform: translate(0, 0) scale(0.5); opacity: 0; } 15% { opacity: 0.8; } 100% { transform: translate(-120px, var(--y-end)) scale(2.5); opacity: 0; } }
+        .smoke-wisp:nth-child(1) { width: 60px; height: 60px; animation-delay: 0s; --y-end: -80px; } .smoke-wisp:nth-child(2) { width: 80px; height: 80px; animation-delay: 4s; --y-end: 50px; } .smoke-wisp:nth-child(3) { width: 50px; height: 50px; animation-delay: 8s; --y-end: -20px; }
+        #threat-bubble { position: absolute; bottom: 100%; left: 50%; margin-bottom: 10px; background-color: #110d0d; color: #ff4500; padding: 15px 22px; border-radius: 12px; border: 2px solid #ff4500; font-size: 1.3rem; font-family: 'Metal Mania', cursive; letter-spacing: 1px; opacity: 0; transform: translateY(20px) scale(0.9) translateX(-50%); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); white-space: nowrap; box-shadow: 0 0 25px rgba(255, 69, 0, 0.7); }
+        #threat-bubble.visible { opacity: 1; transform: translateY(0) scale(1) translateX(-50%); }
+        #monster-name { position: absolute; top: 50%; left: 230px; transform: translateY(-50%); white-space: nowrap; }
+
+        /* --- UI & Game Elements --- */
+        #game-title { animation: sparkle 5s infinite linear; }
+        @keyframes sparkle { 0% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); } 50% { text-shadow: 2px 2px 8px rgba(236, 72, 153, 0.5); } 100% { text-shadow: 1px 1px 3px rgba(236, 72, 153, 0.2); } }
+        #custom-cursor { position: fixed; width: 20px; height: 20px; border: 2px solid #ff4500; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 9999; transition: transform 0.1s ease-out; }
+        
+        progress {
+            vertical-align: baseline;
+            appearance: none;
+        }
+        progress::-webkit-progress-bar {
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 9999px;
+        }
+        progress::-webkit-progress-value {
+            background: linear-gradient(to right, #ef4444, #f87171);
+            border-radius: 9999px;
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px #ef4444;
+        }
+        progress::-moz-progress-bar {
+            background: linear-gradient(to right, #ef4444, #f87171);
+            border-radius: 9999px;
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        /* --- Screens & Modals --- */
+        #start-screen { position: fixed; inset: 0; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 1rem; }
+        
+        /* --- UI Buttons --- */
+        .ui-button { position: fixed; z-index: 101; width: 44px; height: 44px; background: rgba(10, 20, 30, 0.5); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 50%; color: rgba(236, 72, 153, 0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.3s ease; box-shadow: 0 0 15px rgba(236, 72, 153, 0.2), inset 0 0 5px rgba(236, 72, 153, 0.1); }
+        .ui-button:hover { background: rgba(20, 40, 60, 0.7); color: white; border-color: rgba(236, 72, 153, 0.8); box-shadow: 0 0 25px rgba(236, 72, 153, 0.5), inset 0 0 10px rgba(236, 72, 153, 0.2); transform: scale(1.1); }
+        #home-btn { 
+            top: 1rem; 
+            left: 1rem; 
+            width: auto;
+            padding: 0 0.75rem;
+            border-radius: 9999px;
+            gap: 0.5rem;
+        }
+        #fullscreen-btn { top: 1rem; right: 1rem; }
+        #back-to-menu-btn { bottom: 1rem; right: 1rem; }
+
+        /* --- Copyright --- */
+        #copyright {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            padding: 6px 0;
+            font-family: 'Roboto', Arial, Helvetica, sans-serif;
+            z-index: 9999;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.85);
+            background: transparent;
+            opacity: 0;
+            animation: fadeIn 2s ease forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* --- Challenge Mode Specific Styles --- */
+        #challenge-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 1rem;
+            border: 1px solid rgba(139, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.4);
+            color: white;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        #monster-ability-icon {
+            font-size: 2rem;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+        #monster-ability-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #f87171; /* red-400 */
+        }
+        #monster-ability-desc {
+            font-size: 0.8rem;
+            color: #d1d5db; /* gray-300 */
+            max-width: 200px;
+            margin: 0.25rem auto 0;
+        }
+        #monster-ability-cooldown {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fca5a5; /* red-300 */
+        }
+
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 flex items-center justify-center min-h-screen">
+
+<audio id="bg-music" src="nhackimcuong.mp3" loop></audio>
+    
+<a id="home-btn" href="kimcuong.html" class="ui-button" title="Về game chính" aria-label="Về game chính">
+    <i class="fas fa-arrow-left"></i>
+    <span class="hidden sm:inline">Về game chính</span>
+</a>
+<button id="fullscreen-btn" class="ui-button" title="Toàn màn hình" aria-label="Chế độ toàn màn hình">
+    <svg id="fullscreen-icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    <svg id="fullscreen-icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+</button>
+<button id="back-to-menu-btn" class="ui-button hidden" title="Về màn hình chính" aria-label="Về màn hình chính">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+</button>
+
+<div id="start-screen">
+    <h1 class="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-yellow-300 to-red-500 mb-4" id="game-title-start">Thử Thách Quái Vật</h1>
+    <p class="text-gray-200 italic text-xl md:text-2xl mb-8 max-w-2xl">Đối mặt với 3 quái vật liên tiếp, mỗi con một kỹ năng độc ác. Bạn có đủ bản lĩnh để chiến thắng?</p>
+    <button id="start-challenge-btn" class="bg-red-700 text-white font-bold py-4 px-10 rounded-full text-2xl hover:scale-105 transition-transform shadow-lg shadow-red-500/50">BẮT ĐẦU THỬ THÁCH!</button>
+</div>
+
+<div id="custom-cursor"></div>
+
+<!-- Màn hình chơi chính -->
+<div id="game-ui" class="w-full max-w-7xl mx-auto flex-col md:flex-row md:items-center justify-center gap-4 md:gap-8 hidden">
+    <!-- Cột mục tiêu (Trái) -->
+    <div class="w-full md:w-1/4 order-3 md:order-1 mt-4 md:mt-0">
+        <div class="title-container text-center md:text-left mb-4">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-white to-pink-400 mb-2" id="game-title">Bảo Vệ Trái Tim</h1>
+            <p class="text-gray-200 italic text-lg md:text-xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Tiêu diệt quái vật!</p>
+        </div>
+        <div class="p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10">
+            <h2 class="text-xl font-bold text-white/80 mb-2">Mục Tiêu</h2>
+            <progress id="health-bar" class="w-full h-5 rounded-full overflow-hidden border border-white/10 mb-4" value="0" max="100"></progress>
+            <div class="space-y-2" id="quest-list"></div>
+        </div>
+    </div>
+
+    <!-- Cột chơi game (Giữa) -->
+    <div class="w-full max-w-md text-center order-2 md:order-2">
+        <div class="relative" id="game-container">
+            <div id="character-container">
+                <div class="character-aura"></div>
+                <svg id="cigarette-svg" viewBox="0 0 200 100">
+                    <defs>
+                        <filter id="smokeFilter"><feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" result="turbulence" /><feDisplacementMap in2="turbulence" in="SourceGraphic" scale="15" xChannelSelector="R" yChannelSelector="G" /></filter>
+                        <filter id="emberGlow"><feGaussianBlur stdDeviation="3.5" result="coloredBlur" /><feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+                        
+                        <!-- Gradients for Monsters -->
+                        <radialGradient id="sickly-paper-gradient"><stop offset="0%" stop-color="#bec4a5" /><stop offset="100%" stop-color="#a4a890" /></radialGradient>
+                        <radialGradient id="shiny-paper-gradient"><stop offset="0%" stop-color="#e2c49c" /><stop offset="100%" stop-color="#d8b98e" /></radialGradient>
+                        <linearGradient id="illusion-gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6e2b9e"/><stop offset="50%" stop-color="#00949e"/><stop offset="100%" stop-color="#6e2b9e"/></linearGradient>
+                        <radialGradient id="hypno-gradient" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="white"/><stop offset="10%" stop-color="black"/><stop offset="20%" stop-color="white"/><stop offset="30%" stop-color="black"/><stop offset="40%" stop-color="white"/><stop offset="50%" stop-color="black"/><stop offset="60%" stop-color="white"/><stop offset="70%" stop-color="black"/><stop offset="80%" stop-color="white"/><stop offset="90%" stop-color="black"/><stop offset="100%" stop-color="white"/></radialGradient>
+                        <conicGradient id="rainbow-ember" from="0" cx="50%" cy="50%"><stop offset="0%" stop-color="red"/><stop offset="16.6%" stop-color="orange"/><stop offset="33.3%" stop-color="yellow"/><stop offset="50%" stop-color="green"/><stop offset="66.6%" stop-color="blue"/><stop offset="83.3%" stop-color="indigo"/><stop offset="100%" stop-color="red"/></conicGradient>
+
+                        <!-- Monster 1: Ho Hen -->
+                        <g id="monster-cough">
+                            <path class="monster-cough-filter" d="M160,35 L175,34 Q182,35 180,50 Q178,65 175,66 L160,65 Z" />
+                            <path class="monster-cough-body" d="M20,30 L160,35 L160,65 L20,70 Q10,70 10,50 Q10,30 20,30 Z" />
+                            <path class="monster-cough-stain" d="M110,45 C 120,40 130,50 125,60 C 120,65 110,60 110,45 Z" />
+                            <path class="monster-cough-crack" stroke-width="1.5" d="M140,50 C 145,55, 145,60, 150,65" />
+                            <path class="ash-shape" d="M20,30 Q10,30 10,50 Q10,70 20,70 L30,70 Q25,50 30,30 Z" />
+                            <path class="ember-shape" d="M25,35 Q20,50 25,65 L20,65 Q15,50 20,35 Z" />
+                            <g>
+                                <circle cx="55" cy="50" r="12" fill="#4a0e0e"/>
+                                <circle class="monster-cough-eye-ball" cx="55" cy="50" r="11"/>
+                                <path class="monster-cough-eye-vein" d="M50,50 C 52,47 55,47 57,50 M57,50 C 59,53 62,53 64,50 M52,45 Q 55,43 58,45" stroke-width="0.8"/>
+                                <circle fill="black" cx="55" cy="50" r="4"/>
+                            </g>
+                            <g>
+                                <circle cx="80" cy="50" r="12" fill="#4a0e0e"/>
+                                <circle class="monster-cough-eye-ball" cx="80" cy="50" r="11"/>
+                                <path class="monster-cough-eye-vein" d="M75,50 C 77,47 80,47 82,50 M82,50 C 84,53 87,53 85,50 M77,55 Q 80,57 83,55" stroke-width="0.8"/>
+                                <circle fill="black" cx="80" cy="50" r="4"/>
+                            </g>
+                            <ellipse cx="68" cy="70" rx="15" ry="8" fill="black" />
+                        </g>
+
+                        <!-- Monster 2: Tham Lam -->
+                        <g id="monster-greedy">
+                            <path class="monster-greedy-filter" d="M170,30 L190,28 Q202,30 200,50 Q198,70 190,72 L170,70 Z" />
+                            <path class="monster-greedy-body" d="M20,30 L170,30 L170,70 L20,70 Q10,70 10,50 Q10,30 20,30 Z" />
+                            <path class="ash-shape" d="M20,30 Q10,30 10,50 Q10,70 20,70 L30,70 Q25,50 30,30 Z" />
+                            <path class="ember-shape" d="M25,35 Q20,50 25,65 L20,65 Q15,50 20,35 Z" />
+                            <g>
+                                <path d="M50 40 L 65 45 L 50 50 Z" fill="#1a0000"/>
+                                <path d="M51 41 L 64 45 L 51 49 Z" class="monster-greedy-eye-ball"/>
+                                <path class="monster-greedy-pupil" d="M55,45 L58,43 L60,45 L58,47 Z" fill="#ff4500" transform-origin="57.5 45"/>
+                            </g>
+                             <g>
+                                <path d="M75 40 L 90 45 L 75 50 Z" fill="#1a0000"/>
+                                <path d="M76 41 L 89 45 L 76 49 Z" class="monster-greedy-eye-ball"/>
+                                <path class="monster-greedy-pupil" d="M80,45 L83,43 L85,45 L83,47 Z" fill="#ff4500" transform-origin="82.5 45"/>
+                            </g>
+                            <path d="M60,65 Q 80,75 100,65" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" />
+                        </g>
+
+                        <!-- Monster 3: Ao Anh -->
+                        <g id="monster-illusion">
+                            <path class="monster-illusion-filter" d="M160,30 L180,28 Q192,30 190,50 Q188,70 180,72 L160,70 Z" />
+                            <rect class="monster-illusion-body" x="20" y="30" width="140" height="40" rx="10" />
+                            <path class="ash-shape" d="M20,30 Q10,30 10,50 Q10,70 20,70 L30,70 Q25,50 30,30 Z" />
+                            <circle class="monster-illusion-ember" cx="22.5" cy="50" r="15" transform-origin="22.5 50"/>
+                            <g>
+                                <circle class="monster-illusion-eye-ball" cx="55" cy="50" r="11"/>
+                                <circle class="monster-illusion-pupil" cx="55" cy="50" r="5"/>
+                            </g>
+                            <g>
+                                <circle class="monster-illusion-eye-ball" cx="80" cy="50" r="11"/>
+                                <circle class="monster-illusion-pupil" cx="80" cy="50" r="5"/>
+                            </g>
+                            <path d="M60 65 L 75 62 L 90 65" stroke="white" stroke-width="2" fill="none"/>
+                        </g>
+                    </defs>
+
+                    <use id="active-monster-display" href="#monster-cough"/>
+
+                    <g id="sparks"><circle class="spark" cx="22" cy="40" r="1.5" style="animation-delay: 0s; --y-end: -20px;"></circle><circle class="spark" cx="20" cy="50" r="1" style="animation-delay: 0.5s; --y-end: 0px;"></circle><circle class="spark" cx="22" cy="60" r="1.5" style="animation-delay: 1s; --y-end: 20px;"></circle></g>
+                </svg>
+                <div class="smoke-container"><div class="smoke-wisp"></div><div class="smoke-wisp"></div><div class="smoke-wisp"></div></div>
+                <div id="threat-bubble"><p id="threat-text"></p></div>
+                <div id="monster-name" class="text-center"><p class="text-lg font-bold text-red-400" style="text-shadow: 0 0 8px rgba(255, 0, 0, 0.7);"></p></div>
+            </div>
+            <canvas id="gameCanvas" role="img" aria-label="Bảng chơi Kim Cương: cứu trái tim bằng cách ghép 3 viên"></canvas>
+        </div>
+    </div>
+    
+    <!-- Cột thông số (Phải) -->
+    <div class="w-full md:w-1/4 order-1 md:order-3 flex flex-row md:flex-col justify-around md:justify-start gap-2 md:gap-6 mb-4 md:mb-0">
+        <div class="flex-1 md:flex-auto p-2 md:p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10"><p class="text-base md:text-lg font-bold text-white/70">Quái Vật</p><p class="text-3xl md:text-4xl font-bold text-white" id="level">1/3</p></div>
+        <div class="flex-1 md:flex-auto p-2 md:p-4 bg-black/20 rounded-2xl shadow-lg text-center backdrop-blur-sm border border-white/10"><p class="text-base md:text-lg font-bold text-white/70">Nước đi</p><p class="text-3xl md:text-4xl font-bold text-white" id="moves">0</p></div>
+        <div id="challenge-panel" class="flex-1 md:flex-auto">
+            <div id="monster-ability-icon">🚬</div>
+            <p id="monster-ability-name">Kỹ năng</p>
+            <p id="monster-ability-desc">Mô tả kỹ năng</p>
+            <p class="text-xs mt-1">Kích hoạt sau:</p>
+            <p id="monster-ability-cooldown">5</p>
+        </div>
+    </div>
+</div>
+
+<!-- Game Modals -->
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="winModal" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="winModalTitle">
+    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95"><h2 class="text-4xl font-bold text-green-600 mb-4" id="winModalTitle">Đã Tiêu Diệt!</h2><p class="text-lg text-gray-700 mb-6" id="win-level-text">Quái vật tiếp theo sắp xuất hiện!</p><button class="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300" id="nextLevelButton">Tiếp Tục!</button></div>
+</div>
+
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="gameOverModal" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="gameOverModalTitle">
+    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95"><h2 class="text-4xl font-bold text-red-800 mb-4" id="gameOverModalTitle">Thử Thách Thất Bại!</h2><p class="text-lg text-gray-700 mb-2" id="gameOverReason">Thuốc lá đã làm hại một trái tim.</p><p class="text-xl text-gray-800 mb-8" id="gameOverMessageContainer">Bạn đã bảo vệ được <span class="font-bold text-pink-600" id="final-score">0</span> trái tim.</p><div class="flex flex-col sm:flex-row gap-4 justify-center"><button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="gameOverHomeButton">Về Trang Chủ</button><button class="bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-transform transform hover:scale-105" id="gameOverRestartButton">Chơi Lại</button></div></div>
+</div>
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm" id="factModal" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="factModalTitle">
+    <div class="bg-white rounded-2xl p-6 md:p-8 text-center shadow-2xl transform transition-all scale-95 max-w-md w-full"><h2 class="text-2xl md:text-3xl font-bold text-blue-700 mb-4" id="factModalTitle">Sự Thật & Lời Khuyên</h2><p class="text-base md:text-lg text-gray-800 mb-3 text-left" id="factText"></p><p class="text-base md:text-lg text-green-700 font-semibold mb-6 text-left" id="adviceText"></p><button class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300" id="closeFactButton">Đã hiểu</button></div>
+</div>
+<div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50 backdrop-blur-sm" id="finalWinModal" role="dialog" aria-modal="true" tabindex="-1">
+    <div class="bg-white rounded-2xl p-8 text-center shadow-2xl transform transition-all scale-95"><h2 class="text-4xl font-bold text-yellow-500 mb-4">CHINH PHỤC THÀNH CÔNG!</h2><p class="text-lg text-gray-700 mb-2">Bạn đã đánh bại tất cả quái vật và chứng tỏ bản lĩnh phi thường!</p><p class="text-xl text-gray-800 mb-6">Cảm ơn bạn đã trở thành người hùng!</p><div class="flex flex-col sm:flex-row gap-4 justify-center"><button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="restartGameButton">Chơi lại</button><button class="bg-gray-500 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-600 transition-transform transform hover:scale-105" id="backToIndexButton">Về màn hình chính</button></div></div>
+</div>
+
+<div id="copyright">
+    © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    const CONFIG = {
+        GRID_SIZE: 8,
+        GEM_COLORS: ['#FF3131', '#00FF7F', '#1E90FF', '#FF00FF', '#FF8C00', '#FFFF00'],
+        HEART_EMOJI: '💗',
+        MOVES_PER_HEART_SPAWN: 4,
+        CIGARETTE_LUNGE_CHANCE: 0.25,
+        THREAT_INTERVAL: 6000,
+        ANIM_SWAP_SPEED: 150,
+        ANIM_FALL_SPEED: 400,
+        ANIM_CLEAR_SPEED: 200,
+        ANIM_SPECIAL_PULSE_SPEED: 150,
+        MAX_PARTICLES: 150, 
+        HINT_TIMEOUT: 5000,
+        WATCHDOG_TIMEOUT: 5000
+    };
+    
+    const MONSTERS = [
+        { 
+            id: 'monster-cough',
+            name: "Quái vật Thuốc lá", 
+            icon: '😷',
+            abilityName: "Tung Hỏa Mù",
+            description: "Tạo ra 2 ô khói, khóa kim cương bên trong.",
+            cooldown: 5,
+            ability: (board) => applySmokeAbility(board, 2)
+        },
+        { 
+            id: 'monster-greedy',
+            name: "Quái vật Thuốc lá điện tử", 
+            icon: '⚡️',
+            abilityName: "Quá Tải Năng Lượng",
+            description: "Chích điện vào kim cương. Phá chúng trước khi phát nổ và khóa các viên xung quanh!",
+            cooldown: 6, 
+            ability: (board) => applyOverloadAbility(board, 2) 
+        },
+        {
+            id: 'monster-illusion',
+            name: "Quái vật Thuốc lá nung nóng", 
+            icon: '🔥',
+            abilityName: "Phản Ứng Nhiệt",
+            description: "Nung nóng và đổi màu kim cương. Nhiệt sẽ lan sang các viên bên cạnh mỗi lượt!",
+            cooldown: 8,
+            ability: (board) => applyHeatReactionAbility(board)
+        }
+    ];
+
+    const SPECIAL_TYPES = { NONE: 'none', H_BEAM: 'h_beam', V_BEAM: 'v_beam', BOMB: 'bomb', HYPERCUBE: 'hypercube' };
+    const HEALTH_FACTS = [
+        { fact: "Thuốc lá giết **hơn 7 triệu người/năm**, trong đó có khoảng **1,6 triệu người không hút thụ động**. (Nguồn: WHO)", advice: "Lời khuyên: Hãy tránh xa khói thuốc để bảo vệ bạn và những người xung quanh." },
+        { fact: "Hút thuốc không thụ động (passive smoking) cũng gây ung thư phổi, bệnh tim và nhiều vấn đề sức khỏe nghiêm trọng. (Nguồn: CDC / IARC)", advice: "Lời khuyên: Đừng để khói thuốc xâm nhập không khí sống, giữ sạch môi trường cho phổi bạn." },
+        { fact: "Hút thuốc gây tổn thương **gan, phổi, tim**, làm tăng nguy cơ mắc **COPD, nhồi máu cơ tim, đột quỵ** và nhiều loại ung thư. (Nguồn: CDC)", advice: "Lời khuyên: Mỗi hơi thuốc bạn hít vào là tổn hại cho cơ thể—ngưng ngay hôm nay để khỏe mạnh hơn." },
+    ];
+    const THREATS = [ "Ta nếm được nỗi sợ của ngươi.", "Mỗi tế bào của ngươi đang gào thét.", "Ta là cái chết chậm rãi ngươi tự chọn.", "Linh hồn ngươi... sẽ là làn khói tiếp theo.", "Không có lối thoát đâu." ];
+
+    let DOMElements;
+    let gemSize, board = [], selectedGem = null, score = 0, moves = 0, isAnimating = false;
+    let isPaused = false, animations = [], particles = [], particlePool = [], hintTimeout = null;
+    let cigarette = { col: Math.floor(CONFIG.GRID_SIZE / 2), level: 1 };
+    let quest = {}, startDragPos = { x: null, y: null }, startGem = null;
+    let isDragging = false, gemCache = {}, hintGems = [];
+    let resizeTimer = null, factsShown = [], threatInterval = null, currentModal = null;
+    let animationWatchdog = null, isPausedForFact = false;
+    let currentMonsterIndex = 0;
+    let monsterAbilityCooldown = 0;
+    let heatedGems = new Set();
+
+    const AudioManager = {
+        isInitialized: false, isMusicStarted: false, sfxBus: null, sfx: {},
+        async init() {
+            if (this.isInitialized) return;
+            await Tone.start();
+            this.sfxBus = new Tone.Volume(-8).toDestination();
+            this.sfx.select = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 } }).connect(this.sfxBus);
+            this.sfx.match = new Tone.PluckSynth({ attackNoise: 0.5, dampening: 4000, resonance: 0.7 }).connect(this.sfxBus);
+            this.sfx.bombKick = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 4, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).connect(this.sfxBus);
+            this.sfx.bombNoise = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0 } }).connect(this.sfxBus);
+            const beamFilter = new Tone.AutoFilter("16n").connect(this.sfxBus).start();
+            beamFilter.baseFrequency = 400; beamFilter.octaves = 3;
+            this.sfx.beam = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0 } }).connect(beamFilter);
+            this.sfx.unlock = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, release: 0.1 } }).connect(this.sfxBus);
+            this.sfx.monsterAbility = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.3, release: 0.2 } }).connect(this.sfxBus);
+            this.sfx.overload = new Tone.NoiseSynth({ noise: { type: 'brown' }, envelope: { attack: 0.01, decay: 0.15, sustain: 0 } }).connect(this.sfxBus);
+            this.isInitialized = true;
+        },
+        startMusic() {
+            if (!this.isMusicStarted) {
+                const music = document.getElementById("bg-music");
+                if (music && music.getAttribute('src')) {
+                    music.volume = 0.2; 
+                    music.play().catch(e => console.warn("Audio play failed:", e.message)); 
+                    this.isMusicStarted = true; 
+                }
+            }
+        },
+        playSfx(type) {
+            if (!this.isInitialized) return;
+            const now = Tone.now();
+            try {
+                switch (type) {
+                    case 'select': this.sfx.select.triggerAttackRelease('C7', '32n', now); break;
+                    case 'match': this.sfx.match.triggerAttackRelease('G5', '8n', now); break;
+                    case 'bomb': this.sfx.bombKick.triggerAttackRelease('C2', '8n', now); this.sfx.bombNoise.triggerAttackRelease('16n', now + 0.01); break;
+                    case 'unlock': this.sfx.unlock.triggerAttackRelease('A6', '16n', now); break;
+                    case 'beam': case 'hypercube': this.sfx.beam.triggerAttackRelease('8n', now); break;
+                    case 'monsterAbility': this.sfx.monsterAbility.triggerAttackRelease('C3', '4n', now); break;
+                    case 'overload': this.sfx.overload.triggerAttackRelease('8n', now); break;
+                }
+            } catch (e) { console.error('SFX error:', e); }
+        }
+    };
+
+    function showModal(modalElement, focusElement) {
+        currentModal = modalElement;
+        modalElement.classList.remove('hidden');
+        setTimeout(() => { 
+            const innerDiv = modalElement.querySelector('div');
+            if(innerDiv) innerDiv.classList.add('scale-100');
+            if (focusElement) focusElement.focus(); 
+            trapFocus(modalElement);
+        }, 10);
+    }
+    function hideModal(modalElement) {
+        if (!modalElement || modalElement.classList.contains('hidden')) return;
+        releaseFocus(modalElement);
+        const innerDiv = modalElement.querySelector('div');
+        if(innerDiv) innerDiv.classList.remove('scale-100'); 
+        setTimeout(() => modalElement.classList.add('hidden'), 200); 
+        currentModal = null;
+    }
+    function trapFocus(modal) {
+      if (!modal) return;
+      const focusables = modal.querySelectorAll('button, a, [tabindex]:not([tabindex="-1"])');
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      function keyHandler(e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } 
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
+      modal._keyHandler = keyHandler;
+      modal.addEventListener('keydown', keyHandler);
+    }
+    function releaseFocus(modal) {
+      if (modal && modal._keyHandler) {
+          modal.removeEventListener('keydown', modal._keyHandler);
+          delete modal._keyHandler;
+      }
+    }
+    function showThreat() {
+        if (isPaused || currentModal || DOMElements.characterContainer.classList.contains('attacking')) return;
+        DOMElements.threatText.textContent = THREATS[Math.floor(Math.random() * THREATS.length)];
+        DOMElements.characterContainer.classList.add('attacking');
+        DOMElements.threatBubble.classList.add('visible');
+        setTimeout(() => {
+            DOMElements.threatBubble.classList.remove('visible');
+            DOMElements.characterContainer.classList.remove('attacking');
+        }, 2000);
+    }
+    async function showFact() {
+        isPaused = true; isPausedForFact = true; clearTimeout(hintTimeout);
+        let availableFacts = HEALTH_FACTS.filter(obj => !factsShown.includes(obj));
+        if (availableFacts.length === 0) factsShown = [];
+        const factObject = availableFacts.length > 0 ? availableFacts[Math.floor(Math.random() * availableFacts.length)] : HEALTH_FACTS[0];
+        factsShown.push(factObject);
+        DOMElements.factText.innerHTML = factObject.fact.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        DOMElements.adviceText.innerHTML = factObject.advice.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        showModal(DOMElements.factModal, DOMElements.closeFactButton);
+    }
+    function showGameOver(reason = "Thất bại!") {
+        if (animationWatchdog) clearTimeout(animationWatchdog);
+        isAnimating = true; isPaused = true; 
+        if (threatInterval) clearInterval(threatInterval);
+        DOMElements.gameOverReason.textContent = reason;
+        DOMElements.finalScore.textContent = score;
+        showModal(DOMElements.gameOverModal, DOMElements.gameOverModal.querySelector('#gameOverRestartButton'));
+    }
+    function updateQuestUI() {
+        DOMElements.questList.innerHTML = '';
+        for (const colorIdx in quest.targets) {
+            const remaining = Math.max(0, quest.targets[colorIdx] - quest.collected[colorIdx]);
+            const item = document.createElement('div');
+            item.className = `flex items-center justify-between p-2 rounded-lg transition-all ${remaining === 0 ? 'bg-green-500/30' : 'bg-black/20'}`;
+            item.innerHTML = `<div class="w-6 h-6 rounded-full border-2 border-white/20" style="background-color: ${CONFIG.GEM_COLORS[colorIdx]}"></div><span class="font-bold text-white">${remaining}</span>`;
+            DOMElements.questList.appendChild(item);
+        }
+        const remainingHearts = Math.max(0, quest.heartsToSave - quest.heartsSaved);
+        const heartItem = document.createElement('div');
+        heartItem.className = `flex items-center justify-between p-2 rounded-lg transition-all ${remainingHearts === 0 ? 'bg-green-500/30' : 'bg-black/20'}`;
+        heartItem.innerHTML = `<span class="text-2xl">${CONFIG.HEART_EMOJI}</span><span class="font-bold text-white">${remainingHearts}</span>`;
+        DOMElements.questList.appendChild(heartItem);
+    }
+    function updateHealthBar() {
+        const percentage = quest.maxDamage > 0 ? Math.min(100, (quest.totalDamage / quest.maxDamage) * 100) : 0;
+        DOMElements.healthBar.value = percentage;
+    }
+    function updateMoves() { DOMElements.movesEl.textContent = moves; }
+    function updateChallengeUI() {
+        const monster = MONSTERS[currentMonsterIndex];
+        DOMElements.monsterName.textContent = monster.name;
+        DOMElements.monsterAbilityIcon.textContent = monster.icon;
+        DOMElements.monsterAbilityName.textContent = monster.abilityName;
+        DOMElements.monsterAbilityDesc.textContent = monster.description;
+        DOMElements.monsterAbilityCooldown.textContent = monsterAbilityCooldown > 100 ? 'N/A' : monsterAbilityCooldown;
+    }
+    function updateMonsterAppearance(monsterIndex) {
+        const monster = MONSTERS[monsterIndex];
+        DOMElements.activeMonsterDisplay.setAttribute('href', '#' + monster.id);
+        DOMElements.characterContainer.classList.toggle('coughing', monster.id === 'monster-cough');
+    }
+    function drawBoard(time) {
+        const { ctx } = DOMElements;
+        for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
+            for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
+                const gem = board[row][col];
+                if (!gem) continue;
+                ctx.save();
+                ctx.globalAlpha = gem.alpha;
+                const centerX = gem.x + gemSize / 2, centerY = gem.y + gemSize / 2;
+                ctx.translate(centerX, centerY); ctx.scale(gem.scale, gem.scale); ctx.translate(-centerX, -centerY);
+                let cacheKey = gem.special === SPECIAL_TYPES.HYPERCUBE ? SPECIAL_TYPES.HYPERCUBE : (gem.special !== SPECIAL_TYPES.NONE ? `${gem.special}_${gem.colorIndex}` : CONFIG.GEM_COLORS[gem.colorIndex]);
+                if (gemCache[cacheKey]) ctx.drawImage(gemCache[cacheKey], gem.x, gem.y, gemSize, gemSize);
+                if (gem.isSmoked) ctx.drawImage(gemCache['smoke'], gem.x, gem.y, gemSize, gemSize);
+                if (gem.isLocked) ctx.drawImage(gemCache['chain'], gem.x, gem.y, gemSize, gemSize);
+                if (gem.isHeated) ctx.drawImage(gemCache['heat'], gem.x, gem.y, gemSize, gemSize);
+                if (gem.overloadCounter > 0) {
+                    ctx.drawImage(gemCache['overload'], gem.x, gem.y, gemSize, gemSize);
+                    ctx.save();
+                    ctx.fillStyle = 'white';
+                    ctx.font = `bold ${gemSize * 0.5}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 5;
+                    ctx.fillText(gem.overloadCounter, gem.x + gemSize / 2, gem.y + gemSize / 2);
+                    ctx.restore();
+                }
+                if (gem.isHeart) {
+                    ctx.save();
+                    ctx.translate(gem.x + gemSize / 2, gem.y + gemSize / 2); ctx.scale(Math.sin(time / 300) * 0.1 + 1.1, Math.sin(time / 300) * 0.1 + 1.1);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowColor = 'rgba(0,0,0,0)'; ctx.font = `${gemSize * 0.6}px sans-serif`; ctx.fillText(CONFIG.HEART_EMOJI, 0, 0);
+                    ctx.restore();
+                }
+                ctx.restore();
+            }
+        }
+    }
+    function drawHint(time) {
+        if (hintGems.length === 2 && !isAnimating) {
+            const [gem1, gem2] = hintGems; const pulse = (Math.sin(time / 200) + 1) / 2; const scale = 1 + 0.05 * pulse;
+            const drawPulse = (gem) => {
+                if (!gem) return; const { ctx } = DOMElements; ctx.save(); const centerX = gem.x + gemSize / 2, centerY = gem.y + gemSize / 2;
+                ctx.translate(centerX, centerY); ctx.scale(scale, scale); ctx.translate(-centerX, -centerY);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`; ctx.lineWidth = 4;
+                ctx.strokeRect(gem.x + 2, gem.y + 2, gemSize - 4, gemSize - 4); ctx.restore();
+            };
+            drawPulse(gem1); drawPulse(gem2);
+        }
+    }
+    function drawParticles() {
+        const { ctx } = DOMElements;
+        for (let i = particlePool.length - 1; i >= 0; i--) {
+            const p = particlePool[i];
+            if (!p.active) continue;
+            p.x += p.vx; p.y += p.vy; p.alpha -= 0.02;
+            if (p.alpha <= 0) { p.active = false; } 
+            else {
+                ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            }
+        }
+    }
+    function drawSelection(time) {
+        if (selectedGem) {
+            const { ctx } = DOMElements;
+            const pulse = Math.sin(time / 100) * 0.5 + 0.5;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${pulse})`; ctx.lineWidth = 4;
+            ctx.strokeRect(selectedGem.col * gemSize + 2, selectedGem.row * gemSize + 2, gemSize - 4, gemSize - 4);
+        }
+    }
+    async function preRenderGems() {
+        gemCache = {}; const promises = []; const specials = Object.values(SPECIAL_TYPES); const size = Math.max(1, Math.round(gemSize));
+        CONFIG.GEM_COLORS.forEach((col) => { const canvas = renderGemCanvas(col, size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(canvas).then(img => { gemCache[col] = img; })); } else { gemCache[col] = canvas; } });
+        specials.forEach(special => {
+            if (special === SPECIAL_TYPES.HYPERCUBE) { const canvas = renderHypercubeCanvas(size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(canvas).then(img => { gemCache[special] = img; })); } else { gemCache[special] = canvas; } } 
+            else if (special !== SPECIAL_TYPES.NONE) { CONFIG.GEM_COLORS.forEach((col, idx) => { const canvas = renderSpecialCanvas(special, col, size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(canvas).then(img => { gemCache[`${special}_${idx}`] = img; })); } else { gemCache[`${special}_${idx}`] = canvas; } }); }
+        });
+        const chainCanvas = renderChainCanvas(size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(chainCanvas).then(img => { gemCache['chain'] = img; })); } else { gemCache['chain'] = canvas; }
+        const smokeCanvas = renderSmokeCanvas(size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(smokeCanvas).then(img => { gemCache['smoke'] = img; })); } else { gemCache['smoke'] = smokeCanvas; }
+        const overloadCanvas = renderOverloadCanvas(size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(overloadCanvas).then(img => { gemCache['overload'] = img; })); } else { gemCache['overload'] = overloadCanvas; }
+        const heatCanvas = renderHeatCanvas(size); if ('createImageBitmap' in window) { promises.push(createImageBitmap(heatCanvas).then(img => { gemCache['heat'] = img; })); } else { gemCache['heat'] = heatCanvas; }
+        await Promise.all(promises);
+    }
+    function renderGemCanvas(color, size) {
+        const offscreenCanvas = document.createElement('canvas'); offscreenCanvas.width = size; offscreenCanvas.height = size;
+        const offscreenCtx = offscreenCanvas.getContext('2d'); const centerX = size / 2, centerY = size / 2; const s = size * 0.85, half = s / 2;
+        offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.2)'; offscreenCtx.shadowBlur = 5; offscreenCtx.shadowOffsetX = 2; offscreenCtx.shadowOffsetY = 2;
+        const shadeColor = (col, percent) => { let f = parseInt(col.slice(1), 16), t = percent < 0 ? 0 : 255, p = Math.abs(percent), R = f >> 16, G = (f >> 8) & 0xff, B = f & 0xff; const hex = (0x1000000 + (Math.round((t-R)*p)+R)*0x10000 + (Math.round((t-G)*p)+G)*0x100 + (Math.round((t-B)*p)+B)).toString(16).slice(1); return `#${hex.padStart(6,'0')}`; };
+        const lightColor = shadeColor(color, 0.6), darkColor = shadeColor(color, -0.6);
+        const grad = offscreenCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, half); grad.addColorStop(0, lightColor); grad.addColorStop(1, color);
+        offscreenCtx.fillStyle = grad; offscreenCtx.beginPath(); offscreenCtx.moveTo(centerX, centerY - half); offscreenCtx.lineTo(centerX + half, centerY); offscreenCtx.lineTo(centerX, centerY + half); offscreenCtx.lineTo(centerX - half, centerY); offscreenCtx.closePath(); offscreenCtx.fill();
+        offscreenCtx.strokeStyle = darkColor; offscreenCtx.lineWidth = 2; offscreenCtx.stroke();
+        return offscreenCanvas;
+    }
+    function renderSpecialCanvas(special, color, size) {
+        const canvas = renderGemCanvas(color, size); const ctx = canvas.getContext('2d'); const centerX = size / 2, centerY = size / 2; const s = size * 0.85, half = s / 2;
+        ctx.fillStyle = 'white'; ctx.shadowColor = 'white'; ctx.shadowBlur = 10;
+        if(special === SPECIAL_TYPES.H_BEAM) { ctx.fillRect(centerX - half, centerY - half * 0.1, s, half * 0.2); } 
+        else if (special === SPECIAL_TYPES.V_BEAM) { ctx.fillRect(centerX - half * 0.1, centerY - half, half * 0.2, s); } 
+        else if (special === SPECIAL_TYPES.BOMB) { ctx.fillStyle = `rgba(255, 255, 255, 0.8)`; ctx.beginPath(); ctx.arc(centerX, centerY, half * 0.6, 0, 2 * Math.PI); ctx.fill(); }
+        return canvas;
+    }
+    function renderHypercubeCanvas(size) {
+        const offscreenCanvas = document.createElement('canvas'); offscreenCanvas.width = size; offscreenCanvas.height = size;
+        const offscreenCtx = offscreenCanvas.getContext('2d'); const centerX = size / 2, centerY = size / 2; const s = size * 0.85, half = s / 2;
+        offscreenCtx.shadowColor = 'rgba(255, 255, 255, 0.7)'; offscreenCtx.shadowBlur = 10;
+        for (let i = 0; i < 6; i++) { offscreenCtx.fillStyle = CONFIG.GEM_COLORS[i]; offscreenCtx.beginPath(); offscreenCtx.moveTo(centerX,centerY); const angle1 = (i / 6) * 2 * Math.PI, angle2 = ((i+1) / 6) * 2 * Math.PI; offscreenCtx.arc(centerX,centerY, half, angle1, angle2); offscreenCtx.closePath(); offscreenCtx.fill(); }
+        return offscreenCanvas;
+    }
+    function renderChainCanvas(size) {
+        const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d'); const p = size * 0.1, lw = size * 0.08;
+        ctx.strokeStyle = 'rgba(200, 200, 220, 0.7)'; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; ctx.shadowBlur = 4;
+        ctx.beginPath(); ctx.moveTo(p, p); ctx.lineTo(size - p, size - p); ctx.moveTo(size - p, p); ctx.lineTo(p, size - p); ctx.stroke();
+        return canvas;
+    }
+    function renderSmokeCanvas(size) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createRadialGradient(size/2, size/2, size/5, size/2, size/2, size/2);
+        // Bắt đầu với một trung tâm mờ đục
+        gradient.addColorStop(0, 'rgba(35, 35, 35, 0.95)'); 
+        // Nhanh chóng chuyển sang gần như hoàn toàn mờ đục
+        gradient.addColorStop(0.7, 'rgba(20, 20, 20, 0.98)'); 
+        // Các cạnh sẽ che kín hoàn toàn
+        gradient.addColorStop(1, 'rgba(15, 15, 15, 1)'); 
+        ctx.fillStyle = gradient; 
+        ctx.fillRect(0, 0, size, size);
+        return canvas;
+    }
+    function renderOverloadCanvas(size) {
+        const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = '#FFFF00';
+        ctx.lineWidth = size * 0.05;
+        ctx.shadowColor = '#FFFF00';
+        ctx.shadowBlur = 10;
+        for(let i=0; i<3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(Math.random() * size, Math.random() * size);
+            ctx.lineTo(Math.random() * size, Math.random() * size);
+            ctx.stroke();
+        }
+        return canvas;
+    }
+    function renderHeatCanvas(size) {
+        const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createRadialGradient(size/2, size/2, size/3, size/2, size/2, size/2);
+        gradient.addColorStop(0, 'rgba(255, 100, 0, 0)');
+        gradient.addColorStop(0.8, 'rgba(255, 100, 0, 0.5)');
+        gradient.addColorStop(1, 'rgba(255, 0, 0, 0.8)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+        return canvas;
+    }
+    async function handleSuccessfulMove() {
+        if (currentModal) return;
+        await processBoardEffects();
+        const currentMonster = MONSTERS[currentMonsterIndex];
+        monsterAbilityCooldown--;
+        if (monsterAbilityCooldown <= 0) {
+            AudioManager.playSfx('monsterAbility');
+            await currentMonster.ability(board);
+            monsterAbilityCooldown = currentMonster.cooldown;
+        }
+        updateChallengeUI();
+        await moveCigarette();
+        if (checkGameOver()) return;
+        spawnHeartIfNeeded();
+        checkWinCondition();
+        if (!hasPossibleMoves(board)) { await reshuffleBoard(); }
+    }
+    async function triggerSpecialCombo(gemA, gemB) {
+        const gemsToClear = new Set([gemA, gemB]);
+        const { row, col } = gemA;
+        const typeA = gemA.special; const typeB = gemB.special;
+        const isBomb = (type) => type === SPECIAL_TYPES.BOMB;
+        const isBeam = (type) => type === SPECIAL_TYPES.H_BEAM || type === SPECIAL_TYPES.V_BEAM;
+        if (isBomb(typeA) && isBomb(typeB)) {
+            AudioManager.playSfx('bomb');
+            for (let r = row - 2; r <= row + 2; r++) { for (let c = col - 2; c <= col + 2; c++) { if (r >= 0 && r < CONFIG.GRID_SIZE && c >= 0 && c < CONFIG.GRID_SIZE && board[r][c]) { gemsToClear.add(board[r][c]); } } }
+        } else if (isBeam(typeA) && isBeam(typeB)) {
+             AudioManager.playSfx('beam');
+             for (let c = 0; c < CONFIG.GRID_SIZE; c++) { if (board[row][c]) gemsToClear.add(board[row][c]); }
+             for (let r = 0; r < CONFIG.GRID_SIZE; r++) { if (board[r][col]) gemsToClear.add(board[r][col]); }
+        } else if ((isBomb(typeA) && isBeam(typeB)) || (isBeam(typeA) && isBomb(typeB))) {
+            AudioManager.playSfx('bomb'); AudioManager.playSfx('beam');
+            for (let r = row - 1; r <= row + 1; r++) { if (r >= 0 && r < CONFIG.GRID_SIZE) { for (let c = 0; c < CONFIG.GRID_SIZE; c++) { if (board[r][c]) gemsToClear.add(board[r][c]); } } }
+            for (let c = col - 1; c <= col + 1; c++) { if (c >= 0 && c < CONFIG.GRID_SIZE) { for (let r = 0; r < CONFIG.GRID_SIZE; r++) { if (board[r][c]) gemsToClear.add(board[r][c]); } } }
+        }
+        if (gemsToClear.size > 2) { await cascadeMatches(Array.from(gemsToClear)); }
+    }
+    async function processSwap(gem1, gem2) {
+        if (isAnimating || isPaused || gem1.isLocked || gem2.isLocked || gem1.isSmoked || gem2.isSmoked || gem1.overloadCounter > 0 || gem2.overloadCounter > 0) return;
+        isAnimating = true; 
+        selectedGem = null;
+        if (animationWatchdog) clearTimeout(animationWatchdog);
+        animationWatchdog = setTimeout(() => { isAnimating = false; isPaused = false; resetHintTimer(); }, CONFIG.WATCHDOG_TIMEOUT);
+        try {
+            const isHyperCombo = gem1.special === SPECIAL_TYPES.HYPERCUBE || gem2.special === SPECIAL_TYPES.HYPERCUBE;
+            const isSpecialCombo = gem1.special !== SPECIAL_TYPES.NONE && gem2.special !== SPECIAL_TYPES.NONE;
+            if (isHyperCombo) {
+                moves++; updateMoves();
+                const hypercube = gem1.special === SPECIAL_TYPES.HYPERCUBE ? gem1 : gem2;
+                const otherGem = hypercube === gem1 ? gem2 : gem1;
+                await triggerHypercube(hypercube, otherGem);
+                await handleSuccessfulMove();
+            } else if (isSpecialCombo) {
+                moves++; updateMoves();
+                await swapGems(gem1, gem2);
+                await triggerSpecialCombo(gem1, gem2);
+                await handleSuccessfulMove();
+            } else {
+                const startPos1 = { row: gem1.row, col: gem1.col }, startPos2 = { row: gem2.row, col: gem2.col };
+                await swapGems(gem1, gem2);
+                const matchInfo = findMatchesAndSpecial(startPos1, startPos2);
+                if (matchInfo.allMatches.length > 0) {
+                    moves++; updateMoves();
+                    await cascadeMatches(matchInfo.allMatches, matchInfo.specialToCreate);
+                    await handleSuccessfulMove();
+                } else {
+                    await sleep(100);
+                    await swapGems(gem1, gem2);
+                }
+            }
+        } catch(error) { console.error("Error during swap process:", error); } 
+        finally { clearTimeout(animationWatchdog); isAnimating = false; resetHintTimer(); }
+    }
+    async function cascadeMatches(initialMatches, specialToCreate = null) {
+        try {
+            let gemsToClear = new Set(initialMatches), processedSpecials = new Set();
+            while (true) {
+                let newGemsFromExplosion = new Set(), foundNewExplosion = false;
+                for (const gem of gemsToClear) {
+                    if (gem.special !== SPECIAL_TYPES.NONE && !processedSpecials.has(gem)) {
+                        foundNewExplosion = true; processedSpecials.add(gem);
+                        switch (gem.special) {
+                            case SPECIAL_TYPES.H_BEAM: case SPECIAL_TYPES.V_BEAM: AudioManager.playSfx('beam'); break;
+                            case SPECIAL_TYPES.BOMB: AudioManager.playSfx('bomb'); break;
+                        }
+                        getSpecialEffectGems(gem).forEach(g => newGemsFromExplosion.add(g));
+                    }
+                }
+                if (!foundNewExplosion) break;
+                newGemsFromExplosion.forEach(g => gemsToClear.add(g));
+            }
+            const savedAHeart = await handleMatches(Array.from(gemsToClear), specialToCreate);
+            await sleep(150); await shiftAndRefill();
+            if (savedAHeart) await showFact();
+            const matchGroups = findMatches(board, true);
+            if (matchGroups.length > 0) {
+                await cascadeMatches([...new Set(matchGroups.flat())], findSpecialFromCascade(matchGroups));
+            } else {
+                if (await moveHearts()) {
+                    const newMatchesFromHeartsGroups = findMatches(board, true);
+                    if (newMatchesFromHeartsGroups.length > 0) {
+                        await cascadeMatches([...new Set(newMatchesFromHeartsGroups.flat())], findSpecialFromCascade(newMatchesFromHeartsGroups));
+                    }
+                }
+            }
+        } catch (err) { console.error('Error in cascadeMatches:', err); if (!currentModal) { isAnimating = false; isPaused = false; resetHintTimer(); } }
+    }
+    async function handleMatches(matches, specialToCreate) {
+        if (matches.length > 0) AudioManager.playSfx('match');
+        const promises = []; let heartSaved = false; let collectedForQuest = {};
+        let affectedGems = new Set();
+        matches.forEach(gem => {
+            const neighbors = [{ r: gem.row - 1, c: gem.col }, { r: gem.row + 1, c: gem.col }, { r: gem.row, c: gem.col - 1 }, { r: gem.row, c: gem.col + 1 }];
+            neighbors.forEach(n => {
+                if (n.r >= 0 && n.r < CONFIG.GRID_SIZE && n.c >= 0 && n.c < CONFIG.GRID_SIZE) {
+                    const neighborGem = board[n.r][n.c];
+                    if (neighborGem && (neighborGem.isLocked || neighborGem.isSmoked)) { affectedGems.add(neighborGem); }
+                }
+            });
+        });
+        for (const gem of affectedGems) {
+            let wasHeated = gem.isHeated;
+            gem.isLocked = false; gem.isSmoked = false;
+            if(wasHeated) {
+                gem.isHeated = false;
+                heatedGems.delete(gem);
+            }
+            promises.push(animate(gem, { scale: 1.2 }, 100).then(() => animate(gem, { scale: 1 }, 100)));
+        }
+        if (affectedGems.size > 0) AudioManager.playSfx('unlock');
+        matches.forEach(gem => {
+            if (!gem || !board[gem.row] || board[gem.row][gem.col] !== gem) return;
+            if (specialToCreate && gem.row === specialToCreate.row && gem.col === specialToCreate.col) return;
+            if (gem.isHeart) { score++; quest.heartsSaved++; heartSaved = true; }
+            if(gem.isHeated) { heatedGems.delete(gem); }
+            const colorIdx = gem.colorIndex;
+            if (quest.targets[colorIdx] !== undefined) { collectedForQuest[colorIdx] = (collectedForQuest[colorIdx] || 0) + 1; }
+            createParticleBurst(gem.x + gemSize / 2, gem.y + gemSize / 2, CONFIG.GEM_COLORS[gem.colorIndex]);
+            promises.push(new Promise(async (resolve) => {
+                if (gem) {
+                    await animate(gem, { scale: 0, alpha: 0 }, CONFIG.ANIM_CLEAR_SPEED, easing.easeInQuad).catch(console.error);
+                    if (board[gem.row] && board[gem.row][gem.col] === gem) board[gem.row][gem.col] = null;
+                } resolve();
+            }));
+        });
+        await Promise.all(promises);
+        updateQuestProgress(collectedForQuest);
+        if (specialToCreate) {
+            let gem = board[specialToCreate.row] && board[specialToCreate.row][specialToCreate.col];
+            if (!gem) {
+                gem = { row: specialToCreate.row, col: specialToCreate.col, x: specialToCreate.col * gemSize, y: specialToCreate.row * gemSize, colorIndex: specialToCreate.colorIndex ?? 0, isHeart: false, isLocked: false, isSmoked: false, special: SPECIAL_TYPES.NONE, scale: 0, alpha: 1, overloadCounter: 0, isHeated: false };
+                board[specialToCreate.row][specialToCreate.col] = gem;
+            }
+            gem.special = specialToCreate.special;
+            if (specialToCreate.special !== SPECIAL_TYPES.HYPERCUBE) gem.colorIndex = specialToCreate.colorIndex;
+            gem.isHeart = false;
+            await animate(gem, { scale: 1.5 }, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeOutQuad);
+            await animate(gem, { scale: 1 }, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeInQuad);
+        }
+        return heartSaved;
+    }
+    function findMatches(currentBoard, returnGroups = false) {
+        const matches = new Set(); const groups = [];
+        for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+            for (let c = 0; c < CONFIG.GRID_SIZE - 2;) {
+                const gem = currentBoard[r][c];
+                if (gem) {
+                    let match = [gem];
+                    for (let i = c + 1; i < CONFIG.GRID_SIZE; i++) {
+                        const nextGem = currentBoard[r][i];
+                        if (nextGem && nextGem.colorIndex === gem.colorIndex) { match.push(nextGem); } else { break; }
+                    }
+                    if (match.length >= 3) { match.forEach(m => matches.add(m)); if (returnGroups) groups.push(match); }
+                    c += match.length > 1 ? match.length : 1;
+                } else { c++; }
+            }
+        }
+        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+            for (let r = 0; r < CONFIG.GRID_SIZE - 2;) {
+                const gem = currentBoard[r][c];
+                if (gem) {
+                    let match = [gem];
+                    for (let i = r + 1; i < CONFIG.GRID_SIZE; i++) {
+                        const nextGem = currentBoard[i][c];
+                        if (nextGem && nextGem.colorIndex === gem.colorIndex) { match.push(nextGem); } else { break; }
+                    }
+                    if (match.length >= 3) { match.forEach(m => matches.add(m)); if (returnGroups) groups.push(match); }
+                    r += match.length > 1 ? match.length : 1;
+                } else { r++; }
+            }
+        }
+        return returnGroups ? groups : Array.from(matches);
+    }
+    function findSpecialFromCascade(matchGroups) {
+        let bestSpecial = null; let bestRank = 0; let processedInGroups = new Set();
+        for (const group of matchGroups) {
+            if (group.length >= 5) {
+                const middleGem = group[Math.floor(group.length / 2)];
+                if (processedInGroups.has(middleGem)) continue;
+                bestRank = 3; bestSpecial = { special: SPECIAL_TYPES.HYPERCUBE, colorIndex: middleGem.colorIndex, row: middleGem.row, col: middleGem.col };
+                group.forEach(g => processedInGroups.add(g)); return bestSpecial;
+            }
+        }
+        for (let i = 0; i < matchGroups.length; i++) {
+            for (let j = i + 1; j < matchGroups.length; j++) {
+                const group1 = matchGroups[i]; const group2 = matchGroups[j];
+                const intersection = group1.find(gem1 => group2.some(gem2 => gem1 === gem2));
+                if (intersection && !processedInGroups.has(intersection)) {
+                    if (bestRank < 2) {
+                        bestRank = 2; bestSpecial = { special: SPECIAL_TYPES.BOMB, colorIndex: intersection.colorIndex, row: intersection.row, col: intersection.col };
+                        group1.forEach(g => processedInGroups.add(g)); group2.forEach(g => processedInGroups.add(g));
+                    }
+                }
+            }
+        }
+        if (bestRank < 2) {
+            for (const group of matchGroups) {
+                if (group.length === 4) {
+                    const gemToReplace = group[1];
+                    if (processedInGroups.has(gemToReplace)) continue;
+                    if (bestRank < 1) {
+                        bestRank = 1;
+                        const isHorizontal = group[0].row === group[1].row;
+                        bestSpecial = { special: isHorizontal ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM, colorIndex: gemToReplace.colorIndex, row: gemToReplace.row, col: gemToReplace.col };
+                        group.forEach(g => processedInGroups.add(g));
+                    }
+                }
+            }
+        }
+        return bestSpecial;
+    }
+    function findMatchesAndSpecial(startPos1, startPos2) {
+        const allMatches = new Set();
+        const checkLine = (line) => {
+            const res = [];
+            for (let i = 0; i < line.length - 2; i++) {
+                const g = line[i];
+                if (!g) continue;
+                let len = 1;
+                while (i + len < line.length && line[i + len] && line[i + len].colorIndex === g.colorIndex) len++;
+                if (len >= 3) { const matchGroup = line.slice(i, i + len); res.push(matchGroup); i += len - 1; }
+            }
+            return res;
+        };
+        const h1 = checkLine(board[startPos1.row] || []);
+        const v1 = checkLine(board.map(r => r[startPos1.col]) || []);
+        const h2 = checkLine(board[startPos2.row] || []);
+        const v2 = checkLine(board.map(r => r[startPos2.col]) || []);
+        const groups = [h1, v1, h2, v2];
+        for (const gArr of groups) { for (const match of gArr) { for (const gem of match) { allMatches.add(gem); } } }
+        let specialToCreate = null; const matchesArray = Array.from(allMatches); let intersectionGem = null;
+        const movedGem = board[startPos1.row][startPos1.col]; const otherGem = board[startPos2.row][startPos2.col];
+        const checkGems = [movedGem, otherGem];
+        for (const gem of checkGems) {
+            if (!gem || !matchesArray.includes(gem)) continue;
+            const horizontalMatch = matchesArray.filter(g => g.row === gem.row && g.colorIndex === gem.colorIndex);
+            const verticalMatch = matchesArray.filter(g => g.col === gem.col && g.colorIndex === gem.colorIndex);
+            if (horizontalMatch.length >= 3 && verticalMatch.length >= 3) { intersectionGem = gem; break; }
+        }
+        if (intersectionGem) {
+            specialToCreate = { special: SPECIAL_TYPES.BOMB, colorIndex: intersectionGem.colorIndex, row: intersectionGem.row, col: intersectionGem.col };
+        } else {
+            const allLineMatches = [...h1, ...v1, ...h2, ...v2].filter(match => match.some(g => g === movedGem || g === otherGem));
+            allLineMatches.sort((a, b) => b.length - a.length);
+            if (allLineMatches.length > 0) {
+                const longestMatch = allLineMatches[0];
+                const pivotGem = longestMatch.includes(movedGem) ? movedGem : otherGem;
+                if (longestMatch.length >= 5) {
+                    specialToCreate = { special: SPECIAL_TYPES.HYPERCUBE, colorIndex: pivotGem.colorIndex, row: pivotGem.row, col: pivotGem.col };
+                } else if (longestMatch.length === 4) {
+                    const isHorizontal = longestMatch[0].row === longestMatch[1].row;
+                    specialToCreate = { special: isHorizontal ? SPECIAL_TYPES.H_BEAM : SPECIAL_TYPES.V_BEAM, colorIndex: pivotGem.colorIndex, row: pivotGem.row, col: pivotGem.col };
+                }
+            }
+        }
+        return { allMatches: matchesArray, specialToCreate };
+    }
+    async function shiftAndRefill() {
+        const shiftPromises = [];
+        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+            let emptySlots = 0;
+            for (let r = CONFIG.GRID_SIZE - 1; r >= 0; r--) {
+                if (board[r][c] === null) { emptySlots++; }
+                else if (emptySlots > 0) {
+                    const gem = board[r][c];
+                    board[r + emptySlots][c] = gem; board[r][c] = null; gem.row += emptySlots;
+                    shiftPromises.push(animate(gem, { y: gem.row * gemSize }, 300, easing.easeOutQuad));
+                }
+            }
+        }
+        await Promise.all(shiftPromises);
+        const refillPromises = [];
+        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+            for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                if (board[r][c] === null) {
+                    const newGem = { colorIndex: Math.floor(Math.random() * CONFIG.GEM_COLORS.length), isHeart: false, isLocked: false, isSmoked: false, special: SPECIAL_TYPES.NONE, row: r, col: c, x: c * gemSize, y: (r - CONFIG.GRID_SIZE) * gemSize, scale: 1, alpha: 1, overloadCounter: 0, isHeated: false };
+                    board[r][c] = newGem;
+                    refillPromises.push(animate(newGem, { y: r * gemSize }, CONFIG.ANIM_FALL_SPEED, easing.easeOutQuad));
+                }
+            }
+        }
+        await Promise.all(refillPromises);
+    }
+    async function reshuffleBoard() {
+        isAnimating = true; const promises = [];
+        board.flat().forEach(gem => { if (gem) { promises.push(animate(gem, { alpha: 0, scale: 0 }, 300)); } });
+        await Promise.all(promises);
+        let attempts = 0;
+        do { createBoard(); attempts++; if (attempts > 100) { break; } } while (!hasPossibleMoves(board));
+        const refillPromises = [];
+        board.flat().forEach(gem => { if (gem) { gem.alpha = 0; gem.scale = 0; refillPromises.push(animate(gem, { alpha: 1, scale: 1 }, 300)); } });
+        await Promise.all(refillPromises);
+        isAnimating = false; resetHintTimer();
+    }
+    function checkWinCondition() {
+        const objectivesMet = quest.totalDamage >= quest.maxDamage && quest.heartsSaved >= quest.heartsToSave;
+        if (objectivesMet) {
+            isAnimating = true; isPaused = true; if (threatInterval) clearInterval(threatInterval);
+            if (currentMonsterIndex < MONSTERS.length - 1) {
+                showModal(DOMElements.winModal, DOMElements.nextLevelButton);
+            } else {
+                showModal(DOMElements.finalWinModal, DOMElements.restartGameButton);
+            }
+        }
+    }
+    function handlePointerStart(e) {
+        e.preventDefault();
+        if (isPausedForFact) { isPaused = false; isPausedForFact = false; resetHintTimer(); }
+        if (isAnimating || isPaused) return;
+        resetHintTimer(); hintGems = [];
+        const pos = getEventPos(e);
+        const col = Math.floor(pos.x / gemSize); const row = Math.floor(pos.y / gemSize);
+        if (row < 0 || row >= CONFIG.GRID_SIZE || col < 0 || col >= CONFIG.GRID_SIZE) { selectedGem = null; return; }
+        const clickedGem = board[row][col];
+        if (clickedGem.isLocked || clickedGem.isSmoked) { AudioManager.playSfx('unlock'); return; }
+        if (clickedGem.overloadCounter > 0) {
+            // Allow selecting overloaded gems to match them
+        }
+        isDragging = true; startDragPos = pos; startGem = clickedGem;
+        if (selectedGem) {
+            if (selectedGem === clickedGem) { selectedGem = null; return; }
+            const isAdjacent = Math.abs(selectedGem.row - clickedGem.row) + Math.abs(selectedGem.col - clickedGem.col) === 1;
+            if (isAdjacent) { processSwap(selectedGem, clickedGem); } else { AudioManager.playSfx('select'); selectedGem = clickedGem; }
+        } else { AudioManager.playSfx('select'); selectedGem = clickedGem; }
+    }
+    function handlePointerMove(e) { e.preventDefault(); if (!isDragging || isAnimating || isPaused) return; const pos = getEventPos(e); const deltaX = pos.x - startDragPos.x; const deltaY = pos.y - startDragPos.y; if (Math.abs(deltaX) > gemSize / 2 || Math.abs(deltaY) > gemSize / 2) { let endGem = null; if (Math.abs(deltaX) > Math.abs(deltaY)) { const endCol = startGem.col + (deltaX > 0 ? 1 : -1); if (endCol >= 0 && endCol < CONFIG.GRID_SIZE) { endGem = board[startGem.row][endCol]; } } else { const endRow = startGem.row + (deltaY > 0 ? 1 : -1); if (endRow >= 0 && endRow < CONFIG.GRID_SIZE) { endGem = board[endRow][startGem.col]; } } if (endGem && !endGem.isLocked && startGem !== endGem) { isDragging = false; selectedGem = null; processSwap(startGem, endGem); } } }
+    function handlePointerEnd(e) { isDragging = false; startGem = null; }
+    const easing = { easeInOutQuad: t => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t, easeInQuad: t => t * t, easeOutQuad: t => t * (2 - t) };
+    function animate(target, toProperties, duration, easeFunc = easing.easeInOutQuad) {
+        return new Promise(resolve => {
+            const startProps = {}; const endProps = {};
+            for (const key in toProperties) {
+                const cur = typeof target[key] === 'number' && !isNaN(target[key]) ? target[key] : 0;
+                startProps[key] = cur; endProps[key] = Number(toProperties[key]);
+            }
+            animations.push({ target, startProperties: startProps, endProperties: endProps, duration, easeFunc, startTime: performance.now(), onComplete: resolve });
+        });
+    }
+    function handleAnimations(time) {
+        const now = performance.now();
+        for (let i = animations.length - 1; i >= 0; i--) {
+            const anim = animations[i]; const elapsed = now - (anim.startTime || now);
+            const duration = Number(anim.duration) || 0;
+            const t = duration > 0 ? Math.min(elapsed / duration, 1) : 1;
+            const progress = (typeof anim.easeFunc === 'function') ? anim.easeFunc(t) : t;
+            if (t >= 1) {
+                for (const key in anim.endProperties) { if (anim.target) anim.target[key] = anim.endProperties[key]; }
+                try { if (anim.onComplete) anim.onComplete(); } catch (err) { console.error('Error in animation onComplete:', err); }
+                animations.splice(i, 1);
+            } else {
+                for (const key in anim.endProperties) {
+                    if (anim.target) {
+                        const start = anim.startProperties[key] || 0; const end = anim.endProperties[key];
+                        anim.target[key] = start + (end - start) * progress;
+                    }
+                }
+            }
+        }
+    }
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    function toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+    function updateFullscreenIcons() { const fullscreenIconOpen = document.getElementById('fullscreen-icon-open'); const fullscreenIconClose = document.getElementById('fullscreen-icon-close'); if (document.fullscreenElement) { fullscreenIconOpen.classList.add('hidden'); fullscreenIconClose.classList.remove('hidden'); } else { fullscreenIconOpen.classList.remove('hidden'); fullscreenIconClose.classList.add('hidden'); } }
+    function getParticle() { for (let i = 0; i < particlePool.length; i++) { if (!particlePool[i].active) return particlePool[i]; } return null; }
+    function createParticleBurst(x, y, color) { for (let i = 0; i < 10; i++) { const p = getParticle(); if (p) { p.active = true; p.x = x; p.y = y; p.vx = (Math.random() - 0.5) * 6; p.vy = (Math.random() - 0.5) * 6; p.size = Math.random() * 4 + 2; p.color = color; p.alpha = 1; } } }
+    function setupLevel(monsterIndex) {
+        const level = monsterIndex + 1;
+        const baseRequirement = 15 + (level - 1) * 10;
+        const numTargets = Math.min(2 + level, 5);
+        quest = { targets: {}, collected: {}, totalDamage: 0, maxDamage: 0, heartsToSave: level, heartsSaved: 0 };
+        let availableColors = Array.from({ length: CONFIG.GEM_COLORS.length }, (_, i) => i);
+        for (let i = 0; i < numTargets; i++) {
+            if (availableColors.length === 0) break;
+            const colorIndex = availableColors.splice(Math.floor(Math.random() * availableColors.length), 1)[0];
+            const requirement = Math.floor(baseRequirement * (Math.random() * 0.4 + 0.8));
+            quest.targets[colorIndex] = requirement;
+            quest.collected[colorIndex] = 0;
+            quest.maxDamage += requirement;
+        }
+        updateQuestUI();
+        updateHealthBar();
+    }
+    async function resizeCanvas() { 
+        const container = DOMElements.canvas.parentElement;
+        if (!container) return;
+        const containerWidth = container.clientWidth;
+        const dpr = window.devicePixelRatio || 1; 
+        DOMElements.canvas.style.width = containerWidth + 'px'; 
+        DOMElements.canvas.style.height = containerWidth + 'px'; 
+        DOMElements.canvas.width = Math.floor(containerWidth * dpr); 
+        DOMElements.canvas.height = Math.floor(containerWidth * dpr); 
+        DOMElements.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
+        gemSize = containerWidth / CONFIG.GRID_SIZE; 
+        await preRenderGems(); 
+        for (let r = 0; r < CONFIG.GRID_SIZE; r++) { for (let c = 0; c < CONFIG.GRID_SIZE; c++) { if(board[r] && board[r][c]) { board[r][c].x = c * gemSize; board[r][c].y = r * gemSize; } } } 
+        updateCigarettePosition(); 
+    }
+    function onResizeDebounced() { if (resizeTimer) clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { resizeCanvas(); }, 150); }
+    function updateCigarettePosition(col = cigarette.col, isLunging = false) { const columnCenter = (col * gemSize) + (gemSize / 2); const svgScaledWidth = 200 * 0.7; const translateX = columnCenter - (svgScaledWidth / 2); let scale = 0.7; let rotate = 0; let translateY = 0; if (isLunging) { scale = 0.8; translateY = 10; } else if (DOMElements.characterContainer.classList.contains('attacking')) { scale = 0.8; rotate = -5; } DOMElements.characterContainer.style.transform = `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotate}deg)`; }
+    function createBoard() { board = []; for (let row = 0; row < CONFIG.GRID_SIZE; row++) { board[row] = []; for (let col = 0; col < CONFIG.GRID_SIZE; col++) { let possibleColors = Array.from({ length: CONFIG.GEM_COLORS.length }, (_, i) => i); if (col >= 2 && board[row][col-1].colorIndex === board[row][col-2].colorIndex) { const colorToRemove = board[row][col-1].colorIndex; possibleColors = possibleColors.filter(c => c !== colorToRemove); } if (row >= 2 && board[row-1][col].colorIndex === board[row-2][col].colorIndex) { const colorToRemove = board[row-1][col].colorIndex; possibleColors = possibleColors.filter(c => c !== colorToRemove); } const colorIndex = possibleColors[Math.floor(Math.random() * possibleColors.length)]; board[row][col] = { colorIndex: colorIndex, isHeart: false, isLocked: false, isSmoked: false, special: SPECIAL_TYPES.NONE, row: row, col: col, x: col * gemSize, y: row * gemSize, scale: 1, alpha: 1, overloadCounter: 0, isHeated: false }; } } }
+    function swapGems(gem1, gem2) { const r1 = gem1.row, c1 = gem1.col; const r2 = gem2.row, c2 = gem2.col; board[r1][c1] = gem2; board[r2][c2] = gem1; gem1.row = r2; gem1.col = c2; gem2.row = r1; gem2.col = c1; const p1 = animate(gem1, { x: c2 * gemSize, y: r2 * gemSize }, CONFIG.ANIM_SWAP_SPEED, easing.easeInOutQuad); const p2 = animate(gem2, { x: c1 * gemSize, y: r1 * gemSize }, CONFIG.ANIM_SWAP_SPEED, easing.easeInOutQuad); return Promise.all([p1, p2]); }
+    function getSpecialEffectGems(gem) { let affected = new Set(); if (gem.special === SPECIAL_TYPES.H_BEAM) { for(let c=0; c<CONFIG.GRID_SIZE; c++) { if(board[gem.row][c]) affected.add(board[gem.row][c]); } } else if (gem.special === SPECIAL_TYPES.V_BEAM) { for(let r=0; r<CONFIG.GRID_SIZE; r++) { if(board[r][gem.col]) affected.add(board[r][gem.col]); } } else if (gem.special === SPECIAL_TYPES.BOMB) { for(let r = gem.row - 1; r <= gem.row + 1; r++) { for(let c = gem.col - 1; c <= gem.col + 1; c++) { if(r >= 0 && r < CONFIG.GRID_SIZE && c >= 0 && c < CONFIG.GRID_SIZE && board[r][c]) { affected.add(board[r][c]); } } } } return affected; }
+    async function triggerHypercube(hypercube, otherGem) {
+        AudioManager.playSfx('hypercube');
+        let gemsToClear = new Set([hypercube, otherGem]);
+        if (otherGem.special === SPECIAL_TYPES.HYPERCUBE) { board.flat().forEach(g => { if (g) gemsToClear.add(g); }); }
+        else if (otherGem.special !== SPECIAL_TYPES.NONE) {
+            const specialTypeToCreate = otherGem.special; const targetColorIndex = otherGem.colorIndex;
+            const transformationPromises = [];
+            board.flat().forEach(g => {
+                if (g && g.colorIndex === targetColorIndex) {
+                    g.special = specialTypeToCreate;
+                    transformationPromises.push(animate(g, { scale: 1.2 }, 100).then(() => animate(g, { scale: 1 }, 100)));
+                    gemsToClear.add(g);
+                }
+            });
+            await Promise.all(transformationPromises);
+        } else {
+            const targetColorIndex = otherGem.colorIndex;
+            board.flat().forEach(g => { if (g && g.colorIndex === targetColorIndex) { gemsToClear.add(g); } });
+        }
+        await cascadeMatches(Array.from(gemsToClear));
+    }
+    function spawnHeartIfNeeded(isFirst = false) { if (isFirst || (moves > 0 && moves % CONFIG.MOVES_PER_HEART_SPAWN === 0)) { let availableCols = []; for (let c = 0; c < CONFIG.GRID_SIZE; c++) { const gem = board[CONFIG.GRID_SIZE - 1][c]; const gemAbove = board[CONFIG.GRID_SIZE - 2] ? board[CONFIG.GRID_SIZE - 2][c] : null; const canSpawn = gem && !gem.isHeart && gem.special === SPECIAL_TYPES.NONE; const isNotBlockedByLock = !gemAbove || !gemAbove.isLocked; if (canSpawn && isNotBlockedByLock) { availableCols.push(c); } } if (availableCols.length > 0) { const col = availableCols[Math.floor(Math.random() * availableCols.length)]; const gem = board[CONFIG.GRID_SIZE - 1][col]; gem.isHeart = true; gem.special = SPECIAL_TYPES.NONE; animate(gem, {scale: 1.5}, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeOutQuad) .then(() => animate(gem, {scale: 1}, CONFIG.ANIM_SPECIAL_PULSE_SPEED, easing.easeInQuad)); } } }
+    async function moveHearts() { const movePromises = []; let movedGems = new Set(); let heartsDidMove = false; for (let r = 1; r < CONFIG.GRID_SIZE; r++) { for (let c = 0; c < CONFIG.GRID_SIZE; c++) { const gem = board[r][c]; if (gem && gem.isHeart && !movedGems.has(gem)) { const gemAbove = board[r - 1][c]; if (gemAbove && !gemAbove.isHeart) { heartsDidMove = true; board[r - 1][c] = gem; board[r][c] = gemAbove; gem.row = r - 1; gemAbove.row = r; movePromises.push(animate(gem, { y: gem.row * gemSize }, 200, easing.easeInOutQuad)); movePromises.push(animate(gemAbove, { y: gemAbove.row * gemSize }, 200, easing.easeInOutQuad)); movedGems.add(gem); movedGems.add(gemAbove); } } } } await Promise.all(movePromises); return heartsDidMove; }
+    async function moveCigarette() {
+        const currentMonster = MONSTERS[currentMonsterIndex];
+        if (currentMonster.id === 'monster-greedy' && moves % 2 !== 0) { return; }
+        let highestHeart = null; let minRow = CONFIG.GRID_SIZE; board.flat().filter(g => g && g.isHeart).forEach(g => { if (g.row < minRow) { minRow = g.row; highestHeart = g; } }); if (highestHeart) { if (Math.random() < CONFIG.CIGARETTE_LUNGE_CHANCE) { const originalCol = cigarette.col; const targetCol = highestHeart.col; updateCigarettePosition(targetCol, true); await sleep(150); updateCigarettePosition(originalCol); await sleep(400); } if (cigarette.col < highestHeart.col) cigarette.col++; else if (cigarette.col > highestHeart.col) cigarette.col--; } updateCigarettePosition();
+    }
+    function checkGameOver() { if (board[0] && board[0][cigarette.col] && board[0][cigarette.col].isHeart) { showGameOver("Thuốc lá đã làm hại một trái tim."); return true; } return false; }
+    function updateQuestProgress(collected) { for (const key in collected) { const colorIdx = parseInt(key, 10); const amount = collected[key]; if (!quest.targets.hasOwnProperty(colorIdx)) continue; const before = quest.collected[colorIdx] || 0; const remaining = Math.max(0, quest.targets[colorIdx] - before); const used = Math.min(remaining, amount); quest.collected[colorIdx] += used; quest.totalDamage += used; } updateHealthBar(); updateQuestUI(); }
+    function goToNextMonster() {
+        hideModal(DOMElements.winModal);
+        isAnimating = false; isPaused = false;
+        currentMonsterIndex++;
+        setupMonster(currentMonsterIndex);
+        moves = 0; updateMoves();
+        do { createBoard(); } while(!hasPossibleMoves(board));
+        spawnHeartIfNeeded(true);
+        if (threatInterval) clearInterval(threatInterval);
+        threatInterval = setInterval(showThreat, CONFIG.THREAT_INTERVAL);
+    }
+    function hasPossibleMoves(currentBoard) {
+        for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+            for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                if (c < CONFIG.GRID_SIZE - 1) {
+                    const gem1 = currentBoard[r][c]; const gem2 = currentBoard[r][c+1];
+                    if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked || gem1.isSmoked || gem2.isSmoked) continue;
+                    [currentBoard[r][c], currentBoard[r][c+1]] = [gem2, gem1];
+                    const matches = findMatches(currentBoard);
+                    [currentBoard[r][c], currentBoard[r][c+1]] = [gem1, gem2];
+                    if (matches.length > 0) return true;
+                }
+                if (r < CONFIG.GRID_SIZE - 1) {
+                    const gem1 = currentBoard[r][c]; const gem2 = currentBoard[r+1][c];
+                    if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked || gem1.isSmoked || gem2.isSmoked) continue;
+                    [currentBoard[r][c], currentBoard[r+1][c]] = [gem2, gem1];
+                    const matches = findMatches(currentBoard);
+                    [currentBoard[r][c], currentBoard[r+1][c]] = [gem1, gem2];
+                    if (matches.length > 0) return true;
+                }
+            }
+        }
+        return false;
+    }
+    function findFirstPossibleMove() {
+        for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+            for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                if (c < CONFIG.GRID_SIZE - 1) {
+                    const gem1 = board[r][c]; const gem2 = board[r][c+1];
+                    if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked || gem1.isSmoked || gem2.isSmoked) continue;
+                    [board[r][c], board[r][c+1]] = [gem2, gem1];
+                    const matches = findMatches(board);
+                    [board[r][c], board[r][c+1]] = [gem1, gem2];
+                    if (matches.length > 0) return { gem1, gem2 };
+                }
+                if (r < CONFIG.GRID_SIZE - 1) {
+                    const gem1 = board[r][c]; const gem2 = board[r+1][c];
+                    if (!gem1 || !gem2 || gem1.isLocked || gem2.isLocked || gem1.isSmoked || gem2.isSmoked) continue;
+                    [board[r][c], board[r+1][c]] = [gem2, gem1];
+                    const matches = findMatches(board);
+                    [board[r][c], board[r+1][c]] = [gem1, gem2];
+                    if (matches.length > 0) return { gem1, gem2 };
+                }
+            }
+        }
+        return null;
+    }
+    function resetHintTimer() { if (hintTimeout) clearTimeout(hintTimeout); hintGems = []; hintTimeout = setTimeout(() => { if (!isAnimating && !isPaused) { const move = findFirstPossibleMove(); if (move) { hintGems = [move.gem1, move.gem2]; } } }, CONFIG.HINT_TIMEOUT); }
+    function getEventPos(e) { const rect = DOMElements.canvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: clientX - rect.left, y: clientY - rect.top }; }
+    async function applySmokeAbility(board, count) {
+        let availableGems = board.flat().filter(g => g && !g.isHeart && !g.isLocked && !g.isSmoked && g.special === SPECIAL_TYPES.NONE && g.overloadCounter === 0 && !g.isHeated);
+        for(let i = 0; i < count && availableGems.length > 0; i++) {
+            const gemIndex = Math.floor(Math.random() * availableGems.length);
+            const gem = availableGems[gemIndex]; gem.isSmoked = true;
+            await animate(gem, { scale: 1.3 }, 150).then(() => animate(gem, { scale: 1 }, 150));
+            availableGems.splice(gemIndex, 1);
+        }
+    }
+    async function applyColorChangeAbility(board) {
+        let colorsOnBoard = [...new Set(board.flat().filter(g => g).map(g => g.colorIndex))];
+        if (colorsOnBoard.length < 2) return;
+        const fromColorIndex = colorsOnBoard[Math.floor(Math.random() * colorsOnBoard.length)];
+        let toColorIndex;
+        do { toColorIndex = Math.floor(Math.random() * CONFIG.GEM_COLORS.length); } while (toColorIndex === fromColorIndex);
+        const promises = [];
+        board.flat().forEach(gem => {
+            if (gem && gem.colorIndex === fromColorIndex && !gem.isHeart && !gem.isLocked && !gem.isSmoked && gem.special === SPECIAL_TYPES.NONE && g.overloadCounter === 0 && !g.isHeated) {
+                gem.colorIndex = toColorIndex;
+                promises.push(animate(gem, { scale: 1.5 }, 200).then(() => animate(gem, { scale: 1 }, 200)));
+            }
+        });
+        await Promise.all(promises);
+        let matches = findMatches(board);
+        if (matches.length > 0) { await cascadeMatches(matches); }
+    }
+    async function applyOverloadAbility(board, count) {
+        let availableGems = board.flat().filter(g => g && !g.isHeart && !g.isLocked && !g.isSmoked && g.special === SPECIAL_TYPES.NONE && g.overloadCounter === 0 && !g.isHeated);
+        for(let i = 0; i < count && availableGems.length > 0; i++) {
+            const gemIndex = Math.floor(Math.random() * availableGems.length);
+            const gem = availableGems[gemIndex];
+            gem.overloadCounter = 3;
+            await animate(gem, { scale: 1.3 }, 150).then(() => animate(gem, { scale: 1 }, 150));
+            availableGems.splice(gemIndex, 1);
+        }
+    }
+    async function applyHeatReactionAbility(board) {
+        let availableGems = board.flat().filter(g => g && !g.isHeart && !g.isLocked && !g.isSmoked && g.special === SPECIAL_TYPES.NONE && g.overloadCounter === 0 && !g.isHeated);
+        if(availableGems.length > 0) {
+            const gem = availableGems[Math.floor(Math.random() * availableGems.length)];
+            gem.isHeated = true;
+            heatedGems.add(gem);
+            gem.colorIndex = (gem.colorIndex + 1) % CONFIG.GEM_COLORS.length;
+            await animate(gem, { scale: 1.3 }, 150).then(() => animate(gem, { scale: 1 }, 150));
+        }
+    }
+    async function processBoardEffects() {
+        const promises = [];
+        const gemsToExplode = [];
+        
+        board.flat().forEach(gem => {
+            if (gem && gem.overloadCounter > 0) {
+                gem.overloadCounter--;
+                if (gem.overloadCounter === 0) {
+                    gemsToExplode.push(gem);
+                }
+            }
+        });
+
+        if (gemsToExplode.length > 0) {
+            AudioManager.playSfx('overload');
+            for(const gem of gemsToExplode) {
+                const neighbors = [{ r: gem.row - 1, c: gem.col }, { r: gem.row + 1, c: gem.col }, { r: gem.row, c: gem.col - 1 }, { r: gem.row, c: gem.col + 1 }];
+                neighbors.forEach(n => {
+                    if (n.r >= 0 && n.r < CONFIG.GRID_SIZE && n.c >= 0 && n.c < CONFIG.GRID_SIZE) {
+                        const neighborGem = board[n.r][n.c];
+                        if (neighborGem && !neighborGem.isLocked) {
+                             neighborGem.isLocked = true;
+                             promises.push(animate(neighborGem, { scale: 1.2 }, 100).then(() => animate(neighborGem, { scale: 1 }, 100)));
+                        }
+                    }
+                });
+            }
+        }
+
+        const newlyHeatedGems = new Set();
+        for (const gem of heatedGems) {
+             const neighbors = [{ r: gem.row - 1, c: gem.col }, { r: gem.row + 1, c: gem.col }, { r: gem.row, c: gem.col - 1 }, { r: gem.row, c: gem.col + 1 }];
+             const validNeighbors = neighbors.map(n => (n.r >= 0 && n.r < CONFIG.GRID_SIZE && n.c >= 0 && n.c < CONFIG.GRID_SIZE) ? board[n.r][n.c] : null)
+                                            .filter(g => g && !g.isHeart && !g.isLocked && !g.isSmoked && !g.isHeated && g.overloadCounter === 0);
+            if(validNeighbors.length > 0) {
+                const neighborToHeat = validNeighbors[Math.floor(Math.random() * validNeighbors.length)];
+                neighborToHeat.isHeated = true;
+                neighborToHeat.colorIndex = (neighborToHeat.colorIndex + 1) % CONFIG.GEM_COLORS.length;
+                newlyHeatedGems.add(neighborToHeat);
+                promises.push(animate(neighborToHeat, { scale: 1.2 }, 100).then(() => animate(neighborToHeat, { scale: 1 }, 100)));
+            }
+        }
+        newlyHeatedGems.forEach(g => heatedGems.add(g));
+
+        await Promise.all(promises);
+    }
+
+    function setupMonster(monsterIndex) {
+        currentMonsterIndex = monsterIndex;
+        const monster = MONSTERS[monsterIndex];
+        monsterAbilityCooldown = monster.cooldown;
+        DOMElements.levelEl.textContent = `${monsterIndex + 1}/${MONSTERS.length}`;
+        updateChallengeUI();
+        updateMonsterAppearance(monsterIndex);
+        setupLevel(monsterIndex);
+    }
+    
+    async function initChallenge() {
+        await resizeCanvas();
+        DOMElements.ctx.font = `${gemSize * 0.7}px sans-serif`;
+        cigarette.col = Math.floor(CONFIG.GRID_SIZE / 2);
+        score = 0; moves = 0;
+        setupMonster(0);
+        do { createBoard(); } while (!hasPossibleMoves(board));
+        spawnHeartIfNeeded(true);
+        updateCigarettePosition();
+        selectedGem = null; isAnimating = false; isPaused = false;
+        animations = []; particlePool = [];
+        heatedGems.clear();
+        for (let i = 0; i < CONFIG.MAX_PARTICLES; i++) { particlePool.push({ active: false, x: 0, y: 0, vx: 0, vy: 0, size: 0, color: '', alpha: 0 }); }
+        factsShown = [];
+        if (threatInterval) clearInterval(threatInterval);
+        threatInterval = setInterval(showThreat, CONFIG.THREAT_INTERVAL);
+        updateMoves(); requestAnimationFrame(gameLoop); resetHintTimer();
+    }
+    
+    function gameLoop(time) { requestAnimationFrame(gameLoop); handleAnimations(time); const { ctx, canvas } = DOMElements; ctx.clearRect(0, 0, canvas.width, canvas.height); drawBoard(time); drawParticles(); drawSelection(time); drawHint(time); if (isPaused) { return; } }
+    
+    function returnToMenu() {
+        [DOMElements.winModal, DOMElements.gameOverModal, DOMElements.finalWinModal, DOMElements.factModal].forEach(hideModal);
+        isPaused = true;
+        if (threatInterval) clearInterval(threatInterval);
+        if (hintTimeout) clearTimeout(hintTimeout);
+        DOMElements.startScreen.style.display = 'flex';
+        DOMElements.gameUI.classList.add('hidden');
+        DOMElements.gameUI.classList.remove('flex');
+        DOMElements.backToMenuBtn.classList.add('hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        DOMElements = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: document.getElementById('gameCanvas').getContext('2d'),
+            levelEl: document.getElementById('level'),
+            movesEl: document.getElementById('moves'),
+            winModal: document.getElementById('winModal'),
+            nextLevelButton: document.getElementById('nextLevelButton'),
+            gameOverModal: document.getElementById('gameOverModal'),
+            gameOverReason: document.getElementById('gameOverReason'),
+            finalScore: document.getElementById('final-score'),
+            factModal: document.getElementById('factModal'),
+            factText: document.getElementById('factText'),
+            adviceText: document.getElementById('adviceText'),
+            closeFactButton: document.getElementById('closeFactButton'),
+            healthBar: document.getElementById('health-bar'),
+            questList: document.getElementById('quest-list'),
+            startScreen: document.getElementById('start-screen'),
+            gameUI: document.getElementById('game-ui'),
+            customCursor: document.getElementById('custom-cursor'),
+            finalWinModal: document.getElementById('finalWinModal'),
+            restartGameButton: document.getElementById('restartGameButton'),
+            backToMenuBtn: document.getElementById('back-to-menu-btn'),
+            characterContainer: document.getElementById('character-container'),
+            threatBubble: document.getElementById('threat-bubble'),
+            threatText: document.getElementById('threat-text'),
+            copyrightYear: document.getElementById('year'),
+            startChallengeBtn: document.getElementById('start-challenge-btn'),
+            monsterName: document.getElementById('monster-name').querySelector('p'),
+            monsterAbilityIcon: document.getElementById('monster-ability-icon'),
+            monsterAbilityName: document.getElementById('monster-ability-name'),
+            monsterAbilityDesc: document.getElementById('monster-ability-desc'),
+            monsterAbilityCooldown: document.getElementById('monster-ability-cooldown'),
+            activeMonsterDisplay: document.getElementById('active-monster-display'),
+        };
+
+        function attachCanvasListeners() {
+            const { canvas } = DOMElements; 
+            if (!canvas.dataset.listenersAdded) { 
+                const eventOptions = { passive: false };
+                canvas.addEventListener('pointerdown', handlePointerStart, eventOptions); 
+                canvas.addEventListener('pointermove', handlePointerMove, eventOptions); 
+                canvas.addEventListener('pointerup', handlePointerEnd, eventOptions); 
+                canvas.addEventListener('pointercancel', handlePointerEnd, eventOptions); 
+                canvas.addEventListener('touchstart', handlePointerStart, eventOptions);
+                canvas.addEventListener('touchmove', handlePointerMove, eventOptions);
+                canvas.addEventListener('touchend', handlePointerEnd, eventOptions);
+                canvas.addEventListener('touchcancel', handlePointerEnd, eventOptions);
+                window.addEventListener('resize', onResizeDebounced); 
+                canvas.dataset.listenersAdded = '1'; 
+            } 
+        }
+
+        DOMElements.copyrightYear.textContent = new Date().getFullYear();
+        let firstInteraction = true;
+        async function handleFirstInteraction() { if (firstInteraction) { firstInteraction = false; await AudioManager.init(); AudioManager.startMusic(); } }
+        
+        DOMElements.startChallengeBtn.addEventListener('click', async () => {
+            handleFirstInteraction();
+            DOMElements.startScreen.style.display = 'none';
+            DOMElements.gameUI.classList.remove('hidden');
+            DOMElements.gameUI.classList.add('flex');
+            DOMElements.backToMenuBtn.classList.remove('hidden'); 
+            await initChallenge(); 
+            attachCanvasListeners();
+        });
+        
+        DOMElements.closeFactButton.addEventListener('click', () => { hideModal(DOMElements.factModal); isPaused = false; isPausedForFact = false; resetHintTimer(); });
+        DOMElements.nextLevelButton.addEventListener('click', goToNextMonster);
+        document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
+        document.getElementById('backToIndexButton').addEventListener('click', returnToMenu);
+        document.getElementById('gameOverHomeButton').addEventListener('click', returnToMenu);
+        DOMElements.backToMenuBtn.addEventListener('click', returnToMenu);
+        document.getElementById('gameOverRestartButton').addEventListener('click', () => { hideModal(DOMElements.gameOverModal); initChallenge(); });
+        DOMElements.restartGameButton.addEventListener('click', () => { hideModal(DOMElements.finalWinModal); returnToMenu(); });
+
+        document.addEventListener('fullscreenchange', updateFullscreenIcons);
+        
+        if (!window.matchMedia('(pointer: coarse)').matches) {
+            document.body.style.cursor = 'none'; 
+            if(DOMElements.customCursor) DOMElements.customCursor.style.display = 'block';
+            if(DOMElements.canvas) DOMElements.canvas.style.cursor = 'none';
+            
+            let rafScheduled = false, lastMouseEvent = null;
+            document.addEventListener('mousemove', (e) => {
+                lastMouseEvent = e;
+                if (!rafScheduled) { 
+                    rafScheduled = true; 
+                    requestAnimationFrame(() => { 
+                        if (lastMouseEvent && DOMElements && DOMElements.customCursor) { 
+                            DOMElements.customCursor.style.left = lastMouseEvent.clientX + 'px'; 
+                            DOMElements.customCursor.style.top = lastMouseEvent.clientY + 'px'; 
+                        } 
+                        rafScheduled = false; 
+                    }); 
+                }
+            });
+        }
+    });
+    window.addEventListener('beforeunload', () => { if (threatInterval) clearInterval(threatInterval); if (hintTimeout) clearTimeout(hintTimeout); if(animationWatchdog) clearTimeout(animationWatchdog); });
+
+})(); 
+</script>
+</body>
+</html>
+
+
+
+
