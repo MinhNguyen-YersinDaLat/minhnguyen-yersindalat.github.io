@@ -1,0 +1,2549 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Cuộc Chiến Hơi Thở Xanh (Phiên bản Tối ưu)</title>
+    <!-- Tải các thư viện cần thiết: Tailwind CSS và Tone.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        /* Tải font chữ Nunito từ Google Fonts để có giao diện đẹp hơn */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap');
+
+        :root {
+            --primary-color: #60a5fa; /* blue-400 */
+            --secondary-color: #3b82f6; /* blue-500 */
+            --dark-color: #0c0a18;
+            --glow-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+        }
+        
+        /* --- CÀI ĐẶT CHUNG CHO TRANG WEB --- */
+        html, body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--dark-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background-image: radial-gradient(circle, #1a1a2e, #16213e, #0f3460, #0c0a18);
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* --- Màn hình chính mới --- */
+        #main-menu {
+             background: linear-gradient(rgba(13, 27, 42, 0.8), rgba(13, 27, 42, 1));
+             background-size: cover;
+        }
+        .start-container {
+            background: rgba(17, 24, 39, 0.85);
+            border: 3px solid transparent;
+            border-image-slice: 1;
+            border-image-source: linear-gradient(to bottom right, var(--primary-color), #a855f7);
+            box-shadow: 0 0 60px rgba(96, 165, 250, 0.4), inset 0 0 20px rgba(96, 165, 250, 0.25);
+            color: #e5e7eb;
+            max-width: 750px;
+            text-align: center;
+            border-radius: 20px;
+            padding: 50px 60px;
+            backdrop-filter: blur(5px);
+        }
+        .start-title {
+            font-size: 4.2em;
+            line-height: 1.1;
+            margin: 0 0 20px 0;
+            color: #f9fafb;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .start-title .subtitle {
+            color: var(--primary-color);
+            text-shadow: 0 0 15px var(--primary-color), 0 0 30px var(--primary-color), 0 0 50px var(--secondary-color);
+            animation: breathe 4s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+                text-shadow: 0 0 15px var(--primary-color), 0 0 30px var(--primary-color), 0 0 50px var(--secondary-color);
+            }
+            50% {
+                transform: scale(1.05);
+                text-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--secondary-color), 0 0 75px var(--secondary-color);
+            }
+        }
+        .mission-desc {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1em;
+            color: #d1d5db;
+            line-height: 1.6;
+            max-width: 90%;
+            margin: 0 auto 40px auto;
+            border-top: 1px solid rgba(96, 165, 250, 0.3);
+            border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+            padding: 20px 0;
+        }
+        .start-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        button, .button-link {
+            padding: 16px 36px;
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            background: transparent;
+            color: var(--primary-color);
+            font-weight: bold;
+            cursor:pointer;
+            margin: 0 8px;
+            transition: all 0.2s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 0 8px var(--primary-color);
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 18px;
+            text-decoration: none;
+            display: inline-block;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        button:hover, .button-link:hover {
+            background: var(--primary-color);
+            color: var(--dark-color);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 25px rgba(96, 165, 250, 0.5);
+        }
+         #main-menu button#btnStartGame {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            border: none;
+            padding: 18px 36px;
+            box-shadow: 0 4px 20px rgba(96, 165, 250, 0.4);
+            animation: pulse 2.5s infinite;
+        }
+         #main-menu button#btnStartGame:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 8px 30px rgba(96, 165, 250, 0.6);
+            background: linear-gradient(45deg, #60a5fa, #3b82f6);
+        }
+
+        /* --- KHUNG CHỨA GAME CHÍNH - BỐ CỤC GRID MỚI --- */
+        #game-wrapper {
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 2fr 1.2fr;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            height: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        #game-container {
+            height: auto;
+            width: 100%;
+            max-height: 90vh;
+            aspect-ratio: 600 / 800;
+            background: #000 url('https://www.transparenttextures.com/patterns/stardust.png');
+            border: 4px solid var(--secondary-color);
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-center-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #buttons-ingame {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        /* --- CÁC PANEL THÔNG TIN BÊN CẠNH --- */
+        .info-panel {
+            width: 100%;
+            background: rgba(17, 24, 39, 0.8);
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 40px rgba(96, 165, 250, 0.3);
+            border-radius: 15px;
+            padding: 15px 10px;
+            height: 90vh;
+            overflow-y: auto; /* Thêm thanh cuộn nếu nội dung quá dài */
+        }
+        
+
+
+        .info-panel h2 {
+            font-size: 1.8em;
+            color: var(--primary-color);
+            text-shadow: var(--glow-shadow);
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+        
+        /* Thay thế media query cũ để đảm bảo 3 cột luôn hiển thị và co giãn hợp lý */
+        @media (max-width: 768px) {
+            .game-layout {
+                gap: 5px;
+                padding: 0 5px;
+            }
+            .info-panel {
+                padding: 8px;
+                border-width: 1px;
+            }
+            .info-panel h2 {
+                font-size: 1rem;
+                margin-bottom: 8px;
+            }
+            .enemy-name {
+                font-size: 0.8rem;
+            }
+            .enemy-visual {
+                width: 40px;
+                height: 40px;
+            }
+            #enemy-info-nicotine .enemy-visual > div { transform: scale(0.25) translateY(12px); }
+            #enemy-info-formaldehyde .enemy-visual > div { transform: scale(0.4) translateY(15px); }
+            #enemy-info-acrolein .enemy-visual > div { transform: scale(0.5) translateY(3px); }
+            #enemy-info-tar .enemy-visual > div { transform: scale(0.4) translateY(15px); }
+            #enemy-info-benzene .enemy-visual > div { transform: scale(0.4) translateY(15px); }
+            #enemy-info-pm25 .enemy-visual > div { transform: scale(0.6) translateY(3px); }
+            #enemy-info-co .enemy-visual > div { transform: scale(0.6) translateY(3px); }
+            
+            .enemy-header {
+                 gap: 5px;
+            }
+            
+            .medical-info p {
+                font-size: 0.75rem;
+            }
+
+            #left-panel h3 { font-size: 0.9rem; }
+            #left-panel p, #left-panel li { font-size: 0.75rem; }
+        }
+        
+        /* Panel hướng dẫn */
+        #left-panel .info-section { margin-bottom: 20px; }
+        #left-panel h3 { font-size: 1.2em; color: #93c5fd; border-bottom: 1px solid var(--secondary-color); padding-bottom: 8px; margin-bottom: 12px; }
+        #left-panel p, #left-panel li { font-size: 0.95em; line-height: 1.6; color: #d1d5db; }
+        #left-panel ul { list-style: none; padding: 0; }
+        #left-panel li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        #left-panel .powerup-icon { font-size: 1.5rem; }
+
+        /* Panel kẻ địch */
+        .enemy-entry { background: linear-gradient(145deg, #1f2937, #111827); border-radius: 8px; padding: 8px; margin-bottom: 8px; border: 1px solid #374151; transition: all 0.3s ease; }
+        .enemy-entry.defeated { border-color: #16a34a; box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
+        .enemy-header { display: flex; align-items: center; gap: 10px; }
+        
+        /* Panel kẻ địch - Căn chỉnh kích thước */
+        .enemy-visual { width: 60px; height: 60px; background-color: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;}
+        .enemy-visual > div { transform-origin: center center; }
+        #enemy-info-nicotine .enemy-visual > div { transform: scale(0.35) translateY(18px); }
+        #enemy-info-formaldehyde .enemy-visual > div { transform: scale(0.6) translateY(22px); }
+        #enemy-info-acrolein .enemy-visual > div { transform: scale(0.7) translateY(5px); }
+        #enemy-info-tar .enemy-visual > div { transform: scale(0.6) translateY(22px); }
+        #enemy-info-benzene .enemy-visual > div { transform: scale(0.6) translateY(22px); }
+        #enemy-info-pm25 .enemy-visual > div { transform: scale(0.8) translateY(5px); }
+        #enemy-info-co .enemy-visual > div { transform: scale(0.8) translateY(5px); }
+
+        .enemy-name { font-weight: bold; color: #e5e7eb; font-size: 1.1em; }
+        .enemy-status { font-size: 0.8em; font-weight: bold; padding: 2px 8px; border-radius: 10px; color: white; }
+        .status-active { background-color: #dc2626; }
+        .status-defeated { background-color: #16a34a; }
+        .medical-info { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #4b5563; }
+        .enemy-entry.defeated .medical-info { display: block; }
+        .medical-info p { font-size: 0.9em; color: #d1d5db; line-height: 1.5; }
+        .medical-info .slogan { display: block; font-weight: 800; color: var(--secondary-color); margin-bottom: 8px; text-shadow: 0 0 5px var(--secondary-color); }
+        
+
+        /* --- HUD Mới --- */
+        #game-info { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 1.25rem; font-weight: 700; z-index: 5; text-shadow: 1px 1px 3px rgba(0,0,0,0.7); background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 8px; border-left: 4px solid var(--primary-color); }
+        #lives-display { font-size: 1.5rem; }
+        
+        /* --- HIỆU ỨNG MỚI (Rung và Nổ) --- */
+        @keyframes screen-shake {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, -2px); }
+            75% { transform: translate(-2px, 2px); }
+            100% { transform: translate(0, 0); }
+        }
+        #game-container.screen-shake {
+            animation: screen-shake 0.15s ease-in-out;
+        }
+
+        /* --- CÁC HIỆU ỨNG ANIMATION (KEYFRAMES) - CẬP NHẬT MÀU SẮC --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes glow { 0%, 100% { filter: brightness(1) drop-shadow(0 0 5px currentColor); } 50% { filter: brightness(1.2) drop-shadow(0 0 10px currentColor); } }
+        @keyframes sparkle { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } }
+        @keyframes smoke { 0% { opacity: 0.6; transform: translateY(0) scale(1); } 100% { transform: translateY(-20px) scale(1.5); } }
+        @keyframes explosion { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes fadeInOut { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+        @keyframes playerHit { 0%, 100% { opacity: 1; } 25%, 75% { opacity: 0.3; } 50% { opacity: 0.8; } }
+        @keyframes bossHit { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(3); } }
+        @keyframes warningPulse { 0%, 100% { color: #ef4444; transform: scale(1); } 50% { color: #f87171; transform: scale(1.1); } }
+        @keyframes shield-glow { 0% { box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.5); } 100% { box-shadow: 0 0 30px 10px rgba(59, 130, 246, 0.8); } }
+        @keyframes pop-in-out-left { 0% { transform: translate(10px, -50%) scale(0.5); opacity: 0; } 10% { transform: translate(0, -50%) scale(1.1); opacity: 1; } 20% { transform: translate(0, -50%) scale(1); } 80% { transform: translate(0, -50%) scale(1); opacity: 1; } 100% { transform: translate(-10px, -50%) scale(0.5); opacity: 0; } }
+        @keyframes thruster-flicker { 0%, 100% { background-color: #60a5fa; box-shadow: 0 0 15px #3b82f6, 0 0 30px #3b82f6; transform: scaleY(1); } 50% { background-color: #93c5fd; box-shadow: 0 0 25px #3b82f6, 0 0 50px #3b82f6; transform: scaleY(1.2); } }
+        @keyframes bubble-rise { from { bottom: 5%; opacity: 0.8; transform: scale(0.5); } to { bottom: 80%; opacity: 0; transform: scale(1); } }
+        @keyframes skull-rise { from { bottom: 10%; opacity: 0.6; transform: scale(0.4) rotate(-30deg); } to { bottom: 60%; opacity: 0; transform: scale(0.8) rotate(30deg); } }
+        @keyframes aura-pulse { 0%, 100% { box-shadow: 0 0 30px 10px rgba(96, 165, 250, 0.3), 0 0 50px 20px rgba(59, 130, 246, 0.2); opacity: 0.8; } 50% { box-shadow: 0 0 50px 20px rgba(96, 165, 250, 0.4), 0 0 80px 35px rgba(59, 130, 246, 0.3); opacity: 1; } }
+        @keyframes ember-float { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-60px) translateX(var(--x-offset)) scale(0); opacity: 0; } }
+        @keyframes energy-crackle { 0%, 100% { opacity: 0.8; transform: scaleY(1); } 50% { opacity: 0.2; transform: scaleY(0.3); } }
+        @keyframes tar-morph { 0%, 100% { border-radius: 45% 55% 60% 40% / 70% 50% 50% 30%; transform: rotate(0deg); } 50% { border-radius: 60% 40% 45% 55% / 50% 70% 30% 50%; transform: rotate(5deg); } }
+        @keyframes tar-drip { 0% { transform: translateY(-10px) scaleY(0.5); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(30px) scaleY(1); opacity: 0; } }
+        @keyframes eye-track { 0%, 40% { transform: translate(0, 0); } 50%, 70% { transform: translate(-2px, 1px); } 80%, 100% { transform: translate(2px, -1px); } }
+        @keyframes specter-fade { 0%, 100% { opacity: 0.7; } 50% { opacity: 0.4; } }
+        @keyframes boss-eyes { 0%, 100% { box-shadow: 0 0 20px #dc2626, 0 0 40px #ef4444, 0 0 60px #fca5a5; transform: scale(1); } 50% { box-shadow: 0 0 30px #991b1b, 0 0 60px #dc2626, 0 0 90px #ef4444; transform: scale(1.3); } }
+        @keyframes ember-storm { 0% { transform: translateY(0px) translateX(0) scale(1); opacity: 1; } 100% { transform: translateY(-60px) translateX(10px) scale(0.5); opacity: 0; } }
+        @keyframes energy-chain { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes boss-flame { 0%, 100% { transform: scale(1.1) rotate(0deg); box-shadow: 0 0 25px #f97316, 0 0 50px #facc15; } 25% { transform: scale(1.5) rotate(5deg); box-shadow: 0 0 35px #ea580c, 0 0 70px #f97316; } 50% { transform: scale(0.9) rotate(-3deg); box-shadow: 0 0 20px #dc2626, 0 0 45px #f97316; } 75% { transform: scale(1.4) rotate(2deg); box-shadow: 0 0 30px #f97316, 0 0 65px #facc15; } }
+        @keyframes toxic-smoke { 0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 0.8; } 100% { transform: translateY(-50px) scale(1.5) rotate(180deg); opacity: 0; } }
+        @keyframes boss-aura { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.15); opacity: 0.5; } }
+        .boss-gradient { background: radial-gradient(ellipse at center, #450a0a 0%, #1f2937 40%, #000000 80%, #450a0a 100%); }
+        .flame-gradient { background: radial-gradient(circle, #fff 5%, #fde047 20%, #facc15 40%, #f97316 70%, #ea580c 100%); }
+        @keyframes tar-horror { 0%, 100% { transform: scale(1) rotate(0deg); filter: brightness(0.8) contrast(1.2); } 25% { transform: scale(1.1) rotate(2deg); filter: brightness(1.2) contrast(1.5); } 50% { transform: scale(0.95) rotate(-1deg); filter: brightness(0.6) contrast(1.8); } 75% { transform: scale(1.05) rotate(1deg); filter: brightness(1.1) contrast(1.3); } }
+        @keyframes evil-eyes { 0%, 100% { box-shadow: 0 0 15px #dc2626, 0 0 25px #ef4444, 0 0 35px #fca5a5; transform: scale(1); } 50% { box-shadow: 0 0 25px #991b1b, 0 0 40px #dc2626, 0 0 60px #ef4444; transform: scale(1.3); } }
+        @keyframes tentacle-move { 0%, 100% { transform: translateY(0px) rotate(0deg) scaleY(1); } 25% { transform: translateY(-5px) rotate(15deg) scaleY(1.2); } 50% { transform: translateY(3px) rotate(-10deg) scaleY(0.8); } 75% { transform: translateY(-2px) rotate(20deg) scaleY(1.1); } }
+        @keyframes toxic-drip { 0% { transform: translateY(0px) scaleY(1); opacity: 1; } 50% { transform: translateY(12px) scaleY(1.5); opacity: 0.8; } 100% { transform: translateY(25px) scaleY(0.5); opacity: 0; } }
+        @keyframes benzene-death { 0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); filter: brightness(1) hue-rotate(0deg); } 25% { transform: translateY(-8px) rotate(-5deg) scale(1.05); filter: brightness(1.3) hue-rotate(10deg); } 50% { transform: translateY(-12px) rotate(3deg) scale(0.98); filter: brightness(0.7) hue-rotate(-10deg); } 75% { transform: translateY(-6px) rotate(-2deg) scale(1.02); filter: brightness(1.1) hue-rotate(5deg); } }
+        @keyframes cracked-mask { 0%, 100% { box-shadow: 0 0 20px #3b82f6, 0 0 40px #60a5fa, inset 0 0 20px #93c5fd; filter: brightness(1) saturate(1); } 50% { box-shadow: 0 0 40px #1d4ed8, 0 0 60px #2563eb, 0 0 80px #3b82f6, inset 0 0 30px #bfdbfe; filter: brightness(1.5) saturate(1.5); } }
+        @keyframes soul-escape { 0% { transform: translateY(0px) scale(0.8) rotate(0deg); opacity: 0.8; } 50% { transform: translateY(-15px) scale(1.2) rotate(180deg); opacity: 0.4; } 100% { transform: translateY(-30px) scale(0.6) rotate(360deg); opacity: 0; } }
+        @keyframes pm25-storm-rage { 0% { transform: rotate(0deg) scale(1); filter: brightness(1); } 25% { transform: rotate(90deg) scale(1.15); filter: brightness(1.3); } 50% { transform: rotate(180deg) scale(0.9); filter: brightness(0.8); } 75% { transform: rotate(270deg) scale(1.1); filter: brightness(1.2); } 100% { transform: rotate(360deg) scale(1); filter: brightness(1); } }
+        @keyframes explosive-core { 0%, 100% { transform: scale(1) rotate(0deg); box-shadow: 0 0 20px #f59e0b, 0 0 40px #d97706, 0 0 60px #b45309; } 25% { transform: scale(1.4) rotate(90deg); box-shadow: 0 0 30px #dc2626, 0 0 50px #f59e0b, 0 0 80px #d97706; } 50% { transform: scale(0.8) rotate(180deg); box-shadow: 0 0 25px #b45309, 0 0 45px #92400e, 0 0 70px #78350f; } 75% { transform: scale(1.3) rotate(270deg); box-shadow: 0 0 35px #ef4444, 0 0 55px #f59e0b, 0 0 85px #d97706; } }
+        @keyframes metal-shard { 0% { transform: translateX(0px) translateY(0px) rotate(0deg) scale(1); opacity: 0.9; } 25% { transform: translateX(8px) translateY(-6px) rotate(120deg) scale(1.2); opacity: 1; } 50% { transform: translateX(-4px) translateY(-10px) rotate(240deg) scale(0.8); opacity: 0.7; } 75% { transform: translateX(-8px) translateY(-4px) rotate(300deg) scale(1.1); opacity: 1; } 100% { transform: translateX(0px) translateY(0px) rotate(360deg) scale(1); opacity: 0.9; } }
+        @keyframes lightning-strike { 0%, 90%, 100% { opacity: 0; } 5%, 85% { opacity: 1; transform: scaleY(1.5); } }
+        @keyframes co-explosion { 0%, 100% { transform: scale(1); background: radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, rgba(156, 163, 175, 0.1) 50%, transparent 100%); } 50% { transform: scale(1.3); background: radial-gradient(circle, rgba(220, 38, 38, 0.6) 0%, rgba(239, 68, 68, 0.3) 30%, rgba(156, 163, 175, 0.2) 70%, transparent 100%); } }
+        @keyframes nuclear-core { 0%, 100% { transform: scale(1) rotate(0deg); box-shadow: 0 0 15px #dc2626, 0 0 30px #ef4444, 0 0 45px #fca5a5; } 33% { transform: scale(1.5) rotate(120deg); box-shadow: 0 0 25px #991b1b, 0 0 50px #dc2626, 0 0 75px #ef4444, 0 0 100px #fca5a5; } 66% { transform: scale(0.7) rotate(240deg); box-shadow: 0 0 20px #7f1d1d, 0 0 40px #991b1b, 0 0 60px #dc2626; } }
+        @keyframes laser-beam { 0% { opacity: 0.4; transform: scale(1) rotate(0deg); box-shadow: 0 0 5px #3b82f6, 0 0 10px #2563eb; } 50% { opacity: 1; transform: scale(1.5) rotate(10deg); box-shadow: 0 0 15px #1d4ed8, 0 0 25px #3b82f6, 0 0 35px #60a5fa; } 100% { opacity: 0.4; transform: scale(1) rotate(0deg); box-shadow: 0 0 5px #3b82f6, 0 0 10px #2563eb; } }
+        @keyframes crack-spread { 0% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.7; transform: scale(1); } }
+        .tar-surface-horror { background: radial-gradient(ellipse at 30% 20%, #450a0a 0%, #1f2937 30%, #000000 70%, #450a0a 100%); }
+        .benzene-cloak-torn { background: linear-gradient(45deg, #1e3a8a 0%, #1d4ed8 25%, #3b82f6 50%, #1e40af 75%, #1e1b4b 100%); clip-path: polygon(5% 0%, 95% 0%, 90% 15%, 100% 30%, 95% 45%, 100% 60%, 90% 75%, 100% 100%, 0% 100%, 10% 75%, 0% 60%, 5% 45%, 0% 30%, 10% 15%); }
+        .pm25-particle-explosive { background: radial-gradient(circle, #fbbf24 0%, #f59e0b 30%, #d97706 60%, #dc2626 100%); }
+        .co-cracked { background: radial-gradient(circle, rgba(220, 38, 38, 0.4) 0%, rgba(156, 163, 175, 0.2) 50%, transparent 100%); border: 2px solid #374151; position: relative; }
+        .co-cracked::before { content: ''; position: absolute; inset: 0; background: linear-gradient(45deg, transparent 40%, #6b7280 45%, #6b7280 55%, transparent 60%), linear-gradient(-45deg, transparent 40%, #6b7280 45%, #6b7280 55%, transparent 60%); border-radius: 50%; opacity: 0.6; }
+        
+        /* --- Powerup visuals --- */
+        .powerup-visual {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: grid;
+            place-items: center;
+            animation: float 3s ease-in-out infinite;
+        }
+        .powerup-aura {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, var(--glow-color, white) 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: powerup-aura-pulse 2.5s ease-in-out infinite;
+        }
+        .powerup-icon {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            animation: glow 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px var(--glow-color, white));
+        }
+        .powerup-sparkle-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .sparkle-particle {
+            position: absolute;
+            background-color: var(--glow-color, white);
+            border-radius: 50%;
+            animation: sparkle-fly 3s linear infinite;
+        }
+        .sparkle-particle:nth-child(1) { width: 4px; height: 4px; top: 10%; left: 50%; animation-delay: 0s; }
+        .sparkle-particle:nth-child(2) { width: 3px; height: 3px; top: 50%; left: 80%; animation-delay: 1s; }
+        .sparkle-particle:nth-child(3) { width: 5px; height: 5px; top: 80%; left: 20%; animation-delay: 2s; }
+
+        @keyframes powerup-aura-pulse {
+            0%, 100% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+        }
+        @keyframes sparkle-fly {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { transform: translate(calc(var(--end-x, 0) * 1px), calc(var(--end-y, 0) * 1px)) scale(1); opacity: 0; }
+        }
+        
+        .powerup-visual::before {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            background: radial-gradient(circle, var(--glow-color, white) 0%, transparent 70%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            opacity: 0.15;
+            animation: spin 12s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+
+        /* --- HƯỚNG DẪN - SỬA LỖI GIAO DIỆN --- */
+        #instructions-screen { background: rgba(0,0,0,0.95); z-index: 200; }
+        .instructions-content {
+            background: #1f2937;
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            padding: 30px 40px;
+            width: 95%;
+            max-width: 1000px;
+            color: #d1d5db;
+            display: flex; /* Kích hoạt Flexbox */
+            flex-direction: column; /* Sắp xếp các mục theo chiều dọc */
+            height: 90vh; /* Đặt chiều cao cố định */
+            max-height: 850px; /* Giới hạn chiều cao tối đa */
+        }
+        .instructions-content h2 {
+            color: var(--primary-color);
+            text-shadow: var(--glow-shadow);
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 2.8em;
+            flex-shrink: 0; /* Ngăn tiêu đề bị co lại */
+        }
+        /* KHUNG CHỨA CÁC BƯỚC HƯỚNG DẪN */
+        .steps-wrapper {
+            flex-grow: 1; /* Cho phép phần này lấp đầy không gian trống */
+            overflow-y: auto; /* Thêm thanh cuộn nếu nội dung dài hơn */
+            width: 100%;
+        }
+        /* NÚT BẤM */
+        .button-wrapper {
+            flex-shrink: 0; /* Ngăn nút bị co lại */
+            padding-top: 20px; /* Tạo khoảng cách với nội dung bên trên */
+            text-align: center;
+        }
+        .instruction-step {
+            display: none; /* Ẩn tất cả các bước ban đầu */
+        }
+        .instruction-step.active {
+            display: block; /* Chỉ hiện bước đang active */
+        }
+        .instruction-step h3 { font-size: 2em; color: #fff; text-align: center; margin-bottom: 25px; }
+        .instructions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-bottom: 30px; width: 100%; justify-content: center; }
+        .instruction-item { background: linear-gradient(145deg, #111827, #1f2937); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid var(--secondary-color); transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 450px; margin: 0 auto; width: 100%; }
+        .instruction-item:hover { transform: translateY(-5px); box-shadow: 0 0 25px rgba(59, 130, 246, 0.5); }
+        .instruction-item h4 { color: #93c5fd; margin-top: 0; border-bottom: 2px solid var(--secondary-color); padding-bottom: 15px; margin-bottom: 15px; font-size: 1.2em; text-transform: uppercase; letter-spacing: 1px; }
+        .instruction-item p { font-size: 1em; line-height: 1.6; margin: 0; }
+        .instruction-item p .slogan { display: block; font-weight: 800; color: var(--secondary-color); margin-bottom: 8px; text-shadow: 0 0 5px var(--secondary-color);}
+        .instruction-visual-container { background: #0c0a18; border-radius: 8px; margin: 0 auto 15px auto; border: 2px solid var(--secondary-color); display: grid; place-items: center; overflow: hidden; position: relative; height: 200px; transition: background-color 0.3s ease; }
+        .instruction-item:hover .instruction-visual-container { background-color: #1e1b4b; }
+        
+        /* --- Các style cho đối tượng game (KHÔNG THAY ĐỔI) --- */
+        .glow { animation: glow 2s ease-in-out infinite; }
+        .sparkle { animation: sparkle 2s linear infinite; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .float { animation: float 3s ease-in-out infinite; }
+        .smoke { animation: smoke 1.5s linear infinite; }
+        .game-object { position: absolute; left: 0; top: 0; will-change: transform; }
+        .player { width: 80px; height: 112px; transform-origin: bottom center; }
+        .player.hit { animation: playerHit 0.6s ease-in-out; }
+        .player.shielded::after { content: ''; position: absolute; top: 50%; left: 50%; width: 150%; height: 120%; transform: translate(-50%, -50%); background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.4) 100%); border-radius: 50%; animation: shield-glow 1s ease-in-out infinite alternate; }
+        .bullet { width: 8px; height: 25px; background: linear-gradient(to top, #fde047, #facc15, #eab308); border-radius: 10px; box-shadow: 0 0 15px #fde047; }
+        .enemy-bullet { width: 10px; height: 10px; background: radial-gradient(circle, #ff416c, #ff4b2b); border-radius: 50%; box-shadow: 0 0 15px #ff416c; }
+        .enemy { transform-origin: center center; }
+        .explosion { width: 80px; height: 80px; background-image: radial-gradient(circle, rgba(255,255,0,1) 0%, rgba(255,165,0,1) 50%, rgba(255,0,0,0) 70%); border-radius: 50%; animation: explosion 0.3s ease-out forwards; }
+        .player-explosion { background-image: radial-gradient(circle, rgba(255,100,100,1) 0%, rgba(255,0,0,1) 50%, rgba(255,0,0,0) 70%); }
+        .boss { transform-origin: top center; }
+        .boss.hit { animation: bossHit 0.1s ease-in-out; }
+        .boss-info-container { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 7; will-change: transform; left: 0; top: 0; }
+        .boss-name { background: rgba(0,0,0,0.6); padding: 2px 10px; border-radius: 5px; font-size: 0.9rem; font-weight: bold; text-shadow: 1px 1px 2px black; white-space: nowrap; }
+        .health-bar-container { width: 120px; background: rgba(0,0,0,0.5); padding: 3px; border-radius: 5px; border: 1px solid #4a5568; }
+        .health-bar { width: 100%; height: 8px; background: linear-gradient(to right, #ef4444, #f87171); border-radius: 3px; transition: width 0.3s ease-out; }
+        .speech-bubble { position: absolute; top: 50%; right: 100%; transform: translateY(-50%); background: linear-gradient(145deg, #db2777, #ef4444); color: white; padding: 12px 18px; border-radius: 12px; border: 2px solid white; font-size: 1rem; font-weight: 700; text-align: center; max-width: 220px; z-index: 10; margin-right: 20px; box-shadow: 0 5px 20px rgba(239, 68, 68, 0.5); animation: pop-in-out-left 5s ease-in-out forwards; white-space: normal; }
+        .speech-bubble::after { content: ''; position: absolute; top: 50%; left: 100%; transform: translateY(-50%); border-width: 10px; border-style: solid; border-color: transparent transparent transparent #db2777; }
+        
+        /* --- Màn hình Overlay mới --- */
+        .overlay-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; text-align: center; z-index: 100; flex-direction: column; gap: 20px; }
+        .overlay-box { background: linear-gradient(135deg, #1f2937, #111827); padding: 35px 45px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); border-top: 5px solid var(--primary-color); color: white; }
+        .overlay-box h1 { font-size: 2.5rem; color: var(--primary-color); text-shadow: var(--glow-shadow); margin: 0 0 15px 0; }
+        .overlay-box p { font-size: 1.2rem; margin-bottom: 20px; }
+        .overlay-buttons { display: flex; gap: 15px; margin-top: 20px; justify-content: center; }
+        
+        /* --- DEBRIEFING/INFO CARDS --- */
+        .debrief-card { background: rgba(31, 41, 55, 0.7); border-left: 4px solid var(--secondary-color); border-radius: 8px; padding: 15px; margin-top: 15px; text-align: left; max-width: 500px; }
+        .debrief-card h3 { color: var(--primary-color); font-size: 1.3rem; margin-top: 0; margin-bottom: 8px; }
+        .debrief-card p { font-size: 1rem; line-height: 1.6; margin-bottom: 0; }
+        .debrief-card .slogan { display: block; font-weight: 800; color: var(--secondary-color); margin-bottom: 8px; text-shadow: 0 0 5px var(--secondary-color); }
+        
+        /* Mobile controls */
+        #mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 120px; z-index: 20; display: none; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; pointer-events: none; }
+        .mobile-btn { width: 80px; height: 80px; background-color: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; user-select: none; -webkit-user-select: none; backdrop-filter: blur(5px); pointer-events: auto; }
+        .mobile-btn:active { background-color: rgba(255, 255, 255, 0.4); }
+        #shoot-btn { width: 90px; height: 90px; background-color: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.6); }
+        #shoot-btn:active { background-color: rgba(239, 68, 68, 0.5); }
+        @media (pointer: coarse) { #mobile-controls { display: flex; } }
+
+        /* Style cho nút nổi bật */
+        .highlighted-button {
+            background: var(--primary-color) !important;
+            color: var(--dark-color) !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(96, 165, 250, 0.4) !important;
+        }
+        .highlighted-button:hover {
+            background: #93c5fd !important; /* blue-300 */
+        }
+
+        /* Style cho Hộp thông tin "Sự Thật Phũ Phàng" */
+        .overlay-box.trivia-box {
+            max-width: 600px;
+            border-top-color: #f59e0b; /* amber-500 */
+        }
+        .trivia-box h1 {
+            color: #f59e0b; /* amber-500 */
+            text-shadow: 0 0 10px #f59e0b, 0 0 20px #f59e0b;
+            font-size: 2rem;
+        }
+        .trivia-box p {
+            font-size: 1.2rem;
+            color: #e5e7eb; /* gray-200 */
+            line-height: 1.6;
+        }
+        .trivia-box .level-start-info {
+            margin-top: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            animation: pulse 2s infinite;
+        }
+
+        /* --- Style cho màn hình chọn độ khó --- */
+        #difficulty-box {
+            max-width: 700px;
+            border-top-color: var(--secondary-color);
+            background: linear-gradient(145deg, #1f2937, #111827);
+        }
+        #difficulty-box h1 {
+            font-size: 2.8rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        .difficulty-subtitle {
+            font-size: 1.1rem;
+            color: #d1d5db;
+            margin-top: 0;
+            margin-bottom: 40px;
+        }
+        .difficulty-options {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            justify-content: center;
+            width: 100%;
+        }
+         @media (min-width: 640px) {
+            .difficulty-options {
+                flex-direction: row;
+                gap: 30px;
+            }
+        }
+        .difficulty-option {
+            flex: 1;
+            text-align: center;
+        }
+
+        /* General style for both difficulty buttons */
+        .difficulty-option button {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 1.5rem;
+            font-family: 'Roboto Condensed', sans-serif;
+            border-radius: 12px;
+            border-width: 3px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            transform: translateY(0);
+        }
+
+        .difficulty-option p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #9ca3af; /* gray-400 */
+            min-height: 45px;
+        }
+
+        /* Highlighted "Easy" button */
+        #easy-button {
+            background: var(--primary-color);
+            border-color: #93c5fd; /* blue-300 */
+            color: var(--dark-color);
+            box-shadow: 0 0 25px rgba(96, 165, 250, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+            animation: pulse 2.5s infinite;
+        }
+        #easy-button:hover {
+            background: #93c5fd;
+            border-color: #dbeafe; /* blue-100 */
+            transform: scale(1.03) translateY(-4px);
+            box-shadow: 0 8px 30px rgba(96, 165, 250, 0.6);
+        }
+
+        /* Secondary "Hard" button */
+        #hard-button {
+            background: transparent;
+            border-color: #4b5563; /* gray-600 */
+            color: #9ca3af; /* gray-400 */
+        }
+        #hard-button:hover {
+            background: #ef4444; /* red-500 */
+            border-color: #f87171; /* red-400 */
+            color: white;
+            transform: scale(1.03) translateY(-4px);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.5);
+        }
+        
+        /* Endless Mode button */
+        #endless-button {
+            background: transparent;
+            border-image: linear-gradient(to right, #f59e0b, #ef4444, #db2777) 1;
+            color: #f59e0b;
+        }
+
+        #endless-button:hover:not(:disabled) {
+            background: linear-gradient(to right, #f59e0b, #ef4444);
+            border-image: none;
+            border-color: #f59e0b;
+            color: white;
+            transform: scale(1.03) translateY(-4px);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.5);
+        }
+        
+        #endless-button:disabled {
+            border-color: #4b5563;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        #endless-button:disabled:hover {
+            transform: none;
+            box-shadow: none;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <!-- BẢN QUYỀN: Giữ nguyên và đảm bảo luôn hiển thị -->
+    <div id="copyright" style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; font-size: 13px; padding: 6px 0; font-family: 'Roboto', Arial, Helvetica, sans-serif; z-index: 9999; pointer-events: none; color: rgba(255, 255, 255, 0.85); background: transparent; opacity: 0; animation: fadeIn 2s ease forwards;">
+        © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
+    </div>
+    <script> document.getElementById("year").textContent = new Date().getFullYear(); </script>
+    
+    <!-- Màn hình chính -->
+    <div id="main-menu" class="screen">
+        <div class="start-container">
+            <h1 class="start-title">CUỘC CHIẾN<br><span class="subtitle">HƠI THỞ XANH</span></h1>
+            <p class="mission-desc">Nhiệm vụ: Tiêu diệt các mầm mống độc hại từ khói thuốc để bảo vệ cơ thể của bạn và mọi người xung quanh!</p>
+            <div class="start-buttons">
+              <button id="btnStartGame">BẮT ĐẦU CHIẾN DỊCH</button>
+              <button id="btnShowInstructions">XEM HƯỚNG DẪN</button>
+              <a href="index.html" class="button-link">VỀ MENU CHÍNH</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hướng dẫn -->
+    <div id="instructions-screen" class="screen hidden">
+        <div class="instructions-content">
+            <h2>HƯỚNG DẪN CHIẾN DỊCH</h2>
+            <div class="steps-wrapper">
+                <div class="instruction-step active" data-step="0">
+                    <h3>Bước 1: Điều Khiển</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Di Chuyển & Bắn</h4>
+                            <div id="instr-movement-container" class="instruction-visual-container"></div>
+                            <p>Dùng <strong>← →</strong> để di chuyển và <strong>SPACE</strong> để bắn. Trên di động, dùng các nút ảo.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="1">
+                    <h3>Bước 2: Vật Phẩm - Đạn Chùm</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Đạn Chùm</h4>
+                            <div id="instr-powerup-spread-container" class="instruction-visual-container"></div>
+                            <p>Bắn ra 3 viên đạn cùng lúc, tăng phạm vi tấn công.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="2">
+                    <h3>Bước 3: Vật Phẩm - Khiên Năng Lượng</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Khiên Năng Lượng</h4>
+                            <div id="instr-powerup-shield-container" class="instruction-visual-container"></div>
+                            <p>Bảo vệ bạn khỏi một lần va chạm với kẻ địch hoặc đạn.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="3">
+                    <h3>Bước 4: Vật Phẩm - Tia Laser</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Tia Laser</h4>
+                            <div id="instr-powerup-laser-container" class="instruction-visual-container"></div>
+                            <p>Bắn một tia năng lượng cực mạnh, quét sạch kẻ địch trên đường thẳng.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="4">
+                    <h3>Bước 5: Vật Phẩm - Làm Chậm</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Làm Chậm</h4>
+                            <div id="instr-powerup-slow-container" class="instruction-visual-container"></div>
+                            <p>Làm chậm tốc độ di chuyển và bắn của tất cả kẻ địch trong thời gian ngắn.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="instruction-step" data-step="5">
+                    <h3>Bước 6: Vật Phẩm - Thêm Mạng</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Thêm Mạng</h4>
+                            <div id="instr-powerup-health-container" class="instruction-visual-container"></div>
+                            <p>Nhận thêm một mạng sống để tiếp tục cuộc chiến.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="6">
+                    <h3>Bước 7: Nhận Diện Kẻ Địch</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Bụi Mịn PM2.5</h4>
+                            <div id="instr-enemy-pm25-container" class="instruction-visual-container"></div>
+                            <p id="instr-p-pm25"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="7">
+                    <h3>Bước 8: Nhận Diện Kẻ Địch</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Khí Độc CO (Carbon Monoxide)</h4>
+                            <div id="instr-enemy-co-container" class="instruction-visual-container"></div>
+                            <p id="instr-p-co"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="8">
+                    <h3>Bước 9: Đối Mặt Mini-Boss</h3>
+                    <div class="instructions-grid">
+                         <div class="instruction-item">
+                            <h4>Lọ Tử Thần Formaldehyde</h4>
+                            <div id="instr-enemy-formaldehyde-container" class="instruction-visual-container"></div>
+                            <p id="instr-p-formaldehyde"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="9">
+                    <h3>Bước 10: Đối Mặt Mini-Boss</h3>
+                    <div class="instructions-grid">
+                         <div class="instruction-item">
+                            <h4>Ngọn Lửa Tàn Phá Acrolein</h4>
+                            <div id="instr-enemy-acrolein-container" class="instruction-visual-container"></div>
+                            <p id="instr-p-acrolein"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="10">
+                    <h3>Bước 11: Trùm Cuối</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <h4>Kẻ Xiềng Xích Nicotine</h4>
+                            <div id="instr-enemy-nicotine-container" class="instruction-visual-container"></div>
+                            <p id="instr-p-nicotine"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="button-wrapper">
+                <button id="btnNextInstruction">Tiếp tục</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực chơi game -->
+    <div id="game-wrapper" class="screen hidden">
+        <!-- Màn hình chọn độ khó -->
+        <div id="difficulty-screen" class="overlay-screen hidden">
+            <div class="overlay-box" id="difficulty-box">
+                <h1>CHỌN CHẾ ĐỘ CHƠI</h1>
+                <p class="difficulty-subtitle">Mỗi lựa chọn sẽ mang lại một trải nghiệm khác biệt.</p>
+                <div class="difficulty-options">
+                    <div class="difficulty-option">
+                        <button id="easy-button">BÌNH THƯỜNG</button>
+                        <p>Nên chọn để trải nghiệm toàn bộ cốt truyện và thông điệp ý nghĩa của trò chơi.</p>
+                    </div>
+                    <div class="difficulty-option">
+                        <button id="hard-button">THỬ THÁCH</button>
+                        <p>Kẻ địch nhanh và nguy hiểm hơn. <br>Dành cho các phi công kỳ cựu.</p>
+                    </div>
+                    <div class="difficulty-option">
+                        <button id="endless-button" disabled>VÔ TẬN</button>
+                        <p>Sống sót qua các vòng lặp khó dần. <br>Mở khóa khi hoàn thành game lần đầu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="message-overlay" class="overlay-screen hidden">
+                <div class="overlay-box" id="message-box">
+                <!-- Nội dung sẽ được chèn bằng JS -->
+                </div>
+        </div>
+        
+        <div class="game-layout">
+            <!-- Panel bên trái: Thư viện tri thức -->
+            <div id="left-panel" class="info-panel">
+                <h2>Thư viện tri thức</h2>
+                <div id="knowledge-library-content">
+                    <!-- Nội dung tri thức sẽ được thêm vào đây bằng JS -->
+                </div>
+            </div>
+
+            <!-- Cột giữa chứa game -->
+            <div class="game-center-column">
+                <div id="game-container">
+                    <div id="game-info">
+                        <div id="score-display">Điểm: 0</div>
+                        <div id="level-display">Màn: 1</div>
+                        <div id="lives-display"></div>
+                    </div>
+                    
+                    <div id="mobile-controls">
+                        <div class="flex-1 flex justify-start"><button id="move-left-btn" class="mobile-btn"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button></div>
+                        <div class="flex-1 flex justify-center"><button id="shoot-btn" class="mobile-btn"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg></button></div>
+                        <div class="flex-1 flex justify-end"><button id="move-right-btn" class="mobile-btn"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button></div>
+                    </div>
+                </div>
+                <div id="buttons-ingame">
+                     <button id="btnReset">Về Menu Chính</button>
+                </div>
+            </div>
+
+            <!-- Panel bên phải: Hồ sơ kẻ địch -->
+            <div id="right-panel" class="info-panel">
+                <h2>Hồ Sơ Kẻ Địch</h2>
+                <div id="enemy-info-list">
+                    <!-- Nội dung sẽ được tạo bởi JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================================================================= -->
+    <!-- MẪU HTML CHO CÁC ĐỐI TƯỢNG GAME (KHÔNG THAY ĐỔI) -->
+    <!-- ========================================================================================= -->
+    <template id="player-template">
+        <div class="float">
+            <div class="absolute inset-0 rounded-full" style="animation: aura-pulse 3s ease-in-out infinite;"></div>
+            <div class="relative">
+                <div class="absolute top-10 -left-10 w-8 h-20 bg-gradient-to-br from-cyan-300 to-blue-500 rounded-l-full rounded-tr-full opacity-80 transform -rotate-12 border-l-2 border-t-2 border-cyan-200"></div>
+                <div class="absolute top-10 -right-10 w-8 h-20 bg-gradient-to-bl from-cyan-300 to-blue-500 rounded-r-full rounded-tl-full opacity-80 transform rotate-12 border-r-2 border-t-2 border-cyan-200"></div>
+                <div class="absolute -inset-8 bg-gradient-to-r from-yellow-400/40 via-yellow-300/50 to-yellow-400/40 rounded-full glow"></div>
+                <div class="absolute -inset-6 bg-gradient-to-r from-yellow-200/30 via-yellow-100/40 to-yellow-200/30 rounded-full sparkle"></div>
+                <div class="absolute -inset-4 bg-gradient-to-r from-yellow-300/20 via-yellow-200/30 to-yellow-300/20 rounded-full glow"></div>
+                <div class="absolute -right-8 top-2 w-16 h-24 bg-gradient-to-b from-red-500 via-red-600 to-red-800 rounded-b-3xl transform rotate-20 glow shadow-2xl border-2 border-red-400 float">
+                    <div class="absolute -right-2 top-4 w-4 h-16 bg-red-600 rounded-r-2xl transform rotate-12 opacity-80"></div>
+                    <div class="absolute -right-1 top-8 w-2 h-12 bg-red-700 rounded-r-xl transform rotate-6 opacity-60"></div>
+                    <div class="absolute -left-4 top-6 w-3 h-0.5 bg-white/40 rounded-full"></div>
+                    <div class="absolute -left-3 top-10 w-2 h-0.5 bg-white/30 rounded-full"></div>
+                    <div class="absolute -left-2 top-14 w-1 h-0.5 bg-white/20 rounded-full"></div>
+                </div>
+                <div class="w-20 h-28 bg-gradient-to-b from-blue-400 via-blue-600 to-blue-800 rounded-2xl relative shadow-2xl border-2 border-blue-300">
+                    <div class="absolute -top-8 left-2 w-16 h-16 bg-gradient-to-b from-orange-100 to-orange-200 rounded-full border-4 border-yellow-500 shadow-2xl">
+                        <div class="absolute top-3 left-1 w-14 h-6 bg-black rounded-full border-2 border-gray-700">
+                            <div class="w-5 h-4 bg-blue-900 rounded-full absolute top-1 left-1"></div>
+                            <div class="w-5 h-4 bg-blue-900 rounded-full absolute top-1 right-1"></div>
+                            <div class="w-2 h-1 bg-gray-600 absolute top-2 left-1/2 transform -translate-x-1/2"></div>
+                        </div>
+                        <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-3 border-b-[3px] border-black rounded-full"></div>
+                        <div class="absolute -top-3 left-1 w-14 h-6 bg-gradient-to-r from-amber-700 to-amber-900 rounded-t-full shadow-lg"></div>
+                    </div>
+                    <div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-10 h-10 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 rounded-full border-[3px] border-yellow-600 glow shadow-xl">
+                        <div class="absolute top-1 left-1 w-8 h-8 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-full"><span class="absolute top-2 left-2.5 text-sm font-black text-blue-900">M</span></div>
+                    </div>
+                    <div class="absolute -left-4 top-8 w-6 h-12 bg-gradient-to-b from-blue-400 to-blue-700 rounded-full shadow-xl border border-blue-300"></div>
+                    <div class="absolute -right-4 top-8 w-6 h-12 bg-gradient-to-b from-blue-400 to-blue-700 rounded-full shadow-xl border border-blue-300"></div>
+                    <div class="absolute bottom-0 left-2 w-6 h-16 bg-gradient-to-b from-blue-500 to-blue-800 rounded-b-full shadow-xl border border-blue-400"></div>
+                    <div class="absolute bottom-0 right-2 w-6 h-16 bg-gradient-to-b from-blue-500 to-blue-800 rounded-b-full shadow-xl border border-blue-400"></div>
+                    <div class="absolute -bottom-2 left-1 w-8 h-5 bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-full shadow-xl border-2 border-yellow-400"></div>
+                    <div class="absolute -bottom-2 right-1 w-8 h-5 bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-full shadow-xl border-2 border-yellow-400"></div>
+                    <div class="absolute top-12 left-3 w-1 h-8 bg-yellow-300 opacity-60 glow"></div>
+                    <div class="absolute top-12 right-3 w-1 h-8 bg-yellow-300 opacity-60 glow"></div>
+                    <div class="absolute -bottom-4 left-3 w-4 h-8 bg-sky-400 rounded-b-full border-2 border-sky-200" style="animation: thruster-flicker 0.2s infinite;"></div>
+                    <div class="absolute -bottom-4 right-3 w-4 h-8 bg-sky-400 rounded-b-full border-2 border-sky-200" style="animation: thruster-flicker 0.2s infinite 0.1s;"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <!-- ========================================================================================= -->
+    <!-- MẪU HTML CHO VẬT PHẨM HỖ TRỢ (POWERUPS) -->
+    <!-- ========================================================================================= -->
+    <template id="powerup-spread-template">
+        <div class="powerup-visual" style="--glow-color: #fbbf24;">
+            <div class="powerup-aura"></div>
+            <div class="powerup-sparkle-container">
+                <div class="sparkle-particle" style="--end-x: -20; --end-y: -40;"></div>
+                <div class="sparkle-particle" style="--end-x: 30; --end-y: 20;"></div>
+                <div class="sparkle-particle" style="--end-x: -30; --end-y: 30;"></div>
+            </div>
+            <div class="powerup-icon" style="color: #fbbf24;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8l-6 6h12l-6-6zm-6 6l6 6 6-6H6z"/></svg>
+            </div>
+        </div>
+    </template>
+    <template id="powerup-shield-template">
+        <div class="powerup-visual" style="--glow-color: #60a5fa;">
+            <div class="powerup-aura"></div>
+            <div class="powerup-sparkle-container">
+                <div class="sparkle-particle" style="--end-x: 25; --end-y: -35;"></div>
+                <div class="sparkle-particle" style="--end-x: -20; --end-y: -25;"></div>
+                <div class="sparkle-particle" style="--end-x: 10; --end-y: 40;"></div>
+            </div>
+            <div class="powerup-icon" style="color: #60a5fa;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            </div>
+        </div>
+    </template>
+    <template id="powerup-health-template">
+        <div class="powerup-visual" style="--glow-color: #f87171;">
+            <div class="powerup-aura"></div>
+            <div class="powerup-sparkle-container">
+                <div class="sparkle-particle" style="--end-x: -25; --end-y: 20;"></div>
+                <div class="sparkle-particle" style="--end-x: 25; --end-y: 25;"></div>
+                <div class="sparkle-particle" style="--end-x: 0; --end-y: -40;"></div>
+            </div>
+            <div class="powerup-icon" style="color: #f87171;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM13 11h3v2h-3v3h-2v-3H8v-2h3V8h2v3z"/></svg>
+            </div>
+        </div>
+    </template>
+    <template id="powerup-laser-template">
+        <div class="powerup-visual" style="--glow-color: #ef4444;">
+            <div class="powerup-aura"></div>
+            <div class="powerup-sparkle-container">
+                <div class="sparkle-particle" style="--end-x: -10; --end-y: -40;"></div>
+                <div class="sparkle-particle" style="--end-x: 35; --end-y: 10;"></div>
+                <div class="sparkle-particle" style="--end-x: -30; --end-y: 20;"></div>
+            </div>
+            <div class="powerup-icon" style="color: #ef4444;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+            </div>
+        </div>
+    </template>
+    <template id="powerup-slow-template">
+        <div class="powerup-visual" style="--glow-color: #a78bfa;">
+            <div class="powerup-aura"></div>
+            <div class="powerup-sparkle-container">
+                <div class="sparkle-particle" style="--end-x: 15; --end-y: 40;"></div>
+                <div class="sparkle-particle" style="--end-x: 30; --end-y: -20;"></div>
+                <div class="sparkle-particle" style="--end-x: -35; --end-y: -10;"></div>
+            </div>
+            <div class="powerup-icon" style="color: #a78bfa;">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm4.25-4.25l1.41 1.41L15.24 8.76l-1.41-1.41zM7.17 7.17l1.41 1.41L9.99 7.17l-1.41-1.41z"/></svg>
+            </div>
+        </div>
+    </template>
+    
+    <template id="enemy-nicotine-template">
+        <div class="relative">
+            <div class="absolute -inset-16 bg-gradient-radial from-red-900/30 via-orange-800/15 to-transparent rounded-full" style="animation: boss-aura 3s ease-in-out infinite;"></div>
+            <div class="absolute -inset-20 bg-gradient-radial from-yellow-600/20 via-red-700/10 to-transparent rounded-full" style="animation: boss-aura 4s ease-in-out infinite 0.5s;"></div>
+            <div class="absolute -inset-10 border-2 border-red-400/40 rounded-full animate-ping" style="animation-duration: 3s;"></div>
+            <div class="absolute -inset-14 border-2 border-orange-400/30 rounded-full animate-ping" style="animation-duration: 3s; animation-delay: 1s;"></div>
+            <div class="absolute inset-0" style="animation: energy-chain 8s linear infinite;">
+                <div class="absolute top-0 left-0 w-14 h-4 border-2 border-amber-400/70 rounded-full" style="transform: rotate(45deg);"></div>
+                <div class="absolute bottom-6 left-6 w-10 h-3 border border-red-500/60 rounded-full" style="transform: rotate(200deg);"></div>
+            </div>
+            <div class="absolute inset-0" style="animation: energy-chain 12s linear infinite reverse;">
+                <div class="absolute bottom-2 right-0 w-12 h-4 border-2 border-amber-500/70 rounded-full" style="transform: rotate(-60deg);"></div>
+                <div class="absolute top-8 right-8 w-9 h-2 border border-yellow-400/60 rounded-full" style="transform: rotate(-200deg);"></div>
+            </div>
+            <div class="w-24 h-32 boss-gradient rounded-lg relative shadow-2xl border-2 border-red-800/50" style="box-shadow: 0 0 30px rgba(220, 38, 38, 0.7), inset 0 0 20px rgba(185, 28, 28, 0.3);">
+                <div class="w-20 h-20 bg-gradient-to-b from-gray-700 via-gray-800 to-black rounded-full absolute -top-10 left-2 border-2 border-red-900/70 shadow-2xl" style="box-shadow: 0 0 35px rgba(185, 28, 28, 0.8);">
+                    <div id="eye-left" class="w-5 h-5 bg-red-600 rounded-full absolute top-5 left-4 shadow-lg" style="animation: boss-eyes 1.5s ease-in-out infinite;"><div class="w-1 h-1 bg-white rounded-full absolute top-1.5 left-1.5 animate-pulse"></div></div>
+                    <div id="eye-right" class="w-5 h-5 bg-red-600 rounded-full absolute top-5 right-4 shadow-lg" style="animation: boss-eyes 1.5s ease-in-out infinite 0.2s;"><div class="w-1 h-1 bg-white rounded-full absolute top-1.5 right-1.5 animate-pulse"></div></div>
+                    <div class="w-12 h-5 border-b-2 border-red-700 rounded-b-lg absolute bottom-2 left-4">
+                        <div class="w-px h-2 bg-white absolute bottom-0 left-2 transform -skew-x-12"></div><div class="w-px h-3 bg-white absolute bottom-0 left-4"></div><div class="w-px h-2 bg-white absolute bottom-0 left-6 transform skew-x-12"></div>
+                        <div class="w-px h-2 bg-white absolute bottom-0 right-2 transform skew-x-12"></div><div class="w-px h-3 bg-white absolute bottom-0 right-4"></div><div class="w-px h-2 bg-white absolute bottom-0 right-6 transform -skew-x-12"></div>
+                    </div>
+                    <div class="w-4 h-6 bg-gray-800 absolute -top-3 left-1 transform rotate-15 border-t-2 border-red-700"></div>
+                    <div class="w-4 h-6 bg-gray-800 absolute -top-3 right-1 transform -rotate-15 border-t-2 border-red-700"></div>
+                </div>
+                <div class="w-[90%] h-[90%] bg-black/30 rounded-lg absolute top-[5%] left-[5%] border border-red-800/30" style="box-shadow: inset 0 0 15px rgba(185, 28, 28, 0.4);">
+                    <div class="w-1.5 h-16 bg-red-900 absolute top-4 left-1/2 -translate-x-1/2 border border-red-700/50">
+                        <div class="w-2 h-2 bg-red-500 rounded-full absolute -top-1 -left-px shadow-lg animate-pulse" style="box-shadow: 0 0 10px #ef4444;"></div>
+                        <div class="w-2 h-2 bg-red-500 rounded-full absolute top-1/2 -translate-y-1/2 -left-px shadow-lg animate-pulse" style="box-shadow: 0 0 10px #ef4444; animation-delay: 0.5s"></div>
+                        <div class="w-2 h-2 bg-red-500 rounded-full absolute -bottom-1 -left-px shadow-lg animate-pulse" style="box-shadow: 0 0 10px #ef4444; animation-delay: 1s"></div>
+                    </div>
+                </div>
+                <div class="w-4 h-12 bg-gray-200 absolute -right-5 top-10 rounded border-2 border-gray-400 shadow-lg">
+                    <div class="w-10 h-10 flame-gradient absolute -top-6 -left-3 rounded-full" style="animation: boss-flame 1.5s ease-in-out infinite;">
+                        <div class="absolute top-1/2 left-1/2 w-1 h-1 bg-orange-400 rounded-full" style="animation: ember-storm 1s linear infinite 0.1s;"></div>
+                        <div class="absolute top-1/2 left-1/2 w-px h-px bg-yellow-300 rounded-full" style="animation: ember-storm 1.3s linear infinite 0.3s;"></div>
+                    </div>
+                    <div class="w-4 h-4 bg-gray-700/50 rounded-full absolute -top-8 -left-1" style="animation: toxic-smoke 2.5s ease-out infinite;"></div>
+                    <div class="w-3 h-3 bg-gray-800/40 rounded-full absolute -top-10 -left-0" style="animation: toxic-smoke 3s ease-out infinite 0.5s;"></div>
+                </div>
+                <div class="w-10 h-8 bg-gray-900 rounded absolute -left-4 bottom-4 border-2 border-red-700 shadow-lg">
+                    <div class="w-8 h-4 bg-red-800 absolute top-1.5 left-1 rounded">
+                        <div class="w-2 h-2 bg-red-500 rounded-full absolute top-1 left-1"></div>
+                        <div class="w-2 h-2 bg-red-500 rounded-full absolute top-1 right-1"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute top-0 left-1/2 w-2 h-2 bg-orange-500 rounded-full" style="animation: ember-storm 2s linear infinite 0.2s; box-shadow: 0 0 10px #f97316;"></div>
+            <div class="absolute top-0 left-1/2 w-1 h-1 bg-red-400 rounded-full" style="animation: ember-storm 1.8s linear infinite 0.6s; box-shadow: 0 0 8px #f87171;"></div>
+            <div class="absolute top-0 left-1/2 w-1 h-1 bg-yellow-300 rounded-full" style="animation: ember-storm 1.9s linear infinite 1s; box-shadow: 0 0 5px #fde047;"></div>
+        </div>
+    </template>
+    <template id="enemy-formaldehyde-template">
+        <div class="float relative">
+            <div class="absolute -top-4 -left-4 w-20 h-20 bg-green-500/20 rounded-full blur-lg animate-pulse"></div>
+            <div class="absolute top-1/2 left-1/2 text-2xl text-green-300/50 glow font-mono opacity-50">☢</div>
+            <div class="w-12 h-20 bg-gradient-to-b from-green-300/50 to-green-600/50 rounded-t-2xl relative shadow-2xl border-2 border-green-200 backdrop-blur-sm overflow-hidden">
+                <div class="absolute inset-x-0 bottom-0 h-3/4 bg-green-500/30 blur-md glow" style="animation-duration: 4s;"></div>
+                <div class="w-8 h-14 bg-gradient-to-b from-green-400/50 to-green-700/50 rounded-t-2xl absolute top-2 left-2 opacity-90"><div class="w-6 h-10 bg-green-500/50 rounded-t-xl absolute top-2 left-1 opacity-80"></div></div><div class="w-6 h-3 bg-gray-600 absolute top-0 left-3 rounded-t border border-gray-500"></div><div class="w-8 h-4 bg-red-600 absolute bottom-4 left-2 rounded border border-red-500 pulse"><div class="w-6 h-2 bg-white absolute top-1 left-1 rounded text-xs flex items-center justify-center"><span class="text-red-600 text-xs font-bold">⚠</span></div></div>
+                <div class="absolute left-1/4 text-sm opacity-60" style="animation: skull-rise 3s ease-in infinite 0.5s;">💀</div>
+                <div class="absolute left-1/2 text-lg opacity-50" style="animation: skull-rise 4s ease-in infinite 1.2s;">💀</div>
+            </div>
+        </div>
+    </template>
+    <template id="enemy-acrolein-template">
+        <div class="glow relative">
+            <div class="absolute inset-0 animate-spin" style="animation-duration: 4s;">
+                <div class="absolute top-0 right-0 w-4 h-4 rounded-full bg-cyan-400 border-2 border-white glow"></div>
+                <div class="absolute bottom-4 left-2 w-3 h-3 rounded-full bg-cyan-300 border-2 border-white glow" style="animation-delay: 0.3s"></div>
+            </div>
+            <div class="w-12 h-20 bg-gradient-to-t from-blue-600 via-cyan-400 to-cyan-200 relative shadow-2xl rounded-t-full">
+                <div class="w-8 h-14 bg-gradient-to-t from-blue-300 via-cyan-300 to-white absolute top-3 left-2 rounded-t-full opacity-80"></div><div class="w-2 h-2 bg-red-500 rounded-full absolute top-6 left-3 glow"></div><div class="w-2 h-2 bg-red-500 rounded-full absolute top-6 right-3 glow"></div><div class="w-4 h-1 bg-red-600 absolute bottom-8 left-4 rounded-full"></div><div class="w-2 h-4 bg-cyan-200 absolute -top-2 left-3 rounded-t-full opacity-60 float"></div><div class="w-1 h-3 bg-white absolute -top-1 right-4 rounded-t-full opacity-80 float" style="animation-delay: 0.5s;"></div><div class="w-2 h-3 bg-cyan-100 absolute -top-1.5 left-5 rounded-t-full opacity-70 float" style="animation-delay: 0.2s;"></div><div class="w-12 h-4 bg-blue-800 absolute bottom-0 left-0 rounded-b"></div>
+                <div class="absolute top-1/2 left-0 w-full h-0.5 bg-white" style="animation: energy-crackle 0.2s linear infinite 0.1s;"></div>
+                <div class="absolute top-1/3 left-0 w-full h-px bg-cyan-200" style="transform: rotate(-10deg); animation: energy-crackle 0.3s linear infinite 0.2s;"></div>
+                <div class="absolute top-2/3 left-0 w-full h-px bg-cyan-200" style="transform: rotate(10deg); animation: energy-crackle 0.25s linear infinite;"></div>
+                <div class="absolute inset-2 rounded-full border-2 border-dashed border-white/50 animate-spin" style="animation-duration: 5s;"></div>
+            </div>
+        </div>
+    </template>
+    <template id="enemy-benzene-template">
+        <div class="float relative">
+            <div class="w-16 h-24 bg-gradient-to-b from-indigo-900 via-blue-900 to-black rounded-lg relative shadow-2xl border-2 border-blue-600">
+                <div class="w-12 h-12 bg-gradient-to-b from-blue-700 to-black rounded-full absolute -top-6 left-2 border-2 border-blue-700 shadow-xl">
+                    <div class="absolute inset-1 bg-blue-600 rounded-full">
+                        <div class="absolute top-2 left-2 w-6 h-0.5 bg-white opacity-90 transform rotate-45"></div>
+                        <div class="absolute top-3 left-3 w-4 h-0.5 bg-white opacity-80 transform -rotate-30"></div>
+                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-blue-200 rounded-full animate-pulse"></div>
+                    </div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full absolute top-3 left-2 animate-pulse"></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full absolute top-3 right-2 animate-pulse" style="animation-delay: 0.5s;"></div>
+                    <div class="w-6 h-2 border-b-2 border-blue-700 rounded-full absolute bottom-2 left-3 transform rotate-180"></div>
+                    <div class="w-1 h-1 bg-white absolute bottom-3 left-4"></div>
+                    <div class="w-1 h-1 bg-white absolute bottom-3 right-4"></div>
+                </div>
+                <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-14 h-10 benzene-cloak-torn opacity-90"></div>
+                <div class="w-14 h-18 bg-black rounded-lg absolute top-3 left-1 border-2 border-blue-700">
+                    <div class="w-2 h-12 bg-blue-900 absolute top-2 left-6 border border-blue-800"></div>
+                    <div class="w-1 h-1 bg-blue-500 rounded-full absolute top-4 left-7 animate-pulse"></div>
+                    <div class="w-1 h-1 bg-blue-500 rounded-full absolute top-8 left-7 animate-pulse" style="animation-delay: 0.5s;"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="enemy-pm25-template">
+         <div class="float relative">
+            <div class="w-14 h-14 bg-gradient-to-br from-amber-800 to-red-900 rounded-full relative shadow-2xl border-2 border-amber-500">
+                <div class="w-10 h-10 bg-gradient-to-b from-amber-700 to-black rounded-full absolute top-2 left-2 border-2 border-red-600">
+                    <div class="w-2 h-2 bg-red-600 rounded-full absolute top-2 left-2"><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div></div>
+                    <div class="w-2 h-2 bg-red-600 rounded-full absolute top-2 right-2"><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 right-0.5"></div></div>
+                    <div class="w-6 h-2 border-b-2 border-red-700 rounded-full absolute bottom-1 left-2 transform rotate-180"></div>
+                    <div class="w-1 h-1 bg-white absolute bottom-2 left-3"></div>
+                    <div class="w-1 h-1 bg-white absolute bottom-2 right-3"></div>
+                </div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 pm25-particle-explosive rounded-full animate-pulse">
+                    <div class="absolute inset-1 bg-red-500 rounded-full opacity-90"></div>
+                    <div class="absolute inset-2 bg-yellow-400 rounded-full opacity-80"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="enemy-co-template">
+        <div class="float relative">
+            <div class="w-12 h-12 co-cracked rounded-full relative shadow-2xl border-2 border-gray-500">
+                <div class="w-10 h-10 bg-gradient-to-b from-gray-600 to-black rounded-full absolute top-1 left-1 border-2 border-gray-700">
+                    <div class="w-2 h-2 bg-blue-400 rounded-full absolute top-2 left-2"><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full absolute top-2 right-2"><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 right-0.5"></div></div>
+                    <div class="w-6 h-1 bg-gray-400 rounded absolute bottom-2 left-2"></div>
+                    <div class="w-1 h-1 bg-gray-300 rounded-full absolute bottom-2 left-3"></div>
+                    <div class="w-1 h-1 bg-gray-300 rounded-full absolute bottom-2 right-3"></div>
+                </div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-red-600 rounded-full animate-pulse">
+                    <div class="absolute inset-0.5 bg-red-500 rounded-full opacity-90"></div>
+                    <div class="absolute inset-1 bg-white rounded-full opacity-70 animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="enemy-tar-template">
+        <div class="float relative">
+            <div class="w-14 h-20 tar-surface-horror rounded-lg relative shadow-2xl border-2 border-red-600">
+                <div class="w-12 h-12 bg-gradient-to-b from-gray-800 to-black rounded-full absolute -top-6 left-1 border-2 border-red-700 shadow-xl">
+                    <div class="w-3 h-3 bg-red-600 rounded-full absolute top-2 left-1 animate-pulse"><div class="w-2 h-2 bg-red-400 rounded-full absolute top-0.5 left-0.5"></div><div class="w-1 h-1 bg-white rounded-full absolute top-1 left-1"></div></div>
+                    <div class="w-3 h-3 bg-red-600 rounded-full absolute top-2 right-1 animate-pulse" style="animation-delay: 0.3s;"><div class="w-2 h-2 bg-red-400 rounded-full absolute top-0.5 right-0.5"></div><div class="w-1 h-1 bg-white rounded-full absolute top-1 right-1"></div></div>
+                    <div class="w-2 h-2 bg-red-500 rounded-full absolute top-1 left-1/2 transform -translate-x-1/2 animate-pulse" style="animation-delay: 0.6s;"><div class="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5"></div></div>
+                    <div class="w-8 h-3 border-b-2 border-red-700 rounded-full absolute bottom-1 left-2 transform rotate-180"></div>
+                    <div class="w-1 h-2 bg-white absolute bottom-2 left-3 transform rotate-12"></div>
+                    <div class="w-1 h-2 bg-white absolute bottom-2 right-3 transform -rotate-12"></div>
+                    <div class="w-1 h-1 bg-white absolute bottom-2 left-1/2 transform -translate-x-1/2"></div>
+                </div>
+                <div class="w-12 h-16 bg-black rounded-lg absolute top-3 left-1 border-2 border-red-700">
+                    <div class="w-2 h-2 bg-red-900 rounded-full absolute top-2 left-2 animate-pulse"></div>
+                    <div class="w-1 h-1 bg-red-800 rounded-full absolute top-4 left-4 animate-pulse" style="animation-delay: 0.3s;"></div>
+                    <div class="w-2 h-2 bg-red-900 rounded-full absolute top-6 left-1 animate-pulse" style="animation-delay: 0.6s;"></div>
+                    <div class="w-1 h-1 bg-red-700 rounded-full absolute top-8 right-2 animate-pulse" style="animation-delay: 0.9s;"></div>
+                    <div class="w-2 h-2 bg-red-800 rounded-full bottom-2 left-3 animate-pulse" style="animation-delay: 1.2s;"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+
+    <script>
+        // --- BỘ QUẢN LÝ ÂM THANH (SOUND MANAGER) ---
+        // Tối ưu: Singleton Pattern để đảm bảo chỉ có một thực thể SoundManager duy nhất.
+        const SoundManager = (() => {
+            let instance;
+
+            function createInstance() {
+                let audioContextStarted = false;
+                let musicPlaying = false;
+                const synths = {};
+                let musicParts = [];
+
+                const initSynths = () => {
+                    synths.shoot = new Tone.Synth({
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.005, decay: 0.1, sustain: 0.01, release: 0.1 }
+                    }).toDestination();
+
+                    synths.explosionPool = Array.from({ length: 5 }, () => new Tone.NoiseSynth({
+                        noise: { type: 'brown' },
+                        envelope: { attack: 0.005, decay: 0.2, sustain: 0 }
+                    }).toDestination());
+                    synths.explosionPoolIndex = 0;
+
+                    synths.playerHit = new Tone.Synth({
+                        oscillator: { type: 'square' },
+                        envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.2 }
+                    }).toDestination();
+                    
+                    synths.powerUp = new Tone.PolySynth(Tone.Synth).toDestination();
+                    synths.victory = new Tone.Synth().toDestination();
+                    synths.gameOver = new Tone.Synth({ oscillator: { type: 'sawtooth' } }).toDestination();
+                    synths.infoUnlocked = new Tone.Synth().toDestination();
+                };
+                
+                return {
+                    async startAudio() {
+                        if (audioContextStarted) return;
+                        await Tone.start();
+                        audioContextStarted = true;
+                        console.log("AudioContext is ready.");
+                        initSynths();
+                    },
+
+                    playEffect(soundName) {
+                        if (!audioContextStarted) return;
+                        const now = Tone.now();
+                        try {
+                             switch(soundName) {
+                                case 'shoot': 
+                                    synths.shoot.triggerAttackRelease("G5", "32n", now);
+                                    break;
+                                case 'explosion': 
+                                    const synth = synths.explosionPool[synths.explosionPoolIndex];
+                                    synth.triggerAttackRelease("4n", now);
+                                    synths.explosionPoolIndex = (synths.explosionPoolIndex + 1) % synths.explosionPool.length;
+                                    break;
+                                case 'playerHit': 
+                                    synths.playerHit.triggerAttackRelease("C2", "8n", now);
+                                    break;
+                                case 'powerUp': 
+                                    synths.powerUp.triggerAttackRelease(["C5", "G5"], "16n", now);
+                                    break;
+                                case 'victory': 
+                                    synths.victory.triggerAttackRelease("C5", "8n", now);
+                                    synths.victory.triggerAttackRelease("E5", "8n", now + 0.2);
+                                    synths.victory.triggerAttackRelease("G5", "8n", now + 0.4);
+                                    synths.victory.triggerAttackRelease("C6", "4n", now + 0.6);
+                                    break;
+                                case 'gameOver': 
+                                    synths.gameOver.triggerAttackRelease("C3", "4n", now);
+                                    synths.gameOver.triggerAttackRelease("G2", "4n", now + 0.4);
+                                    break;
+                                case 'infoUnlocked': 
+                                    synths.infoUnlocked.triggerAttackRelease("A5", "16n", now);
+                                    break;
+                            }
+                        } catch (e) {
+                            console.error(`Error playing sound ${soundName}:`, e);
+                        }
+                    },
+
+                    startMusic() {
+                        if (!audioContextStarted || musicPlaying) return;
+                        this.stopMusic();
+                        musicPlaying = true;
+
+                        const kick = new Tone.MembraneSynth().toDestination();
+                        const snare = new Tone.NoiseSynth({ envelope: { attack: 0.005, decay: 0.2, sustain: 0 } }).toDestination();
+                        const bass = new Tone.MonoSynth({ oscillator: { type: "fmsquare" }, envelope: { attack: 0.01, release: 0.4 } }).toDestination();
+                        const arp = new Tone.FMSynth({ harmonicity: 3, modulationIndex: 10 }).toDestination();
+                        bass.volume.value = -10;
+                        arp.volume.value = -15;
+
+                        musicParts = [
+                            kick, snare, bass, arp,
+                            new Tone.Loop(time => kick.triggerAttackRelease("C2", "8n", time), "4n").start(0),
+                            new Tone.Loop(time => snare.triggerAttackRelease("16n", time), "2n").start("4n"),
+                            new Tone.Sequence((time, note) => bass.triggerAttackRelease(note, "16n", time), ["C2", null, "C2", null, "G1", null, "F1", null], "8n").start(0),
+                            new Tone.Sequence((time, note) => arp.triggerAttackRelease(note, "16n", time), ["C4", "Eb4", "G4", "Bb4", "C5", "Eb5", "G5", "Bb5"], "16n").start(0)
+                        ];
+                        
+                        Tone.Transport.bpm.value = 140;
+                        Tone.Transport.start();
+                    },
+
+                    stopMusic() {
+                        if (!musicPlaying && musicParts.length === 0) return;
+                        Tone.Transport.stop();
+                        Tone.Transport.cancel(0); 
+                        musicParts.forEach(part => part.dispose());
+                        musicParts = [];
+                        musicPlaying = false;
+                    }
+                };
+            }
+
+            return {
+                getInstance: () => {
+                    if (!instance) {
+                        instance = createInstance();
+                    }
+                    return instance;
+                }
+            };
+        })();
+        
+        // --- CẤU HÌNH GAME (CONFIG) ---
+        // Tối ưu: Gom tất cả các hằng số vào một object để dễ quản lý và tinh chỉnh.
+        const CONFIG = {
+            PLAYER_SPEED: 7,
+            BULLET_SPEED: 10,
+            ENEMY_BULLET_SPEED: 0.7,
+            PLAYER_SHOOT_COOLDOWN: 300,
+            LASER_SHOOT_COOLDOWN: 500,
+            INITIAL_LIVES: 3,
+            POWERUP_SPAWN_CHANCE: 0.05,
+            BOSS_POWERUP_SPAWN_CHANCE: 0.15,
+            ENEMY_FORMATION: {
+                ROWS: [10, 8],
+                PADDING_Y: 60,
+                START_Y: 60,
+                WIDTH_RATIO: 0.70,
+                AVG_ENEMY_WIDTH: 55,
+                MOVE_DOWN_STEP: 20,
+            },
+            ENEMY_TYPES: { 
+                nicotine: { 
+                    isBoss: true,
+                    displayName: "Nicotine – Kẻ Xiềng Xích", 
+                    templateId: 'enemy-nicotine-template', 
+                    scale: 1.2, baseWidth: 96, baseHeight: 128, score: 500, health: 500,
+                    taunts: [ "Bộ não của ngươi sẽ không thể sống thiếu ta!", "Ta sẽ khiến tim ngươi phải đập trong mệt mỏi!", "Nghiện ngập là không thể tránh khỏi!" ],
+                    slogan: "ĐỪNG ĐỂ NICOTINE XIỀNG XÍCH CUỘC SỐNG BẠN!",
+                    medicalInfo: "Theo WHO, Nicotine là chất gây nghiện cực mạnh. Nó tác động lên não chỉ trong 10 giây, làm tăng nhịp tim, huyết áp và là rào cản lớn nhất khiến người dùng không thể từ bỏ."
+                }, 
+                formaldehyde: { 
+                    isBoss: true,
+                    displayName: "Formaldehyde – Lọ Tử Thần", 
+                    templateId: 'enemy-formaldehyde-template', 
+                    scale: 1.2, baseWidth: 64, baseHeight: 80, score: 150, health: 150,
+                    taunts: [ "Ngươi sẽ bị ung thư phổi!", "Ta đang phá hủy từng tế bào của ngươi...", "Ho khan sẽ là bạn đồng hành của ngươi!" ],
+                    slogan: "LÁ PHỔI CỦA BẠN KHÔNG PHẢI LÀ LỌ ƯỚP XÁC!",
+                    medicalInfo: "IARC xếp Formaldehyde vào nhóm chất gây ung thư hàng đầu cho người. Hít phải chất này có thể gây ung thư vòm họng, mũi và bệnh bạch cầu (ung thư máu)."
+                }, 
+                acrolein: { 
+                    isBoss: true,
+                    displayName: "Acrolein – Ngọn Lửa Tàn Phá", 
+                    templateId: 'enemy-acrolein-template', 
+                    scale: 1.2, baseWidth: 64, baseHeight: 80, score: 150, health: 150,
+                    taunts: [ "Ta sẽ lấy đi hơi thở của ngươi!", "Lá phổi trong lành của ngươi sẽ sớm bị tổn thương vĩnh viễn!", "Diacetyl từ ta, thứ sẽ phá hủy phổi của ngươi!" ],
+                    slogan: "ĐỪNG ĐỂ NGỌN LỬA ACROLEIN THIÊU RỤI HƠI THỞ!",
+                    medicalInfo: "Theo CDC Hoa Kỳ, Acrolein gây tổn thương phổi không thể hồi phục, là nguyên nhân chính gây bệnh Phổi tắc nghẽn mạn tính (COPD) và hen suyễn."
+                }, 
+                tar: { 
+                    isBoss: false, displayName: "Hắc ín Tar", templateId: 'enemy-tar-template', scale: 0.7, baseWidth: 80, baseHeight: 96, score: 12, health: 1,
+                    slogan: "KHÓI THUỐC NHUỘM ĐEN LÁ PHỔI CỦA BẠN!",
+                    medicalInfo: "Là chất dính màu đen bám vào phổi như nhựa đường, phá hủy hệ thống phòng vệ tự nhiên của phổi, dẫn đến ho mạn tính và ung thư."
+                },
+                benzene: { 
+                    isBoss: false, displayName: "Tử Thần Benzene", templateId: 'enemy-benzene-template', scale: 0.8, baseWidth: 80, baseHeight: 96, score: 20, health: 1,
+                    slogan: "KHÓI THUỐC LÁ CHỨA CHẤT GÂY UNG THƯ MÁU!",
+                    medicalInfo: "Là một thành phần trong xăng, Benzene được IARC xếp vào nhóm chất gây ung thư hàng đầu, đặc biệt là bệnh bạch cầu (ung thư máu)."
+                }, 
+                pm25: { 
+                    isBoss: false, displayName: "Bụi Mịn PM2.5", templateId: 'enemy-pm25-template', scale: 0.9, baseWidth: 64, baseHeight: 64, score: 5, health: 1,
+                    slogan: "HÍT MỘT HƠI, RƯỚC HẠT SIÊU MỊN VÀO TẬN MÁU!",
+                    medicalInfo: "Theo WHO, các hạt siêu mịn PM2.5 trong khói thuốc đi sâu vào phổi và máu, gây ra các bệnh tim mạch, hô hấp và ung thư phổi."
+                },
+                co: { 
+                    isBoss: false, displayName: "Khí Độc CO", templateId: 'enemy-co-template', scale: 0.8, baseWidth: 64, baseHeight: 64, score: 8, health: 1,
+                    slogan: "ĐỪNG ĐỂ KHÍ ĐỘC CO CHIẾM LẤY OXY CỦA BẠN!",
+                    medicalInfo: "CO là khí độc không màu, không mùi. Nó chiếm chỗ của Oxy trong máu, khiến tim phải làm việc gắng sức, tăng nguy cơ nhồi máu cơ tim và đột quỵ."
+                }
+            }, 
+            POWERUP_TYPES: [ 
+                { type: 'spread-shot', duration: 10000, templateId: 'powerup-spread-template' }, 
+                { type: 'shield', duration: 10000, templateId: 'powerup-shield-template' }, 
+                { type: 'health', duration: 0, templateId: 'powerup-health-template' },
+                { type: 'laser', duration: 5000, templateId: 'powerup-laser-template' },
+                { type: 'slow', duration: 7000, templateId: 'powerup-slow-template' }
+            ],
+            DIFFICULTY_SETTINGS: { 
+                easy: { powerUpSpawnChance: 0.15, bossPowerUpSpawnChance: 0.30, scaleWithLevel: false }, 
+                hard: { powerUpSpawnChance: 0.05, bossPowerUpSpawnChance: 0.15, scaleWithLevel: true } 
+            },
+            TRIVIA_MESSAGES: [
+                "Một điếu thuốc chứa hơn 7.000 hóa chất, trong đó có ít nhất 69 chất được biết là gây ung thư.",
+                "Cứ sau 6 giây, trên thế giới lại có một người chết vì các bệnh liên quan đến thuốc lá.",
+                "90% các ca ung thư phổi trên toàn thế giới có nguyên nhân trực tiếp từ việc hút thuốc.",
+                "Người hút thuốc có nguy cơ bị đột quỵ cao gấp 2 đến 4 lần so với người không hút thuốc.",
+                "Hút thuốc lá làm tăng tốc độ lão hóa da, gây ra nếp nhăn sớm và da xỉn màu.",
+                "Người hít phải khói thuốc thụ động cũng có nguy cơ mắc các bệnh về tim và phổi tương tự người hút thuốc.",
+                "Thuốc lá điện tử không vô hại. Hơi của nó chứa các hạt siêu mịn và hóa chất độc hại có thể gây tổn thương phổi."
+            ]
+        };
+        
+        // --- LOGIC GAME ---
+        class InstructionManager {
+            constructor(game) {
+                this.game = game;
+                this.screen = document.getElementById('instructions-screen');
+                this.steps = this.screen.querySelectorAll('.instruction-step');
+                this.nextButton = document.getElementById('btnNextInstruction');
+                this.currentStep = 0;
+                this.nextButton.addEventListener('click', () => this.next());
+            }
+            start(isForced = false) {
+                this.isForcedFlow = isForced;
+                this.currentStep = 0;
+                this.game.showScreen(this.screen);
+                if(!this.game.isInstructionsInitialized) {
+                    this.game.initInstructionVisuals();
+                    this.game.isInstructionsInitialized = true;
+                }
+                this.updateView();
+            }
+            next() {
+                this.currentStep++;
+                if (this.currentStep >= this.steps.length) {
+                    this.close();
+                } else {
+                    this.updateView();
+                }
+            }
+            close() {
+                this.game.hideScreen(this.screen);
+                if(this.isForcedFlow) {
+                    this.game.showDifficultySelect();
+                } else {
+                    this.game.showMainMenu();
+                }
+            }
+            updateView() {
+                this.steps.forEach((step, index) => {
+                    step.classList.toggle('active', index === this.currentStep);
+                });
+                this.nextButton.textContent = (this.currentStep >= this.steps.length - 1) ? 'Bắt đầu!' : 'Tiếp tục';
+            }
+        }
+
+        class GameObject {
+            constructor(game, x, y) {
+                this.game = game;
+                this.x = x;
+                this.y = y;
+                this.width = 0;
+                this.height = 0;
+                this.element = null;
+                this.isDestroyed = false;
+                this.scale = 1;
+            }
+            update() {}
+            draw() {
+                if(this.element && !this.isDestroyed) {
+                    this.element.style.transform = `translate(${this.x}px, ${this.y}px) scale(${this.scale})`;
+                }
+            }
+            destroy() {
+                if (this.isDestroyed) return;
+                this.isDestroyed = true;
+                this.element?.remove();
+            }
+        }
+
+        class Player extends GameObject {
+            constructor(game) {
+                const initialY = game.container.offsetHeight - 112 - 20;
+                const initialX = game.container.offsetWidth / 2 - 40;
+                super(game, initialX, initialY);
+                const template = document.getElementById('player-template');
+                this.element = template.content.firstElementChild.cloneNode(true);
+                this.element.className = 'game-object player';
+                this.scale = 0.65; 
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px) scale(${this.scale})`;
+                this.game.container.appendChild(this.element);
+                this.width = 80 * this.scale;
+                this.height = 112 * this.scale;
+                this.canShoot = true;
+                this.isInvulnerable = false;
+                this.bulletLevel = 1;
+                this.powerUpTimeout = null;
+                this.isLaserActive = false;
+            }
+            update() {
+                // Sửa lỗi: Đảm bảo tốc độ di chuyển của người chơi không bị ảnh hưởng 
+                // bởi hiệu ứng làm chậm bằng cách sử dụng hằng số tốc độ gốc.
+                const playerSpeed = CONFIG.PLAYER_SPEED;
+
+                if (this.game.keys['ArrowLeft'] && this.x > 0) this.x -= playerSpeed;
+                if (this.game.keys['ArrowRight'] && this.x < this.game.container.offsetWidth - this.width) this.x += playerSpeed;
+                if (this.game.keys[' '] && this.canShoot) this.shoot();
+            }
+            draw() { super.draw(); }
+            shoot() {
+                this.canShoot = false;
+                if (this.isLaserActive) {
+                    this.fireLaser();
+                } else {
+                    this.fireBullets();
+                }
+                setTimeout(() => { this.canShoot = true; }, this.isLaserActive ? CONFIG.LASER_SHOOT_COOLDOWN : CONFIG.PLAYER_SHOOT_COOLDOWN);
+            }
+            fireBullets() {
+                this.game.soundManager.playEffect('shoot');
+                const createBullet = (speedX, speedY) => {
+                    const bullet = new Bullet(this.game, this.x + this.width / 2 - 4, this.y, speedX, speedY, true);
+                    this.game.gameObjects.push(bullet);
+                };
+                if (this.bulletLevel === 1) {
+                    createBullet(0, -CONFIG.BULLET_SPEED);
+                } else if (this.bulletLevel >= 2) {
+                    createBullet(-2, -CONFIG.BULLET_SPEED * 0.9);
+                    createBullet(0, -CONFIG.BULLET_SPEED);
+                    createBullet(2, -CONFIG.BULLET_SPEED * 0.9);
+                }
+            }
+            fireLaser() {
+                this.game.soundManager.playEffect('shoot');
+                const laser = new LaserBeam(this.game, this.x + this.width / 2 - 5, 0);
+                this.game.gameObjects.push(laser);
+            }
+            takeDamage() {
+                if (this.isInvulnerable) return;
+                this.game.soundManager.playEffect('playerHit');
+                this.game.createExplosion(this.x + this.width / 2 - 40, this.y + this.height / 2 - 40, true);
+                this.game.state.lives--;
+                this.game.updateUI();
+                this.isInvulnerable = true;
+                this.element.classList.add('hit');
+                setTimeout(() => {
+                    this.isInvulnerable = false;
+                    this.element.classList.remove('hit');
+                }, 1000);
+            }
+            activatePowerUp(type) {
+                this.game.soundManager.playEffect('powerUp');
+                clearTimeout(this.powerUpTimeout);
+                switch (type.type) {
+                    case 'spread-shot':
+                        this.bulletLevel = 2;
+                        this.powerUpTimeout = setTimeout(() => { this.bulletLevel = 1; }, type.duration);
+                        break;
+                    case 'shield':
+                        this.isInvulnerable = true;
+                        this.element.classList.add('shielded');
+                        setTimeout(() => {
+                            this.isInvulnerable = false;
+                            this.element.classList.remove('shielded');
+                        }, type.duration);
+                        break;
+                    case 'health':
+                        if (this.game.state.lives < CONFIG.INITIAL_LIVES) {
+                            this.game.state.lives++;
+                            this.game.updateUI();
+                        }
+                        break;
+                    case 'laser':
+                        this.isLaserActive = true;
+                        setTimeout(() => { this.isLaserActive = false; }, type.duration);
+                        break;
+                    case 'slow':
+                        this.game.activateSlowMotion(type.duration);
+                        break;
+                }
+            }
+        }
+
+        class Bullet extends GameObject {
+            constructor(game, x, y, speedX, speedY, isPlayerBullet = false) {
+                super(game, x, y);
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.isPlayerBullet = isPlayerBullet;
+                this.oldX = x;
+                this.oldY = y;
+                this.element = document.createElement('div');
+                this.element.className = isPlayerBullet ? 'game-object bullet' : 'game-object enemy-bullet';
+                this.game.container.appendChild(this.element);
+                this.width = this.element.offsetWidth;
+                this.height = this.element.offsetHeight;
+            }
+            update() {
+                this.oldX = this.x;
+                this.oldY = this.y;
+                const effectiveSpeed = this.isPlayerBullet ? 1 : this.game.state.timeScale;
+                this.x += this.speedX * effectiveSpeed;
+                this.y += this.speedY * effectiveSpeed;
+                if (this.y < -this.height || this.y > this.game.container.offsetHeight) {
+                    this.destroy();
+                }
+            }
+        }
+
+        class Enemy extends GameObject {
+            constructor(game, targetX, targetY, type) {
+                const fromLeft = Math.random() < 0.5;
+                super(game, fromLeft ? -100 : game.container.offsetWidth + 100, targetY);
+                this.type = type;
+                const config = CONFIG.ENEMY_TYPES[type];
+                this.config = config;
+                const template = document.getElementById(config.templateId);
+                this.element = template.content.firstElementChild.cloneNode(true);
+                this.element.className = 'game-object enemy';
+                this.scale = config.scale;
+                this.element.style.width = `${config.baseWidth}px`;
+                this.element.style.height = `${config.baseHeight}px`;
+                this.game.container.appendChild(this.element);
+                this.width = config.baseWidth * this.scale;
+                this.height = config.baseHeight * this.scale;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.isInFormation = false;
+                this.health = config.health;
+            }
+            update() {
+                if (!this.isInFormation) {
+                    const dx = this.targetX - this.x;
+                    const dy = this.targetY - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 5) {
+                        this.isInFormation = true;
+                        this.x = this.targetX;
+                        this.y = this.targetY;
+                    } else {
+                        const timeScale = this.game.state.timeScale;
+                        this.x += dx * 0.05 * timeScale;
+                        this.y += dy * 0.05 * timeScale;
+                    }
+                }
+            }
+            shoot() {
+                const bullet = new Bullet(this.game, this.x + this.width / 2 - 5, this.y + this.height, 0, CONFIG.ENEMY_BULLET_SPEED, false);
+                this.game.gameObjects.push(bullet);
+            }
+            takeDamage(amount) {
+                this.game.triggerScreenShake(); // Thêm hiệu ứng rung màn hình
+                this.health -= amount;
+                if (this.health <= 0) {
+                    this.destroy();
+                }
+            }
+            destroy() {
+                if (this.isDestroyed) return;
+                
+                // Đánh dấu đã bị hủy ngay lập tức để tránh tương tác kép
+                this.isDestroyed = true; 
+
+                this.game.soundManager.playEffect('explosion');
+                this.game.state.score += this.config.score * this.game.state.scoreMultiplier;
+                this.game.updateUI();
+                const spawnChance = this.game.state.gameType === 'endless' ? 0.4 : CONFIG.DIFFICULTY_SETTINGS[this.game.state.difficulty].powerUpSpawnChance;
+                if (Math.random() < spawnChance) {
+                    this.game.spawnPowerUp(this.x + this.width / 2 - 25, this.y + this.height / 2 - 25);
+                }
+                
+                // Hiệu ứng nổ duy nhất, đảm bảo không có xung đột.
+                this.game.createExplosion(this.x + this.width / 2 - 40, this.y + this.height / 2 - 40);
+                this.game.markEnemyAsDefeated(this.type);
+                
+                // Xóa element của kẻ địch ngay lập tức.
+                this.element?.remove();
+            }
+        }
+
+        class Boss extends Enemy {
+            constructor(game, type, scale, health, yPos, isMainBoss = false) {
+                const xPos = game.container.offsetWidth / 2;
+                super(game, xPos, yPos, type);
+                this.health = health;
+                this.maxHealth = health;
+                this.isMainBoss = isMainBoss;
+                this.isInFormation = true;
+                this.canTaunt = true;
+                this.element.classList.add('boss');
+                this.scale = scale;
+                this.direction = Math.random() < 0.5 ? 1 : -1;
+                this.width = this.config.baseWidth * this.scale;
+                this.height = this.config.baseHeight * this.scale;
+                this.x = xPos - this.width / 2;
+                this.initialY = yPos;
+                this.bobbingAngle = Math.random() * Math.PI * 2;
+                this.taunts = this.config.taunts || [];
+                this.createInfoDisplay();
+                this.updateHealthBar();
+            }
+            createInfoDisplay() {
+                this.infoContainer = document.createElement('div');
+                this.infoContainer.className = 'boss-info-container';
+                const nameElement = document.createElement('div');
+                nameElement.className = 'boss-name';
+                nameElement.textContent = this.config.displayName;
+                this.infoContainer.appendChild(nameElement);
+                this.healthBarContainer = document.createElement('div');
+                this.healthBarContainer.className = 'health-bar-container';
+                this.healthBar = document.createElement('div');
+                this.healthBar.className = 'health-bar';
+                this.healthBarContainer.appendChild(this.healthBar);
+                this.infoContainer.appendChild(this.healthBarContainer);
+                this.game.container.appendChild(this.infoContainer);
+            }
+            update() {
+                const timeScale = this.game.state.timeScale;
+                this.bobbingAngle += 0.02 * timeScale;
+                this.y = this.initialY + Math.sin(this.bobbingAngle) * 5;
+                this.x += this.game.state.bossSpeed * this.direction * timeScale;
+                if ((this.x + this.width >= this.game.container.offsetWidth && this.direction > 0) || (this.x <= 0 && this.direction < 0)) {
+                    this.direction *= -1;
+                }
+            }
+            draw() {
+                super.draw();
+                if (this.infoContainer) {
+                    const bossCenterX = this.x + this.width / 2;
+                    const infoY = this.y + this.height + 10;
+                    // Kỹ thuật căn giữa bằng transform: Dịch chuyển container đến giữa boss, sau đó kéo ngược lại 50% chiều rộng của chính nó.
+                    this.infoContainer.style.transform = `translate(${bossCenterX}px, ${infoY}px) translateX(-50%)`;
+                }
+            }
+            takeDamage(amount) {
+                this.game.triggerScreenShake(); // Thêm hiệu ứng rung màn hình
+                this.health -= amount;
+                this.updateHealthBar();
+                this.element.classList.add('hit');
+                this.sayTaunt();
+                setTimeout(() => this.element.classList.remove('hit'), 100);
+                const spawnChance = this.game.state.gameType === 'endless' ? 0.4 : CONFIG.DIFFICULTY_SETTINGS[this.game.state.difficulty].bossPowerUpSpawnChance;
+                if (Math.random() < spawnChance) {
+                    this.game.spawnPowerUp(this.x + this.width / 2, this.y + this.height / 2);
+                }
+                if (this.health <= 0) {
+                    this.handleDefeat();
+                }
+            }
+            handleDefeat() {
+                this.game.state.score += this.config.score * this.game.state.scoreMultiplier;
+                this.game.updateUI();
+
+                if (this.isMainBoss) {
+                    this.game.boss = null;
+                    if (this.game.state.gameType === 'endless') {
+                        this.game.startNewLoop();
+                    } else {
+                        this.game.showVictoryScreen();
+                    }
+                } else {
+                    this.game.miniBosses = this.game.miniBosses.filter(b => b !== this);
+                }
+                this.destroy();
+            }
+            sayTaunt() {
+                if (!this.canTaunt || this.taunts.length === 0) return;
+                this.canTaunt = false;
+                const taunt = this.taunts[Math.floor(Math.random() * this.taunts.length)];
+                const bubble = document.createElement('div');
+                bubble.className = 'speech-bubble';
+                bubble.textContent = taunt;
+                this.infoContainer.appendChild(bubble);
+                setTimeout(() => {
+                    bubble.remove();
+                    this.canTaunt = true;
+                }, 5000);
+            }
+            updateHealthBar() {
+                const percentage = (this.health / this.maxHealth) * 100;
+                this.healthBar.style.width = `${Math.max(0, percentage)}%`;
+            }
+            destroy() {
+                this.infoContainer?.remove();
+                super.destroy();
+            }
+        }
+
+        class PowerUp extends GameObject {
+            constructor(game, x, y, type) {
+                super(game, x, y);
+                this.powerUpType = type;
+                this.element = document.createElement('div');
+                this.element.className = 'game-object';
+                const template = document.getElementById(type.templateId);
+                const visualElement = template.content.firstElementChild.cloneNode(true);
+                this.element.appendChild(visualElement);
+                this.element.style.transform = `translate(${x}px, ${y}px)`;
+                this.game.container.appendChild(this.element);
+                this.width = 50;
+                this.height = 50;
+            }
+            update() {
+                this.y += 2 * this.game.state.timeScale;
+                if (this.y > this.game.container.offsetHeight) {
+                    this.destroy();
+                }
+            }
+        }
+
+        class LaserBeam extends GameObject {
+            constructor(game, x, y) {
+                super(game, x, y);
+                this.width = 10;
+                this.height = this.game.container.offsetHeight;
+                this.element = document.createElement('div');
+                this.element.className = 'game-object';
+                this.element.style.width = `${this.width}px`;
+                this.element.style.height = `${this.height}px`;
+                this.element.style.background = 'linear-gradient(to top, #ef4444, #f87171, white)';
+                this.element.style.boxShadow = '0 0 15px red';
+                this.element.style.borderRadius = '5px';
+                this.game.container.appendChild(this.element);
+
+                // Kiểm tra va chạm ngay lập tức
+                const enemies = this.game.gameObjects.filter(g => g instanceof Enemy);
+                for (const enemy of enemies) {
+                    if (this.game.isAABBColliding(this, enemy)) {
+                        if (enemy instanceof Boss) {
+                            const damage = enemy.isMainBoss ? (enemy.maxHealth / 5) : (enemy.maxHealth / 4);
+                            enemy.takeDamage(damage);
+                        } else {
+                            enemy.takeDamage(1000);
+                        }
+                    }
+                }
+                setTimeout(() => this.destroy(), 100);
+            }
+        }
+
+        class Game {
+            constructor() {
+                this.container = document.getElementById('game-container');
+                if (!this.container) { console.error('Không tìm thấy game container!'); return; }
+                this.soundManager = SoundManager.getInstance();
+                this.initDOM();
+                this.initProperties();
+                this.setupEventListeners();
+                this.showMainMenu();
+            }
+
+            initDOM() {
+                // Tối ưu: gom tất cả các element vào một object để truy cập dễ hơn
+                this.dom = {
+                    mainMenu: document.getElementById('main-menu'),
+                    gameWrapper: document.getElementById('game-wrapper'),
+                    scoreDisplay: document.getElementById('score-display'),
+                    livesDisplay: document.getElementById('lives-display'),
+                    levelDisplay: document.getElementById('level-display'),
+                    difficultyScreen: document.getElementById('difficulty-screen'),
+                    messageOverlay: document.getElementById('message-overlay'),
+                    messageBox: document.getElementById('message-box'),
+                    easyButton: document.getElementById('easy-button'),
+                    hardButton: document.getElementById('hard-button'),
+                    endlessButton: document.getElementById('endless-button'),
+                    btnStartGame: document.getElementById('btnStartGame'),
+                    btnShowInstructions: document.getElementById('btnShowInstructions'),
+                    btnReset: document.getElementById('btnReset'),
+                    moveLeftBtn: document.getElementById('move-left-btn'),
+                    moveRightBtn: document.getElementById('move-right-btn'),
+                    shootBtn: document.getElementById('shoot-btn'),
+                    enemyInfoList: document.getElementById('enemy-info-list'),
+                    knowledgeLibraryContent: document.getElementById('knowledge-library-content'),
+                    instructionsScreen: document.getElementById('instructions-screen')
+                };
+                
+                this.instructionManager = new InstructionManager(this);
+                this.isInstructionsInitialized = false;
+            }
+            
+            initProperties() {
+                // Tối ưu: gom trạng thái game vào một object riêng (this.state)
+                this.state = {
+                    score: 0,
+                    lives: CONFIG.INITIAL_LIVES,
+                    level: 1,
+                    difficulty: 'easy',
+                    gameType: 'story',
+                    loopCount: 1,
+                    scoreMultiplier: 1,
+                    timeScale: 1,
+                    isPaused: false,
+                    gameMode: 'menu', // menu, wave, miniboss, boss
+                    enemyDirection: 1,
+                    enemyMoveDown: false,
+                    allEnemiesInFormation: false,
+                    enemySpeed: 0.5,
+                    bossSpeed: 0.5,
+                    miniBossesSpawned: false,
+                };
+
+                this.gameObjects = [];
+                this.player = null;
+                this.boss = null;
+                this.miniBosses = [];
+                this.keys = {};
+                this.gameLoopId = null;
+                this.intervals = {}; // Quản lý các interval
+                this.defeatedEnemies = new Set();
+            }
+
+            setupEventListeners() {
+                // Nhóm các event listeners lại với nhau
+                window.addEventListener('keydown', (e) => this.keys[e.key] = true);
+                window.addEventListener('keyup', (e) => this.keys[e.key] = false);
+                window.addEventListener('resize', this.debounce(this.handleResize.bind(this), 250));
+
+                this.dom.btnStartGame.addEventListener('click', async () => {
+                    await this.soundManager.startAudio();
+                    this.soundManager.startMusic();
+                    this.instructionManager.start(true);
+                });
+                this.dom.btnShowInstructions.addEventListener('click', async () => {
+                    await this.soundManager.startAudio();
+                    this.instructionManager.start(false);
+                });
+                this.dom.btnReset.addEventListener('click', () => this.showMainMenu());
+
+                this.dom.easyButton.addEventListener('click', () => this.startGame('easy', 'story'));
+                this.dom.hardButton.addEventListener('click', () => this.startGame('hard', 'story'));
+                this.dom.endlessButton.addEventListener('click', () => {
+                    if (!this.dom.endlessButton.disabled) {
+                        this.startGame('hard', 'endless');
+                    }
+                });
+
+                this.dom.messageOverlay.addEventListener('click', (e) => {
+                    const targetId = e.target.id;
+                    if (targetId === 'restart-button' || targetId === 'restart-victory-button') {
+                        this.resetAndGoToDifficultySelect();
+                    } else if (targetId === 'proceed-to-final-boss') {
+                        this.initMainBossPhase();
+                    }
+                });
+
+                const setupMobileButton = (button, key) => {
+                    button.addEventListener('touchstart', (e) => { e.preventDefault(); this.keys[key] = true; }, { passive: false });
+                    button.addEventListener('touchend', (e) => { e.preventDefault(); this.keys[key] = false; });
+                };
+                setupMobileButton(this.dom.moveLeftBtn, 'ArrowLeft');
+                setupMobileButton(this.dom.moveRightBtn, 'ArrowRight');
+                setupMobileButton(this.dom.shootBtn, ' ');
+            }
+            
+            // --- Quản lý màn hình và trạng thái ---
+            showScreen(screenElement) {
+                screenElement.classList.remove('hidden');
+            }
+
+            hideScreen(screenElement) {
+                screenElement.classList.add('hidden');
+            }
+
+            showMainMenu() {
+                this.soundManager.stopMusic();
+                this.cleanUpGameSession();
+                this.hideScreen(this.dom.gameWrapper);
+                this.hideScreen(this.dom.instructionsScreen);
+                this.showScreen(this.dom.mainMenu);
+            }
+
+            cleanUpGameSession() {
+                if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+                Object.values(this.intervals).forEach(clearInterval);
+                this.intervals = {};
+
+                // Sửa lỗi: Dọn dẹp triệt để tất cả các đối tượng game khỏi DOM,
+                // bao gồm cả các hiệu ứng nổ có thể còn sót lại.
+                const children = Array.from(this.container.children);
+                children.forEach(child => {
+                    if (child.id !== 'game-info' && child.id !== 'mobile-controls') {
+                        child.remove();
+                    }
+                });
+
+                // Dọn dẹp mảng và các thuộc tính khác
+                this.gameObjects = [];
+                this.player = null;
+                this.boss = null;
+                this.miniBosses = [];
+            }
+            
+            async startGame(difficulty, gameType) {
+                this.hideScreen(this.dom.difficultyScreen);
+                await this.soundManager.startAudio();
+                this.soundManager.startMusic();
+                this.initGameSession(difficulty, gameType);
+                this.startWaveLevel();
+                this.gameLoop();
+            }
+
+            initGameSession(difficulty, gameType) {
+                this.cleanUpGameSession();
+                this.initProperties(); // Reset lại state
+                
+                this.state.difficulty = difficulty;
+                this.state.gameType = gameType;
+
+                this.setupSidePanels(); 
+                this.updateUI();
+                this.player = new Player(this);
+                this.gameObjects.push(this.player);
+                this.hideScreen(this.dom.messageOverlay);
+            }
+            
+            updateUI() {
+                if (this.state.gameType === 'endless') {
+                    this.dom.levelDisplay.textContent = `Vòng ${this.state.loopCount} - Màn ${this.state.level}`;
+                } else {
+                    this.dom.levelDisplay.textContent = `Màn: ${this.state.level}`;
+                }
+                this.dom.scoreDisplay.textContent = `Điểm: ${this.state.score}`;
+                this.dom.livesDisplay.innerHTML = '❤️'.repeat(this.state.lives);
+            }
+            
+            // --- Game Loop chính ---
+            gameLoop = () => {
+                if (!this.state.isPaused) {
+                    this.update();
+                    this.draw();
+                }
+                this.gameLoopId = requestAnimationFrame(this.gameLoop);
+            }
+            update() {
+                this.gameObjects.forEach(obj => obj.update());
+                this.gameObjects = this.gameObjects.filter(obj => !obj.isDestroyed);
+                if (this.state.gameMode === 'wave') this.moveEnemies();
+                this.checkCollisions();
+                this.checkGameFlow();
+            }
+            draw() {
+                this.gameObjects.forEach(obj => obj.draw());
+            }
+
+            // --- Logic cốt lõi của game ---
+            startWaveLevel() { 
+                this.state.gameMode = 'wave'; 
+                const settings = CONFIG.DIFFICULTY_SETTINGS[this.state.difficulty]; 
+                const speedScale = (this.state.gameType === 'endless') ? (1 + (this.state.loopCount - 1) * 0.15) : 1;
+                this.state.enemySpeed = (0.5 + (settings.scaleWithLevel ? this.state.level * 0.15 : 0)) * speedScale; 
+                this.state.allEnemiesInFormation = false; 
+                
+                const randomTrivia = CONFIG.TRIVIA_MESSAGES[Math.floor(Math.random() * CONFIG.TRIVIA_MESSAGES.length)];
+                let levelText = `Bắt đầu Màn ${this.state.level}`;
+                if (this.state.gameType === 'endless') {
+                    levelText = `Bắt đầu Vòng ${this.state.loopCount} - Màn ${this.state.level}`;
+                }
+                const messageHtml = `
+                    <h1>SỰ THẬT PHŨ PHÀNG</h1>
+                    <p>${randomTrivia}</p>
+                    <div class="level-start-info">${levelText}</div>
+                `;
+                this.showMessage(messageHtml, 'trivia-box');
+                
+                if (this.intervals.enemyShoot) clearInterval(this.intervals.enemyShoot); 
+                const shootInterval = Math.max(500, (2500 - (settings.scaleWithLevel ? this.state.level * 200 : 0)) * (settings.scaleWithLevel ? 1 : 1.5) ); 
+                this.intervals.enemyShoot = setInterval(() => this.enemyShoot(), shootInterval); 
+                
+                setTimeout(() => { 
+                    this.hideScreen(this.dom.messageOverlay);
+                    this.state.isPaused = false; 
+                    this.createEnemyFormation(); 
+                }, 5000); 
+                
+                this.updateUI(); 
+            }
+
+            createEnemyFormation() {
+                const { ROWS, PADDING_Y, START_Y, WIDTH_RATIO, AVG_ENEMY_WIDTH } = CONFIG.ENEMY_FORMATION;
+                let enemyPool = ['pm25'];
+                if (this.state.level >= 2) enemyPool.push('co');
+                if (this.state.level >= 3) enemyPool.push('tar');
+                if (this.state.level >= 4) enemyPool.push('benzene');
+
+                const containerWidth = this.container.offsetWidth;
+                const targetFormationWidth = containerWidth * WIDTH_RATIO;
+
+                for (let rowIndex = 0; rowIndex < ROWS.length; rowIndex++) {
+                    let maxCols = ROWS[rowIndex];
+                    let estimatedCols = Math.floor(targetFormationWidth / AVG_ENEMY_WIDTH);
+                    let cols = Math.max(4, Math.min(maxCols, estimatedCols)); 
+
+                    let rowEnemiesInfo = [];
+                    let totalEnemyWidth = 0;
+                    for (let i = 0; i < cols; i++) {
+                        let enemyType = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+                        const config = CONFIG.ENEMY_TYPES[enemyType];
+                        const enemyWidth = config.baseWidth * config.scale;
+                        rowEnemiesInfo.push({ type: enemyType, width: enemyWidth });
+                        totalEnemyWidth += enemyWidth;
+                    }
+
+                    let paddingX = (cols > 1) ? (targetFormationWidth - totalEnemyWidth) / (cols - 1) : 0;
+                    const finalFormationWidth = totalEnemyWidth + (cols > 1 ? (cols - 1) * paddingX : 0);
+                    let startX = (containerWidth - finalFormationWidth) / 2;
+
+                    let currentX = startX;
+                    const targetY = START_Y + rowIndex * PADDING_Y;
+                    
+                    for (const enemyInfo of rowEnemiesInfo) {
+                        const enemy = new Enemy(this, currentX, targetY, enemyInfo.type);
+                        this.gameObjects.push(enemy);
+                        currentX += enemyInfo.width + paddingX;
+                    }
+                }
+            }
+
+            moveEnemies() {
+                const enemies = this.gameObjects.filter(g => g instanceof Enemy && !(g instanceof Boss));
+                if (enemies.length === 0) return;
+
+                if (!this.state.allEnemiesInFormation) {
+                    this.state.allEnemiesInFormation = enemies.every(e => e.isInFormation);
+                }
+
+                if (this.state.allEnemiesInFormation) {
+                    this.state.enemyMoveDown = false;
+                    const { minX, maxX } = enemies.reduce((acc, e) => ({
+                        minX: Math.min(acc.minX, e.x),
+                        maxX: Math.max(acc.maxX, e.x + e.width)
+                    }), { minX: Infinity, maxX: -Infinity });
+                    
+                    if ((maxX >= this.container.offsetWidth && this.state.enemyDirection > 0) || (minX <= 0 && this.state.enemyDirection < 0)) {
+                        this.state.enemyDirection *= -1;
+                        this.state.enemyMoveDown = true;
+                    }
+                    const { MOVE_DOWN_STEP } = CONFIG.ENEMY_FORMATION;
+                    enemies.forEach(e => {
+                        e.x += this.state.enemySpeed * this.state.enemyDirection;
+                        if (this.state.enemyMoveDown) {
+                            e.y += MOVE_DOWN_STEP;
+                            e.targetY += MOVE_DOWN_STEP; 
+                        }
+                    });
+                }
+            }
+
+            enemyShoot() {
+                const enemiesInFormation = this.gameObjects.filter(g => g instanceof Enemy && !(g instanceof Boss) && g.isInFormation);
+                if (enemiesInFormation.length > 0) {
+                    const shootingEnemy = enemiesInFormation[Math.floor(Math.random() * enemiesInFormation.length)];
+                    shootingEnemy.shoot();
+                }
+            }
+            
+            checkGameFlow() { 
+                const enemies = this.gameObjects.filter(g => g instanceof Enemy && !(g instanceof Boss)); 
+                if (this.state.gameMode === 'wave' && enemies.length === 0 && this.state.allEnemiesInFormation) { 
+                    if (this.state.level < 5) { 
+                        this.state.level++; 
+                        this.startWaveLevel(); 
+                    } else { 
+                        this.startMiniBossPhase(); 
+                    } 
+                } else if (this.state.gameMode === 'miniboss' && this.miniBosses.length === 0 && this.state.miniBossesSpawned) { 
+                    this.showMiniBossDebrief(); 
+                } 
+            }
+            
+            startMiniBossPhase() {
+                this.state.gameMode = 'miniboss';
+                this.updateUI();
+                this.showMessage('<h1>⚠️ MINI BOSS XUẤT HIỆN ⚠️</h1>');
+                
+                setTimeout(() => {
+                    this.hideScreen(this.dom.messageOverlay);
+                    this.state.isPaused = false;
+                    const settings = CONFIG.DIFFICULTY_SETTINGS[this.state.difficulty];
+                    const shootInterval = Math.max(500, (1200 - (settings.scaleWithLevel ? (this.state.level - 5) * 100 : 0)) * (settings.scaleWithLevel ? 1 : 1.5));
+                    
+                    const healthScale = (this.state.gameType === 'endless') ? (1 + (this.state.loopCount - 1) * 0.5) : 1;
+                    
+                    const { acrolein, formaldehyde } = CONFIG.ENEMY_TYPES;
+                    const boss1 = new Boss(this, 'acrolein', acrolein.scale, acrolein.health * healthScale, 100);
+                    const boss2 = new Boss(this, 'formaldehyde', formaldehyde.scale, formaldehyde.health * healthScale, 100);
+                    
+                    const quarterWidth = this.container.offsetWidth / 4;
+                    boss1.x = quarterWidth - boss1.width / 2;
+                    boss2.x = (quarterWidth * 3) - boss2.width / 2;
+                    
+                    this.miniBosses.push(boss1, boss2);
+                    this.gameObjects.push(boss1, boss2);
+                    this.state.miniBossesSpawned = true;
+                    
+                    if(this.intervals.bossShoot) clearInterval(this.intervals.bossShoot);
+                    this.intervals.bossShoot = setInterval(() => this.miniBosses.forEach(b => { if(!b.isDestroyed) b.shoot() }), shootInterval);
+                }, 4000);
+            }
+
+            showMiniBossDebrief() {
+                this.state.gameMode = 'debrief';
+                if(this.intervals.bossShoot) clearInterval(this.intervals.bossShoot);
+                
+                const { acrolein, formaldehyde } = CONFIG.ENEMY_TYPES;
+                const debriefHtml = `
+                    <h1>MINI-BOSS ĐÃ BỊ TIÊU DIỆT</h1>
+                    <p>Bạn đã vô hiệu hóa hai hóa chất cực độc có trong thuốc lá!</p>
+                    <div class="debrief-card"><h3>${acrolein.displayName}</h3><p><strong class="slogan">${acrolein.slogan}</strong><strong>Kiến thức:</strong> ${acrolein.medicalInfo}</p></div>
+                    <div class="debrief-card"><h3>${formaldehyde.displayName}</h3><p><strong class="slogan">${formaldehyde.slogan}</strong><strong>Kiến thức:</strong> ${formaldehyde.medicalInfo}</p></div>
+                    <div class="overlay-buttons"><button id="proceed-to-final-boss">Đối mặt Trùm Cuối!</button></div>`;
+                this.showMessage(debriefHtml);
+            }
+            
+            initMainBossPhase() {
+                this.state.gameMode = 'boss';
+                const settings = CONFIG.DIFFICULTY_SETTINGS[this.state.difficulty];
+                this.state.bossSpeed = 0.5 + (settings.scaleWithLevel ? (this.state.level - 5) * 0.1 : 0);
+                const shootInterval = Math.max(400, (1000 - (settings.scaleWithLevel ? (this.state.level - 5) * 100 : 0)) * (settings.scaleWithLevel ? 1 : 1.5));
+                const { nicotine } = CONFIG.ENEMY_TYPES;
+                
+                this.updateUI();
+                this.showMessage(`<h1>⚠️ ${nicotine.displayName} ⚠️`);
+
+                setTimeout(() => {
+                    this.hideScreen(this.dom.messageOverlay);
+                    this.state.isPaused = false;
+                    const healthScale = (this.state.gameType === 'endless') ? (1 + (this.state.loopCount - 1) * 0.5) : 1;
+                    const bossHealth = (nicotine.health + (settings.scaleWithLevel ? (this.state.level - 5) * 50 : 0)) * healthScale;
+
+                    this.boss = new Boss(this, "nicotine", nicotine.scale, bossHealth, 100, true);
+                    this.gameObjects.push(this.boss);
+                    if(this.intervals.bossShoot) clearInterval(this.intervals.bossShoot);
+                    this.intervals.bossShoot = setInterval(() => { if (this.boss && !this.boss.isDestroyed) this.boss.shoot() }, shootInterval);
+                }, 4000);
+            }
+            
+            // --- Quản lý kết thúc game ---
+            endGame() {
+                this.soundManager.stopMusic();
+                this.state.isPaused = true;
+                if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+                Object.values(this.intervals).forEach(clearInterval);
+                this.soundManager.playEffect('gameOver');
+                this.showMessage(`<h1>Trò Chơi Kết Thúc</h1><p>Điểm của bạn: ${this.state.score}</p><div class="overlay-buttons"><button id="restart-button">Chơi Lại</button></div>`);
+            }
+            
+            showVictoryScreen() {
+                this.soundManager.stopMusic();
+                this.cleanUpGameSession();
+                this.state.isPaused = true;
+                this.soundManager.playEffect('victory');
+                localStorage.setItem('gameCompleted', 'true');
+
+                const { nicotine } = CONFIG.ENEMY_TYPES;
+                const victoryHtml = `<h1>CHIẾN THẮNG!</h1>
+                    <p>Bạn đã đánh bại kẻ đầu sỏ và bảo vệ thành công Hơi Thở Xanh!</p>
+                    <div class="debrief-card">
+                        <h3>${nicotine.displayName}</h3>
+                        <p><strong class="slogan">${nicotine.slogan}</strong><strong>Kiến thức:</strong> ${nicotine.medicalInfo}</p>
+                    </div>
+                    <p style="margin-top: 20px;">Hãy chọn hành động tiếp theo!</p>
+                    <div class="overlay-buttons">
+                        <button id="restart-victory-button">Chơi Lại</button>
+                        <a href="bansungquakimcuong.html" class="button-link highlighted-button">Tiếp Tục</a>
+                        <a href="index.html" class="button-link">Về Trang Chính</a>
+                    </div>`;
+                this.showMessage(victoryHtml);
+            }
+            
+            showDifficultySelect() {
+                this.hideScreen(this.dom.mainMenu);
+                this.showScreen(this.dom.gameWrapper);
+                this.showScreen(this.dom.difficultyScreen);
+                if (localStorage.getItem('gameCompleted') === 'true') {
+                    this.dom.endlessButton.disabled = false;
+                }
+            }
+            
+            resetAndGoToDifficultySelect() {
+                this.hideScreen(this.dom.messageOverlay);
+                this.state.isPaused = false;
+                this.cleanUpGameSession();
+                this.showDifficultySelect();
+            }
+
+            startNewLoop() {
+                this.state.loopCount++;
+                this.state.scoreMultiplier += 0.5;
+                this.state.level = 1;
+                this.boss = null;
+                this.miniBosses = [];
+                
+                // Sửa lỗi: Dọn dẹp triệt để tất cả các đối tượng game cũ khỏi DOM
+                // chỉ giữ lại tàu của người chơi.
+                this.gameObjects.forEach(g => {
+                    if (!(g instanceof Player)) {
+                        g.destroy(); // Gọi destroy để đảm bảo isDestroyed = true
+                    }
+                });
+                this.gameObjects = this.gameObjects.filter(g => g instanceof Player);
+
+                // Thêm bước dọn dẹp DOM trực tiếp để xóa các phần tử mồ côi (như hiệu ứng nổ)
+                const children = Array.from(this.container.children);
+                children.forEach(child => {
+                    // Giữ lại HUD, nút điều khiển và tàu của người chơi
+                    if (child.id !== 'game-info' && child.id !== 'mobile-controls' && !child.classList.contains('player')) {
+                        child.remove();
+                    }
+                });
+                
+                const messageHtml = `<h1>BẮT ĐẦU VÒNG LẶP ${this.state.loopCount}</h1><p>Độ khó đã tăng. Điểm nhận được x${this.state.scoreMultiplier}!</p>`;
+                this.showMessage(messageHtml);
+
+                setTimeout(() => {
+                    this.hideScreen(this.dom.messageOverlay);
+                    this.state.isPaused = false;
+                    this.startWaveLevel();
+                }, 4000);
+            }
+
+            // --- Các hàm tiện ích (Helpers) ---
+            triggerScreenShake() {
+                // Tối ưu: kiểm tra để không thêm class nếu animation đang chạy
+                if (!this.container.classList.contains('screen-shake')) {
+                    this.container.classList.add('screen-shake');
+                    setTimeout(() => this.container.classList.remove('screen-shake'), 150);
+                }
+            }
+
+            checkCollisions() {
+                const bullets = this.gameObjects.filter(g => g instanceof Bullet && g.isPlayerBullet);
+                const enemyBullets = this.gameObjects.filter(g => g instanceof Bullet && !g.isPlayerBullet);
+                const enemies = this.gameObjects.filter(g => g instanceof Enemy && !(g instanceof Boss));
+                const allBosses = [...this.miniBosses, this.boss].filter(Boolean);
+                const powerUps = this.gameObjects.filter(g => g instanceof PowerUp);
+
+                for (const bullet of bullets) {
+                    if (bullet.isDestroyed) continue;
+                    let closestTarget = null;
+                    let maxTargetY = -1;
+                    const potentialTargets = [...enemies, ...allBosses];
+
+                    for (const target of potentialTargets) {
+                        if (target.isDestroyed) continue;
+                        if (this.isPathColliding(bullet, target)) {
+                            if (target.y > maxTargetY) {
+                                maxTargetY = target.y;
+                                closestTarget = target;
+                            }
+                        }
+                    }
+
+                    if (closestTarget) {
+                        const damage = (closestTarget instanceof Boss) ? 5 : 1;
+                        closestTarget.takeDamage(damage);
+                        bullet.destroy();
+                    }
+                }
+
+                if (this.player && !this.player.isInvulnerable) {
+                    const threats = [...enemyBullets, ...enemies, ...allBosses];
+                    for (const threat of threats) {
+                        if (!threat.isDestroyed && this.isAABBColliding(threat, this.player)) {
+                            this.player.takeDamage();
+                            if (threat instanceof Enemy) threat.takeDamage(1000); 
+                            else threat.destroy();
+                            if (this.state.lives <= 0) this.endGame();
+                            return; // Chỉ xử lý một va chạm mỗi frame
+                        }
+                    }
+                }
+
+                for (const p of powerUps) {
+                    if (this.player && !p.isDestroyed && this.isAABBColliding(p, this.player)) {
+                        this.player.activatePowerUp(p.powerUpType);
+                        p.destroy();
+                    }
+                }
+            }
+
+            isAABBColliding(a, b) {
+                if (!a || !b || a.isDestroyed || b.isDestroyed) return false;
+                return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+            }
+
+            isPathColliding(bullet, target) {
+                if (!bullet || !target || bullet.isDestroyed || target.isDestroyed) return false;
+                const pathMinX = Math.min(bullet.oldX, bullet.x);
+                const pathMaxX = Math.max(bullet.oldX, bullet.x) + bullet.width;
+                const pathMinY = Math.min(bullet.oldY, bullet.y);
+                const pathMaxY = Math.max(bullet.oldY, bullet.y) + bullet.height;
+                return pathMaxX > target.x && pathMinX < target.x + target.width && pathMaxY > target.y && pathMinY < target.y + target.height;
+            }
+
+            showMessage(htmlContent, boxClass = '') {
+                this.state.isPaused = true;
+                this.dom.messageBox.innerHTML = htmlContent;
+                this.dom.messageBox.className = `overlay-box ${boxClass}`;
+                this.showScreen(this.dom.messageOverlay);
+            }
+
+            activateSlowMotion(duration) {
+                this.state.timeScale = 0.5;
+                setTimeout(() => { this.state.timeScale = 1; }, duration);
+            }
+
+            spawnPowerUp(x, y) {
+                const type = CONFIG.POWERUP_TYPES[Math.floor(Math.random() * CONFIG.POWERUP_TYPES.length)];
+                const powerUp = new PowerUp(this, x, y, type);
+                this.gameObjects.push(powerUp);
+            }
+
+            createExplosion(x, y, isPlayerHit = false) {
+                // Sửa lỗi triệt để: Sử dụng một 'positioner' div riêng để định vị
+                // và một 'effect' div riêng cho animation, tránh xung đột thuộc tính 'transform' của CSS.
+
+                // 1. Div định vị (Positioner)
+                const positioner = document.createElement('div');
+                // Class 'game-object' cung cấp position:absolute và gốc toạ độ (0,0)
+                positioner.className = 'game-object';
+                // Dùng transform:translate để di chuyển positioner đến đúng vị trí.
+                positioner.style.transform = `translate(${x}px, ${y}px)`;
+                positioner.style.zIndex = '8';
+
+                // 2. Div hiệu ứng (Effect)
+                const explosionEffect = document.createElement('div');
+                // Div này chỉ chạy animation 'explosion' (dùng transform:scale)
+                explosionEffect.className = `explosion ${isPlayerHit ? 'player-explosion' : ''}`;
+                
+                // 3. Gắn chúng lại với nhau và thêm vào game
+                positioner.appendChild(explosionEffect);
+                this.container.appendChild(positioner);
+                
+                // 4. Tự động xóa positioner (và cả effect con) sau khi animation kết thúc
+                setTimeout(() => positioner.remove(), 300);
+            }
+            
+            setupSidePanels() {
+                this.defeatedEnemies.clear();
+                this.dom.enemyInfoList.innerHTML = '';
+                this.dom.knowledgeLibraryContent.innerHTML = '';
+
+                Object.entries(CONFIG.ENEMY_TYPES).forEach(([key, config]) => {
+                    const enemyHTML = `
+                        <div class="enemy-entry" id="enemy-info-${key}" data-enemy-type="${key}">
+                            <div class="enemy-header">
+                                <div class="enemy-visual"><div>${document.getElementById(config.templateId).innerHTML}</div></div>
+                                <div>
+                                    <div class="enemy-name">${config.displayName}</div>
+                                    <span class="enemy-status status-active">Nguy Hiểm</span>
+                                </div>
+                            </div>
+                        </div>`;
+                    this.dom.enemyInfoList.innerHTML += enemyHTML;
+                });
+            }
+
+            markEnemyAsDefeated(enemyType) {
+                if (this.defeatedEnemies.has(enemyType)) return;
+                this.defeatedEnemies.add(enemyType);
+                this.soundManager.playEffect('infoUnlocked');
+
+                const entry = document.getElementById(`enemy-info-${enemyType}`);
+                if (entry) {
+                    entry.classList.add('defeated');
+                    const status = entry.querySelector('.enemy-status');
+                    status.classList.replace('status-active', 'status-defeated');
+                    status.textContent = 'Đã Vô Hiệu Hóa';
+                }
+
+                const config = CONFIG.ENEMY_TYPES[enemyType];
+                this.dom.knowledgeLibraryContent.querySelector('.current-medical-info')?.remove();
+
+                const sloganEntry = document.createElement('div');
+                sloganEntry.className = 'info-section';
+                sloganEntry.style.cssText = 'border-bottom: 1px solid rgba(96, 165, 250, 0.3); padding-bottom: 12px; margin-bottom: 12px;';
+                sloganEntry.innerHTML = `<p class="slogan" style="margin-bottom: 0; font-size: 1em;">${config.slogan}</p>`;
+                this.dom.knowledgeLibraryContent.prepend(sloganEntry);
+                
+                const medicalEntry = document.createElement('div');
+                medicalEntry.className = 'info-section current-medical-info'; 
+                medicalEntry.innerHTML = `<h3 style="color: #facc15; font-size: 1.3em;">${config.displayName}</h3><p>${config.medicalInfo}</p>`;
+                this.dom.knowledgeLibraryContent.appendChild(medicalEntry);
+            }
+
+            initInstructionVisuals() { 
+                const containers = {
+                    move: document.getElementById('instr-movement-container'),
+                    spread: document.getElementById('instr-powerup-spread-container'),
+                    shield: document.getElementById('instr-powerup-shield-container'),
+                    health: document.getElementById('instr-powerup-health-container'),
+                    laser: document.getElementById('instr-powerup-laser-container'),
+                    slow: document.getElementById('instr-powerup-slow-container'),
+                    pm25: document.getElementById('instr-enemy-pm25-container'),
+                    co: document.getElementById('instr-enemy-co-container'),
+                    formaldehyde: document.getElementById('instr-enemy-formaldehyde-container'),
+                    acrolein: document.getElementById('instr-enemy-acrolein-container'),
+                    nicotine: document.getElementById('instr-enemy-nicotine-container'),
+                };
+                
+                containers.move.innerHTML = `<div style="transform: scale(0.8); position: relative; top: -15px;">${document.getElementById('player-template').innerHTML}</div><div class="absolute bottom-2 text-white font-bold text-xl"><span class="mr-8">←</span><span class="bg-white/20 px-3 py-1 rounded-md text-base">SPACE</span><span class="ml-8">→</span></div>`;
+                
+                ['spread', 'shield', 'health', 'laser', 'slow'].forEach(type => {
+                    containers[type].innerHTML = document.getElementById(`powerup-${type}-template`).innerHTML;
+                });
+                
+                ['pm25', 'co', 'formaldehyde', 'acrolein', 'nicotine'].forEach(type => {
+                    const config = CONFIG.ENEMY_TYPES[type];
+                    document.getElementById(`instr-p-${type}`).innerHTML = `<strong class="slogan">${config.slogan}</strong><strong>Kiến thức:</strong> ${config.medicalInfo}`;
+                    let scale = 1.3;
+                    if(type === 'formaldehyde') scale = 1.2;
+                    if(type === 'acrolein') scale = 1.1;
+                    if(type === 'nicotine') scale = 0.9;
+                    containers[type].innerHTML = `<div style="transform: scale(${scale});">${document.getElementById(`enemy-${type}-template`).innerHTML}</div>`; 
+                });
+            }
+
+            handleResize() {
+                if (this.state.gameMode === 'menu' || this.state.isPaused) return;
+
+                // Cập nhật lại vị trí player
+                if (this.player) {
+                    this.player.x = this.container.offsetWidth / 2 - this.player.width / 2;
+                    this.player.y = this.container.offsetHeight - 112 - 20;
+                }
+
+                // Căn chỉnh lại đội hình địch mà không reload
+                const enemies = this.gameObjects.filter(g => g instanceof Enemy && !(g instanceof Boss));
+                if (enemies.length > 0 && this.state.allEnemiesInFormation) {
+                    const { minX, maxX } = enemies.reduce((acc, e) => ({
+                        minX: Math.min(acc.minX, e.x),
+                        maxX: Math.max(acc.maxX, e.x + e.width)
+                    }), { minX: Infinity, maxX: -Infinity });
+
+                    const formationWidth = maxX - minX;
+                    const currentCenter = minX + formationWidth / 2;
+                    const targetCenter = this.container.offsetWidth / 2;
+                    let deltaX = targetCenter - currentCenter;
+                    
+                    const projectedMinX = minX + deltaX;
+                    const projectedMaxX = maxX + deltaX;
+
+                    if (projectedMinX < 0) deltaX -= projectedMinX;
+                    else if (projectedMaxX > this.container.offsetWidth) deltaX -= (projectedMaxX - this.container.offsetWidth);
+
+                    enemies.forEach(enemy => {
+                        enemy.x += deltaX;
+                        enemy.targetX += deltaX;
+                    });
+                }
+            }
+            
+            debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            }
+        }
+        
+        window.onload = () => {
+            new Game();
+        };
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+

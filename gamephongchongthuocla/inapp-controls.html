@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <style>
+    html,body { margin:0; padding:0; background:transparent; -webkit-user-select:none; }
+    .bar {
+      display:flex; gap:8px; align-items:center;
+      padding:6px 8px; border-radius:8px;
+      backdrop-filter: blur(6px); background: rgba(0,0,0,0.42);
+      color:#fff; font-family: system-ui, "Segoe UI", Roboto, Arial; box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+    button { background: rgba(255,255,255,0.08); color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:13px; }
+    button:hover { background: rgba(255,255,255,0.16); }
+    .title { font-size:13px; margin-left:6px; opacity:0.95; }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <button id="back">⟵ Quay lại</button>
+    <button id="openext">Mở ngoài</button>
+    <button id="close">✖</button>
+    <div class="title">Nhấn "Quay lại" để trở về game</div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    document.getElementById('back').addEventListener('click', () => ipcRenderer.send('in-app-back'));
+    document.getElementById('close').addEventListener('click', () => ipcRenderer.send('in-app-close'));
+    document.getElementById('openext').addEventListener('click', () => ipcRenderer.send('in-app-open-external'));
+  </script>
+</body>
+</html>

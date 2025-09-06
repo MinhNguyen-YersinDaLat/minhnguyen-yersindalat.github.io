@@ -1,0 +1,36 @@
+{
+  "name": "cuocchienkhongkhoi",
+  "productName": "CuocChienKhongKhoi",
+  "version": "1.0.0",
+  "description": "Game giáo dục phòng chống thuốc lá - Thầy Thái Minh Nguyên",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.yersin.cuocchienkhongkhoi",
+    "productName": "CuocChienKhongKhoi",
+    "files": [
+      "**/*"
+    ],
+    "directories": {
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    }
+  }
+}

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CUỘC CHIẾN KHÔNG KHÓI — Splash</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:;">
+  <style>
+    html,body {
+      width:100%; height:100%; margin:0;
+      background: transparent;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      color: #fff;
+      display:flex; align-items:center; justify-content:center;
+      overflow: hidden;
+    }
+
+    .wrap {
+      width:100%; max-width:1000px;
+      padding: 20px;
+      box-sizing:border-box;
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; text-align:center; gap: 14px;
+    }
+
+    /* Logo to hơn và hiệu ứng thở rõ hơn */
+    #logo {
+      max-width: 50%;
+      max-height: 50vh;
+      width: clamp(160px, 28vw, 320px);
+      height: auto;
+      user-select:none; -webkit-user-drag:none;
+      animation: breathe 3s ease-in-out infinite;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.55));
+    }
+    @keyframes breathe {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    /* Thông tin game dễ đọc hơn */
+    .title {
+      font-weight: 800;
+      font-size: clamp(26px, 4vw, 40px);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #FF6600;
+      text-shadow: 0 3px 8px rgba(0,0,0,0.6);
+      margin-top: 12px;
+    }
+
+    .slogan {
+      font-size: clamp(16px, 2vw, 22px);
+      font-style: italic;
+      margin-top: 6px;
+      color: #FFD580;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .meta {
+      font-size: clamp(14px, 1.6vw, 18px);
+      margin-top: 10px;
+      color: #f0f0f0;
+      line-height: 1.4;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
+
+    /* Thanh tiến trình */
+    .progress {
+      width: min(800px, 70%);
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.15);
+      margin-top: 24px;
+      position: relative;
+      overflow: visible;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.35);
+    }
+
+    .bar {
+      position: absolute; left:0; top:0; bottom:0;
+      width:0%; border-radius:999px;
+      background: linear-gradient(90deg,#ffb74d,#FF6600);
+      z-index: 2; transition: width 240ms linear;
+    }
+    .bar::after {
+      content:''; position:absolute; left:0; top:0; bottom:0; right:0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+      animation: shine 1.1s linear infinite;
+      transform: translateX(-100%);
+    }
+    @keyframes shine { 100% { transform: translateX(100%); } }
+
+    /* Nhân vật chibi chạy */
+    .runner {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 0;
+      width: clamp(64px, 9vw, 110px);
+      height: auto;
+      z-index: 9999;
+      pointer-events: none;
+      transition: left 160ms linear;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5));
+      animation: bob 0.7s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%,100% { transform: translateY(0); }
+      50%     { transform: translateY(-6px); }
+    }
+
+    .label {
+      margin-top:12px;
+      font-size: clamp(14px,1.6vw,18px);
+      font-weight:600;
+      color:#FF6600;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <img id="logo" src="logo.png" alt="Logo Cuộc Chiến Không Khói" />
+    <div class="title">CUỘC CHIẾN KHÔNG KHÓI</div>
+    <div class="slogan">“Bảo vệ từng nhịp thở - Nói không với thuốc lá”</div>
+    <div class="meta">Tác giả: Thầy Thái Minh Nguyên<br>Trường Tiểu Học, THCS và THPT Yersin Đà Lạt</div>
+
+    <div class="progress" id="progress">
+      <div class="bar" id="bar"></div>
+      <img src="chibi.png" alt="Nhân vật" class="runner" id="runner" />
+    </div>
+
+    <div id="label" class="label">Đang khởi động... 0%</div>
+  </div>
+
+  <script>
+    const bar = document.getElementById('bar');
+    const label = document.getElementById('label');
+    const runner = document.getElementById('runner');
+    const progress = document.getElementById('progress');
+    const wrap = document.getElementById('wrap');
+
+    function updateUI(percent) {
+      const p = Math.max(0, Math.min(100, Math.round(percent)));
+      bar.style.width = p + '%';
+      label.textContent = 'Đang khởi động... ' + p + '%';
+
+      const trackW = Math.max(0, progress.clientWidth - runner.clientWidth);
+      const leftPx = (p / 100) * trackW;
+      runner.style.left = leftPx + 'px';
+    }
+
+    window.addEventListener('resize', () => {
+      const cur = parseFloat(bar.style.width) || 0;
+      setTimeout(()=> updateUI(cur), 40);
+    });
+
+    if (window.electronAPI && typeof window.electronAPI.onSplashProgress === 'function') {
+      window.electronAPI.onSplashProgress((v) => updateUI(v));
+    } else {
+      let p = 0;
+      const t = setInterval(()=>{
+        p += Math.random() * 8 + 2;
+        if (p >= 100) { p = 100; updateUI(p); clearInterval(t); setTimeout(()=>wrap.classList.add('fade-out'),500); return;}
+        updateUI(p);
+      }, 120);
+    }
+  </script>
+</body>
+</html>
