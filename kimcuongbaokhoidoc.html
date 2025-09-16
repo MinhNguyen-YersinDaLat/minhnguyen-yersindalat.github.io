@@ -503,11 +503,11 @@
     };
 
     const LEVEL_CONFIG = [
-        { level: 1, timeToNextLevel: 30, initialRiseSpeed: 0.2, riseAcceleration: 0.00005, initialColumns: 1, maxColumns: 5, newColumnInterval: 15, initialHeightPercentage: 0.10 },
-        { level: 2, timeToNextLevel: 60, initialRiseSpeed: 0.3, riseAcceleration: 0.00007, initialColumns: 2, maxColumns: 6, newColumnInterval: 14, initialHeightPercentage: 0.15 },
-        { level: 3, timeToNextLevel: 90, initialRiseSpeed: 0.4, riseAcceleration: 0.00009, initialColumns: 3, maxColumns: 7, newColumnInterval: 13, initialHeightPercentage: 0.20 },
-        { level: 4, timeToNextLevel: 120, initialRiseSpeed: 0.5, riseAcceleration: 0.00011, initialColumns: 4, maxColumns: 8, newColumnInterval: 12, initialHeightPercentage: 0.25 },
-        { level: 5, timeToNextLevel: Infinity, initialRiseSpeed: 0.6, riseAcceleration: 0.00013, initialColumns: 5, maxColumns: 8, newColumnInterval: 10, initialHeightPercentage: 0.30 }
+        { level: 1, timeToNextLevel: 30, initialRiseSpeed: 0.25, riseAcceleration: 0.00006, initialColumns: 1, newColumnInterval: 10, initialHeightPercentage: 0.10 },
+        { level: 2, timeToNextLevel: 60, initialRiseSpeed: 0.35, riseAcceleration: 0.00008, initialColumns: 2, newColumnInterval: 8, initialHeightPercentage: 0.15 },
+        { level: 3, timeToNextLevel: 90, initialRiseSpeed: 0.45, riseAcceleration: 0.00010, initialColumns: 3, newColumnInterval: 6, initialHeightPercentage: 0.20 },
+        { level: 4, timeToNextLevel: 120, initialRiseSpeed: 0.55, riseAcceleration: 0.00012, initialColumns: 4, newColumnInterval: 5, initialHeightPercentage: 0.25 },
+        { level: 5, timeToNextLevel: Infinity, initialRiseSpeed: 0.70, riseAcceleration: 0.00015, initialColumns: 5, newColumnInterval: 4, initialHeightPercentage: 0.30 }
     ];
 
     const SPECIAL_TYPES = { NONE: 'none', H_BEAM: 'h_beam', V_BEAM: 'v_beam', BOMB: 'bomb', HYPERCUBE: 'hypercube', GREEN_LUNG: 'green_lung' };
@@ -1176,30 +1176,6 @@
     async function handleMatches(matchGroups, allGemsToClear, specialToCreate) {
         if (allGemsToClear.length > 0) AudioManager.playSfx('match');
 
-        const handledGems = new Set();
-        // --- Áp dụng luật phá khói mới ---
-        for (const group of matchGroups) {
-            if (group.length === 3) {
-                const isVertical = group[0].col === group[1].col;
-                const isHorizontal = group[0].row === group[1].row;
-                if (isVertical) {
-                    const col = group[0].col;
-                    if (smokeColumns[col] >= 0) {
-                        smokeColumns[col] = 0; // Phá hủy hoàn toàn cột khói
-                    }
-                    group.forEach(g => handledGems.add(g));
-                } else if (isHorizontal) {
-                    group.forEach(gem => {
-                        if (smokeColumns[gem.col] >= 0) {
-                            smokeColumns[gem.col] /= 2; // Giảm một nửa cột khói
-                        }
-                        handledGems.add(gem);
-                    });
-                }
-            }
-        }
-        
-        // --- Logic xóa kim cương và giảm khói thông thường ---
         const promises = [];
         let unlockedGems = new Set();
         allGemsToClear.forEach(gem => {
@@ -1213,18 +1189,35 @@
         }
         if (unlockedGems.size > 0) AudioManager.playSfx('unlock');
 
+        // Logic mới để xử lý cột khói
+        const clearedGemsPerColumn = {};
+        allGemsToClear.forEach(gem => {
+            if (!gem || !board[gem.row] || board[gem.row][gem.col] !== gem) return;
+            if (specialToCreate && gem.row === specialToCreate.row && gem.col === specialToCreate.col) return;
+
+            if (smokeColumns[gem.col] >= 0) {
+                if (!clearedGemsPerColumn[gem.col]) {
+                    clearedGemsPerColumn[gem.col] = 0;
+                }
+                clearedGemsPerColumn[gem.col]++;
+            }
+        });
+
+        for (const col in clearedGemsPerColumn) {
+            const count = clearedGemsPerColumn[col];
+            if (count >= 3) {
+                smokeColumns[col] = 0; // Tụt hết cột khói
+            } else {
+                const reduction = count * (gemSize * 3); // Mỗi viên làm tụt 3 ô
+                smokeColumns[col] = Math.max(0, smokeColumns[col] - reduction);
+            }
+        }
+
+        // Logic để xóa kim cương khỏi bảng
         allGemsToClear.forEach(gem => {
             if (!gem || !board[gem.row] || board[gem.row][gem.col] !== gem) return;
             if (specialToCreate && gem.row === specialToCreate.row && gem.col === specialToCreate.col) return;
             
-            // Giảm khói chung cho các viên không thuộc luật match-3 đặc biệt (áp dụng cho bom, tia sáng, match 4, 5)
-            if (!handledGems.has(gem)) {
-                if (smokeColumns[gem.col] >= 0) {
-                    const reduction = CONFIG.SMOKE_STORM.MATCH_REDUCTION * (gem.special !== 'none' ? 2 : 1);
-                    smokeColumns[gem.col] = Math.max(0, smokeColumns[gem.col] - reduction);
-                }
-            }
-
             gemsClearedCount++;
             createParticleBurst(gem.x + gemSize / 2, gem.y + gemSize / 2, CONFIG.GEM_COLORS[gem.colorIndex]);
             promises.push(new Promise(async (resolve) => {
@@ -1234,27 +1227,8 @@
                 } resolve();
             }));
         });
-
-        // Logic giảm khói cho các cột liền kề
-        const clearedColumns = new Set(allGemsToClear.map(gem => gem.col));
-        const adjacentColumnsToReduce = new Set();
-
-        clearedColumns.forEach(col => {
-            // Cột bên trái
-            if (col > 0 && !clearedColumns.has(col - 1) && smokeColumns[col - 1] >= 0) {
-                adjacentColumnsToReduce.add(col - 1);
-            }
-            // Cột bên phải
-            if (col < CONFIG.GRID_SIZE - 1 && !clearedColumns.has(col + 1) && smokeColumns[col + 1] >= 0) {
-                adjacentColumnsToReduce.add(col + 1);
-            }
-        });
-
-        adjacentColumnsToReduce.forEach(col => {
-            smokeColumns[col] = Math.max(0, smokeColumns[col] - CONFIG.SMOKE_STORM.MATCH_REDUCTION);
-        });
         
-        smokeStormScore = (smokeStormTime * 5) + (gemsClearedCount * 5); // Adjusted score calculation
+        smokeStormScore = (smokeStormTime * 5) + (gemsClearedCount * 5);
         DOMElements.smokeStormScoreEl.textContent = smokeStormScore;
 
         await Promise.all(promises);
@@ -1674,9 +1648,8 @@
 
             // Logic mới để thêm cột khói theo thời gian
             const levelConfig = LEVEL_CONFIG[Math.min(currentLevel - 1, LEVEL_CONFIG.length - 1)];
-            const activeColumnCount = smokeColumns.filter(c => c >= 0).length;
 
-            if (smokeStormTime >= nextColumnSpawnTime && activeColumnCount < levelConfig.maxColumns) {
+            if (smokeStormTime >= nextColumnSpawnTime) {
                 const inactiveColumns = smokeColumns.map((val, idx) => val === -1 ? idx : -1).filter(idx => idx !== -1);
                 if (inactiveColumns.length > 0) {
                     const randomIndex = Math.floor(Math.random() * inactiveColumns.length);
@@ -1990,6 +1963,9 @@
 </script>
 </body>
 </html>
+
+
+
 
 
 
