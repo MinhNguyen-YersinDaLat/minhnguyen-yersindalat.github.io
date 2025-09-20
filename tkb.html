@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ trích xuất Thời khóa biểu - Phiên bản nâng cao</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff7b54 0%, #ff6347 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            border-color: #ff7b54;
+            box-shadow: 0 5px 15px rgba(255, 123, 84, 0.1);
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .step-number {
+            background: #ff7b54;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .file-input-wrapper:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 123, 84, 0.4);
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        select, button {
+            padding: 12px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus, button:focus {
+            outline: none;
+            border-color: #ff7b54;
+            box-shadow: 0 0 0 3px rgba(255, 123, 84, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff7b54 0%, #ff6347 100%);
+            color: white;
+            border: none;
+            font-weight: 500;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 123, 84, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .export-buttons button {
+            margin: 0;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .schedule-table th {
+            background: linear-gradient(135deg, #ff7b54 0%, #ff6347 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .schedule-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid #e1e8ed;
+            vertical-align: middle;
+        }
+
+        .editable-cell {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .editable-cell:hover {
+            background: #fff3cd !important;
+            border-color: #ff7b54;
+        }
+
+        .editable-cell.editing {
+            background: #e3f2fd !important;
+            border-color: #2196f3;
+        }
+
+        .input-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+        }
+
+        .subject-input {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #2196f3;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .subject-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #2196f3;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1001;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .autocomplete-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s ease;
+        }
+
+        .autocomplete-option:hover,
+        .autocomplete-option.selected {
+            background: #e3f2fd;
+        }
+
+        .autocomplete-option:last-child {
+            border-bottom: none;
+        }
+
+        .edit-hint {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            color: #999;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .editable-cell:hover .edit-hint {
+            opacity: 1;
+        }
+
+        .schedule-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .schedule-table tbody tr:hover {
+            background: #e3f2fd;
+        }
+
+        .period-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .session-header {
+            background: #e8f4fd !important;
+            font-weight: 600;
+            color: #1976d2;
+        }
+
+        .session-break {
+            height: 15px;
+            background: linear-gradient(90deg, transparent 0%, #ff7b54 50%, transparent 100%);
+            border: none;
+        }
+
+        .session-break td {
+            border: none;
+            padding: 0;
+            position: relative;
+        }
+
+        .session-break td::after {
+            content: '• • •';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff7b54;
+            font-size: 12px;
+            letter-spacing: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .export-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗓️ Công cụ trích xuất TKB</h1>
+            <p>Phiên bản nâng cao - Xử lý nhiều định dạng file Excel khác nhau</p>
+        </div>
+
+        <div class="content">
+            <!-- Bước 1: Chọn file -->
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    Chọn file Excel TKB toàn trường
+                </div>
+                <label class="file-input-wrapper">
+                    📁 Chọn file Excel (.xlsx, .xls)
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+                </label>
+                <div id="fileInfo" class="file-info hidden"></div>
+            </div>
+
+            <!-- Bước 2: Chọn sheet -->
+            <div class="step hidden" id="sheetStep">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    Chọn sheet dữ liệu
+                </div>
+                <div class="controls">
+                    <select id="sheetSelect">
+                        <option value="">-- Chọn sheet --</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Bước 3: Chọn lớp -->
+            <div class="step hidden" id="classStep">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    Chọn lớp học
+                </div>
+                <div class="controls">
+                    <select id="classSelect">
+                        <option value="">-- Chọn lớp --</option>
+                    </select>
+                    <button id="viewScheduleBtn" disabled>👀 Xem TKB lớp</button>
+                </div>
+
+            </div>
+
+            <!-- Bước 4: Xuất file -->
+            <div class="step hidden" id="exportStep">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    Xuất kết quả
+                </div>
+                <div class="export-buttons">
+                    <button id="exportExcelBtn" disabled>📊 Xuất Excel</button>
+                    <button id="exportHtmlBtn" disabled>🌐 Xuất HTML</button>
+                </div>
+            </div>
+
+            <!-- Thông báo trạng thái -->
+            <div id="statusDiv"></div>
+
+            <!-- Bảng hiển thị TKB -->
+            <div id="scheduleContainer" class="hidden">
+                <h3 style="margin: 20px 0; color: #2c3e50;">📋 Thời khóa biểu lớp <span id="selectedClassName"></span></h3>
+                <div id="scheduleTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let workbook = null;
+        let currentSheet = null;
+        let scheduleData = null;
+        let selectedClass = '';
+        let debugMode = false; // Tắt chế độ debug để giao diện gọn gàng
+        let allSubjects = new Set(); // Lưu tất cả môn học tìm thấy
+        let currentEditingCell = null;
+
+        // Khởi tạo sự kiện
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        document.getElementById('sheetSelect').addEventListener('change', handleSheetSelect);
+        document.getElementById('classSelect').addEventListener('change', handleClassSelect);
+        document.getElementById('viewScheduleBtn').addEventListener('click', viewSchedule);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
+        document.getElementById('exportHtmlBtn').addEventListener('click', exportHtml);
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 8000);
+        }
+
+
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showStatus('Đang đọc file Excel...', 'info');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    workbook = XLSX.read(e.target.result, { type: 'binary' });
+                    
+                    // Hiển thị thông tin file
+                    const fileInfo = document.getElementById('fileInfo');
+                    fileInfo.innerHTML = `📄 <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+                    fileInfo.classList.remove('hidden');
+
+                    // Hiển thị danh sách sheet
+                    const sheetSelect = document.getElementById('sheetSelect');
+                    sheetSelect.innerHTML = '<option value="">-- Chọn sheet --</option>';
+                    
+                    workbook.SheetNames.forEach(name => {
+                        const option = document.createElement('option');
+                        option.value = name;
+                        option.textContent = name;
+                        sheetSelect.appendChild(option);
+                    });
+
+                    document.getElementById('sheetStep').classList.remove('hidden');
+                    showStatus('✅ Đọc file thành công! Vui lòng chọn sheet dữ liệu.', 'success');
+                    
+
+                } catch (error) {
+                    showStatus('❌ Lỗi đọc file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsBinaryString(file);
+        }
+
+        function handleSheetSelect(event) {
+            const sheetName = event.target.value;
+            if (!sheetName) return;
+
+            try {
+                currentSheet = workbook.Sheets[sheetName];
+                const analysisResult = analyzeSheet(currentSheet);
+                
+                if (analysisResult.classes.length === 0) {
+                    showStatus('❌ Không tìm thấy lớp học nào trong sheet này. Vui lòng chọn sheet khác.', 'error');
+                    return;
+                }
+
+                // Hiển thị danh sách lớp
+                const classSelect = document.getElementById('classSelect');
+                classSelect.innerHTML = '<option value="">-- Chọn lớp --</option>';
+                
+                analysisResult.classes.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classSelect.appendChild(option);
+                });
+
+                document.getElementById('classStep').classList.remove('hidden');
+                showStatus(`✅ Tìm thấy ${analysisResult.classes.length} lớp học. Vui lòng chọn lớp cần trích xuất.`, 'success');
+            } catch (error) {
+                showStatus('❌ Lỗi xử lý sheet: ' + error.message, 'error');
+            }
+        }
+
+        function handleClassSelect(event) {
+            selectedClass = event.target.value;
+            const viewBtn = document.getElementById('viewScheduleBtn');
+            
+            if (selectedClass) {
+                viewBtn.disabled = false;
+            } else {
+                viewBtn.disabled = true;
+                document.getElementById('scheduleContainer').classList.add('hidden');
+                document.getElementById('exportStep').classList.add('hidden');
+            }
+        }
+
+        function analyzeSheet(sheet) {
+            const range = XLSX.utils.decode_range(sheet['!ref']);
+            const classes = new Set();
+            const debugInfo = [];
+            
+            debugInfo.push(`Kích thước sheet: ${range.e.r + 1} dòng x ${range.e.c + 1} cột`);
+            
+            // Xử lý merged cells
+            const mergedCells = sheet['!merges'] || [];
+            const cellValues = {};
+            
+            // Đọc tất cả giá trị
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                    const cell = sheet[cellAddress];
+                    
+                    if (cell && cell.v !== undefined) {
+                        cellValues[cellAddress] = String(cell.v).trim();
+                    }
+                }
+            }
+            
+            // Điền giá trị cho merged cells
+            mergedCells.forEach(merge => {
+                const startCell = XLSX.utils.encode_cell({ r: merge.s.r, c: merge.s.c });
+                const value = cellValues[startCell] || '';
+                
+                for (let row = merge.s.r; row <= merge.e.r; row++) {
+                    for (let col = merge.s.c; col <= merge.e.c; col++) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                        if (!cellValues[cellAddress]) {
+                            cellValues[cellAddress] = value;
+                        }
+                    }
+                }
+            });
+
+            debugInfo.push(`Số merged cells: ${mergedCells.length}`);
+            
+            // Tìm lớp học với nhiều pattern khác nhau
+            const potentialClasses = [];
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                    const value = cellValues[cellAddress] || '';
+                    
+                    if (value) {
+                        const className = extractClassName(value);
+                        if (className) {
+                            classes.add(className);
+                            potentialClasses.push(`${cellAddress}: "${value}" → "${className}"`);
+                        }
+                    }
+                }
+            }
+            
+            debugInfo.push(`Tìm thấy ${potentialClasses.length} ô có thể chứa tên lớp:`);
+            debugInfo.push(potentialClasses.slice(0, 10).join('\n')); // Chỉ hiển thị 10 đầu tiên
+            if (potentialClasses.length > 10) {
+                debugInfo.push(`... và ${potentialClasses.length - 10} ô khác`);
+            }
+            
+            const sortedClasses = Array.from(classes).sort((a, b) => {
+                // Sắp xếp theo số lớp rồi đến chữ cái
+                const aMatch = a.match(/(\d+)([A-Za-z]+)(\d*)/);
+                const bMatch = b.match(/(\d+)([A-Za-z]+)(\d*)/);
+                if (aMatch && bMatch) {
+                    const gradeA = parseInt(aMatch[1]);
+                    const gradeB = parseInt(bMatch[1]);
+                    if (gradeA !== gradeB) return gradeA - gradeB;
+                    if (aMatch[2] !== bMatch[2]) return aMatch[2].localeCompare(bMatch[2]);
+                    return parseInt(aMatch[3] || 0) - parseInt(bMatch[3] || 0);
+                }
+                return a.localeCompare(b);
+            });
+            
+            return {
+                classes: sortedClasses,
+                debug: debugInfo.join('\n')
+            };
+        }
+
+        function extractClassName(value) {
+            // Loại bỏ các ký tự không cần thiết nhưng giữ lại khoảng trắng tạm thời
+            let original = String(value).trim();
+            let cleaned = original.replace(/[^\w\d\s]/g, '').replace(/\s+/g, '').toUpperCase();
+            
+            // Loại bỏ tiền tố phổ biến
+            cleaned = cleaned.replace(/^(LOP|CLASS|K|KHOI)/i, '');
+            
+            // Các pattern nhận diện lớp học
+            const patterns = [
+                /^(\d{1,2})([A-Z])(\d*)$/,           // 10A1, 11B, 12C2
+                /^(\d{1,2})([A-Z]+)(\d*)$/,          // 10AB1, 11CD
+                /^([A-Z])(\d{1,2})([A-Z]?)(\d*)$/,   // A10B1, B11
+            ];
+            
+            for (let pattern of patterns) {
+                const match = cleaned.match(pattern);
+                if (match) {
+                    // Chuẩn hóa format: số + chữ + số (nếu có)
+                    if (match[1] && /^\d/.test(match[1])) {
+                        const grade = match[1];
+                        const letter = match[2];
+                        const number = match[3] || '';
+                        
+                        // Kiểm tra logic: lớp 6-12, chữ cái A-Z
+                        if (parseInt(grade) >= 6 && parseInt(grade) <= 12) {
+                            return grade + letter + number;
+                        }
+                    } else if (match[2] && /^\d/.test(match[2])) {
+                        const grade = match[2];
+                        const letter = match[1];
+                        const letter2 = match[3] || '';
+                        const number = match[4] || '';
+                        
+                        if (parseInt(grade) >= 6 && parseInt(grade) <= 12) {
+                            return grade + letter + letter2 + number;
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        function viewSchedule() {
+            if (!selectedClass || !currentSheet) return;
+
+            try {
+                const extractResult = extractScheduleData(currentSheet, selectedClass);
+                scheduleData = extractResult.schedule;
+                
+                displaySchedule(scheduleData);
+                
+                document.getElementById('selectedClassName').textContent = selectedClass;
+                document.getElementById('scheduleContainer').classList.remove('hidden');
+                document.getElementById('exportStep').classList.remove('hidden');
+                
+                // Kích hoạt nút xuất
+                document.getElementById('exportExcelBtn').disabled = false;
+                document.getElementById('exportHtmlBtn').disabled = false;
+                
+                showStatus('✅ Hiển thị thời khóa biểu thành công!', 'success');
+            } catch (error) {
+                showStatus('❌ Lỗi trích xuất dữ liệu: ' + error.message, 'error');
+            }
+        }
+
+        function extractScheduleData(sheet, className) {
+            const range = XLSX.utils.decode_range(sheet['!ref']);
+            const debugInfo = [];
+            
+            // Xử lý merged cells
+            const mergedCells = sheet['!merges'] || [];
+            const cellValues = {};
+            
+            // Đọc tất cả giá trị và xử lý merge
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                    const cell = sheet[cellAddress];
+                    
+                    if (cell && cell.v !== undefined) {
+                        cellValues[cellAddress] = String(cell.v).trim();
+                    }
+                }
+            }
+            
+            // Điền giá trị cho merged cells
+            mergedCells.forEach(merge => {
+                const startCell = XLSX.utils.encode_cell({ r: merge.s.r, c: merge.s.c });
+                const value = cellValues[startCell] || '';
+                
+                for (let row = merge.s.r; row <= merge.e.r; row++) {
+                    for (let col = merge.s.c; col <= merge.e.c; col++) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                        if (!cellValues[cellAddress]) {
+                            cellValues[cellAddress] = value;
+                        }
+                    }
+                }
+            });
+
+            // Tìm header và cột dữ liệu (tìm trong toàn bộ sheet)
+            let headerRow = -1;
+            let dayCol = -1;
+            let periodCol = -1;
+            let classCol = -1;
+
+            // Bước 1: Tìm tất cả các cột "Thứ" và "Tiết" trong toàn bộ sheet trước
+            const potentialDayCols = [];
+            const potentialPeriodCols = [];
+            
+            debugInfo.push('=== QUÉT TOÀN BỘ SHEET TÌM CỘT ===');
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                    const value = cellValues[cellAddress] || '';
+                    
+                    if (value.trim()) {
+                        if (isDayColumn(value)) {
+                            potentialDayCols.push({ row, col, value, address: cellAddress });
+                            debugInfo.push(`Tìm thấy cột ngày tiềm năng tại ${cellAddress}: "${value}"`);
+                        }
+                        if (isPeriodColumn(value)) {
+                            potentialPeriodCols.push({ row, col, value, address: cellAddress });
+                            debugInfo.push(`Tìm thấy cột tiết tiềm năng tại ${cellAddress}: "${value}"`);
+                        }
+                    }
+                }
+            }
+
+            debugInfo.push(`Tổng cộng tìm thấy ${potentialDayCols.length} cột ngày và ${potentialPeriodCols.length} cột tiết`);
+
+            // Bước 2: Tìm lớp học trong toàn bộ sheet
+            debugInfo.push('=== TÌM LỚP HỌC ===');
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                    const value = cellValues[cellAddress] || '';
+                    
+                    if (normalizeClassName(value) === normalizeClassName(className)) {
+                        headerRow = row;
+                        classCol = col;
+                        debugInfo.push(`Tìm thấy lớp ${className} tại ${cellAddress} (dòng ${row + 1}, cột ${col + 1})`);
+                        break;
+                    }
+                }
+                if (headerRow !== -1) break;
+            }
+
+            if (headerRow === -1) {
+                throw new Error(`Không tìm thấy lớp ${className} trong dữ liệu`);
+            }
+
+            // Bước 3: Chọn cột ngày và tiết phù hợp nhất
+            debugInfo.push('=== CHỌN CỘT PHÙ HỢP NHẤT ===');
+            
+            // Ưu tiên cột trong cùng dòng với lớp học
+            let bestDayCol = potentialDayCols.find(col => col.row === headerRow);
+            let bestPeriodCol = potentialPeriodCols.find(col => col.row === headerRow);
+            
+            if (bestDayCol) {
+                dayCol = bestDayCol.col;
+                debugInfo.push(`Chọn cột ngày cùng dòng: ${bestDayCol.address} - "${bestDayCol.value}"`);
+            } else if (potentialDayCols.length > 0) {
+                // Chọn cột gần nhất với dòng lớp học
+                bestDayCol = potentialDayCols.reduce((closest, current) => 
+                    Math.abs(current.row - headerRow) < Math.abs(closest.row - headerRow) ? current : closest
+                );
+                dayCol = bestDayCol.col;
+                debugInfo.push(`Chọn cột ngày gần nhất: ${bestDayCol.address} - "${bestDayCol.value}"`);
+            }
+            
+            if (bestPeriodCol) {
+                periodCol = bestPeriodCol.col;
+                debugInfo.push(`Chọn cột tiết cùng dòng: ${bestPeriodCol.address} - "${bestPeriodCol.value}"`);
+            } else if (potentialPeriodCols.length > 0) {
+                // Chọn cột gần nhất với dòng lớp học
+                bestPeriodCol = potentialPeriodCols.reduce((closest, current) => 
+                    Math.abs(current.row - headerRow) < Math.abs(closest.row - headerRow) ? current : closest
+                );
+                periodCol = bestPeriodCol.col;
+                debugInfo.push(`Chọn cột tiết gần nhất: ${bestPeriodCol.address} - "${bestPeriodCol.value}"`);
+            }
+
+            if (dayCol === -1 || periodCol === -1) {
+                let errorMsg = '❌ Không tìm thấy cột cần thiết:\n';
+                if (dayCol === -1) {
+                    errorMsg += `- Không tìm thấy cột "Thứ/Ngày" (tìm thấy ${potentialDayCols.length} ứng viên)\n`;
+                }
+                if (periodCol === -1) {
+                    errorMsg += `- Không tìm thấy cột "Tiết/Giờ" (tìm thấy ${potentialPeriodCols.length} ứng viên)\n`;
+                }
+                errorMsg += '\n💡 Gợi ý khắc phục:\n';
+                errorMsg += '- Kiểm tra tên cột có chứa từ "Thứ", "Ngày", "Tiết", "Giờ"\n';
+                errorMsg += '- Đảm bảo cột header không bị merge hoặc ẩn\n';
+                errorMsg += '- Thử chọn sheet khác nếu có nhiều sheet';
+                
+                throw new Error(errorMsg);
+            }
+
+            // Trích xuất dữ liệu và thu thập tất cả môn học
+            const schedule = {};
+            let extractedCount = 0;
+            allSubjects.clear(); // Reset danh sách môn học
+            
+            // Thu thập tất cả môn học từ toàn bộ sheet
+            debugInfo.push('=== THU THẬP MÔN HỌC ===');
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                    const value = cellValues[cellAddress] || '';
+                    
+                    if (value && value.trim().length > 0) {
+                        const trimmedValue = value.trim();
+                        
+                        // Kiểm tra xem có phải môn học không
+                        if (isSubjectName(trimmedValue)) {
+                            allSubjects.add(trimmedValue);
+                            debugInfo.push(`Môn học tìm thấy: "${trimmedValue}" tại ${cellAddress}`);
+                        }
+                    }
+                }
+            }
+            
+            // Thêm các môn học cơ bản để đảm bảo luôn có gợi ý
+            const basicSubjects = [
+                'Toán', 'Văn', 'Tiếng Anh', 'Vật lý', 'Hóa học', 'Sinh học', 
+                'Lịch sử', 'Địa lý', 'GDCD', 'Tin học', 'Thể dục', 'Âm nhạc', 
+                'Mỹ thuật', 'Công nghệ', 'Hoạt động trải nghiệm', 'Sinh hoạt lớp',
+                'Tự học', 'Chào cờ', 'Sinh hoạt', 'Ngoại khóa', 'Anh', 'Lý', 'Hóa', 'Sinh', 'Sử', 'Địa'
+            ];
+            basicSubjects.forEach(subject => allSubjects.add(subject));
+            
+            debugInfo.push(`Tổng cộng ${allSubjects.size} môn học: ${Array.from(allSubjects).join(', ')}`);
+            console.log('All subjects collected:', Array.from(allSubjects));
+            
+            // Trích xuất dữ liệu cho lớp cụ thể
+            debugInfo.push('=== TRÍCH XUẤT DỮ LIỆU ===');
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                const dayAddress = XLSX.utils.encode_cell({ r: row, c: dayCol });
+                const periodAddress = XLSX.utils.encode_cell({ r: row, c: periodCol });
+                const subjectAddress = XLSX.utils.encode_cell({ r: row, c: classCol });
+                
+                const day = cellValues[dayAddress] || '';
+                const period = cellValues[periodAddress] || '';
+                const subject = cellValues[subjectAddress] || '';
+                
+                // Debug log cho mỗi dòng có dữ liệu
+                if (day || period || subject) {
+                    debugInfo.push(`Dòng ${row + 1}: Day="${day}" Period="${period}" Subject="${subject}"`);
+                }
+                
+                if (day && period && subject) {
+                    const normalizedDay = normalizeDay(day);
+                    const normalizedPeriod = normalizePeriod(period);
+                    
+                    debugInfo.push(`  -> Normalized: Day="${normalizedDay}" Period="${normalizedPeriod}"`);
+                    
+                    if (normalizedDay && normalizedPeriod) {
+                        if (!schedule[normalizedDay]) {
+                            schedule[normalizedDay] = {};
+                        }
+                        schedule[normalizedDay][normalizedPeriod] = subject;
+                        extractedCount++;
+                        debugInfo.push(`  -> ✅ Đã lưu: ${normalizedDay} - ${normalizedPeriod} = "${subject}"`);
+                        
+                        // Đặc biệt log cho tiết 16h
+                        if (normalizedPeriod === '16h') {
+                            console.log(`🎯 FOUND 16H DATA: ${normalizedDay} = "${subject}"`);
+                        }
+                    } else {
+                        debugInfo.push(`  -> ❌ Không thể normalize`);
+                    }
+                }
+            }
+
+            debugInfo.push(`Đã trích xuất ${extractedCount} tiết học`);
+            debugInfo.push(`Các ngày có dữ liệu: ${Object.keys(schedule).join(', ')}`);
+
+            // Hiển thị debug info trong console
+            console.log('=== DEBUG INFO ===');
+            console.log(debugInfo.join('\n'));
+            console.log('=== FINAL SCHEDULE ===');
+            console.log(schedule);
+
+            return {
+                schedule: schedule,
+                debug: debugInfo.join('\n')
+            };
+        }
+
+        function normalizeClassName(name) {
+            return String(name).replace(/[\s\-\.\/]/g, '').toUpperCase();
+        }
+
+        function isSubjectName(value) {
+            const str = String(value).trim();
+            
+            // Bỏ qua các giá trị rỗng, số, ngày tháng
+            if (!str || /^\d+$/.test(str) || str.length < 2) return false;
+            
+            // Bỏ qua các từ khóa hệ thống
+            const systemKeywords = [
+                'thứ', 'ngày', 'tiết', 'giờ', 'buổi', 'sáng', 'chiều', 'tối',
+                'lớp', 'class', 'period', 'day', 'time', 'hour',
+                'thu', 'ngay', 'tiet', 'gio', 'lop'
+            ];
+            
+            const normalized = str.toLowerCase().replace(/[^\w]/g, '');
+            if (systemKeywords.some(keyword => normalized.includes(keyword))) return false;
+            
+            // Bỏ qua tên lớp
+            if (extractClassName(str)) return false;
+            
+            // Chấp nhận nếu có ít nhất 2 ký tự và không phải số thuần túy
+            return str.length >= 2 && !/^\d+[\.\-\/]*\d*$/.test(str);
+        }
+
+        function isDayColumn(value) {
+            const original = String(value).trim();
+            const normalized = original.toLowerCase().replace(/[^\w\d]/g, '');
+            
+            // Các pattern nhận diện cột ngày/thứ
+            const dayPatterns = [
+                // Tiếng Việt có dấu
+                'thứ', 'ngày', 'ngayhoc', 'ngaytrongtuan', 'ngàyhọc', 'ngàytrongtuần',
+                // Tiếng Việt không dấu  
+                'thu', 'ngay', 'ngayhoc', 'ngaytrongtuan',
+                // Tiếng Anh
+                'day', 'weekday', 'dayofweek', 'days',
+                // Viết tắt
+                't', 'n', 'd'
+            ];
+            
+            // Kiểm tra exact match trước
+            if (dayPatterns.includes(normalized)) return true;
+            
+            // Kiểm tra contains
+            const containsPatterns = dayPatterns.some(pattern => normalized.includes(pattern));
+            if (containsPatterns) return true;
+            
+            // Kiểm tra pattern đặc biệt: chỉ có "T" hoặc "Thứ" 
+            if (/^t+h*ứ*$/i.test(normalized)) return true;
+            
+            // Kiểm tra nếu có từ "thứ" trong chuỗi gốc (có dấu)
+            if (original.toLowerCase().includes('thứ')) return true;
+            
+            return false;
+        }
+
+        function isPeriodColumn(value) {
+            const original = String(value).trim();
+            const normalized = original.toLowerCase().replace(/[^\w\d]/g, '');
+            
+            // Các pattern nhận diện cột tiết/giờ
+            const periodPatterns = [
+                // Tiếng Việt có dấu
+                'tiết', 'giờ', 'tiếthọc', 'giờhọc', 'tiếtdạy', 'giờdạy',
+                // Tiếng Việt không dấu
+                'tiet', 'gio', 'tiethoc', 'giohoc', 'tietday', 'gioday',
+                // Tiếng Anh
+                'period', 'lesson', 'class', 'hour', 'time', 'slot',
+                // Viết tắt
+                'tiet', 'gio', 'g', 'p', 'l'
+            ];
+            
+            // Kiểm tra exact match trước
+            if (periodPatterns.includes(normalized)) return true;
+            
+            // Kiểm tra contains
+            const containsPatterns = periodPatterns.some(pattern => normalized.includes(pattern));
+            if (containsPatterns) return true;
+            
+            // Kiểm tra pattern đặc biệt
+            if (/^t+i*ế*t*$/i.test(normalized)) return true;
+            if (/^g+i*ờ*$/i.test(normalized)) return true;
+            
+            // Kiểm tra nếu có từ "tiết" hoặc "giờ" trong chuỗi gốc (có dấu)
+            if (original.toLowerCase().includes('tiết') || original.toLowerCase().includes('giờ')) return true;
+            
+            return false;
+        }
+
+        function normalizeDay(day) {
+            const dayStr = String(day).toLowerCase().replace(/[^\w]/g, '');
+            
+            const dayMap = {
+                // Số
+                '2': 'Thứ 2', 'hai': 'Thứ 2', 'monday': 'Thứ 2', 'mon': 'Thứ 2', 't2': 'Thứ 2',
+                '3': 'Thứ 3', 'ba': 'Thứ 3', 'tuesday': 'Thứ 3', 'tue': 'Thứ 3', 't3': 'Thứ 3',
+                '4': 'Thứ 4', 'tu': 'Thứ 4', 'tư': 'Thứ 4', 'wednesday': 'Thứ 4', 'wed': 'Thứ 4', 't4': 'Thứ 4',
+                '5': 'Thứ 5', 'nam': 'Thứ 5', 'năm': 'Thứ 5', 'thursday': 'Thứ 5', 'thu': 'Thứ 5', 't5': 'Thứ 5',
+                '6': 'Thứ 6', 'sau': 'Thứ 6', 'sáu': 'Thứ 6', 'friday': 'Thứ 6', 'fri': 'Thứ 6', 't6': 'Thứ 6',
+                '7': 'Thứ 7', 'bay': 'Thứ 7', 'bảy': 'Thứ 7', 'saturday': 'Thứ 7', 'sat': 'Thứ 7', 't7': 'Thứ 7',
+                'cn': 'Chủ nhật', 'chunhat': 'Chủ nhật', 'sunday': 'Chủ nhật', 'sun': 'Chủ nhật'
+            };
+            
+            // Tìm trong map trước
+            if (dayMap[dayStr]) {
+                return dayMap[dayStr];
+            }
+            
+            // Tìm pattern "thứ X"
+            const thuMatch = dayStr.match(/thu(\d)/);
+            if (thuMatch) {
+                const num = thuMatch[1];
+                return dayMap[num] || null;
+            }
+            
+            // Nếu đã có "Thứ" trong chuỗi gốc
+            if (String(day).includes('Thứ')) {
+                return String(day).trim();
+            }
+            
+            return null;
+        }
+
+        function normalizePeriod(period) {
+            const original = String(period).trim();
+            const str = original.toLowerCase().replace(/[^\w\d:]/g, '');
+            
+            // Debug log để theo dõi
+            console.log(`Normalizing period: "${original}" -> "${str}"`);
+            
+            // Xử lý các format đặc biệt cho 16h trước
+            if (str.includes('16h') || str.includes('16:') || str.includes('1600') || str === '16') {
+                console.log('Found 16h period');
+                return '16h';
+            }
+            
+            // Xử lý các từ khóa đặc biệt
+            if (str.includes('sau') || str.includes('saugio') || str.includes('saugiohoc')) {
+                console.log('Found "sau gio hoc" period');
+                return '16h';
+            }
+            
+            if (str.includes('sang')) return 'sáng';
+            if (str.includes('chieu')) return 'chiều';
+            
+            // Tìm số tiết
+            const numberMatch = str.match(/(\d+)/);
+            if (numberMatch) {
+                const num = parseInt(numberMatch[1]);
+                
+                // Xử lý đặc biệt cho số 16
+                if (num === 16) {
+                    console.log('Found number 16, treating as 16h');
+                    return '16h';
+                }
+                
+                // Chỉ chấp nhận tiết từ 1-10
+                if (num >= 1 && num <= 10) {
+                    return num.toString();
+                }
+            }
+            
+            // Xử lý khoảng thời gian
+            const timeMatch = str.match(/(\d{1,2})h?(\d{0,2})/);
+            if (timeMatch) {
+                const hour = parseInt(timeMatch[1]);
+                if (hour >= 7 && hour <= 8) return '1';
+                if (hour >= 8 && hour <= 9) return '2';
+                if (hour >= 9 && hour <= 10) return '3';
+                if (hour >= 10 && hour <= 11) return '4';
+                if (hour >= 11 && hour <= 12) return '5';
+                if (hour >= 13 && hour <= 14) return '6';
+                if (hour >= 14 && hour <= 15) return '7';
+                if (hour >= 15 && hour <= 16) return '8';
+                if (hour >= 16) {
+                    console.log(`Found hour ${hour}, treating as 16h`);
+                    return '16h';
+                }
+            }
+            
+            // Kiểm tra các pattern khác cho 16h
+            if (original.toLowerCase().includes('16') || 
+                original.toLowerCase().includes('sau giờ') ||
+                original.toLowerCase().includes('sau gio') ||
+                original.toLowerCase().includes('ngoài giờ') ||
+                original.toLowerCase().includes('ngoai gio')) {
+                console.log('Found alternative 16h pattern');
+                return '16h';
+            }
+            
+            console.log(`Could not normalize period: "${original}"`);
+            return null;
+        }
+
+        function displaySchedule(schedule) {
+            const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'];
+            const periods = ['1', '2', '3', '4', '5', '6', '7', '8', '16h'];
+            
+            // Debug: In ra dữ liệu schedule để kiểm tra
+            console.log('Schedule data:', schedule);
+            
+            let html = '<table class="schedule-table">';
+            html += '<thead><tr><th>Buổi</th><th>Tiết</th>';
+            days.forEach(day => {
+                html += `<th>${day}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            // Buổi sáng
+            html += '<tr><td rowspan="5" class="session-header">Sáng</td><td class="period-label">1</td>';
+            days.forEach(day => {
+                const subject = (schedule[day] && schedule[day]['1']) ? schedule[day]['1'] : '';
+                html += `<td class="editable-cell" data-day="${day}" data-period="1">${subject}<span class="edit-hint">✏️</span></td>`;
+            });
+            html += '</tr>';
+
+            for (let i = 2; i <= 5; i++) {
+                html += `<tr><td class="period-label">${i}</td>`;
+                days.forEach(day => {
+                    const subject = (schedule[day] && schedule[day][i.toString()]) ? schedule[day][i.toString()] : '';
+                    html += `<td class="editable-cell" data-day="${day}" data-period="${i}">${subject}<span class="edit-hint">✏️</span></td>`;
+                });
+                html += '</tr>';
+            }
+
+            // Khoảng cách giữa buổi sáng và chiều
+            html += '<tr class="session-break"><td colspan="7"></td></tr>';
+
+            // Buổi chiều
+            html += '<tr><td rowspan="3" class="session-header">Chiều</td><td class="period-label">6</td>';
+            days.forEach(day => {
+                const subject = (schedule[day] && schedule[day]['6']) ? schedule[day]['6'] : '';
+                html += `<td class="editable-cell" data-day="${day}" data-period="6">${subject}<span class="edit-hint">✏️</span></td>`;
+            });
+            html += '</tr>';
+
+            for (let i = 7; i <= 8; i++) {
+                html += `<tr><td class="period-label">${i}</td>`;
+                days.forEach(day => {
+                    const subject = (schedule[day] && schedule[day][i.toString()]) ? schedule[day][i.toString()] : '';
+                    html += `<td class="editable-cell" data-day="${day}" data-period="${i}">${subject}<span class="edit-hint">✏️</span></td>`;
+                });
+                html += '</tr>';
+            }
+
+            // Khoảng cách giữa buổi chiều và sau giờ học
+            html += '<tr class="session-break"><td colspan="7"></td></tr>';
+
+            // Sau giờ học - Xử lý đặc biệt để đảm bảo hiển thị đúng
+            html += '<tr><td class="session-header">Sau giờ học</td><td class="period-label">16h</td>';
+            days.forEach(day => {
+                // Kiểm tra tất cả các khả năng có thể của period 16h
+                let subject = '';
+                if (schedule[day]) {
+                    subject = schedule[day]['16h'] || schedule[day]['16'] || schedule[day]['sau'] || schedule[day]['saugiohoc'] || '';
+                }
+                console.log(`Day ${day}, Period 16h: "${subject}"`); // Debug log
+                html += `<td class="editable-cell" data-day="${day}" data-period="16h">${subject}<span class="edit-hint">✏️</span></td>`;
+            });
+            html += '</tr>';
+
+            html += '</tbody></table>';
+            document.getElementById('scheduleTable').innerHTML = html;
+            
+            // Thêm sự kiện click cho các ô có thể chỉnh sửa
+            document.querySelectorAll('.editable-cell').forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+            });
+            
+            // Thêm sự kiện click outside để đóng dropdown
+            document.addEventListener('click', handleOutsideClick);
+        }
+
+        function handleCellClick(event) {
+            event.stopPropagation();
+            
+            // Đóng input hiện tại nếu có
+            closeCurrentInput();
+            
+            const cell = event.currentTarget;
+            const day = cell.dataset.day;
+            const period = cell.dataset.period;
+            const currentSubject = cell.textContent.replace('✏️', '').trim();
+            
+            // Đánh dấu ô đang chỉnh sửa
+            cell.classList.add('editing');
+            currentEditingCell = cell;
+            
+            // Tạo input với autocomplete
+            const inputContainer = createInputWithAutocomplete(currentSubject, day, period);
+            cell.appendChild(inputContainer);
+            
+            // Focus vào input
+            const input = inputContainer.querySelector('input');
+            input.focus();
+            input.select();
+        }
+
+        function createInputWithAutocomplete(currentSubject, day, period) {
+            const container = document.createElement('div');
+            container.className = 'input-container';
+            
+            // Tạo input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'subject-input';
+            input.value = currentSubject;
+            input.placeholder = 'Nhập tên môn học...';
+            
+            // Tạo dropdown gợi ý
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown hidden';
+            
+            // Sự kiện input
+            input.addEventListener('input', (e) => {
+                const value = e.target.value.trim();
+                updateAutocomplete(dropdown, value, day, period);
+            });
+            
+            // Sự kiện focus - hiển thị dropdown khi focus
+            input.addEventListener('focus', (e) => {
+                const value = e.target.value.trim();
+                updateAutocomplete(dropdown, value, day, period);
+            });
+            
+            // Sự kiện phím
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    selectSubject(input.value.trim(), day, period);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeCurrentInput();
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    navigateDropdown(dropdown, 'down');
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    navigateDropdown(dropdown, 'up');
+                }
+            });
+            
+            // Hiển thị gợi ý ban đầu
+            updateAutocomplete(dropdown, '', day, period);
+            
+            container.appendChild(input);
+            container.appendChild(dropdown);
+            
+            return container;
+        }
+
+        function updateAutocomplete(dropdown, searchValue, day, period) {
+            dropdown.innerHTML = '';
+            
+            // Debug log
+            console.log(`Updating autocomplete for ${day} - ${period}, search: "${searchValue}"`);
+            console.log(`Available subjects:`, Array.from(allSubjects));
+            
+            // Lọc môn học theo từ khóa tìm kiếm
+            const sortedSubjects = Array.from(allSubjects).sort();
+            const filteredSubjects = sortedSubjects.filter(subject => 
+                subject.toLowerCase().includes(searchValue.toLowerCase())
+            );
+            
+            console.log(`Filtered subjects:`, filteredSubjects);
+            
+            // Thêm tùy chọn trống
+            const emptyOption = document.createElement('div');
+            emptyOption.className = 'autocomplete-option';
+            emptyOption.textContent = '(Trống)';
+            emptyOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectSubject('', day, period);
+            });
+            dropdown.appendChild(emptyOption);
+            
+            // Thêm các môn học được lọc
+            filteredSubjects.forEach(subject => {
+                const option = document.createElement('div');
+                option.className = 'autocomplete-option';
+                option.textContent = subject;
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectSubject(subject, day, period);
+                });
+                dropdown.appendChild(option);
+            });
+            
+            // Thêm một số môn học phổ biến nếu không có gợi ý
+            if (filteredSubjects.length === 0 && searchValue === '') {
+                const commonSubjects = [
+                    'Toán', 'Văn', 'Anh', 'Lý', 'Hóa', 'Sinh', 'Sử', 'Địa', 
+                    'GDCD', 'Tin học', 'Thể dục', 'Âm nhạc', 'Mỹ thuật',
+                    'Hoạt động trải nghiệm', 'Sinh hoạt lớp', 'Tự học'
+                ];
+                
+                commonSubjects.forEach(subject => {
+                    const option = document.createElement('div');
+                    option.className = 'autocomplete-option';
+                    option.textContent = subject;
+                    option.style.fontStyle = 'italic';
+                    option.style.color = '#666';
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectSubject(subject, day, period);
+                    });
+                    dropdown.appendChild(option);
+                });
+            }
+            
+            // Luôn hiển thị dropdown khi có focus
+            dropdown.classList.remove('hidden');
+            console.log(`Dropdown shown with ${dropdown.children.length} options`);
+        }
+
+        function navigateDropdown(dropdown, direction) {
+            const options = dropdown.querySelectorAll('.autocomplete-option');
+            let currentIndex = -1;
+            
+            // Tìm option đang được chọn
+            options.forEach((option, index) => {
+                if (option.classList.contains('selected')) {
+                    currentIndex = index;
+                    option.classList.remove('selected');
+                }
+            });
+            
+            // Di chuyển selection
+            if (direction === 'down') {
+                currentIndex = currentIndex < options.length - 1 ? currentIndex + 1 : 0;
+            } else {
+                currentIndex = currentIndex > 0 ? currentIndex - 1 : options.length - 1;
+            }
+            
+            // Đánh dấu option mới
+            if (options[currentIndex]) {
+                options[currentIndex].classList.add('selected');
+                options[currentIndex].scrollIntoView({ block: 'nearest' });
+                
+                // Cập nhật giá trị input
+                const input = currentEditingCell.querySelector('.subject-input');
+                if (input) {
+                    input.value = options[currentIndex].textContent === '(Trống)' ? '' : options[currentIndex].textContent;
+                }
+            }
+        }
+
+        function selectSubject(subject, day, period) {
+            // Cập nhật dữ liệu
+            if (!scheduleData[day]) {
+                scheduleData[day] = {};
+            }
+            scheduleData[day][period] = subject;
+            
+            // Cập nhật hiển thị
+            if (currentEditingCell) {
+                currentEditingCell.innerHTML = `${subject}<span class="edit-hint">✏️</span>`;
+            }
+            
+            // Đóng input
+            closeCurrentInput();
+            
+            showStatus('✅ Đã cập nhật môn học!', 'success');
+        }
+
+        function closeCurrentInput() {
+            if (currentEditingCell) {
+                const inputContainer = currentEditingCell.querySelector('.input-container');
+                if (inputContainer) {
+                    inputContainer.remove();
+                }
+                currentEditingCell.classList.remove('editing');
+                currentEditingCell = null;
+            }
+        }
+
+        function handleOutsideClick(event) {
+            if (currentEditingCell && !currentEditingCell.contains(event.target)) {
+                closeCurrentInput();
+            }
+        }
+
+        function exportExcel() {
+            if (!scheduleData || !selectedClass) return;
+
+            try {
+                const wb = XLSX.utils.book_new();
+                const wsData = createExcelData(scheduleData);
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                
+                // Thiết lập merge cells
+                const merges = [];
+                merges.push({ s: { r: 1, c: 0 }, e: { r: 5, c: 0 } }); // Sáng
+                merges.push({ s: { r: 6, c: 0 }, e: { r: 8, c: 0 } }); // Chiều
+                
+                ws['!merges'] = merges;
+                
+                // Thiết lập độ rộng cột
+                ws['!cols'] = [
+                    { width: 12 }, // Buổi
+                    { width: 8 },  // Tiết
+                    { width: 15 }, // Thứ 2
+                    { width: 15 }, // Thứ 3
+                    { width: 15 }, // Thứ 4
+                    { width: 15 }, // Thứ 5
+                    { width: 15 }  // Thứ 6
+                ];
+
+                XLSX.utils.book_append_sheet(wb, ws, `TKB_${selectedClass}`);
+                XLSX.writeFile(wb, `TKB_${selectedClass}.xlsx`);
+                
+                showStatus('✅ Xuất file Excel thành công!', 'success');
+            } catch (error) {
+                showStatus('❌ Lỗi xuất Excel: ' + error.message, 'error');
+            }
+        }
+
+        function createExcelData(schedule) {
+            const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'];
+            const data = [];
+            
+            // Header
+            data.push(['Buổi', 'Tiết', ...days]);
+            
+            // Buổi sáng
+            data.push(['Sáng', '1', ...days.map(day => schedule[day] && schedule[day]['1'] || '')]);
+            data.push(['', '2', ...days.map(day => schedule[day] && schedule[day]['2'] || '')]);
+            data.push(['', '3', ...days.map(day => schedule[day] && schedule[day]['3'] || '')]);
+            data.push(['', '4', ...days.map(day => schedule[day] && schedule[day]['4'] || '')]);
+            data.push(['', '5', ...days.map(day => schedule[day] && schedule[day]['5'] || '')]);
+            
+            // Buổi chiều
+            data.push(['Chiều', '6', ...days.map(day => schedule[day] && schedule[day]['6'] || '')]);
+            data.push(['', '7', ...days.map(day => schedule[day] && schedule[day]['7'] || '')]);
+            data.push(['', '8', ...days.map(day => schedule[day] && schedule[day]['8'] || '')]);
+            
+            // Sau giờ học
+            data.push(['Sau giờ học', '16h', ...days.map(day => schedule[day] && schedule[day]['16h'] || '')]);
+            
+            return data;
+        }
+
+        function exportHtml() {
+            if (!scheduleData || !selectedClass) return;
+
+            try {
+                const htmlContent = createHtmlContent(scheduleData, selectedClass);
+                const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                saveAs(blob, `TKB_${selectedClass}.html`);
+                
+                showStatus('✅ Xuất file HTML thành công!', 'success');
+            } catch (error) {
+                showStatus('❌ Lỗi xuất HTML: ' + error.message, 'error');
+            }
+        }
+
+        function createHtmlContent(schedule, className) {
+            const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'];
+            
+            return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thời khóa biểu lớp ${className}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; }
+        th { background: #ff7b54; color: white; font-weight: bold; }
+        .session-header { background: #e8f4fd !important; font-weight: bold; color: #1976d2; }
+        .period-label { font-weight: bold; color: #2c3e50; }
+        .session-break { height: 15px; background: linear-gradient(90deg, transparent 0%, #ff7b54 50%, transparent 100%); border: none; }
+        .session-break td { border: none; padding: 0; position: relative; }
+        .session-break td::after { content: '• • •'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff7b54; font-size: 12px; letter-spacing: 8px; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .print-date { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+        @media print { body { margin: 0; } .container { box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 THỜI KHÓA BIỂU LỚP ${className}</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Buổi</th>
+                    <th>Tiết</th>
+                    ${days.map(day => `<th>${day}</th>`).join('')}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="5" class="session-header">Sáng</td>
+                    <td class="period-label">1</td>
+                    ${days.map(day => `<td>${schedule[day] && schedule[day]['1'] || ''}</td>`).join('')}
+                </tr>
+                ${[2,3,4,5].map(period => `
+                <tr>
+                    <td class="period-label">${period}</td>
+                    ${days.map(day => `<td>${schedule[day] && schedule[day][period.toString()] || ''}</td>`).join('')}
+                </tr>`).join('')}
+                <tr class="session-break"><td colspan="7"></td></tr>
+                <tr>
+                    <td rowspan="3" class="session-header">Chiều</td>
+                    <td class="period-label">6</td>
+                    ${days.map(day => `<td>${schedule[day] && schedule[day]['6'] || ''}</td>`).join('')}
+                </tr>
+                ${[7,8].map(period => `
+                <tr>
+                    <td class="period-label">${period}</td>
+                    ${days.map(day => `<td>${schedule[day] && schedule[day][period.toString()] || ''}</td>`).join('')}
+                </tr>`).join('')}
+                <tr class="session-break"><td colspan="7"></td></tr>
+                <tr>
+                    <td class="session-header">Sau giờ học</td>
+                    <td class="period-label">16h</td>
+                    ${days.map(day => `<td>${schedule[day] && schedule[day]['16h'] || ''}</td>`).join('')}
+                </tr>
+            </tbody>
+        </table>
+        <div class="print-date">Xuất ngày: ${new Date().toLocaleDateString('vi-VN')}</div>
+    </div>
+</body>
+</html>`;
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'982143a217de1114',t:'MTc1ODM3MDY5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
