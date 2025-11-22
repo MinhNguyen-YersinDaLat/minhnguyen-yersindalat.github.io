@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>READING GAME: GLASS BREAK</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- TONE.JS LIBRARY REMOVED -->
+  <style>
+    /* ====== BASE LAYOUT & THEME ====== */
+    :root {
+      --bg-main: #0b1b2b;
+      --bg-panel: #102132;
+      --accent: #ffd54f;
+      --accent-soft: #ffe082;
+      --accent-strong: #ffb300;
+      --text-main: #f5f5f5;
+      --text-muted: #cfd8dc;
+      --danger: #ff5252;
+      --success: #4caf50;
+      --glass: rgba(255, 255, 255, 0.11);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.45);
+      
+      /* New CSS Variables for controlled sizing */
+      --header-height: 60px;
+      --submit-row-height: 40px;
+      --canvas-height: 100px;
+      --padding-app: 10px;
+      --copyright-height: 35px; /* New height for copyright footer */
+      
+      /* Calculate main content height dynamically */
+      --main-app-min-height: calc(100vh - var(--copyright-height));
+    }
+
+    /* General Styling */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+        cursor: default; 
+        background: radial-gradient(circle at top, #16324f 0, #020711 48%, #000 100%);
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        min-height: 100vh; 
+        position: relative;
+        overflow: hidden; /* NGĂN THANH CUỘN CHUNG */
+    }
+
+    .app {
+      width: 100%;
+      height: calc(100vh - var(--copyright-height)); /* Dùng calc để vừa khung hình */
+      max-width: 1400px;
+      padding: var(--padding-app);
+      padding-bottom: var(--padding-app);
+      background: rgba(3, 10, 22, 0.96);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      visibility: hidden; 
+      overflow: hidden; /* Ngăn scroll trong App container */
+    }
+    
+    /* ====== CUSTOM CURSOR (EMOJI HAMMER) ====== */
+    #customCursor {
+      position: fixed;
+      top: 0; left: 0;
+      width: 40px; 
+      height: 40px;
+      pointer-events: none;
+      z-index: 9999;
+      display: none; 
+      margin-left: -10px; 
+      margin-top: -10px; 
+      font-size: 25px;
+      transform-origin: 50% 50%;
+      transform: translateY(-8px) rotate(-45deg); 
+      transition: transform 0.05s ease-out;
+      filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.6)); 
+    }
+
+    /* Smash Animation */
+    @keyframes hammer-smash {
+      0% { transform: translateY(-8px) rotate(-45deg); }
+      50% { transform: translateY(0px) rotate(-20deg) scale(1.1); filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
+      100% { transform: translateY(-8px) rotate(-45deg); }
+    }
+    .striking #customCursor {
+      animation: hammer-smash 0.15s cubic-bezier(0.1, 0.8, 0.2, 1.0);
+    }
+    
+    /* ====== HEADER & STATS (Simplified) ====== */
+    .game-header {
+      flex-shrink: 0;
+      display: grid;
+      grid-template-columns: 1.6fr 1fr auto; /* Thêm cột cho nút fullscreen */
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(120deg, #10263a 0, #06121f 40%, #131e2a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      height: var(--header-height);
+    }
+
+    .game-title-block { display: flex; flex-direction: column; gap: 2px; }
+    .game-title-main { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+    .game-title-main span.badge {
+      font-size: 0.65rem; text-transform: uppercase; padding: 2px 6px; border-radius: 999px;
+      background: rgba(255, 213, 79, 0.12); color: var(--accent-soft); border: 1px solid rgba(255, 213, 79, 0.4);
+    }
+    .game-subtitle { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .stat-group {
+      display: flex; align-items: center; justify-content: center; gap: 12px; padding: 4px 10px;
+      border-radius: var(--radius-md); background: radial-gradient(circle at top left, #1c3146 0, #050c16 70%);
+      border: 1px solid rgba(255, 255, 255, 0.05); height: 100%;
+    }
+    .stat-item { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .stat-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); }
+    .stat-value { font-size: 1rem; font-weight: 700; color: var(--accent-soft); }
+    .stat-value.danger { color: var(--danger); }
+    .stat-value.good { color: var(--success); }
+    
+    .fullscreen-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 6px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        font-size: 1.1rem;
+        width: 40px;
+        height: 40px;
+    }
+    .fullscreen-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* ====== MAIN CONTENT & GAME AREA (ADJUSTED FOR NO SCROLL) ====== */
+    .game-content { 
+      flex: 1; 
+      /* Tính toán lại chiều cao chính xác để vừa khung */
+      height: calc(100% - var(--header-height) - 10px); /* 10px gap */
+      min-height: 0; 
+      display: grid; 
+      grid-template-columns: 1.6fr 1.0fr; 
+      gap: 10px; 
+      overflow: hidden;
+    }
+
+    .game-area {
+      display: flex; flex-direction: column; border-radius: var(--radius-md);
+      background: radial-gradient(circle at top, #17324a 0, #020711 60%);
+      border: 1px solid rgba(255, 255, 255, 0.06); overflow: hidden; position: relative;
+      cursor: none !important;
+    }
+    
+    .shake-anim {
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+
+    #gameCanvas {
+      width: 100%; 
+      /* Điều chỉnh chiều cao Canvas để giải phóng không gian cho văn bản */
+      height: var(--canvas-height); 
+      display: block; flex-shrink: 0; 
+      background: #000; 
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Tính toán lại chiều cao cho Reading Stack để văn bản vừa vặn */
+    .reading-stack { 
+        flex: 1; 
+        min-height: 0; 
+        display: flex; 
+        flex-direction: column; 
+        padding: 10px; 
+        gap: 5px; 
+        /* Chiều cao của reading-stack: 100% của game-area - canvas height */
+        height: calc(100% - var(--canvas-height));
+        overflow: hidden;
+    }
+    .reading-header { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+    .reading-title { flex-shrink: 0; font-size: 0.9rem; font-weight: 600; color: var(--accent-soft); }
+    .reading-hint { flex-shrink: 0; font-size: 0.75rem; color: var(--text-muted); }
+
+    .reading-scroll-container {
+      flex: 1; 
+      overflow-y: auto; /* Giữ scroll chỉ cho phần nội dung bài đọc */
+      border-radius: var(--radius-md);
+      background: rgba(6, 10, 18, 0.9); border: 1px solid rgba(255, 255, 255, 0.06);
+      position: relative; padding: 2vw; display: flex; align-items: center; justify-content: center;
+    }
+
+    #readingLayer {
+      position: relative; line-height: 1.8; 
+      font-size: clamp(16px, 2.5vh, 20px); /* Giảm max-font để tối ưu không gian */
+      color: #f5f0e6; 
+      z-index: 1; text-align: justify; text-justify: inter-word;
+    }
+
+    .token { 
+      position: relative; padding: 4px 0; border-radius: 4px; 
+      display: inline-block; margin-right: 0.5em; transition: background 0.3s;
+    }
+    
+    .sentence-highlight .token {
+      background-color: rgba(76, 175, 80, 0.25);
+      color: #81c784;
+      text-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+    }
+
+    #glassLayer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    #shardLayer { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+
+    .tile {
+      position: absolute; border-radius: 2px;
+      background: rgba(220, 240, 255, 0.03); 
+      box-shadow: inset 0 0 3px rgba(255, 255, 255, 0.05), 0 1px 2px rgba(0,0,0,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15); 
+      backdrop-filter: blur(0.5px); 
+      pointer-events: auto; transition: all 0.1s;
+    }
+    .tile:hover { 
+      background: rgba(255, 255, 255, 0.08); 
+      border-color: rgba(255, 255, 255, 0.3); 
+    }
+
+    .tile.crack-1 {
+        background: 
+            linear-gradient(115deg, transparent 45%, rgba(255,255,255,0.3) 46%, transparent 47%),
+            linear-gradient(200deg, transparent 30%, rgba(255,255,255,0.1) 31%, transparent 32%);
+        border-color: rgba(255,255,255,0.3);
+    }
+    .tile.crack-2 {
+        background: 
+            linear-gradient(115deg, transparent 45%, rgba(255,255,255,0.5) 46%, transparent 47%),
+            linear-gradient(200deg, transparent 30%, rgba(255,255,255,0.3) 31%, transparent 32%),
+            linear-gradient(60deg, transparent 70%, rgba(255,255,255,0.4) 71%, transparent 72%);
+        box-shadow: inset 0 0 8px rgba(255,255,255,0.1);
+        transform: skew(1deg);
+    }
+    
+    .tile.shattered {
+      opacity: 0; pointer-events: none; transform: scale(0.5);
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .shard {
+      position: absolute;
+      background: rgba(200, 230, 255, 0.3);
+      border: 1px solid rgba(255,255,255,0.3);
+      backdrop-filter: blur(0.5px);
+      pointer-events: none;
+    }
+
+    /* === RIGHT COLUMN (HEADLINES) === */
+    .headline-panel {
+      display: flex; flex-direction: column; border-radius: var(--radius-md);
+      background: linear-gradient(145deg, #121f2e 0, #060b14 55%, #151f2a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 10px; gap: 5px; 
+      overflow: hidden; 
+      height: 100%; /* Đảm bảo nó chiếm đủ chiều cao còn lại */
+    }
+
+    .headline-list {
+      flex: 1; 
+      overflow-y: auto; /* Giữ scroll chỉ cho phần danh sách tiêu đề */
+      display: flex; flex-direction: column; 
+      gap: 6px; 
+    }
+
+    .headline-item {
+      background: white; border-radius: 10px; padding: 8px 12px; /* Giảm padding */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex; flex-direction: column; justify-content: center; 
+      gap: 4px; 
+      flex: 1 1 0; 
+      min-height: 45px; /* Chiều cao tối thiểu mới */
+      transition: all 0.2s;
+      border: 3px solid transparent; cursor: pointer; position: relative;
+    }
+    .headline-item.hidden {
+        display: none;
+    }
+    .headline-item:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+    .headline-item.active { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
+
+    .headline-header { display: flex; gap: 10px; align-items: center; height: 100%; }
+    
+    .headline-label {
+      background: #f59e0b; color: white; font-weight: 900; 
+      font-size: 1.1rem; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;
+    }
+    .headline-item.active .headline-label { background: #d97706; }
+
+    .headline-text {
+      color: #1e293b; 
+      font-size: 1.2rem; /* TĂNG KÍCH CỠ CHỮ */
+      font-weight: 600; 
+      line-height: 1.2; /* Giảm line-height để tiết kiệm không gian */
+      flex: 1;
+      display: -webkit-box; 
+      -webkit-line-clamp: 2; /* Giảm xuống 2 dòng tối đa */
+      -webkit-box-orient: vertical; 
+      overflow: hidden;
+    }
+
+    .keyword {
+      color: inherit; border-radius: 4px; padding: 0 2px;
+      border-bottom: 2px dashed #cbd5e1; transition: all 0.3s;
+    }
+    .keyword.highlighted {
+      color: #d97706; background: rgba(253, 230, 138, 0.6);
+      border-bottom: 2px solid #f59e0b; font-weight: 800; padding: 0 5px;
+    }
+
+    .submit-row {
+      flex-shrink: 0; margin-top: 5px; padding-top: 5px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.08); height: var(--submit-row-height);
+    }
+    .submit-btn {
+      background: linear-gradient(120deg, var(--accent-soft), var(--accent-strong));
+      border: none; padding: 0px 30px; border-radius: 999px; height: 36px;
+      font-weight: 800; font-size: 0.9rem; color: #422006; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 213, 79, 0.3); display: flex; align-items: center; justify-content: center;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(255, 213, 79, 0.4); }
+
+    /* ====== FULL-SCREEN START SCREEN (New) ====== */
+    #startScreen {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #16324f 0, #020711 48%, #000 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 101;
+        transition: opacity 0.5s ease-out;
+        padding: 20px;
+    }
+    .start-content {
+        max-width: 600px;
+        width: 100%;
+        background: #0c1622;
+        padding: 40px 30px;
+        border-radius: var(--radius-lg);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 50px rgba(255, 213, 79, 0.2);
+        text-align: center;
+    }
+    .start-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: var(--accent);
+        margin-bottom: 5px;
+        text-shadow: 0 0 10px rgba(255, 213, 79, 0.5);
+    }
+    .start-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-main);
+        margin-bottom: 20px;
+        font-weight: 300;
+    }
+    .rules-list {
+        text-align: left;
+        display: inline-block;
+        margin: 0 auto 30px;
+        color: var(--text-muted);
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .rules-list strong {
+        color: var(--accent-soft);
+    }
+    .start-btn {
+        background: linear-gradient(120deg, var(--accent-soft), var(--accent-strong));
+        border: none;
+        padding: 12px 40px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #422006;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(255, 213, 79, 0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .start-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 213, 79, 0.5);
+    }
+    .start-screen-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* ====== MODAL (Result Modal) ====== */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
+      display: none; align-items: center; justify-content: center; z-index: 100;
+      backdrop-filter: blur(5px);
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      background: #0c1622; padding: 20px; border-radius: var(--radius-lg);
+      /* INCREASED MODAL SIZE FOR MATCHING GAME */
+      max-width: 800px; 
+      width: 95%; 
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: var(--shadow-soft);
+    }
+    .modal-header { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+    .modal-tag { font-size: 0.9rem; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
+    .modal-tag.success { background: rgba(76, 175, 80, 0.2); color: var(--success); border: 1px solid var(--success); }
+    .modal-tag.fail { background: rgba(255, 82, 82, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    
+    /* Custom style for quiz buttons in modal */
+    #vocabOptions .vocab-option {
+      transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+      font-weight: 600;
+      font-size: 1.1rem; /* Increased font size */
+      background: #1c3146; 
+      color: var(--text-main); 
+      border-color: rgba(255,255,255,0.2);
+      padding: 15px 20px; /* Increased padding */
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      text-align: left;
+    }
+    #vocabOptions .vocab-option:not([disabled]):hover {
+      background: #284460 !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Styles for Matching Game */
+    .matching-container {
+        position: relative; /* Container for the canvas and grid */
+        padding-bottom: 20px; /* Space for feedback */
+    }
+    #matchingCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Allows clicks to pass through to grid items */
+        z-index: 10;
+    }
+    .matching-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px 30px; /* Increased gap for visual clarity */
+        margin-top: 20px;
+        text-align: left;
+        z-index: 20; /* Keep grid items above canvas */
+    }
+    .match-item {
+        padding: 15px; /* Increased padding */
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: #1c3146;
+        color: var(--text-main);
+        font-size: 1.1rem; /* Increased font size */
+        height: 100%;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .match-item:hover:not(.matched):not(.selected) {
+        transform: translateY(-2px);
+        background: #284460;
+        border-color: var(--accent-soft);
+    }
+    .match-item.selected {
+        border-color: var(--accent);
+        background: #3a4d62;
+        transform: scale(1.02);
+        box-shadow: 0 0 10px var(--accent-soft);
+    }
+    .match-item.matched {
+        background: var(--success);
+        color: var(--bg-panel);
+        pointer-events: none;
+        border-color: var(--success);
+    }
+    .match-item.word {
+        grid-column: 1 / 2;
+    }
+    .match-item.def {
+        grid-column: 2 / 3;
+    }
+    .match-item.error {
+        background: var(--danger);
+        border-color: var(--danger);
+        animation: shake 0.5s;
+    }
+    .match-label {
+        font-weight: 800;
+        margin-right: 12px; /* Increased margin */
+        color: var(--accent-soft);
+    }
+
+
+    .modal-body { 
+        font-size: 1.1rem; 
+        color: var(--text-muted); 
+        margin-bottom: 20px; 
+        line-height: 1.6; 
+    }
+    /* Style for the Vietnamese definition text (Consolidated Feedback) */
+    #matchFeedbackContainer {
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 8px;
+        background: #121f2e;
+        border: 1px solid var(--accent);
+        text-align: left;
+        /* Removed max-height and overflow-y to allow full display */
+    }
+    #matchFeedbackContainer .viet-def-item {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+    }
+    #matchFeedbackContainer .viet-def-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    #matchFeedbackContainer .viet-def-label {
+        font-weight: 700;
+        color: var(--accent-soft);
+        font-size: 1.1rem;
+        margin-bottom: 3px;
+    }
+    #matchFeedbackContainer .viet-def-text {
+        color: var(--text-main);
+        font-weight: 500;
+        font-size: 1rem;
+    }
+    #matchFeedbackContainer .match-feedback-message {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+    .btn { padding: 8px 16px; border-radius: 999px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #fff; font-size: 0.85rem; transition: all 0.2s; }
+    .btn:hover { background: rgba(255,255,255,0.1); }
+    .btn.primary { background: var(--accent-soft); color: #000; border-color: transparent; font-weight: 600; }
+    .btn.primary:hover { background: var(--accent-strong); }
+
+    @media (max-width: 900px) {
+      .game-content { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+      #gameCanvas { height: 80px; }
+      .app { padding: 5px; }
+      .game-header { height: auto; padding: 8px; grid-template-columns: 1fr auto; }
+      /* Kept Hits Left for consistency, but if needed, can hide it on mobile. */
+      /* .stat-group:nth-child(3) { display: none; } */
+      .headline-text { font-size: 0.9rem; -webkit-line-clamp: 2; }
+      .headline-label { font-size: 0.9rem; width: 26px; height: 26px; }
+      .headline-list { overflow-y: auto; }
+    }
+    /* ====== COPYRIGHT FOOTER STYLING ====== */
+    .copyright-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 5px 0;
+        background: rgba(16, 24, 39, 0.9); /* Màu nền gần giống header */
+        color: var(--accent-soft);
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-align: center;
+        z-index: 100;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    @media (max-width: 600px) {
+        .copyright-footer {
+             font-size: 0.7rem;
+        }
+    }
+
+  </style>
+</head>
+<body>
+  
+  <!-- ===== FULL-SCREEN START SCREEN (Updated Content) ===== -->
+  <div id="startScreen">
+    <div class="start-content">
+      <!-- UPDATED GAME TITLE - REMOVED EMOJI -->
+      <div class="start-title">READING GAME: GLASS BREAK</div>
+      <div class="start-subtitle">Find the key ideas and choose the best headline!</div>
+
+      <h3 class="text-xl font-bold text-yellow-300 mb-4 uppercase">Instructions</h3>
+      <ul class="rules-list space-y-2 mb-6 list-disc list-inside">
+        <!-- Reverting instructions to match single story + 2 extra headlines (A-E) -->
+        <li>Read the article and choose the **most suitable headline** that matches the key information.</li>
+        <li>**Tip:** Spot the key information to pick the best headline — just hit the right sentence in the text!</li>
+      </ul>
+      <p class="text-sm italic text-gray-500 mb-4">Time limit: 60 seconds.</p>
+      
+      <button class="start-btn" id="startGameBtn">START GAME</button>
+    </div>
+  </div>
+  
+  <div id="customCursor">
+    <!-- EMOJI HAMMER 🔨 -->
+    🔨
+  </div>
+
+  <div class="app" id="mainApp">
+    <!-- ===== HEADER ===== -->
+    <header class="game-header">
+      <div class="game-title-block">
+        <div class="game-title-main">
+          <!-- UPDATED GAME TITLE - ADDED EMOJI FOR IN-GAME VISUAL APPEAL -->
+          <span>🌊 READING GAME</span> 
+          <span class="badge">Glass Break</span>
+        </div>
+        <div class="game-subtitle">
+          Find the key information and choose the best headline.
+        </div>
+      </div>
+
+      <div class="stat-group">
+        <div class="stat-item">
+          <div class="stat-label">Time</div>
+          <div id="timeValue" class="stat-value danger">60</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" style="margin-left: 10px;">Score</div>
+          <div id="scoreValue" class="stat-value">0</div>
+        </div>
+      </div>
+      
+      <!-- Nút Toàn màn hình (Mới) -->
+      <button class="fullscreen-btn" id="fullscreenToggle" onclick="toggleFullscreen()">
+        <!-- Icon fullscreen SVG (maximize) -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-maximize"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+      </button>
+      
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="game-content">
+      <!-- LEFT COLUMN -->
+      <section class="game-area" id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+        <div class="reading-stack">
+          <div class="reading-header">
+            <div class="reading-title">Article: Ocean Conservation Efforts</div>
+            <div class="reading-hint">Smash the glass on the two key sentences!</div>
+                          </div>
+          
+          <div class="reading-scroll-container" id="readingScrollContainer">
+            <div class="reading-inner-wrapper">
+                <div id="readingLayer"></div>
+                <div id="glassLayer"></div>
+                <div id="shardLayer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN -->
+      <aside class="headline-panel">
+        <div class="panel-header">
+          <div class="panel-title font-bold text-white mb-1" style="font-size: 1.1rem;">News Headlines</div>
+          <div class="panel-subtitle class="text-gray-400 text-xs mb-2">Select the headline that BEST matches the article.</div>
+        </div>
+        
+        <div class="headline-list" id="headlineList">
+          <!-- A -->
+          <div class="headline-item" data-id="A">
+            <div class="headline-header">
+              <div class="headline-label">A</div>
+              <div class="headline-text">
+                Plans to 
+                <span class="keyword" data-headline="A" data-keyword="help">help</span> 
+                <span class="keyword" data-headline="A" data-keyword="coral reefs">coral reefs</span> 
+                <span class="keyword" data-headline="A" data-keyword="recover">recover</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- B -->
+          <div class="headline-item" data-id="B">
+            <div class="headline-header">
+              <div class="headline-label">B</div>
+              <div class="headline-text">
+                <span class="keyword" data-headline="B" data-keyword="sea turtle">Sea turtle</span> 
+                <span class="keyword" data-headline="B" data-keyword="protection">protection</span> 
+                efforts supported by 
+                <span class="keyword" data-headline="B" data-keyword="hundreds of volunteers">hundreds of volunteers</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- C -->
+          <div class="headline-item" data-id="C">
+            <div class="headline-header">
+              <div class="headline-label">C</div>
+              <div class="headline-text">
+                The 
+                <span class="keyword" data-headline="C" data-keyword="effect">effect</span> 
+                of 
+                <span class="keyword" data-headline="C" data-keyword="diving">diving</span> 
+                activities on 
+                <span class="keyword" data-headline="C" data-keyword="coral reefs">coral reefs</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- D -->
+          <div class="headline-item" data-id="D">
+            <div class="headline-header">
+              <div class="headline-label">D</div>
+              <div class="headline-text">
+                <span class="keyword" data-headline="D" data-keyword="wildlife art exhibition">Wildlife art exhibition</span> 
+                to raise public 
+                <span class="keyword" data-headline="D" data-keyword="awareness">awareness</span> 
+                and 
+                <span class="keyword" data-headline="D" data-keyword="funds">funds</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- E -->
+          <div class="headline-item" data-id="E">
+            <div class="headline-header">
+              <div class="headline-label">E</div>
+              <div class="headline-text">
+                <span class="keyword" data-headline="E" data-keyword="young wildlife artists">Young wildlife artists</span> 
+                to 
+                <span class="keyword" data-headline="E" data-keyword="hold">hold</span> 
+                <span class="keyword" data-headline="E" data-keyword="exhibition">exhibition</span> 
+                of vulnerable species
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <div class="submit-hint" style="font-size: 0.75rem; color: #aaa;">Correct: Win | Wrong: -10s</div>
+          <button id="submitAnswerBtn" class="submit-btn">SUBMIT ANSWER</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+  
+  <!-- ===== COPYRIGHT FOOTER (New) ===== -->
+  <div class="copyright-footer">
+    TEACHER NGUYEN THI THAO UYEN - VERSIN PRIMARY, SECONDARY & HIGH SCHOOL DALAT
+  </div>
+
+  <!-- ===== MODAL (Result Modal) ===== -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Result</div>
+        <span class="modal-tag" id="modalTag"></span>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="btn" id="closeModalBtn">Close</button>
+        <button class="btn primary" id="restartBtn">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  DATA & LOGIC
+    // ============================================================
+    
+    // --- MULTI-STORY DATA STRUCTURE ---
+    const stories = [
+        {
+            title: "Con Dao Sea Turtle Conservation",
+            sentences: [
+              "More than 600 volunteers participated in sea turtle conservation activities held on Con Dao Island last week.",
+              "Volunteers made sure that their spawning ground is safe.",
+              "They also rescued turtle eggs and buried them in the sand.",
+              "Sea turtles are threatened with extinction worldwide, and their populations have decreased dramatically in many places.",
+              "That is why sea turtle conservation programmes are organised annually around the world.",
+              "They attract many volunteers and help raise public awareness about the threats to sea turtle species."
+            ],
+            targetIndices: [0, 5], 
+            correctHeadline: "B",
+            quizType: "multiple-choice",
+            canvasMode: "turtle", // Canvas mode for Story 1
+            quizData: {
+                word: "spawning ground",
+                question: "Which option best defines 'spawning ground'?",
+                options: [
+                    { text: "A place where sea turtles and other animals such as fish and frogs leave their eggs.", isCorrect: true, label: "A" },
+                    { text: "Easily harmed or hurt physically or mentally.", isCorrect: false, label: "B" }
+                ],
+                vietnameseDefinition: "Nơi rùa biển và các loài động vật khác như cá và ếch đẻ trứng."
+            }
+        },
+        {
+             title: "Nha Trang Coral Restoration",
+             sentences: [
+                "Local authorities are taking measures to restore the coral reef ecosystem in Nha Trang Bay.",
+                "They will organise regular clean-ups of the seabed and removal of marine debris.",
+                "Diving clubs will also help by having their professional divers collect broken pieces of coral, re-grow them in underwater nurseries, and then re-attach them to reefs.",
+                "Coral cover is expected to increase, which will help restore natural habitats and promote marine biodiversity in the bay.",
+                "In addition, the bay's management board will also monitor the number of swimmers and divers to avoid putting too much stress on the ecosystem."
+             ],
+             targetIndices: [0], // Only 1 key sentence
+             correctHeadline: "A",
+             quizType: "matching",
+             canvasMode: "coral", // Canvas mode for Story 2
+             quizData: { 
+                instruction: "Match the word on the left with its correct meaning on the right.",
+                pairs: [
+                    { word: "debris", definition: "broken pieces of something larger", vietnamese: "mảnh vụn, rác vụn", matchId: 0 },
+                    { word: "nurseries", definition: "places where young plants are grown for planting somewhere else", vietnamese: "nơi ươm, chỗ nuôi trồng con non/cây non", matchId: 1 },
+                    { word: "marine", definition: "related to the sea", vietnamese: "thuộc về biển", matchId: 2 },
+                ]
+             }
+        },
+        // --- STORY 3: ART EXHIBITION ---
+        {
+            title: "Ha Noi Wildlife Art Exhibition",
+            sentences: [
+                "An exhibition entitled 'Paint for wildlife' will be held in Ha Noi next week.",
+                "It will include more than 30 paintings by secondary school students across the country.",
+                "Visitors will also have the opportunity to meet the young artists and discuss the stories behind their beautiful paintings.",
+                "All of them will be on sale to raise money for the protection of endangered and vulnerable species.",
+                "The event organisers hope to raise public awareness of wildlife conservation through art and contribute to efforts to save rare and endangered animals."
+            ],
+            targetIndices: [0, 4], // Key sentences 0 and 4
+            correctHeadline: "D",
+            quizType: "multiple-choice", 
+            canvasMode: "art", // Canvas mode for Story 3
+            quizData: {
+                word: "vulnerable",
+                question: "Which option best defines 'vulnerable'?",
+                options: [
+                    { text: "easily harmed or hurt physically or mentally", isCorrect: true, label: "A" },
+                    { text: "a place where sea turtles and other animals such as fish and frogs leave their eggs", isCorrect: false, label: "B" }
+                ],
+                vietnameseDefinition: "Dễ bị tổn thương hoặc bị tổn hại về thể chất hoặc tinh thần."
+            }
+        }
+    ];
+
+    let currentStoryIndex = 0;
+    const HITS_REQUIRED = 5;
+
+    // Game State
+    let sentenceHits = {}; 
+    let sentenceShattered = {}; 
+    let tokens = []; 
+    let tiles = []; 
+    let shards = []; 
+    let isGameActive = false; 
+    let allStoriesCompleted = false; 
+    let completedHeadlines = {}; // Track completed headlines
+
+    let timeLeft = 60;
+    let score = 0;
+    // REMOVED: turtlesSaved variable 
+    let timerInterval = null;
+    let selectedHeadline = null;
+    let physicsInterval = null;
+    let marineObjects = []; // Used for turtles/coral/art effects
+    
+    // Art Mode Frames Data (Initial Setup)
+    // Reworked Art Frames for better visual balance (4 frames only)
+    const ART_FRAMES = [
+        // Frame 1: Top Left Vertical Rect (25% W x 50% H)
+        { x: 0.05, y: 0.05, w: 0.25, h: 0.45, type: 'rect' },
+        // Frame 2: Top Right Horizontal Rect (55% W x 25% H)
+        { x: 0.35, y: 0.05, w: 0.6, h: 0.25, type: 'rect' },
+        // Frame 3: Bottom Left Square (45% W x 45% H - more space at bottom)
+        { x: 0.05, y: 0.55, w: 0.45, h: 0.4, type: 'rect' },
+        // Frame 4: Bottom Right Vertical Rect (40% W x 55% H)
+        { x: 0.55, y: 0.35, w: 0.4, h: 0.6, type: 'rect' }
+    ];
+
+
+    // State for Matching Game
+    let currentMatch = {
+        word: null, // Stores the element of the selected word
+        def: null,  // Stores the element of the selected definition
+        matchesFound: 0,
+        totalMatches: 0,
+        completedMatches: [] // Store matched pairs to display VN definition
+    };
+
+
+    const collectedKeywords = {
+        // Keywords corresponding to the 5 headlines A-E in the HTML structure
+        A: ["help", "coral reefs", "recover"],
+        B: ["sea turtle", "protection", "hundreds of volunteers"],
+        C: ["effect", "diving", "coral reefs"],
+        D: ["wildlife art exhibition", "awareness", "funds"], // Headline D is now the correct one for Story 3
+        E: ["young wildlife artists", "hold", "exhibition"],
+    };
+
+    // DOM Elements
+    const mainApp = document.getElementById("mainApp"); 
+    const timeValueEl = document.getElementById("timeValue");
+    const scoreValueEl = document.getElementById("scoreValue");
+    // REMOVED: turtleCountEl element ID check
+    const readingLayerEl = document.getElementById("readingLayer");
+    const glassLayerEl = document.getElementById("glassLayer");
+    const shardLayerEl = document.getElementById("shardLayer");
+    const gameAreaEl = document.querySelector(".game-area");
+    const submitAnswerBtn = document.getElementById("submitAnswerBtn");
+    const customCursor = document.getElementById("customCursor");
+    const readingTitleEl = document.querySelector(".reading-title");
+    const headlineListEl = document.getElementById("headlineList");
+    
+    const startScreen = document.getElementById("startScreen"); 
+    const startGameBtn = document.getElementById("startGameBtn");
+    
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const modal = document.querySelector('.modal');
+    const modalTitle = document.getElementById("modalTitle");
+    const modalTag = document.getElementById("modalTag");
+    const modalBody = document.getElementById("modalBody");
+    const modalFooter = document.querySelector('.modal-footer');
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    
+    // --- TONE.JS SETUP ---
+    // REMOVED TONE.JS LOGIC
+    function playSFX(type) {
+        // Placeholder for removed SFX to prevent errors
+        // console.log("SFX: " + type);
+    }
+
+
+    // --- CURSOR LOGIC (Unchanged) ---
+    document.addEventListener("mousemove", (e) => {
+        customCursor.style.left = e.clientX + "px";
+        customCursor.style.top = e.clientY + "px";
+    });
+
+    gameAreaEl.addEventListener("mouseenter", () => {
+        if (isGameActive) customCursor.style.display = "block";
+    });
+    gameAreaEl.addEventListener("mouseleave", () => {
+        customCursor.style.display = "none";
+    });
+    
+    document.addEventListener("mousedown", () => {
+        if (isGameActive) document.body.classList.add("striking");
+    });
+    document.addEventListener("mouseup", () => {
+        document.body.classList.remove("striking");
+    });
+    
+    // Fullscreen Toggle Logic
+    function toggleFullscreen() {
+        const doc = document.documentElement;
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) { 
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) { 
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { 
+                document.msExitFullscreen();
+            }
+        } else {
+            if (doc.requestFullscreen) {
+                doc.requestFullscreen();
+            } else if (doc.mozRequestFullScreen) {
+                doc.mozRequestFullScreen();
+            } else if (doc.webkitRequestFullscreen) {
+                doc.webkitRequestFullscreen();
+            } else if (doc.msRequestFullscreen) {
+                doc.msRequestFullscreen();
+            }
+        }
+    }
+
+
+    // --- GAME FLOW LOGIC (Unchanged from previous versions) ---
+
+    function loadStory(index) {
+        if (index >= stories.length) {
+            return triggerWin("You completed all articles! Final Score: " + score);
+        }
+
+        const story = stories[index];
+        
+        // Reset story-specific state
+        sentenceHits = {}; 
+        sentenceShattered = {}; 
+        story.targetIndices.forEach(idx => {
+            sentenceHits[idx] = 0;
+            sentenceShattered[idx] = false;
+        });
+        selectedHeadline = null;
+        document.querySelectorAll(".headline-item").forEach((it) => it.classList.remove("active"));
+        document.querySelectorAll(".sentence-wrapper").forEach(el => el.classList.remove("sentence-highlight"));
+        
+        // Update Headline Visibility (Hide completed ones)
+        document.querySelectorAll('.headline-item').forEach(item => {
+            if (completedHeadlines[item.dataset.id]) {
+                item.classList.add('hidden');
+            } else {
+                 item.classList.remove('hidden');
+            }
+        });
+
+
+        // Update UI
+        readingTitleEl.textContent = `Article ${index + 1}: ${story.title}`;
+        // turtleCountEl.textContent = turtlesSaved; // REMOVED: Turtle saved UI update
+        
+        buildParagraphTokens(story.sentences, story.targetIndices); 
+        applyKeywordHighlights(); 
+        
+        // Initialize Marine Objects based on canvas mode
+        initializeMarineObjects(story.canvasMode);
+
+        // Must wait for DOM to layout before building glass
+        // FIX: Ensure glass tiles are rebuilt after layout changes (e.g., resizing or content load)
+        setTimeout(() => requestAnimationFrame(buildGlassTiles), 50);
+    }
+    
+    function buildParagraphTokens(currentSentences, targetIndices) {
+      readingLayerEl.innerHTML = "";
+      tokens = [];
+
+      currentSentences.forEach((sent, sentIndex) => {
+          const sentSpan = document.createElement("span");
+          sentSpan.className = "sentence-wrapper";
+          sentSpan.dataset.sentenceIndex = sentIndex;
+          
+          const words = sent.split(/\s+/);
+          words.forEach((raw, wIndex) => {
+              const span = document.createElement("span");
+              span.className = "token";
+              span.textContent = raw; 
+              
+              tokens.push({ text: raw, element: span, sentenceIndex: sentIndex, isTarget: targetIndices.includes(sentIndex) });
+              sentSpan.appendChild(span);
+              
+              if (wIndex < words.length - 1) {
+                  sentSpan.appendChild(document.createTextNode(" "));
+              }
+          });
+          
+          readingLayerEl.appendChild(sentSpan);
+          readingLayerEl.appendChild(document.createTextNode(" ")); 
+      });
+    }
+
+    function buildGlassTiles() {
+      glassLayerEl.innerHTML = "";
+      tiles = [];
+      if (!tokens.length) return;
+      
+      // Removed wrapperRect = document.querySelector('.reading-inner-wrapper').getBoundingClientRect();
+      // Use containerRect inside the loop for dynamic positioning
+
+      tokens.forEach((tokenObj, index) => {
+        // Phải gọi createTileForToken với containerRect để tính toán tọa độ tương đối chính xác
+        const containerRect = document.querySelector('.reading-scroll-container').getBoundingClientRect();
+        createTileForToken(tokenObj, index, containerRect);
+      });
+    }
+
+    function createTileForToken(tokenObj, index, containerRect) {
+        const span = tokenObj.element;
+        const rect = span.getBoundingClientRect();
+        
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        
+        // Tọa độ tương đối chính xác so với reading-scroll-container
+        const left = rect.left - containerRect.left;
+        const top = rect.top - containerRect.top;
+        const width = rect.width; 
+        const height = rect.height;
+
+        // Tọa độ tương đối so với glassLayer (cũng là con của reading-scroll-container)
+        tile.style.left = (left - 1) + "px";
+        tile.style.top = (top - 1) + "px";
+        tile.style.width = (width + 2) + "px"; 
+        tile.style.height = (height + 2) + "px";
+        
+        tile.dataset.tokenIndex = index;
+        tile.dataset.sentenceIndex = tokenObj.sentenceIndex;
+        tile.addEventListener("click", onTileClick);
+
+        glassLayerEl.appendChild(tile);
+        tiles.push({ element: tile, tokenIndex: index, sentenceIndex: tokenObj.sentenceIndex, rect: {left, top, width, height} });
+    }
+    
+    function onTileClick(e) {
+      if (!isGameActive) return;
+        
+      const tile = e.currentTarget;
+      if (tile.classList.contains("shattered")) return;
+
+      const sIdx = parseInt(tile.dataset.sentenceIndex);
+      const story = stories[currentStoryIndex];
+      const isTarget = story.targetIndices.includes(sIdx);
+      
+      if (isTarget) {
+          if (sentenceShattered[sIdx]) return;
+
+          sentenceHits[sIdx]++;
+          const hits = sentenceHits[sIdx];
+          const sentenceTiles = tiles.filter(t => t.sentenceIndex === sIdx);
+          
+          if (hits >= HITS_REQUIRED) {
+              sentenceShattered[sIdx] = true;
+              sentenceTiles.forEach(t => {
+                  t.element.classList.add("shattered");
+                  spawnGlassShards(t.rect, 0.5); 
+              });
+              
+              const sentWrapper = document.querySelector(`.sentence-wrapper[data-sentence-index="${sIdx}"]`);
+              if (sentWrapper) sentWrapper.classList.add("sentence-highlight");
+              
+              addScore(100);
+              
+              // Trigger canvas feedback based on story mode
+              if (story.canvasMode === 'turtle') {
+                  spawnTurtle();
+              } else if (story.canvasMode === 'coral') {
+                   spawnCoralBloom(); // Use new coral bloom function
+              } else if (story.canvasMode === 'art') {
+                   spawnArtSymbol(); // Use new art symbol function
+              }
+              
+              playSFX('hit'); // Play hit sound for all correct actions
+
+              
+          } else {
+              const crackClass = hits > 2 ? "crack-2" : "crack-1";
+              sentenceTiles.forEach(t => {
+                  t.element.classList.remove("crack-1", "crack-2");
+                  t.element.classList.add(crackClass);
+                  t.element.animate([
+                      { transform: 'translateX(0)' }, { transform: 'translateX(1px)' },
+                      { transform: 'translateX(-1px)' }, { transform: 'translateX(0)' }
+                  ], { duration: 100 });
+              });
+              
+              const clickedTileObj = tiles.find(t => t.element === tile);
+              if(clickedTileObj) {
+                  const intensity = hits > 2 ? 2 : 0.5; 
+                  spawnGlassShards(clickedTileObj.rect, intensity);
+              }
+
+              addScore(10);
+              
+              // Trigger canvas feedback based on story mode
+              if (story.canvasMode === 'turtle') {
+                  spawnTurtle();
+              } else if (story.canvasMode === 'coral') {
+                   spawnCoralBloom(); // Use new coral bloom function
+              } else if (story.canvasMode === 'art') {
+                   spawnArtSymbol(); // Use new art symbol function
+              }
+              
+              playSFX('hit'); // Play hit sound for all correct actions
+          }
+      } else {
+          gameAreaEl.classList.remove("shake-anim");
+          void gameAreaEl.offsetWidth; 
+          gameAreaEl.classList.add("shake-anim");
+          adjustTime(-2);
+          playSFX('incorrect'); // Play wrong answer sound
+      }
+    }
+
+    // --- UTILITY FUNCTIONS ---
+
+    function spawnGlassShards(rect, countMultiplier = 1) {
+        const shardCount = (4 + Math.random() * 4) * countMultiplier;
+        
+        for(let i=0; i<shardCount; i++) {
+            const shard = document.createElement("div");
+            shard.className = "shard";
+            const size = 5 + Math.random() * 10;
+            shard.style.width = size + "px";
+            shard.style.height = size + "px";
+            
+            const p1 = Math.floor(Math.random()*50);
+            const p2 = Math.floor(Math.random()*50 + 50);
+            const p3 = Math.floor(Math.random()*50 + 50);
+            const p4 = Math.floor(Math.random()*50);
+            shard.style.clipPath = `polygon(${p1}% 0%, 100% ${p4}%, ${p2}% 100%, 0% ${p3}%)`;
+
+            const startX = rect.left + Math.random() * rect.width;
+            const startY = rect.top + Math.random() * rect.height;
+            shard.style.left = startX + "px";
+            shard.style.top = startY + "px";
+            
+            shardLayerEl.appendChild(shard);
+            
+            shards.push({
+                element: shard,
+                x: startX,
+                y: startY,
+                vx: (Math.random() - 0.5) * 8, 
+                vy: (Math.random() - 0.5) * 8, 
+                rot: Math.random() * 360,
+                vRot: (Math.random() - 0.5) * 20,
+                life: 1.0
+            });
+        }
+        
+        if (!physicsInterval) {
+            physicsInterval = setInterval(updateShards, 20);
+        }
+    }
+
+    function updateShards() {
+        if (!isGameActive && shards.length === 0) {
+            clearInterval(physicsInterval);
+            physicsInterval = null;
+            return;
+        }
+        
+        const gravity = 0.8;
+        const wrapperHeight = document.querySelector('.reading-inner-wrapper').offsetHeight + 100;
+
+        for (let i = shards.length - 1; i >= 0; i--) {
+            const s = shards[i];
+            s.x += s.vx;
+            s.y += s.vy;
+            s.vy += gravity; 
+            s.rot += s.vRot;
+            s.life -= 0.015; 
+
+            s.element.style.transform = `translate(${s.x - parseFloat(s.element.style.left)}px, ${s.y - parseFloat(s.element.style.top)}px) rotate(${s.rot}deg)`;
+            s.element.style.opacity = s.life;
+
+            if (s.y > wrapperHeight || s.life <= 0) {
+                s.element.remove();
+                shards.splice(i, 1);
+            }
+        }
+    }
+
+    function adjustTime(delta) {
+      timeLeft += delta;
+      if (timeLeft < 0) timeLeft = 0;
+      updateTimeUI();
+      if (timeLeft === 0) triggerLose("Time's up! You failed to choose the correct headline in time.");
+    }
+    function addScore(points) { score += points; scoreValueEl.textContent = score; }
+    function updateTimeUI() {
+      timeValueEl.textContent = timeLeft;
+      timeValueEl.classList.toggle("danger", timeLeft <= 10);
+    }
+    
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!isGameActive) return;
+          
+        timeLeft -= 1;
+        if (timeLeft <= 0) {
+          timeLeft = 0; updateTimeUI(); clearInterval(timerInterval); triggerLose("Time's up! You failed to choose the correct headline in time.");
+        } else updateTimeUI();
+      }, 1000);
+    }
+
+    function applyKeywordHighlights() {
+      document.querySelectorAll(".keyword").forEach((el) => {
+        const h = el.dataset.headline;
+        const kw = el.dataset.keyword;
+        const list = collectedKeywords[h] || [];
+        // Normalizes and checks if the keyword exists in the predefined list for that headline
+        if (list.some((k) => k.toLowerCase() === kw.toLowerCase().replace(/[\.,!\?;:()"']/g, "").trim())) {
+          el.classList.add("highlighted");
+        } else {
+           el.classList.remove("highlighted");
+        }
+      });
+    }
+
+    function setupHeadlineSelection() {
+      const items = document.querySelectorAll(".headline-item");
+      items.forEach((item) => {
+        item.addEventListener("click", () => {
+          if (!isGameActive) return;
+          
+          const id = item.dataset.id;
+          selectedHeadline = id;
+          items.forEach((it) => it.classList.remove("active"));
+          item.classList.add("active");
+        });
+      });
+      submitAnswerBtn.addEventListener("click", submitAnswer);
+    }
+
+    function submitAnswer() {
+      if (!isGameActive) return showModal("Game Paused", "Press Start Game or Restart to begin.", false);
+        
+      if (timeLeft <= 0) return triggerLose("Time's up! You failed to choose the correct headline in time.");
+
+      if (!selectedHeadline) {
+          return showModal("Select a Headline", "Tap on one of the headlines (A-E) to choose it.", false);
+      }
+      
+      const currentStory = stories[currentStoryIndex];
+
+      if (selectedHeadline === currentStory.correctHeadline) {
+        addScore(300); // Higher score for correct headline
+        clearInterval(timerInterval);
+        isGameActive = false;
+        
+        playSFX('correct'); // Play correct answer sound
+        
+        // Mark headline as completed
+        completedHeadlines[selectedHeadline] = true;
+        
+        // --- Trigger Quiz based on type ---
+        if (currentStory.quizType === 'multiple-choice') {
+             showVocabularyQuiz(currentStory.quizData); 
+        } else if (currentStory.quizType === 'matching') {
+             showMatchingQuiz(currentStory.quizData);
+        }
+        
+      } else {
+        // Penalty for wrong headline and restart current story
+        adjustTime(-10); 
+        playSFX('incorrect'); // Play wrong answer sound
+        restartStory(`Incorrect Headline! Penalty: -10s. Restarting Article ${currentStoryIndex + 1}.`);
+      }
+    }
+    
+    // --- MINI-GAME 1: MULTIPLE CHOICE LOGIC (Unchanged) ---
+    function showVocabularyQuiz(quizData) {
+        modalTitle.textContent = "Mini Game: Vocabulary Check";
+        modalTag.textContent = quizData.word;
+        modalTag.className = "modal-tag success"; 
+        modal.classList.remove('shake-anim');
+    
+        const optionsHtml = quizData.options.map((option) => `
+            <button class="vocab-option" data-is-correct="${option.isCorrect}" data-label="${option.label}" style="display: block; margin: 15px 0;">
+                ${option.label}. ${option.text}
+            </button>
+        `).join('');
+        
+        modalBody.innerHTML = `
+            <p class="text-2xl font-bold mb-6 text-white text-center">${quizData.question}</p>
+            <div id="vocabOptions" class="space-y-4">${optionsHtml}</div>
+            <p id="vocabFeedback" class="mt-8 text-center text-xl"></p>
+        `;
+    
+        modalFooter.style.display = 'none';
+        modalBackdrop.classList.add("show");
+    
+        // Attach listeners
+        document.querySelectorAll('.vocab-option').forEach(btn => {
+            btn.onclick = () => handleVocabularyAnswer(btn, quizData);
+        });
+    }
+    
+    function handleVocabularyAnswer(selectedButton, quizData) {
+        const isCorrect = selectedButton.dataset.isCorrect === 'true';
+        const feedbackEl = document.getElementById('vocabFeedback');
+        
+        // Disable all buttons to handle feedback
+        document.querySelectorAll('.vocab-option').forEach(btn => btn.disabled = true);
+        
+        modal.classList.remove('shake-anim');
+        
+        if (isCorrect) {
+            playSFX('correct'); // Play correct answer sound
+            
+            // Correct Answer Logic (Display VN definition and prepare for next story)
+            selectedButton.style.backgroundColor = 'var(--success)';
+            selectedButton.style.color = 'var(--bg-panel)'; 
+            feedbackEl.className = 'text-green-400';
+            feedbackEl.innerHTML = `
+                CORRECT! The meaning is:<br>
+                <span class="text-yellow-300 font-normal text-lg">(${quizData.word} nghĩa là:)</span><br>
+                <span class="viet-def">${quizData.vietnameseDefinition}</span>
+            `;
+            
+            // Highlight the correct answer permanently
+            document.querySelectorAll('.vocab-option').forEach(btn => {
+                if (btn.dataset.isCorrect === 'true') {
+                    btn.style.backgroundColor = 'var(--success)';
+                    btn.style.color = 'var(--bg-panel)';
+                } else {
+                     btn.style.opacity = '0.5';
+                }
+            });
+            
+            // Show Next Article button
+            modalFooter.style.display = 'flex';
+            closeModalBtn.style.display = 'none';
+            
+            // Check if game is over after this quiz
+            if (currentStoryIndex < stories.length - 1) {
+                restartBtn.textContent = 'Next Article';
+                restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); startNextStory(); };
+            } else {
+                 restartBtn.textContent = 'Play Again';
+                 restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); restartGame(); };
+            }
+
+            
+        } else {
+            playSFX('incorrect'); // Play wrong answer sound
+            
+            // Incorrect Answer Logic (English feedback and retry)
+            
+            selectedButton.style.backgroundColor = 'var(--danger)';
+            feedbackEl.className = 'text-red-400';
+            feedbackEl.textContent = "INCORRECT! Please try again.";
+            
+            modal.classList.add('shake-anim');
+            
+            // Allow retry after a short delay
+            setTimeout(() => {
+                // Reset visual state and re-enable buttons
+                selectedButton.style.backgroundColor = '#1c3146'; 
+                document.querySelectorAll('.vocab-option').forEach(btn => btn.disabled = false);
+                feedbackEl.textContent = "";
+                modal.classList.remove('shake-anim'); 
+            }, 1000); 
+        }
+    }
+
+    // --- MINI-GAME 2: MATCHING LOGIC (Unchanged) ---
+    function showMatchingQuiz(quizData) {
+        modalTitle.textContent = "Mini Game: Vocabulary Matching";
+        modalTag.textContent = "Match the Pairs";
+        modalTag.className = "modal-tag success"; 
+        modal.classList.remove('shake-anim');
+        
+        // Reset matching state
+        currentMatch.word = null;
+        currentMatch.def = null;
+        currentMatch.matchesFound = 0;
+        currentMatch.totalMatches = quizData.pairs.length;
+        currentMatch.completedMatches = []; 
+        
+        // Map data to use 1, 2, 3 for words and a, b, c for definitions
+        const wordLabels = ['1', '2', '3'];
+        const defLabels = ['a', 'b', 'c'];
+        
+        // Assign unique IDs and correct match IDs
+        const words = quizData.pairs.map((p, i) => ({ id: `word-${i}`, label: wordLabels[i], text: p.word, matchId: i, type: 'word', vietnamese: p.vietnamese }));
+        
+        // Create definitions with their correct matchId and shuffle them for display
+        let definitions = quizData.pairs.map((p, i) => ({ id: `def-${i}`, label: defLabels[i], text: p.definition, matchId: i, type: 'def', vietnamese: p.vietnamese }));
+        // IMPORTANT: Shuffle only the definition column
+        definitions.sort(() => Math.random() - 0.5);
+
+        let gridHtml = `
+            <div class="matching-container">
+                <canvas id="matchingCanvas"></canvas>
+                <div class="matching-grid" id="matchingGrid">
+        `;
+        
+        // Interlace HTML for the grid structure (Words always follow definitions order for initial layout)
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const def = definitions[i];
+            
+            // Word Item (Left Column)
+            gridHtml += `<div class="match-item word" data-id="${word.id}" data-match-id="${word.matchId}" data-type="word"><span class="match-label">${word.label}</span> ${word.text}</div>`;
+            // Definition Item (Right Column)
+            gridHtml += `<div class="match-item def" data-id="${def.id}" data-match-id="${def.matchId}" data-type="def"><span class="match-label">${def.label}</span> ${def.text}</div>`;
+        }
+        gridHtml += `</div></div>`;
+
+        modalBody.innerHTML = `
+            <p class="text-xl font-semibold mb-3 text-white text-center">${quizData.instruction}</p>
+            ${gridHtml}
+            <p id="matchFeedbackMessage" class="mt-8 text-center text-xl"></p>
+            <div id="matchFeedbackContainer"></div>
+        `;
+        
+        // Setup canvas and listeners
+        const matchingCanvas = document.getElementById('matchingCanvas');
+        const grid = document.getElementById('matchingGrid');
+        
+        // Need to wait for rendering to set canvas size
+        setTimeout(() => {
+            if (grid && matchingCanvas) {
+                matchingCanvas.width = grid.offsetWidth;
+                matchingCanvas.height = grid.offsetHeight;
+                
+                // Add event listeners
+                document.querySelectorAll('.match-item').forEach(item => {
+                    item.onclick = handleMatchingClick;
+                });
+            }
+        }, 50);
+
+        modalFooter.style.display = 'none';
+        modalBackdrop.classList.add("show");
+    }
+    
+    // Function to draw the connecting lines on the canvas
+    function drawConnections() {
+        const canvas = document.getElementById('matchingCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw connections for all completed matches
+        currentMatch.completedMatches.forEach(pair => {
+            const wordItem = document.querySelector(`.match-item[data-id="${pair.wordId}"]`);
+            const defItem = document.querySelector(`.match-item[data-id="${pair.defId}"]`);
+
+            if (wordItem && defItem) {
+                const rectWord = wordItem.getBoundingClientRect();
+                const rectDef = defItem.getBoundingClientRect();
+                const rectContainer = canvas.getBoundingClientRect();
+
+                // Calculate center points relative to the canvas
+                const startX = rectWord.right - rectContainer.left;
+                const startY = rectWord.top - rectContainer.top + rectWord.height / 2;
+                const endX = rectDef.left - rectContainer.left;
+                const endY = rectDef.top - rectContainer.top + rectDef.height / 2;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = 'var(--success)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+        });
+
+        // Draw connection for the currently selected pair (if incomplete)
+        if (currentMatch.word && currentMatch.def === null) {
+            const wordItem = currentMatch.word;
+            const rectWord = wordItem.getBoundingClientRect();
+            const rectContainer = canvas.getBoundingClientRect();
+
+            // Get mouse position relative to canvas (requires global tracking, but simplified here)
+            // For reliable drawing on hover/selection without global mouse tracking, we draw to the center of the right column
+            
+            const startX = rectWord.right - rectContainer.left;
+            const startY = rectWord.top - rectContainer.top + rectWord.height / 2;
+            const endX = canvas.width * 0.75; // Center of right column
+            const endY = startY; 
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = 'var(--accent-soft)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    }
+
+
+    function handleMatchingClick(e) {
+        const item = e.currentTarget;
+        if (item.classList.contains('matched') || item.classList.contains('error')) return;
+
+        const type = item.dataset.type;
+        const feedbackEl = document.getElementById('matchFeedbackMessage');
+
+        // Clear previous error styles/feedback
+        document.querySelectorAll('.match-item.error').forEach(el => el.classList.remove('error'));
+        modal.classList.remove('shake-anim');
+        feedbackEl.textContent = "";
+
+        // 1. Selection Logic
+        if (currentMatch[type]) {
+            // Deselect the previously selected item of the same type
+            // FIX: Check if the element exists before attempting to remove class
+            if (currentMatch[type]) {
+                currentMatch[type].classList.remove('selected');
+            }
+            
+            if (currentMatch[type] === item) {
+                // If clicked the same item, just deselect and exit
+                currentMatch[type] = null;
+                drawConnections();
+                return;
+            }
+        }
+
+        // Select the new item
+        item.classList.add('selected');
+        currentMatch[type] = item;
+        
+        // 2. Check for Match
+        const wordItem = currentMatch.word;
+        const defItem = currentMatch.def;
+
+        if (wordItem && defItem) {
+            const wordMatchId = parseInt(wordItem.dataset.matchId);
+            const defMatchId = parseInt(defItem.dataset.matchId);
+            
+            // Temporarily disable all interaction
+            document.querySelectorAll('.match-item').forEach(btn => btn.onclick = null);
+
+            // MATCH FOUND
+            if (wordMatchId === defMatchId) {
+                wordItem.classList.remove('selected');
+                defItem.classList.remove('selected');
+                wordItem.classList.add('matched');
+                defItem.classList.add('matched');
+                
+                currentMatch.matchesFound++;
+                addScore(150);
+                
+                playSFX('correct'); // Play correct match sound
+                
+                // Find the matched pair data (to get VN definition)
+                const matchedPair = stories[currentStoryIndex].quizData.pairs.find((_, i) => i === wordMatchId);
+                
+                // Store the matched pair (for drawing the line)
+                currentMatch.completedMatches.push({ 
+                    wordId: wordItem.dataset.id, 
+                    defId: defItem.dataset.id,
+                    word: matchedPair.word,
+                    vietnamese: matchedPair.vietnamese,
+                    definition: matchedPair.definition
+                });
+                
+                // Draw the successful connection line
+                drawConnections(); 
+                
+                // Update consolidated feedback box
+                updateMatchingFeedback(true, matchedPair.word, matchedPair.vietnamese);
+                
+                // Reset selection
+                currentMatch.word = null;
+                currentMatch.def = null;
+                
+                // Re-enable clicks after delay
+                setTimeout(() => {
+                     document.querySelectorAll('.match-item:not(.matched)').forEach(item => item.onclick = handleMatchingClick);
+                }, 500);
+                
+                // Check if all matches are found
+                if (currentMatch.matchesFound === currentMatch.totalMatches) {
+                     // FIX: Introduce delay here to allow the final VN definition to be seen
+                     setTimeout(triggerWinMatching, 1500);
+                }
+
+            } else {
+                // MISMATCH
+                wordItem.classList.add('error');
+                defItem.classList.add('error');
+                modal.classList.add('shake-anim');
+                adjustTime(-5); // Penalty for mismatch
+
+                feedbackEl.className = 'text-red-400';
+                // FIX: Ensure this message is displayed correctly
+                feedbackEl.textContent = "MISMATCH! Try again. (-5s)";
+                
+                playSFX('incorrect'); // Play wrong answer sound
+
+                // Reset visual state after delay
+                setTimeout(() => {
+                    wordItem.classList.remove('selected', 'error');
+                    defItem.classList.remove('selected', 'error');
+                    modal.classList.remove('shake-anim');
+                    feedbackEl.textContent = "";
+
+                    // Reset selection state
+                    currentMatch.word = null;
+                    currentMatch.def = null;
+                    
+                    // Re-enable clicks
+                    document.querySelectorAll('.match-item:not(.matched)').forEach(item => item.onclick = handleMatchingClick);
+                }, 1000);
+            }
+        } else {
+            // Only one item selected, draw a temporary line
+            drawConnections();
+        }
+    }
+    
+    function displayAllMatchingResults() {
+        const resultsContainer = document.getElementById('matchFeedbackContainer');
+        const messageEl = document.getElementById('matchFeedbackMessage');
+
+        // Clear modal body and remove unnecessary elements
+        modalBody.innerHTML = '';
+        
+        // Build the final result HTML
+        let resultHtml = `
+            <p class="text-2xl font-bold mb-6 text-white text-center">🎉 CONGRATULATIONS! ALL MATCHES FOUND! 🎉</p>
+            <p class="text-lg text-white text-center mb-6">Here are the correct Vietnamese definitions:</p>
+            <div id="finalResultsGrid" class="space-y-4">`;
+
+        // Sort completed matches by original word ID (matchId 0, 1, 2) for consistent display order
+        const sortedResults = currentMatch.completedMatches.sort((a, b) => a.matchId - b.matchId);
+        
+        // Display all results
+        sortedResults.forEach(pair => {
+            resultHtml += `
+                <div class="p-4 border border-green-500 rounded-lg bg-green-900/50">
+                    <div class="viet-def-label text-green-300 text-xl">${pair.word} (${pair.definition}):</div>
+                    <div class="viet-def-text text-white text-lg">${pair.vietnamese}</div>
+                </div>
+            `;
+        });
+        
+        resultHtml += `</div>`;
+        
+        modalBody.innerHTML = resultHtml;
+        modalTitle.textContent = "Mini Game Complete!";
+        modalTag.textContent = "Success";
+        
+        // Show Next Article button
+        modalFooter.style.display = 'flex';
+        closeModalBtn.style.display = 'none';
+        
+        // Check if there is a next story defined (Story 3)
+        if (currentStoryIndex < stories.length - 1) {
+            restartBtn.textContent = 'Next Article';
+            restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); startNextStory(); };
+        } else {
+             restartBtn.textContent = 'Play Again';
+             restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); restartGame(); };
+        }
+    }
+
+
+    function updateMatchingFeedback(isCorrect, word, vietnamese) {
+        const container = document.getElementById('matchFeedbackContainer');
+        const messageEl = document.getElementById('matchFeedbackMessage');
+        const currentStory = stories[currentStoryIndex];
+
+        // Update overall message
+        if (isCorrect) {
+            messageEl.className = 'text-green-400';
+            messageEl.textContent = `CORRECT MATCH! Matches found: ${currentMatch.matchesFound}/${currentMatch.totalMatches}`;
+            
+            // Add Vietnamese definition to the consolidated box
+            const definitionHtml = `
+                <div class="viet-def-item">
+                    <div class="viet-def-label">${word} (${currentMatch.matchesFound}/${currentStory.quizData.pairs.length}):</div>
+                    <div class="viet-def-text">${vietnamese}</div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', definitionHtml);
+        } else {
+            // Error message updated inside handleMatchingClick
+        }
+    }
+
+
+    function triggerWinMatching() {
+        // This function is called when all matching pairs are found
+        displayAllMatchingResults();
+    }
+
+
+    function startNextStory() {
+        currentStoryIndex++;
+        isGameActive = true;
+        timeLeft = 60;
+        updateTimeUI();
+        startTimer();
+        loadStory(currentStoryIndex);
+    }
+    
+    function triggerWin(msg) {
+        clearInterval(timerInterval); 
+        isGameActive = false;
+        allStoriesCompleted = true;
+        showModal("CONGRATULATIONS!", msg, true);
+    }
+
+
+    function showModal(title, body, isWin) {
+      modalTitle.textContent = title;
+      modalBody.innerHTML = body;
+      modalTag.textContent = isWin ? "Success" : "Try again";
+      modalTag.className = "modal-tag " + (isWin ? "success" : "fail");
+      
+      // Regular Modal Footer (not quiz)
+      modalFooter.style.display = 'flex';
+      closeModalBtn.style.display = 'inline-flex';
+      restartBtn.textContent = 'Play Again';
+      restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); restartGame(); };
+
+      modalBackdrop.classList.add("show");
+    }
+    
+    function triggerLose(msg) { 
+        clearInterval(timerInterval); 
+        isGameActive = false;
+        showModal("Game Over!", msg, false); 
+    }
+    
+    // --- START/RESTART ---
+    
+    function restartStory(msg) {
+        // Reset visual elements and pause game logic
+        clearInterval(timerInterval);
+        isGameActive = false;
+        
+        // Keep the current story index
+        
+        // Clear old glass breaks, reactivate tiles, clear marine objects
+        glassLayerEl.innerHTML = "";
+        marineObjects.length = 0;
+        
+        // Reset story specific hits
+        const story = stories[currentStoryIndex];
+        sentenceHits = {}; 
+        sentenceShattered = {}; 
+        story.targetIndices.forEach(idx => {
+            sentenceHits[idx] = 0;
+            sentenceShattered[idx] = false;
+        });
+        
+        // Reset selected headlines
+        selectedHeadline = null;
+        document.querySelectorAll(".headline-item").forEach((it) => it.classList.remove("active"));
+
+        // Reload content for visual reset
+        loadStory(currentStoryIndex); 
+        
+        // Show notification modal, but keep restart button hidden/disabled initially
+        modalTitle.textContent = "Restarting Article...";
+        modalBody.innerHTML = msg;
+        modalTag.textContent = "Penalty";
+        modalTag.className = "modal-tag fail";
+        
+        modalFooter.style.display = 'none';
+        modalBackdrop.classList.add("show");
+        
+        // Use a slight delay before allowing the user to continue playing the current story
+        setTimeout(() => {
+            modalBackdrop.classList.remove("show");
+            isGameActive = true;
+            timeLeft = 60; // Reset time for the story
+            updateTimeUI();
+            startTimer();
+        }, 3000); 
+    }
+
+
+    function startGame() {
+      // Show main content
+      mainApp.style.visibility = 'visible';
+      // Hide start screen smoothly
+      startScreen.classList.add("start-screen-hidden");
+      setTimeout(() => startScreen.style.display = 'none', 500);
+
+      isGameActive = true;
+      updateTimeUI();
+      startTimer();
+      // startMusic(); // START MUSIC HERE
+    }
+
+    function restartGame() {
+      // Full game reset (Back to Story 1)
+      currentStoryIndex = 0;
+      timeLeft = 60; score = 0; // turtlesSaved = 0; REMOVED
+      completedHeadlines = {}; // Reset completed headlines
+      scoreValueEl.textContent = score; 
+      marineObjects.length = 0; 
+        
+      document.querySelectorAll(".sentence-wrapper").forEach(el => el.classList.remove("sentence-highlight"));
+      
+      loadStory(currentStoryIndex); // Load the first story
+
+      // Re-initialize game state and start
+      startGame();
+    }
+
+    // --- CANVAS LOGIC (SHARED BACKGROUND) ---
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let waveOffset = 0;
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width) return;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    
+    // Shared Beach/Ocean Background
+    function drawBeach() {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (!w) return;
+      // Beach: light colors
+      const gradient = ctx.createLinearGradient(0, 0, w, 0);
+      gradient.addColorStop(0, "#ffe082"); 
+      gradient.addColorStop(0.35, "#fff9c4"); 
+      // Water: blue colors
+      gradient.addColorStop(0.45, "#80deea"); 
+      gradient.addColorStop(1, "#0288d1"); 
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+      
+      // Foam line (where water meets sand, constant at 40% width)
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      const foamX = w * 0.4;
+      for(let i=0; i<h; i+=2) {
+          const offset = Math.sin((i + waveOffset)*0.05) * 5;
+          ctx.fillRect(foamX + offset, i, 10, 2);
+      }
+    }
+    
+    // --- CANVAS LOGIC (Turtle Mode) ---
+    function spawnTurtle() {
+        const h = canvas.clientHeight;
+        marineObjects.push({
+            type: 'turtle',
+            x: -20, 
+            y: 10 + Math.random() * (h - 20),
+            speed: 1 + Math.random() * 1.5, 
+            waddle: 0
+        });
+    }
+
+    function drawTurtle(t) {
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        const angle = Math.sin(t.waddle * 0.2) * 0.1;
+        ctx.rotate(angle);
+        ctx.fillStyle = "#5d4037"; 
+        ctx.beginPath(); ctx.ellipse(6, -6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(18, -6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(6, 6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(18, 6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#4caf50";
+        ctx.beginPath(); ctx.ellipse(12, 0, 10, 7, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#388e3c"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(16,0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(12, -4); ctx.lineTo(12,4); ctx.stroke();
+        ctx.fillStyle = "#81c784";
+        ctx.beginPath(); ctx.ellipse(24, 0, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    }
+    
+    // --- CANVAS LOGIC (Coral Bloom Mode) ---
+    
+    // Function to draw the Coral Bloom object (PINK VERSION)
+    function drawCoralBloom(c) {
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        
+        // Limit growth to prevent overdraw
+        const currentGrowth = Math.min(c.growth, c.maxGrowth);
+        const baseSize = 5 + (currentGrowth * 20); // Max size slightly bigger
+        const trunkColor = `rgba(139, 69, 19, 0.8)`; // Brown trunk
+
+        // Stem/Base
+        ctx.fillStyle = trunkColor;
+        ctx.fillRect(-2, 0, 4, baseSize * 1.5);
+
+        // Bloom (Pink/Reddish color)
+        const bloomColor = `rgba(255, 105, 180, ${c.life})`; // Hot Pink
+        ctx.fillStyle = bloomColor;
+        const petalCount = 8; // More petals for a fuller look
+        const petalRadius = baseSize * 0.4;
+        
+        // Draw multiple layers of petals
+        for (let j = 0; j < 2; j++) {
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (i / petalCount) * Math.PI * 2 + (j * 0.1);
+                
+                ctx.save();
+                ctx.rotate(angle);
+                
+                ctx.beginPath();
+                // Draw a simple circle or arc for the petal
+                ctx.arc(0, -baseSize * (1.6 - j * 0.1), petalRadius * (1.2 - j * 0.1), 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        ctx.restore();
+    }
+    
+    // Function to initialize Marine Objects for coral mode (none needed initially, they spawn on hit)
+    function initializeCoralMode() {
+        marineObjects.length = 0;
+    }
+    
+    // Function called when a hit occurs in coral mode
+    function spawnCoralBloom() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        
+        // Spawn the coral bloom object in the water section (right side)
+        marineObjects.push({
+            type: 'coral',
+            x: w * (0.5 + Math.random() * 0.4), // Between 50% and 90% width (water side)
+            y: h * (0.6 + Math.random() * 0.3), // Lower half of the water area
+            growth: 0.01, // Start small
+            life: 1.0, // Used for fading/vitality
+            maxGrowth: 0.8 + Math.random() * 0.5 // Target size (max 1.3)
+        });
+    }
+
+
+    function updateCoralModeObjects() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        for (let i = marineObjects.length - 1; i >= 0; i--) {
+            const obj = marineObjects[i];
+
+            if (obj.type === 'coral') {
+                // Coral grows and remains static once mature
+                if (obj.growth < obj.maxGrowth) {
+                    obj.growth += 0.01; // Increase size/bloom gradually
+                }
+                
+                drawCoralBloom(obj);
+            }
+        }
+    }
+    
+    // --- CANVAS LOGIC (Art/Brushstroke Mode) ---
+    
+    // Define the color palette for the art canvas
+    const ART_COLORS = ['#FF6347', '#4682B4', '#32CD32', '#FFD700', '#FF69B4']; // Red, Blue, Green, Gold, Pink
+    
+    // Function to initialize Art Mode - set up the empty frames
+    function initializeArtMode() {
+        marineObjects.length = 0;
+        // No initial symbols, they spawn on hit
+    }
+    
+    // Function to draw a shape (Heart, Star, Flower)
+    function drawSymbol(ctx, type, x, y, size, color, life) {
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.globalAlpha = life; // Fade in/out effect
+
+        // Enhanced glow effect
+        ctx.shadowBlur = size * 1.5; 
+        ctx.shadowColor = color;
+        
+        // Set rotation for movement/animation
+        // Removed Date.now() dependency for stability if Tone.js is causing issues
+        
+        ctx.beginPath();
+        if (type === 'heart') {
+            const r = size * 0.3;
+            ctx.moveTo(0, r * 1.5);
+            ctx.bezierCurveTo(size, -r, size * 2, r * 1.5, 0, size * 2.5);
+            ctx.bezierCurveTo(-size * 2, r * 1.5, -size, -r, 0, r * 1.5);
+        } else if (type === 'star') {
+            const R = size;
+            const r = size / 2.5;
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo(R * Math.cos(i * 2 * Math.PI / 5 - Math.PI / 2),
+                           R * Math.sin(i * 2 * Math.PI / 5 - Math.PI / 2));
+                ctx.lineTo(r * Math.cos(i * 2 * Math.PI / 5 + Math.PI / 5 - Math.PI / 2),
+                           r * r * Math.sin(i * 2 * Math.PI / 5 + Math.PI / 5 - Math.PI / 2));
+            }
+        } else if (type === 'flower') {
+            const R = size / 1.5;
+            for (let i = 0; i < 6; i++) {
+                ctx.ellipse(0, 0, R, R / 2, i * Math.PI / 3, 0, Math.PI * 2);
+            }
+        }
+        ctx.closePath();
+        ctx.fill();
+        
+        // Reset effects
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1.0;
+        ctx.restore();
+    }
+    
+    // Function to draw the static frames
+    function drawArtFrames() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        
+        ART_FRAMES.forEach(frame => {
+            // Viền liền mạch và phát sáng
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; // Frame color
+            ctx.lineWidth = 3;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; // Background color
+            ctx.shadowBlur = 10; // Add glow to frame
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+            ctx.setLineDash([]); // Viền liền mạch
+            
+            const x = w * frame.x;
+            const y = h * frame.y;
+
+            if (frame.type === 'rect') {
+                const fw = w * frame.w;
+                const fh = h * frame.h;
+                ctx.strokeRect(x, y, fw, fh);
+                ctx.fillRect(x, y, fw, fh);
+            }
+        });
+        ctx.shadowBlur = 0; // Reset canvas shadow
+    }
+    
+    // Function called when a hit occurs in art mode
+    function spawnArtSymbol() {
+        // Choose a random rectangular/square frame
+        const rectFrames = ART_FRAMES.filter(f => f.type === 'rect');
+        const frameIndex = Math.floor(Math.random() * rectFrames.length);
+        const frame = rectFrames[frameIndex];
+        
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        let spawnX, spawnY, spawnSize, symbolType;
+        
+        // Calculate spawn position inside the frame boundaries
+        spawnX = w * frame.x + w * frame.w * Math.random();
+        spawnY = h * frame.y + h * frame.h * Math.random();
+        
+        // Control symbol size to fit frame (max 20% of frame's smaller dimension)
+        spawnSize = Math.min(w * frame.w, h * frame.h) * 0.2; 
+        
+        // Choose a random symbol
+        const symbols = ['heart', 'star', 'flower'];
+        symbolType = symbols[Math.floor(Math.random() * symbols.length)];
+
+        // Add to marineObjects (now artObjects)
+        marineObjects.push({
+            type: symbolType,
+            x: spawnX,
+            y: spawnY,
+            size: 0.1, // Starts very small
+            maxSize: spawnSize, // Target size is controlled to fit frame
+            color: ART_COLORS[Math.floor(Math.random() * ART_COLORS.length)],
+            life: 0.0, // Used as bloom progress
+            maxLife: 1.0 
+        });
+    }
+    
+    function updateArtModeObjects() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        for (let i = marineObjects.length - 1; i >= 0; i--) {
+            const obj = marineObjects[i];
+
+            if (obj.type !== 'turtle' && obj.type !== 'coral') {
+                // Growth/Drawing animation
+                if (obj.life < obj.maxLife) {
+                    obj.life = Math.min(obj.maxLife, obj.life + 0.03); // Drawing speed
+                }
+                
+                // Draw the symbol
+                const currentSize = obj.maxSize * obj.life;
+                drawSymbol(ctx, obj.type, obj.x, obj.y, currentSize, obj.color, obj.life); // Pass life for alpha/glow control
+            }
+        }
+    }
+
+
+    function canvasLoop() {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+      
+      const story = stories[currentStoryIndex];
+
+      if (story.canvasMode === 'turtle') {
+          drawBeach(); // Turtle mode background
+          waveOffset += 1; 
+          
+          if (isGameActive) {
+              for (let i = 0; i < marineObjects.length; i++) {
+                  const t = marineObjects[i];
+                  t.x += t.speed;
+                  t.waddle += 1;
+                  drawTurtle(t); // Draw the turtles
+                  if (t.x > w + 20) {
+                      marineObjects.splice(i, 1);
+                      i--;
+                  }
+              }
+          } else {
+             marineObjects.forEach(drawTurtle); 
+          }
+
+      } else if (story.canvasMode === 'coral') {
+          drawBeach(); // Use combined beach/ocean background for coral too
+          updateCoralModeObjects(); // Update and draw coral blooms
+      } else if (story.canvasMode === 'art') {
+          ctx.fillStyle = '#101827'; // Dark background
+          ctx.fillRect(0, 0, w, h);
+          drawArtFrames(); // Draw the empty frames first
+          updateArtModeObjects(); // Draw the symbols inside
+      }
+        
+      requestAnimationFrame(canvasLoop);
+    }
+    
+    // Logic to initialize marine objects when loading story
+    function initializeMarineObjects(mode) {
+        marineObjects.length = 0; // Clear all objects regardless of mode
+        if (mode === 'turtle') {
+            // Objects spawn on hit
+        } else if (mode === 'coral') {
+            initializeCoralMode();
+        } else if (mode === 'art') {
+            initializeArtMode();
+        }
+    }
+    
+    
+    
+    // Function to draw turtle (used by canvasLoop in turtle mode)
+    function drawTurtle(t) {
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        const angle = Math.sin(t.waddle * 0.2) * 0.1;
+        ctx.rotate(angle);
+        ctx.fillStyle = "#5d4037"; 
+        ctx.beginPath(); ctx.ellipse(6, -6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(18, -6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(6, 6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(18, 6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#4caf50";
+        ctx.beginPath(); ctx.ellipse(12, 0, 10, 7, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#388e3c"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(16,0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(12, -4); ctx.lineTo(12,4); ctx.stroke();
+        ctx.fillStyle = "#81c784";
+        ctx.beginPath(); ctx.ellipse(24, 0, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    }
+    
+    
+    // Auto-align logic using ResizeObserver
+    const resizeObserver = new ResizeObserver(() => {
+        // Force rebuild glass tiles on resize event
+        buildGlassTiles();
+    });
+
+    function init() {
+      // TONE.JS: Tạo Synths khi khởi tạo để tránh lỗi âm thanh
+      // FIX: Loại bỏ hoàn toàn Tone.js để đảm bảo không lỗi
+      // createSynths(); 
+      
+      resizeCanvas(); 
+      canvasLoop(); 
+      
+      loadStory(currentStoryIndex); // Load the first story content
+      
+      const wrapper = document.querySelector('.reading-inner-wrapper');
+      // Fix: Dùng setTimeout để đảm bảo layout ổn định trước khi build glass lần đầu
+      setTimeout(() => {
+        if(wrapper) resizeObserver.observe(wrapper);
+        buildGlassTiles();
+      }, 100);
+
+      setupHeadlineSelection();
+
+      // Show the initial start screen (full screen layer)
+      startScreen.style.display = 'flex';
+      mainApp.style.visibility = 'hidden';
+      
+      startGameBtn.addEventListener("click", startGame);
+      
+      // Ensure the modal close button is set up for generic closing
+      closeModalBtn.addEventListener("click", () => {
+          modalBackdrop.classList.remove("show");
+          // If the game is paused but not over, unpause it
+          if (!isGameActive && timeLeft > 0) isGameActive = true; 
+      });
+    }
+    
+    document.fonts.ready.then(init);
+  </script>
+</body>
+</html>
