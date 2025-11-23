@@ -384,10 +384,24 @@
         color: var(--text-muted);
         font-size: 1rem;
         line-height: 1.6;
+        /* THÊM TÍNH NĂNG NỔI BẬT CHO MÀN HÌNH BẮT ĐẦU */
+        padding: 10px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
     }
     .rules-list strong {
         color: var(--accent-soft);
     }
+    /* CLASS MỚI CHO HƯỚNG DẪN NỔI BẬT */
+    .highlight-instruction {
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: #fcd34d !important; /* Tailwind yellow-400 */
+        text-shadow: 0 0 5px rgba(255, 213, 79, 0.3);
+    }
+    
     .start-btn {
         background: linear-gradient(120deg, var(--accent-soft), var(--accent-strong));
         border: none;
@@ -418,8 +432,8 @@
     .modal-backdrop.show { display: flex; }
     .modal {
       background: #0c1622; padding: 20px; border-radius: var(--radius-lg);
-      /* INCREASED MODAL SIZE FOR MATCHING GAME */
-      max-width: 800px; 
+      /* ADJUSTED MODAL SIZE FOR SUMMARY SCREEN (INCREASED WIDTH) */
+      max-width: 1100px; 
       width: 95%; 
       border: 1px solid rgba(255,255,255,0.15);
       box-shadow: var(--shadow-soft);
@@ -522,13 +536,57 @@
         color: var(--accent-soft);
     }
 
+    /* Style for Summary Screen */
+    .summary-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background: #121f2e;
+      border: 1px solid rgba(255, 213, 79, 0.3);
+    }
+    .summary-section h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--accent-soft);
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+    }
+    .summary-item {
+        margin-bottom: 10px;
+        padding: 8px 0;
+    }
+    .summary-item strong {
+        color: var(--text-main);
+        font-weight: 800;
+    }
+    .vocab-list-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px dotted rgba(255,255,255,0.05);
+        font-size: 1rem;
+    }
+    .vocab-word {
+        font-weight: 700;
+        color: var(--success);
+        flex-basis: 30%;
+    }
+    .vocab-def {
+        flex-basis: 65%;
+        color: var(--text-muted);
+    }
+
 
     .modal-body { 
         font-size: 1.1rem; 
         color: var(--text-muted); 
         margin-bottom: 20px; 
         line-height: 1.6; 
+        overflow-y: auto; /* Allow scroll for long summary screen */
+        max-height: 85vh; /* INCREASED max-height */
     }
+    
     /* Style for the Vietnamese definition text (Consolidated Feedback) */
     #matchFeedbackContainer {
         margin-top: 15px;
@@ -584,6 +642,8 @@
       .headline-text { font-size: 0.9rem; -webkit-line-clamp: 2; }
       .headline-label { font-size: 0.9rem; width: 26px; height: 26px; }
       .headline-list { overflow-y: auto; }
+      .modal { max-width: 95%; }
+      .modal-body { max-height: 85vh; }
     }
     /* ====== COPYRIGHT FOOTER STYLING ====== */
     .copyright-footer {
@@ -619,10 +679,14 @@
       <div class="start-subtitle">Find the key ideas and choose the best headline!</div>
 
       <h3 class="text-xl font-bold text-yellow-300 mb-4 uppercase">Instructions</h3>
-      <ul class="rules-list space-y-2 mb-6 list-disc list-inside">
-        <!-- Reverting instructions to match single story + 2 extra headlines (A-E) -->
-        <li>Read the article and choose the **most suitable headline** that matches the key information.</li>
-        <li>**Tip:** Spot the key information to pick the best headline — just hit the right sentence in the text!</li>
+      <ul class="rules-list space-y-4 mb-6 list-disc list-inside"> <!-- Tăng space-y-4 -->
+        <!-- ĐÃ CHỈNH SỬA: Thêm class highlight-instruction -->
+        <li class="highlight-instruction">
+            READ THE ARTICLE AND CHOOSE THE MOST SUITABLE HEADLINE THAT MATCHES THE KEY INFORMATION.
+        </li>
+        <li class="highlight-instruction">
+            TIP: SPOT THE KEY INFORMATION TO PICK THE BEST HEADLINE — JUST HIT THE RIGHT SENTENCE IN THE TEXT!
+        </li>
       </ul>
       <p class="text-sm italic text-gray-500 mb-4">Time limit: 60 seconds.</p>
       
@@ -789,7 +853,9 @@
       </div>
       <div class="modal-body" id="modalBody"></div>
       <div class="modal-footer">
+        <!-- Nút Close sẽ ẩn khi hiển thị màn hình tóm tắt -->
         <button class="btn" id="closeModalBtn">Close</button>
+        <!-- Nút Restart sẽ đổi thành Play Again trên màn hình tóm tắt -->
         <button class="btn primary" id="restartBtn">Restart</button>
       </div>
     </div>
@@ -800,6 +866,9 @@
     //  DATA & LOGIC
     // ============================================================
     
+    // --- LƯU TRỮ KẾT QUẢ ĐÃ HỌC ---
+    let learnedVocab = []; // Biến global mới để lưu trữ từ vựng đã học
+
     // --- MULTI-STORY DATA STRUCTURE ---
     const stories = [
         {
@@ -835,18 +904,18 @@
                 "Coral cover is expected to increase, which will help restore natural habitats and promote marine biodiversity in the bay.",
                 "In addition, the bay's management board will also monitor the number of swimmers and divers to avoid putting too much stress on the ecosystem."
              ],
-             targetIndices: [0], // Only 1 key sentence
-             correctHeadline: "A",
-             quizType: "matching",
-             canvasMode: "coral", // Canvas mode for Story 2
-             quizData: { 
+            targetIndices: [0], // Only 1 key sentence
+            correctHeadline: "A",
+            quizType: "matching",
+            canvasMode: "coral", // Canvas mode for Story 2
+            quizData: { 
                 instruction: "Match the word on the left with its correct meaning on the right.",
                 pairs: [
                     { word: "debris", definition: "broken pieces of something larger", vietnamese: "mảnh vụn, rác vụn", matchId: 0 },
                     { word: "nurseries", definition: "places where young plants are grown for planting somewhere else", vietnamese: "nơi ươm, chỗ nuôi trồng con non/cây non", matchId: 1 },
                     { word: "marine", definition: "related to the sea", vietnamese: "thuộc về biển", matchId: 2 },
                 ]
-             }
+            }
         },
         // --- STORY 3: ART EXHIBITION ---
         {
@@ -902,9 +971,7 @@
         { x: 0.05, y: 0.05, w: 0.25, h: 0.45, type: 'rect' },
         // Frame 2: Top Right Horizontal Rect (55% W x 25% H)
         { x: 0.35, y: 0.05, w: 0.6, h: 0.25, type: 'rect' },
-        // Frame 3: Bottom Left Square (45% W x 45% H - more space at bottom)
         { x: 0.05, y: 0.55, w: 0.45, h: 0.4, type: 'rect' },
-        // Frame 4: Bottom Right Vertical Rect (40% W x 55% H)
         { x: 0.55, y: 0.35, w: 0.4, h: 0.6, type: 'rect' }
     ];
 
@@ -1041,7 +1108,6 @@
 
         // Update UI
         readingTitleEl.textContent = `Article ${index + 1}: ${story.title}`;
-        // turtleCountEl.textContent = turtlesSaved; // REMOVED: Turtle saved UI update
         
         buildParagraphTokens(story.sentences, story.targetIndices); 
         applyKeywordHighlights(); 
@@ -1050,7 +1116,6 @@
         initializeMarineObjects(story.canvasMode);
 
         // Must wait for DOM to layout before building glass
-        // FIX: Ensure glass tiles are rebuilt after layout changes (e.g., resizing or content load)
         setTimeout(() => requestAnimationFrame(buildGlassTiles), 50);
     }
     
@@ -1087,11 +1152,7 @@
       tiles = [];
       if (!tokens.length) return;
       
-      // Removed wrapperRect = document.querySelector('.reading-inner-wrapper').getBoundingClientRect();
-      // Use containerRect inside the loop for dynamic positioning
-
       tokens.forEach((tokenObj, index) => {
-        // Phải gọi createTileForToken với containerRect để tính toán tọa độ tương đối chính xác
         const containerRect = document.querySelector('.reading-scroll-container').getBoundingClientRect();
         createTileForToken(tokenObj, index, containerRect);
       });
@@ -1104,13 +1165,11 @@
         const tile = document.createElement("div");
         tile.className = "tile";
         
-        // Tọa độ tương đối chính xác so với reading-scroll-container
         const left = rect.left - containerRect.left;
         const top = rect.top - containerRect.top;
         const width = rect.width; 
         const height = rect.height;
 
-        // Tọa độ tương đối so với glassLayer (cũng là con của reading-scroll-container)
         tile.style.left = (left - 1) + "px";
         tile.style.top = (top - 1) + "px";
         tile.style.width = (width + 2) + "px"; 
@@ -1363,7 +1422,7 @@
       }
     }
     
-    // --- MINI-GAME 1: MULTIPLE CHOICE LOGIC (Unchanged) ---
+    // --- MINI-GAME 1: MULTIPLE CHOICE LOGIC (Chỉnh sửa để lưu từ vựng) ---
     function showVocabularyQuiz(quizData) {
         modalTitle.textContent = "Mini Game: Vocabulary Check";
         modalTag.textContent = quizData.word;
@@ -1403,6 +1462,14 @@
         if (isCorrect) {
             playSFX('correct'); // Play correct answer sound
             
+            // LƯU TỪ VỰNG ĐÃ HỌC
+            learnedVocab.push({
+                article: stories[currentStoryIndex].title,
+                word: quizData.word,
+                definition: quizData.options.find(opt => opt.isCorrect).text,
+                vietnamese: quizData.vietnameseDefinition
+            });
+            
             // Correct Answer Logic (Display VN definition and prepare for next story)
             selectedButton.style.backgroundColor = 'var(--success)';
             selectedButton.style.color = 'var(--bg-panel)'; 
@@ -1427,13 +1494,13 @@
             modalFooter.style.display = 'flex';
             closeModalBtn.style.display = 'none';
             
-            // Check if game is over after this quiz
-            if (currentStoryIndex < stories.length - 1) {
+            // LOGIC MỚI: KIỂM TRA NẾU ĐÃ HOÀN THÀNH TẤT CẢ
+            if (currentStoryIndex === stories.length - 1) {
+                 restartBtn.textContent = 'Summary Screen';
+                 restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); showSummaryScreen(); };
+            } else {
                 restartBtn.textContent = 'Next Article';
                 restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); startNextStory(); };
-            } else {
-                 restartBtn.textContent = 'Play Again';
-                 restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); restartGame(); };
             }
 
             
@@ -1459,7 +1526,7 @@
         }
     }
 
-    // --- MINI-GAME 2: MATCHING LOGIC (Unchanged) ---
+    // --- MINI-GAME 2: MATCHING LOGIC (Chỉnh sửa để lưu từ vựng) ---
     function showMatchingQuiz(quizData) {
         modalTitle.textContent = "Mini Game: Vocabulary Matching";
         modalTag.textContent = "Match the Pairs";
@@ -1478,10 +1545,10 @@
         const defLabels = ['a', 'b', 'c'];
         
         // Assign unique IDs and correct match IDs
-        const words = quizData.pairs.map((p, i) => ({ id: `word-${i}`, label: wordLabels[i], text: p.word, matchId: i, type: 'word', vietnamese: p.vietnamese }));
+        const words = quizData.pairs.map((p, i) => ({ id: `word-${i}`, label: wordLabels[i], text: p.word, matchId: i, type: 'word', vietnamese: p.vietnamese, definition: p.definition }));
         
         // Create definitions with their correct matchId and shuffle them for display
-        let definitions = quizData.pairs.map((p, i) => ({ id: `def-${i}`, label: defLabels[i], text: p.definition, matchId: i, type: 'def', vietnamese: p.vietnamese }));
+        let definitions = quizData.pairs.map((p, i) => ({ id: `def-${i}`, label: defLabels[i], text: p.definition, matchId: i, type: 'def', vietnamese: p.vietnamese, definition: p.definition }));
         // IMPORTANT: Shuffle only the definition column
         definitions.sort(() => Math.random() - 0.5);
 
@@ -1655,6 +1722,14 @@
                     vietnamese: matchedPair.vietnamese,
                     definition: matchedPair.definition
                 });
+
+                // LƯU TỪ VỰNG ĐÃ HỌC (cho Matching Game)
+                learnedVocab.push({
+                    article: stories[currentStoryIndex].title,
+                    word: matchedPair.word,
+                    definition: matchedPair.definition,
+                    vietnamese: matchedPair.vietnamese
+                });
                 
                 // Draw the successful connection line
                 drawConnections(); 
@@ -1747,13 +1822,13 @@
         modalFooter.style.display = 'flex';
         closeModalBtn.style.display = 'none';
         
-        // Check if there is a next story defined (Story 3)
-        if (currentStoryIndex < stories.length - 1) {
+        // LOGIC MỚI: KIỂM TRA NẾU ĐÃ HOÀN THÀNH TẤT CẢ
+        if (currentStoryIndex === stories.length - 1) {
+             restartBtn.textContent = 'Summary Screen';
+             restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); showSummaryScreen(); };
+        } else {
             restartBtn.textContent = 'Next Article';
             restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); startNextStory(); };
-        } else {
-             restartBtn.textContent = 'Play Again';
-             restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); restartGame(); };
         }
     }
 
@@ -1797,7 +1872,95 @@
         loadStory(currentStoryIndex);
     }
     
+    // HÀM MỚI: HIỂN THỊ MÀN HÌNH TÓM TẮT CUỐI GAME
+    
+    // Helper function to extract clean headline text without inner <span> tags
+    function getCleanHeadlineText(headlineId) {
+        const headlineElement = document.querySelector(`.headline-item[data-id="${headlineId}"] .headline-text`);
+        if (!headlineElement) return `Headline ${headlineId} (Not Found)`;
+
+        // Clone the element to safely modify content without affecting the main display
+        const clone = headlineElement.cloneNode(true);
+        
+        // Replace all inner spans (keywords) with just their text content
+        clone.querySelectorAll('.keyword').forEach(span => {
+            span.outerHTML = span.textContent; 
+        });
+        
+        // Get the cleaned text, trim whitespace, and replace multiple spaces with one
+        return clone.textContent.trim().replace(/\s+/g, ' ');
+    }
+
+    function showSummaryScreen() {
+        // Đảm bảo game dừng lại
+        clearInterval(timerInterval); 
+        isGameActive = false;
+        
+        modalTitle.textContent = "CONGRATULATIONS! GAME SUMMARY"; // ENGLISH
+        modalTag.textContent = "SUCCESS"; // ENGLISH
+        modalTag.className = "modal-tag success";
+        
+        let summaryHtml = `
+            <p class="text-2xl font-bold mb-6 text-center text-yellow-300">
+                FINAL SCORE: ${score}
+            </p>
+        `;
+
+        // 1. Headlines Summary
+        summaryHtml += `<div class="summary-section">
+            <h3>Article Summary (Correct Headlines)</h3>`; // ENGLISH
+        
+        stories.forEach((story, index) => {
+            const headlineId = story.correctHeadline;
+            const headlineText = getCleanHeadlineText(headlineId);
+
+            summaryHtml += `<div class="summary-item">
+                <strong>Article ${index + 1}: ${story.title}</strong><br>
+                <span class="text-green-400">Correct Headline: ${headlineId}. ${headlineText}</span>
+            </div>`;
+        });
+        summaryHtml += `</div>`; // End summary-section
+
+        // 2. Tóm tắt Từ vựng
+        summaryHtml += `<div class="summary-section">
+            <h3>Learned Vocabulary</h3>`; // ENGLISH
+            
+        // Nhóm từ vựng theo bài đọc
+        const groupedVocab = learnedVocab.reduce((acc, vocab) => {
+            if (!acc[vocab.article]) acc[vocab.article] = [];
+            acc[vocab.article].push(vocab);
+            return acc;
+        }, {});
+        
+        summaryHtml += `<div class="vocab-list space-y-1">`;
+        // Hiển thị từ vựng theo từng bài
+        for (const article in groupedVocab) {
+             summaryHtml += `<h4 class="text-sm font-bold text-gray-400 mt-3 mb-1">${article}:</h4>`;
+             groupedVocab[article].forEach(vocab => {
+                 // English definition and Vietnamese translation
+                 summaryHtml += `<div class="vocab-list-item">
+                    <span class="vocab-word">${vocab.word}</span>
+                    <span class="vocab-def text-white">${vocab.definition} (<span class="text-yellow-400 italic">${vocab.vietnamese}</span>)</span>
+                 </div>`;
+             });
+        }
+
+        summaryHtml += `</div></div>`; // End vocab-list and summary-section
+
+        modalBody.innerHTML = summaryHtml;
+        
+        // Cập nhật Footer cho chức năng Chơi Lại
+        modalFooter.style.display = 'flex';
+        closeModalBtn.style.display = 'none'; // Hide Close button
+        restartBtn.textContent = 'Play Again'; // ENGLISH
+        restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); restartGame(); };
+
+        modalBackdrop.classList.add("show");
+    }
+    
+
     function triggerWin(msg) {
+        // Hàm này không còn được dùng, thay bằng showSummaryScreen()
         clearInterval(timerInterval); 
         isGameActive = false;
         allStoriesCompleted = true;
@@ -1811,10 +1974,10 @@
       modalTag.textContent = isWin ? "Success" : "Try again";
       modalTag.className = "modal-tag " + (isWin ? "success" : "fail");
       
-      // Regular Modal Footer (not quiz)
+      // Regular Modal Footer (not quiz or final summary)
       modalFooter.style.display = 'flex';
       closeModalBtn.style.display = 'inline-flex';
-      restartBtn.textContent = 'Play Again';
+      restartBtn.textContent = 'Restart'; // Đặt lại tên nút
       restartBtn.onclick = () => { modalBackdrop.classList.remove("show"); restartGame(); };
 
       modalBackdrop.classList.add("show");
@@ -1891,7 +2054,8 @@
     function restartGame() {
       // Full game reset (Back to Story 1)
       currentStoryIndex = 0;
-      timeLeft = 60; score = 0; // turtlesSaved = 0; REMOVED
+      timeLeft = 60; score = 0; 
+      learnedVocab = []; // RESET VOCAB
       completedHeadlines = {}; // Reset completed headlines
       scoreValueEl.textContent = score; 
       marineObjects.length = 0; 
@@ -1943,257 +2107,828 @@
     }
     
     // --- CANVAS LOGIC (Turtle Mode) ---
-    function spawnTurtle() {
+    // NEW DRAW TURTLE FUNCTION (using properties from marineObject t)
+    function drawTurtle(t) {
+        const w = canvas.clientWidth;
         const h = canvas.clientHeight;
-        marineObjects.push({
-            type: 'turtle',
-            x: -20, 
-            y: 10 + Math.random() * (h - 20),
-            speed: 1 + Math.random() * 1.5, 
-            waddle: 0
+        const time = Date.now() / 1000;
+        
+        // Scale factor based on canvas size
+        const scale = Math.min(w, h) / 100;
+        const size = t.size || scale; // Use object size if provided, otherwise default to base scale
+
+        // Position based on marineObject t
+        const cx = t.x;
+        const cy = t.y;
+        const swimCycle = Math.sin(time * 2 + (t.flipperPhase || 0)) * 0.15;
+        const bobbing = Math.sin(time * 1.5) * 5;
+        
+        ctx.save();
+        // Translate to the object's position (t.x, t.y)
+        ctx.translate(cx, cy + bobbing);
+        ctx.rotate(-0.2 + swimCycle * 0.2);
+        
+        // Bóng rùa
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        ctx.beginPath();
+        ctx.ellipse(4 * size, 6 * size, 42 * size, 32 * size, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Mai rùa - gradient đẹp hơn
+        const shellGrad = ctx.createRadialGradient(0, -5 * size, 0, 0, 0, 35 * size);
+        shellGrad.addColorStop(0, '#8ed9b5');
+        shellGrad.addColorStop(0.6, '#7ec8a0');
+        shellGrad.addColorStop(1, '#5fa880');
+        ctx.fillStyle = shellGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 38 * size, 30 * size, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Viền mai
+        ctx.strokeStyle = '#4a9870';
+        ctx.lineWidth = 2.5 * size;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 38 * size, 30 * size, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Hoa văn mai
+        const patterns = [
+            { x: -12, y: -10, rx: 10, ry: 9 },
+            { x: 14, y: -8, rx: 9, ry: 8 },
+            { x: -3, y: 12, rx: 11, ry: 9 },
+            { x: -20, y: 6, rx: 8, ry: 7 },
+            { x: 20, y: 10, rx: 7, ry: 6 },
+            { x: 0, y: -8, rx: 6, ry: 5 }
+        ];
+        
+        patterns.forEach((p, i) => {
+            const patternGrad = ctx.createRadialGradient(p.x * size, p.y * size, 0, p.x * size, p.y * size, p.rx * size);
+            patternGrad.addColorStop(0, '#6fb896');
+            patternGrad.addColorStop(1, '#4fa880');
+            ctx.fillStyle = patternGrad;
+            ctx.beginPath();
+            ctx.ellipse(p.x * size, p.y * size, p.rx * size, p.ry * size, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#3d8a6a';
+            ctx.lineWidth = 1.5 * size;
+            ctx.stroke();
         });
+        
+        // Đầu với animation
+        const headExtend = Math.sin(time * 2) * 3;
+        const headGrad = ctx.createRadialGradient((36 + headExtend) * size, -8 * size, 0, (36 + headExtend) * size, -8 * size, 13 * size);
+        headGrad.addColorStop(0, '#d5f5e3');
+        headGrad.addColorStop(1, '#b8e6cf');
+        ctx.fillStyle = headGrad;
+        ctx.beginPath();
+        ctx.ellipse((36 + headExtend) * size, -8 * size, 14 * size, 12 * size, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#8ed9b5';
+        ctx.lineWidth = 1.5 * size;
+        ctx.stroke();
+        
+        // Mắt
+        ctx.fillStyle = '#2d5a4a';
+        ctx.beginPath();
+        ctx.arc((40 + headExtend) * size, -11 * size, 2.5 * size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.beginPath();
+        ctx.arc((40.5 + headExtend) * size, -11.5 * size, 1 * size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Miệng cười
+        ctx.strokeStyle = '#2d5a4a';
+        ctx.lineWidth = 1.5 * size;
+        ctx.beginPath();
+        ctx.arc((42 + headExtend) * size, -7 * size, 4 * size, 0, Math.PI);
+        ctx.stroke();
+        
+        // Chân trước trái - vẫy
+        const flipperLeft = Math.sin(time * 2 + (t.flipperPhase || 0)) * 0.5;
+        const flipperGrad1 = ctx.createLinearGradient(18 * size, 22 * size, 18 * size, 42 * size);
+        flipperGrad1.addColorStop(0, '#b8e6cf');
+        flipperGrad1.addColorStop(1, '#a8e6cf');
+        ctx.fillStyle = flipperGrad1;
+        ctx.beginPath();
+        ctx.ellipse(20 * size, 24 * size, 10 * size, 22 * size, 0.6 + flipperLeft, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#8ed9b5';
+        ctx.lineWidth = 1.5 * size;
+        ctx.stroke();
+        
+        // Chân trước phải - vẫy ngược pha
+        const flipperRight = Math.sin(time * 2 + Math.PI + (t.flipperPhase || 0)) * 0.5;
+        ctx.fillStyle = flipperGrad1;
+        ctx.beginPath();
+        ctx.ellipse(20 * size, -26 * size, 10 * size, 22 * size, -0.6 + flipperRight, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#8ed9b5';
+        ctx.stroke();
+        
+        // Chân sau - vẫy nhẹ
+        const backFlipperLeft = Math.sin(time * 2 + Math.PI * 0.5 + (t.flipperPhase || 0)) * 0.4;
+        ctx.fillStyle = '#a8e6cf';
+        ctx.beginPath();
+        ctx.ellipse(-22 * size, 20 * size, 8 * size, 16 * size, 0.8 + backFlipperLeft, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#8ed9b5';
+        ctx.stroke();
+        
+        const backFlipperRight = Math.sin(time * 2 + Math.PI * 1.5 + (t.flipperPhase || 0)) * 0.4;
+        ctx.beginPath();
+        ctx.ellipse(-22 * size, -20 * size, 8 * size, 16 * size, -0.8 + backFlipperRight, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.restore();
+        
+        // Bong bóng nước (vẽ độc lập khỏi save/restore)
+        const bubbles = [
+            { x: 55, y: -40, r: 6, speed: 1.2, offset: 0 },
+            { x: 48, y: -55, r: 5, speed: 1.5, offset: 0.5 },
+            { x: 65, y: -50, r: 5.5, speed: 1.3, offset: 1 },
+            { x: 60, y: -30, r: 4, speed: 1.8, offset: 1.5 },
+            { x: 42, y: -45, r: 4.5, speed: 1.4, offset: 2 },
+            { x: 70, y: -35, r: 3.5, speed: 1.6, offset: 2.5 },
+            { x: 52, y: -65, r: 4, speed: 1.7, offset: 3 }
+        ];
+        
+        bubbles.forEach(bubble => {
+            const bubbleTime = (time + bubble.offset) * bubble.speed;
+            const yOffset = (bubbleTime % 3) * 35;
+            const alpha = 1 - ((bubbleTime % 3) / 3) * 0.7;
+            
+            const bubbleGrad = ctx.createRadialGradient(
+                cx + bubble.x * size, 
+                cy + bubble.y * size - yOffset * size, 
+                0,
+                cx + bubble.x * size, 
+                cy + bubble.y * size - yOffset * size, 
+                bubble.r * size
+            );
+            bubbleGrad.addColorStop(0, `rgba(255, 255, 255, ${0.8 * alpha})`);
+            bubbleGrad.addColorStop(0.7, `rgba(200, 240, 255, ${0.5 * alpha})`);
+            bubbleGrad.addColorStop(1, `rgba(150, 220, 255, ${0.2 * alpha})`);
+            
+            ctx.fillStyle = bubbleGrad;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * alpha})`;
+            ctx.lineWidth = 2 * size;
+            
+            ctx.beginPath();
+            ctx.arc(cx + bubble.x * size, cy + bubble.y * size - yOffset * size, bubble.r * size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+        
+        // Sóng nước phía sau rùa
+        for (let i = 0; i < 3; i++) {
+            const waveTime = time * 2 + i * 0.5;
+            const waveAlpha = 0.3 - (waveTime % 1) * 0.3;
+            const waveSize = 15 + (waveTime % 1) * 20;
+            
+            ctx.strokeStyle = `rgba(100, 200, 220, ${waveAlpha})`;
+            ctx.lineWidth = 2 * size;
+            ctx.beginPath();
+            ctx.arc(cx - 30 * size, cy, waveSize * size, -0.5, 0.5);
+            ctx.stroke();
+        }
     }
 
-    function drawTurtle(t) {
-        ctx.save();
-        ctx.translate(t.x, t.y);
-        const angle = Math.sin(t.waddle * 0.2) * 0.1;
-        ctx.rotate(angle);
-        ctx.fillStyle = "#5d4037"; 
-        ctx.beginPath(); ctx.ellipse(6, -6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(18, -6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(6, 6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(18, 6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#4caf50";
-        ctx.beginPath(); ctx.ellipse(12, 0, 10, 7, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#388e3c"; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(16,0); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(12, -4); ctx.lineTo(12,4); ctx.stroke();
-        ctx.fillStyle = "#81c784";
-        ctx.beginPath(); ctx.ellipse(24, 0, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
+    // Function for spawning a new turtle (creates the marineObject entry)
+    function spawnTurtle() {
+        const h = canvas.clientHeight;
+        const w = canvas.clientWidth;
+        const scale = Math.min(w, h) / 100;
+        
+        // Rùa mẹ (chính)
+        marineObjects.push({
+            type: 'turtle',
+            x: -150, // Bắt đầu ngoài màn hình
+            y: h * 0.5,
+            speed: 1.5, 
+            size: scale * 0.8, // Kích thước cơ sở lớn hơn
+            flipperPhase: 0
+        });
+        // Rùa con 1
+        marineObjects.push({
+            type: 'turtle',
+            x: -250,
+            y: h * 0.3,
+            speed: 1.8, 
+            size: scale * 0.4,
+            flipperPhase: 0.5
+        });
+        // Rùa con 2
+        marineObjects.push({
+            type: 'turtle',
+            x: -350,
+            y: h * 0.7,
+            speed: 1.6, 
+            size: scale * 0.45,
+            flipperPhase: 1
+        });
+        
     }
     
     // --- CANVAS LOGIC (Coral Bloom Mode) ---
-    
-    // Function to draw the Coral Bloom object (PINK VERSION)
-    function drawCoralBloom(c) {
+    function drawCoralBranch(ctx, x, y, scale, angle, length, thickness, color1, color2, color3, bloomScale, time) {
         ctx.save();
-        ctx.translate(c.x, c.y);
+        ctx.translate(x, y);
+        ctx.rotate(angle);
         
-        // Limit growth to prevent overdraw
-        const currentGrowth = Math.min(c.growth, c.maxGrowth);
-        const baseSize = 5 + (currentGrowth * 20); // Max size slightly bigger
-        const trunkColor = `rgba(139, 69, 19, 0.8)`; // Brown trunk
-
-        // Stem/Base
-        ctx.fillStyle = trunkColor;
-        ctx.fillRect(-2, 0, 4, baseSize * 1.5);
-
-        // Bloom (Pink/Reddish color)
-        const bloomColor = `rgba(255, 105, 180, ${c.life})`; // Hot Pink
-        ctx.fillStyle = bloomColor;
-        const petalCount = 8; // More petals for a fuller look
-        const petalRadius = baseSize * 0.4;
+        const grad = ctx.createLinearGradient(0, 0, 0, -length * bloomScale);
+        grad.addColorStop(0, color1);
+        grad.addColorStop(0.5, color2);
+        grad.addColorStop(1, color3);
         
-        // Draw multiple layers of petals
-        for (let j = 0; j < 2; j++) {
-            for (let i = 0; i < petalCount; i++) {
-                const angle = (i / petalCount) * Math.PI * 2 + (j * 0.1);
-                
-                ctx.save();
-                ctx.rotate(angle);
-                
-                ctx.beginPath();
-                // Draw a simple circle or arc for the petal
-                ctx.arc(0, -baseSize * (1.6 - j * 0.1), petalRadius * (1.2 - j * 0.1), 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.restore();
-            }
-        }
-
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = thickness * scale * bloomScale;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(length * 0.3 * scale, -length * 0.5 * bloomScale, 0, -length * bloomScale);
+        ctx.stroke();
+        
+        // Đầu nhánh với glow
+        const glowGrad = ctx.createRadialGradient(0, -length * bloomScale, 0, 0, -length * bloomScale, 15 * scale * bloomScale);
+        glowGrad.addColorStop(0, color3);
+        glowGrad.addColorStop(0.5, color2);
+        ctx.shadowColor = color3;
+        ctx.shadowBlur = 10 * scale * bloomScale;
+        ctx.fillStyle = glowGrad;
+        ctx.beginPath();
+        ctx.arc(0, -length * bloomScale, 15 * scale * bloomScale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, -length * bloomScale, 11 * scale * bloomScale, 0, Math.PI * 2);
+        ctx.fill();
+        
         ctx.restore();
     }
     
-    // Function to initialize Marine Objects for coral mode (none needed initially, they spawn on hit)
+    // Function to draw a single Coral Cluster
+    function drawCoralCluster(c) {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        const time = Date.now() / 1000;
+
+        const scale = Math.min(w, h) / 100;
+        const cx = c.x;
+        const cy = c.y;
+        const sway = Math.sin(time * c.swaySpeed) * 0.08;
+        
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(sway);
+        
+        const bloomScale = Math.min(1, 0.5 + c.growth * 0.5); 
+
+        // Đế san hô (Luôn vẽ)
+        const baseGrad = ctx.createLinearGradient(0, 0, 0, -10 * scale);
+        baseGrad.addColorStop(0, '#d4a574');
+        baseGrad.addColorStop(1, '#c49563');
+        ctx.fillStyle = baseGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, c.baseWidth * scale, c.baseHeight * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Vẽ các nhánh san hô (sử dụng màu từ cụm)
+        c.branches.forEach(branch => {
+             drawCoralBranch(
+                ctx, branch.x * scale, branch.y * scale, scale, 
+                branch.angle, branch.length, branch.thickness, 
+                branch.color1, branch.color2, branch.color3, 
+                bloomScale, time
+             );
+        });
+        
+        ctx.restore();
+        
+        // Particles lấp lánh (dùng cho mỗi cụm san hô)
+        const particleColors = [
+            '#ffb3c6', '#ff8fab', '#ffb347', '#ffd6a5', '#ff9a9e', 
+        ];
+        
+        for (let i = 0; i < 10; i++) {
+            const sparkle = (Math.sin(time * 3 + c.particleOffset + i * 0.2) + 1) / 2;
+            const alpha = (0.3 + sparkle * 0.7) * bloomScale;
+            const size = (2 + (i % 3)) * (0.8 + sparkle * 0.4);
+            const yFloat = Math.sin(time * 2 + i * 0.3) * 5;
+            const xFloat = Math.cos(time * 1.5 + i * 0.4) * 3;
+            
+            const pX = cx + xFloat;
+            const pY = cy - (30 * scale) + yFloat;
+            
+            const particleGrad = ctx.createRadialGradient(
+                pX, pY, 0, pX, pY, size * scale * 3
+            );
+            const color = particleColors[i % particleColors.length];
+            particleGrad.addColorStop(0, color);
+            particleGrad.addColorStop(0.5, color + '88');
+            particleGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = particleGrad;
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(pX, pY, size * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+
+    // Logic khởi tạo nhiều cụm san hô
     function initializeCoralMode() {
         marineObjects.length = 0;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        const scale = Math.min(w, h) / 100;
+
+        // Cụm 1: Hồng-Tím (Trái)
+        marineObjects.push({
+             type: 'coral', x: w * 0.2, y: h * 0.8, growth: 0.01, maxGrowth: 1.0, 
+             swaySpeed: 1.2, particleOffset: 0,
+             baseWidth: 25, baseHeight: 6,
+             branches: [
+                 { x: -15, y: 0, angle: -0.3, length: 45, thickness: 6, color1: '#ffb3c6', color2: '#ff8fab', color3: '#ff6b9d' },
+                 { x: 0, y: 0, angle: 0, length: 55, thickness: 8, color1: '#e1bee7', color2: '#ba68c8', color3: '#9c27b0' },
+                 { x: 12, y: 0, angle: 0.2, length: 40, thickness: 5, color1: '#f8bbd0', color2: '#f06292', color3: '#e91e63' }
+             ]
+        });
+
+        // Cụm 2: Cam-Vàng (Giữa)
+        marineObjects.push({
+             type: 'coral', x: w * 0.5, y: h * 0.88, growth: 0.01, maxGrowth: 1.0, 
+             swaySpeed: 1.0, particleOffset: 1,
+             baseWidth: 35, baseHeight: 8,
+             branches: [
+                 { x: -20, y: 0, angle: -0.4, length: 50, thickness: 7, color1: '#ffd6a5', color2: '#ffb347', color3: '#ff9a3c' },
+                 { x: 0, y: 0, angle: 0, length: 65, thickness: 10, color1: '#fff9c4', color2: '#ffeb3b', color3: '#fbc02d' },
+                 { x: 18, y: 0, angle: 0.3, length: 48, thickness: 6, color1: '#ffccbc', color2: '#ff8a65', color3: '#ff5722' }
+             ]
+        });
+
+        // Cụm 3: Xanh-Lục (Phải)
+        marineObjects.push({
+             type: 'coral', x: w * 0.8, y: h * 0.85, growth: 0.01, maxGrowth: 1.0, 
+             swaySpeed: 1.3, particleOffset: 2,
+             baseWidth: 28, baseHeight: 7,
+             branches: [
+                 { x: -12, y: 0, angle: -0.25, length: 48, thickness: 6, color1: '#b2dfdb', color2: '#4db6ac', color3: '#00897b' },
+                 { x: 0, y: 0, angle: 0, length: 52, thickness: 7, color1: '#c5e1a5', color2: '#9ccc65', color3: '#7cb342' },
+                 { x: 15, y: 0, angle: 0.35, length: 44, thickness: 5, color1: '#80deea', color2: '#26c6da', color3: '#00acc1' }
+             ]
+        });
     }
     
     // Function called when a hit occurs in coral mode
     function spawnCoralBloom() {
-        const w = canvas.clientWidth;
-        const h = canvas.clientHeight;
+        // Tăng trưởng từng cụm luân phiên
+        const numClusters = marineObjects.length;
         
-        // Spawn the coral bloom object in the water section (right side)
-        marineObjects.push({
-            type: 'coral',
-            x: w * (0.5 + Math.random() * 0.4), // Between 50% and 90% width (water side)
-            y: h * (0.6 + Math.random() * 0.3), // Lower half of the water area
-            growth: 0.01, // Start small
-            life: 1.0, // Used for fading/vitality
-            maxGrowth: 0.8 + Math.random() * 0.5 // Target size (max 1.3)
-        });
+        // Cần phải có 3 lần đập đúng để hoàn thành câu. Mỗi lần đập tăng growth 0.15
+        
+        if (numClusters > 0) {
+            // Logic: Tăng trưởng 0.15 cho cụm san hô cần tăng trưởng tiếp theo (dựa trên hits đã tích lũy)
+            const activeClusterIndex = (Object.values(sentenceHits).reduce((a, b) => a + b, 0) - 1) % numClusters;
+            
+            const coralObj = marineObjects[activeClusterIndex];
+            
+            // Increase growth (controlled by game logic)
+            if (coralObj.growth < coralObj.maxGrowth) {
+                 coralObj.growth = Math.min(coralObj.maxGrowth, coralObj.growth + 0.15); // Tăng trưởng rõ rệt khi hit
+            }
+        }
     }
 
 
     function updateCoralModeObjects() {
-        const w = canvas.clientWidth;
-        const h = canvas.clientHeight;
-
-        for (let i = marineObjects.length - 1; i >= 0; i--) {
-            const obj = marineObjects[i];
-
+        marineObjects.forEach(obj => {
             if (obj.type === 'coral') {
-                // Coral grows and remains static once mature
+                // Tự động tăng trưởng chậm (nếu game không active) hoặc nếu chưa đạt max
                 if (obj.growth < obj.maxGrowth) {
-                    obj.growth += 0.01; // Increase size/bloom gradually
+                    obj.growth = Math.min(obj.maxGrowth, obj.growth + 0.003); // Tăng trưởng nền rất chậm
                 }
-                
-                drawCoralBloom(obj);
+                drawCoralCluster(obj);
             }
-        }
+        });
     }
     
     // --- CANVAS LOGIC (Art/Brushstroke Mode) ---
     
-    // Define the color palette for the art canvas
-    const ART_COLORS = ['#FF6347', '#4682B4', '#32CD32', '#FFD700', '#FF69B4']; // Red, Blue, Green, Gold, Pink
-    
-    // Function to initialize Art Mode - set up the empty frames
-    function initializeArtMode() {
-        marineObjects.length = 0;
-        // No initial symbols, they spawn on hit
-    }
-    
-    // Function to draw a shape (Heart, Star, Flower)
-    function drawSymbol(ctx, type, x, y, size, color, life) {
-        ctx.fillStyle = color;
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1;
+    function drawHeart(ctx, x, y, size, progress, color1, color2) {
+        if (progress <= 0) return;
+        
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, size);
+        grad.addColorStop(0, color1);
+        grad.addColorStop(1, color2);
+        ctx.fillStyle = grad;
         
         ctx.save();
         ctx.translate(x, y);
-        ctx.globalAlpha = life; // Fade in/out effect
-
-        // Enhanced glow effect
-        ctx.shadowBlur = size * 1.5; 
-        ctx.shadowColor = color;
+        ctx.scale(progress, progress);
+        ctx.beginPath();
+        ctx.moveTo(0, size * 0.3);
+        ctx.bezierCurveTo(-size * 0.5, -size * 0.3, -size, -size * 0.1, -size, size * 0.3);
+        ctx.bezierCurveTo(-size, size * 0.7, 0, size * 1.2, 0, size * 1.2);
+        ctx.bezierCurveTo(0, size * 1.2, size, size * 0.7, size, size * 0.3);
+        ctx.bezierCurveTo(size, -size * 0.1, size * 0.5, -size * 0.3, 0, size * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+    
+    function drawFlower(ctx, x, y, size, progress, color1, color2) {
+        if (progress <= 0) return;
         
-        // Set rotation for movement/animation
-        // Removed Date.now() dependency for stability if Tone.js is causing issues
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(progress, progress);
+        
+        // Cánh hoa
+        for (let i = 0; i < 6; i++) {
+            ctx.save();
+            ctx.rotate((i * Math.PI) / 3);
+            const petalGrad = ctx.createRadialGradient(0, -size * 0.5, 0, 0, -size * 0.5, size * 0.6);
+            petalGrad.addColorStop(0, color1);
+            petalGrad.addColorStop(1, color2);
+            ctx.fillStyle = petalGrad;
+            ctx.beginPath();
+            ctx.ellipse(0, -size * 0.5, size * 0.35, size * 0.6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // Nhụy hoa
+        const centerGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.3);
+        centerGrad.addColorStop(0, '#fff9c4');
+        centerGrad.addColorStop(1, '#ffeb3b');
+        ctx.fillStyle = centerGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
+    
+    function drawSun(ctx, x, y, size, progress, color1, color2) {
+        if (progress <= 0) return;
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(progress, progress);
+        
+        // Tia sáng
+        for (let i = 0; i < 12; i++) {
+            ctx.save();
+            ctx.rotate((i * Math.PI) / 6);
+            const rayGrad = ctx.createLinearGradient(0, 0, 0, -size * 1.2);
+            rayGrad.addColorStop(0, color1);
+            rayGrad.addColorStop(1, 'rgba(255, 200, 0, 0)');
+            ctx.fillStyle = rayGrad;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.15, 0);
+            ctx.lineTo(0, -size * 1.2);
+            ctx.lineTo(size * 0.15, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // Mặt trời
+        const sunGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+        sunGrad.addColorStop(0, color1);
+        sunGrad.addColorStop(0.7, color2);
+        sunGrad.addColorStop(1, color1);
+        ctx.fillStyle = sunGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Mặt cười
+        ctx.strokeStyle = '#ff6b00';
+        ctx.lineWidth = size * 0.08;
+        ctx.lineCap = 'round';
+        // Mắt trái
+        ctx.beginPath();
+        ctx.arc(-size * 0.3, -size * 0.15, size * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        // Mắt phải
+        ctx.beginPath();
+        ctx.arc(size * 0.3, -size * 0.15, size * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        // Miệng cười
+        ctx.beginPath();
+        ctx.arc(0, size * 0.1, size * 0.5, 0, Math.PI);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+    
+    function drawStar(ctx, x, y, size, progress, color1, color2) {
+        if (progress <= 0) return;
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(progress, progress);
+        ctx.rotate(Date.now() / 2000);
+        
+        const starGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+        starGrad.addColorStop(0, color1);
+        starGrad.addColorStop(1, color2);
+        ctx.fillStyle = starGrad;
         
         ctx.beginPath();
-        if (type === 'heart') {
-            const r = size * 0.3;
-            ctx.moveTo(0, r * 1.5);
-            ctx.bezierCurveTo(size, -r, size * 2, r * 1.5, 0, size * 2.5);
-            ctx.bezierCurveTo(-size * 2, r * 1.5, -size, -r, 0, r * 1.5);
-        } else if (type === 'star') {
-            const R = size;
-            const r = size / 2.5;
-            for (let i = 0; i < 5; i++) {
-                ctx.lineTo(R * Math.cos(i * 2 * Math.PI / 5 - Math.PI / 2),
-                           R * Math.sin(i * 2 * Math.PI / 5 - Math.PI / 2));
-                ctx.lineTo(r * Math.cos(i * 2 * Math.PI / 5 + Math.PI / 5 - Math.PI / 2),
-                           r * r * Math.sin(i * 2 * Math.PI / 5 + Math.PI / 5 - Math.PI / 2));
-            }
-        } else if (type === 'flower') {
-            const R = size / 1.5;
-            for (let i = 0; i < 6; i++) {
-                ctx.ellipse(0, 0, R, R / 2, i * Math.PI / 3, 0, Math.PI * 2);
-            }
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+            const x = Math.cos(angle) * size;
+            const y = Math.sin(angle) * size;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
         }
         ctx.closePath();
         ctx.fill();
         
-        // Reset effects
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1.0;
+        // Viền sáng
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = size * 0.1;
+        ctx.stroke();
+        
         ctx.restore();
     }
     
-    // Function to draw the static frames
-    function drawArtFrames() {
+    // HÀM VẼ TOÀN BỘ CẢNH NGHỆ THUẬT VÀ CỌ VẼ
+    function drawArtScene(a) {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
-        
-        ART_FRAMES.forEach(frame => {
-            // Viền liền mạch và phát sáng
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; // Frame color
-            ctx.lineWidth = 3;
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; // Background color
-            ctx.shadowBlur = 10; // Add glow to frame
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-            ctx.setLineDash([]); // Viền liền mạch
-            
-            const x = w * frame.x;
-            const y = h * frame.y;
+        const time = Date.now() / 1000;
 
-            if (frame.type === 'rect') {
-                const fw = w * frame.w;
-                const fh = h * frame.h;
-                ctx.strokeRect(x, y, fw, fh);
-                ctx.fillRect(x, y, fw, fh);
+        const scale = Math.min(w, h) / 100;
+        
+        // drawProgress là tiến trình vẽ chung, từ 0.0 đến 4.0
+        const drawProgress = a.progress; 
+        
+        const brushMove = Math.sin(time * 1.5) * 25;
+        const brushRotate = Math.sin(time * 1.5) * 0.4;
+        const brushBounce = Math.abs(Math.sin(time * 1.5)) * 8;
+        
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        
+        // 1. Vẽ các khung tranh (Fixed Positions)
+        
+        const frameWidth = 50 * scale;
+        const frameHeight = 45 * scale;
+        const frameRadius = 5 * scale;
+        const frameShadowBlur = 12 * scale;
+        const frameStrokeWidth = 2.5 * scale;
+
+        const frameCoords = [
+            { x: w * 0.05, y: h * 0.15 }, 
+            { x: w * 0.27, y: h * 0.15 }, 
+            { x: w * 0.49, y: h * 0.15 }, 
+            { x: w * 0.71, y: h * 0.15 } 
+        ];
+        
+        const paintColors = [
+            ['#ff6b9d', '#ff1744'], // Heart
+            ['#ff9fb0', '#ff6b9d'], // Flower
+            ['#ffeb3b', '#ffa726'], // Sun
+            ['#ffeb3b', '#ffc107']  // Star
+        ];
+        
+        for (let i = 0; i < 4; i++) {
+            const { x, y } = frameCoords[i];
+            
+            // Vẽ Khung
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowBlur = frameShadowBlur;
+            ctx.shadowOffsetX = 3 * scale;
+            ctx.shadowOffsetY = 3 * scale;
+            ctx.beginPath();
+            ctx.roundRect(x, y, frameWidth, frameHeight, frameRadius);
+            ctx.fill();
+            ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+            ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = frameStrokeWidth;
+            ctx.stroke();
+
+            // Vẽ Bức tranh
+            const currentPaintIndex = Math.floor(drawProgress);
+            let progress;
+            if (i < currentPaintIndex) {
+                progress = 1; // Hoàn thành
+            } else if (i === currentPaintIndex) {
+                progress = drawProgress - currentPaintIndex; // Đang vẽ (0.0 -> 1.0)
+            } else {
+                progress = 0; // Chưa vẽ
             }
+            
+            const px = x + frameWidth / 2;
+            const py = y + frameHeight / 2;
+            const pSize = 13 * scale;
+            
+            if (i === 0) drawHeart(ctx, px, py, pSize, progress, paintColors[0][0], paintColors[0][1]);
+            else if (i === 1) drawFlower(ctx, px, py, 11 * scale, progress, paintColors[1][0], paintColors[1][1]);
+            else if (i === 2) drawSun(ctx, px, py, 12 * scale, progress, paintColors[2][0], paintColors[2][1]);
+            else if (i === 3) drawStar(ctx, px, py, pSize, progress, paintColors[3][0], paintColors[3][1]);
+        }
+        
+        // 2. Palette và Cọ vẽ
+        
+        const paletteX = w * 0.4;
+        const paletteY = h * 0.85;
+        
+        // Palette (Vẽ giữ nguyên)
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 10 * scale;
+        ctx.shadowOffsetX = 2 * scale;
+        ctx.shadowOffsetY = 2 * scale;
+        
+        const paletteGrad = ctx.createLinearGradient(paletteX, paletteY - 20 * scale, paletteX, paletteY + 20 * scale);
+        paletteGrad.addColorStop(0, '#ffecd2');
+        paletteGrad.addColorStop(1, '#ffd6a5');
+        ctx.fillStyle = paletteGrad;
+        ctx.beginPath();
+        ctx.ellipse(paletteX, paletteY, 35 * scale, 28 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+        ctx.strokeStyle = '#ffb347'; ctx.lineWidth = 2.5 * scale;
+        ctx.beginPath();
+        ctx.ellipse(paletteX, paletteY, 35 * scale, 28 * scale, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const colors = [
+            { x: -22, y: -8, r: 8, color1: '#ffcad4', color2: '#ff9fb0' },
+            { x: -8, y: -12, r: 8, color1: '#bde0fe', color2: '#8ec5fc' },
+            { x: -20, y: 12, r: 8, color1: '#cdb4db', color2: '#b08cc4' },
+            { x: -5, y: 8, r: 7.5, color1: '#ffffb3', color2: '#ffff80' },
+            { x: 5, y: -5, r: 7, color1: '#ffa07a', color2: '#ff8c69' }
+        ];
+        
+        colors.forEach(c => {
+            const colorGrad = ctx.createRadialGradient(
+                paletteX + c.x * scale, paletteY + c.y * scale, 0,
+                paletteX + c.x * scale, paletteY + c.y * scale, c.r * scale
+            );
+            colorGrad.addColorStop(0, c.color1);
+            colorGrad.addColorStop(1, c.color2);
+            ctx.fillStyle = colorGrad;
+            ctx.beginPath();
+            ctx.arc(paletteX + c.x * scale, paletteY + c.y * scale, c.r * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1.5 * scale;
+            ctx.stroke();
         });
-        ctx.shadowBlur = 0; // Reset canvas shadow
+        
+        // Cọ vẽ (di chuyển)
+        let targetX_px, targetY_px;
+        
+        // Cọ vẽ di chuyển đến bức tranh đang được vẽ (currentPaintIndex)
+        const currentPaintIndex = Math.floor(drawProgress);
+        const targetIndex = Math.min(3, currentPaintIndex); 
+        
+        targetX_px = frameCoords[targetIndex].x + frameWidth / 2;
+        targetY_px = frameCoords[targetIndex].y + frameHeight / 2;
+        
+        // Nếu đã hoàn thành 4 bức, cọ vẽ quay về palette
+        if (currentPaintIndex >= 4) {
+            targetX_px = paletteX + 5 * scale;
+            targetY_px = paletteY - 20 * scale;
+        }
+
+        const brushX = targetX_px + Math.sin(time * 3) * 8 * scale;
+        const brushY = targetY_px + Math.abs(Math.sin(time * 2)) * 5 * scale;
+        
+        ctx.save();
+        ctx.translate(brushX, brushY);
+        ctx.rotate(0.7 + brushRotate); 
+        
+        // Vẽ cọ (phần thân)
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowBlur = 8 * scale;
+        ctx.shadowOffsetX = 2 * scale;
+        ctx.shadowOffsetY = 2 * scale;
+        
+        const brushGrad = ctx.createLinearGradient(0, -40 * scale, 0, 20 * scale);
+        brushGrad.addColorStop(0, '#ff9fb0');
+        brushGrad.addColorStop(0.5, '#ffcad4');
+        brushGrad.addColorStop(1, '#ffd6e0');
+        ctx.fillStyle = brushGrad;
+        ctx.beginPath();
+        ctx.roundRect(-4 * scale, -40 * scale, 8 * scale, 60 * scale, 4 * scale);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+        ctx.strokeStyle = '#ff8fab'; ctx.lineWidth = 2 * scale;
+        ctx.beginPath();
+        ctx.roundRect(-4 * scale, -40 * scale, 8 * scale, 60 * scale, 4 * scale);
+        ctx.stroke();
+        
+        // Vẽ đầu cọ và chi tiết
+        const bristleGrad = ctx.createRadialGradient(0, -45 * scale, 0, 0, -45 * scale, 8 * scale);
+        bristleGrad.addColorStop(0, '#d5a6bd');
+        bristleGrad.addColorStop(1, '#b08cc4');
+        ctx.fillStyle = bristleGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, -45 * scale, 7 * scale, 12 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#9a7ba8'; ctx.lineWidth = 2 * scale;
+        ctx.stroke();
+        
+        ctx.strokeStyle = '#9a7ba8'; ctx.lineWidth = 1.2 * scale;
+        for (let i = -4; i <= 4; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * scale * 0.8, -52 * scale);
+            ctx.lineTo(i * scale * 0.8, -56 * scale);
+            ctx.stroke();
+        }
+        
+        ctx.strokeStyle = '#c0c0c0'; ctx.lineWidth = 2 * scale;
+        ctx.beginPath();
+        ctx.arc(0, -35 * scale, 5 * scale, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.restore();
+        
+        // Vệt màu/Particles (hiện thị khi cọ di chuyển)
+        if (drawProgress < 4.0) { 
+            for (let i = 0; i < 8; i++) {
+                const trailTime = time * 4 + i * 0.15;
+                const trailProgress = (trailTime % 1);
+                const trailX = brushX + (targetX_px - brushX) * trailProgress;
+                const trailY = brushY + (targetY_px - brushY) * trailProgress;
+                const trailAlpha = (1 - trailProgress) * 0.5;
+                const trailSize = (3 - i * 0.3) * scale;
+                
+                const trailColors = ['#ffcad4', '#bde0fe', '#cdb4db', '#ffffb3', '#ffa07a', '#ff9fb0', '#ffeb3b', '#ff6b9d'];
+                const trailGrad = ctx.createRadialGradient(trailX, trailY, 0, trailX, trailY, trailSize * 2);
+                trailGrad.addColorStop(0, trailColors[i % trailColors.length]);
+                trailGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                ctx.fillStyle = trailGrad;
+                ctx.globalAlpha = trailAlpha;
+                ctx.beginPath();
+                ctx.arc(trailX, trailY, trailSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
     }
     
+    // Function to initialize Art Mode - set up the empty frames
+    function initializeArtMode() {
+        marineObjects.length = 0;
+        marineObjects.push({
+             type: 'art',
+             progress: 0.0, // Progress từ 0.0 đến 4.0 (Hiện tại)
+             targetProgress: 0.0, // Mục tiêu tiến trình vẽ (Khi đập đúng)
+             x: 0, 
+             y: 0,
+             progressStep: 0.005 
+        });
+    }
+
     // Function called when a hit occurs in art mode
     function spawnArtSymbol() {
-        // Choose a random rectangular/square frame
-        const rectFrames = ART_FRAMES.filter(f => f.type === 'rect');
-        const frameIndex = Math.floor(Math.random() * rectFrames.length);
-        const frame = rectFrames[frameIndex];
+        let artObj = marineObjects.find(obj => obj.type === 'art');
+        if (!artObj) {
+            initializeArtMode();
+            artObj = marineObjects[0];
+        }
         
-        const w = canvas.clientWidth;
-        const h = canvas.clientHeight;
-
-        let spawnX, spawnY, spawnSize, symbolType;
-        
-        // Calculate spawn position inside the frame boundaries
-        spawnX = w * frame.x + w * frame.w * Math.random();
-        spawnY = h * frame.y + h * frame.h * Math.random();
-        
-        // Control symbol size to fit frame (max 20% of frame's smaller dimension)
-        spawnSize = Math.min(w * frame.w, h * frame.h) * 0.2; 
-        
-        // Choose a random symbol
-        const symbols = ['heart', 'star', 'flower'];
-        symbolType = symbols[Math.floor(Math.random() * symbols.length)];
-
-        // Add to marineObjects (now artObjects)
-        marineObjects.push({
-            type: symbolType,
-            x: spawnX,
-            y: spawnY,
-            size: 0.1, // Starts very small
-            maxSize: spawnSize, // Target size is controlled to fit frame
-            color: ART_COLORS[Math.floor(Math.random() * ART_COLORS.length)],
-            life: 0.0, // Used as bloom progress
-            maxLife: 1.0 
-        });
+        // MỖI LẦN ĐẬP ĐÚNG -> Tăng Target Progress thêm 1.0 (hoàn thành 1 bức tranh)
+        if (artObj.targetProgress < 4.0) {
+             artObj.targetProgress = Math.min(4.0, artObj.targetProgress + 1.0); 
+        }
     }
     
     function updateArtModeObjects() {
-        const w = canvas.clientWidth;
-        const h = canvas.clientHeight;
-
-        for (let i = marineObjects.length - 1; i >= 0; i--) {
-            const obj = marineObjects[i];
-
-            if (obj.type !== 'turtle' && obj.type !== 'coral') {
-                // Growth/Drawing animation
-                if (obj.life < obj.maxLife) {
-                    obj.life = Math.min(obj.maxLife, obj.life + 0.03); // Drawing speed
-                }
-                
-                // Draw the symbol
-                const currentSize = obj.maxSize * obj.life;
-                drawSymbol(ctx, obj.type, obj.x, obj.y, currentSize, obj.color, obj.life); // Pass life for alpha/glow control
+        const obj = marineObjects.find(obj => obj.type === 'art');
+        if (obj) {
+            // Animation tiến trình vẽ (làm mượt quá trình tăng progress)
+            const animationSpeed = 0.05; // Tốc độ vẽ mượt
+            
+            if (obj.progress < obj.targetProgress) {
+                 obj.progress = Math.min(obj.targetProgress, obj.progress + animationSpeed); 
             }
+            
+            // Vẽ cảnh nghệ thuật
+            drawArtScene(obj); 
         }
     }
 
@@ -2212,10 +2947,9 @@
           if (isGameActive) {
               for (let i = 0; i < marineObjects.length; i++) {
                   const t = marineObjects[i];
-                  t.x += t.speed;
-                  t.waddle += 1;
-                  drawTurtle(t); // Draw the turtles
-                  if (t.x > w + 20) {
+                  t.x += t.speed; // Move turtle across the screen
+                  drawTurtle(t); // Draw the detailed turtle
+                  if (t.x > w + 200) {
                       marineObjects.splice(i, 1);
                       i--;
                   }
@@ -2230,8 +2964,7 @@
       } else if (story.canvasMode === 'art') {
           ctx.fillStyle = '#101827'; // Dark background
           ctx.fillRect(0, 0, w, h);
-          drawArtFrames(); // Draw the empty frames first
-          updateArtModeObjects(); // Draw the symbols inside
+          updateArtModeObjects(); 
       }
         
       requestAnimationFrame(canvasLoop);
@@ -2241,36 +2974,14 @@
     function initializeMarineObjects(mode) {
         marineObjects.length = 0; // Clear all objects regardless of mode
         if (mode === 'turtle') {
-            // Objects spawn on hit
+            // Objects spawn on hit (spawnTurtle creates a whole family now)
         } else if (mode === 'coral') {
             initializeCoralMode();
         } else if (mode === 'art') {
-            initializeArtMode();
+            initializeArtMode(); // Add the single dummy object to trigger drawing loop
         }
     }
     
-    
-    
-    // Function to draw turtle (used by canvasLoop in turtle mode)
-    function drawTurtle(t) {
-        ctx.save();
-        ctx.translate(t.x, t.y);
-        const angle = Math.sin(t.waddle * 0.2) * 0.1;
-        ctx.rotate(angle);
-        ctx.fillStyle = "#5d4037"; 
-        ctx.beginPath(); ctx.ellipse(6, -6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(18, -6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(6, 6, 4, 2, -Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(18, 6, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#4caf50";
-        ctx.beginPath(); ctx.ellipse(12, 0, 10, 7, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#388e3c"; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(16,0); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(12, -4); ctx.lineTo(12,4); ctx.stroke();
-        ctx.fillStyle = "#81c784";
-        ctx.beginPath(); ctx.ellipse(24, 0, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-    }
     
     
     // Auto-align logic using ResizeObserver
@@ -2280,17 +2991,12 @@
     });
 
     function init() {
-      // TONE.JS: Tạo Synths khi khởi tạo để tránh lỗi âm thanh
-      // FIX: Loại bỏ hoàn toàn Tone.js để đảm bảo không lỗi
-      // createSynths(); 
-      
       resizeCanvas(); 
       canvasLoop(); 
       
       loadStory(currentStoryIndex); // Load the first story content
       
       const wrapper = document.querySelector('.reading-inner-wrapper');
-      // Fix: Dùng setTimeout để đảm bảo layout ổn định trước khi build glass lần đầu
       setTimeout(() => {
         if(wrapper) resizeObserver.observe(wrapper);
         buildGlassTiles();
