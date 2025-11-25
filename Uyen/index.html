@@ -409,9 +409,8 @@
         <div class="modal-content">
             <button class="close-btn" onclick="closeVideo()"><i class="fas fa-times"></i></button>
             <!-- VIDEO FRAME -->
-            <!-- Thay link video của cô vào src bên dưới (nếu là youtube dùng link embed) -->
             <iframe id="video-frame" class="w-full h-full" 
-                    src="https://drive.google.com/file/d/1f1jZMIuYu3fi8ttsOfTi-IDOGvvTaXmQ/preview" 
+                    src="" 
                     title="Intro Video" frameborder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen>
@@ -462,13 +461,41 @@
             const frame = document.getElementById('video-frame');
             
             // --- CẤU HÌNH VIDEO INTRO TẠI ĐÂY ---
-            // Thay link video của cô vào đây. Ví dụ Youtube:
-            const videoUrl = "https://www.youtube.com/embed/MÃ_VIDEO_CỦA_CÔ?autoplay=1"; 
-            // Nếu dùng file nội bộ thì bỏ dòng trên, dùng dòng dưới:
-            // frame.outerHTML = '<video src="intro.mp4" controls autoplay class="w-full h-full"></video>';
+            // Cô DÁN LINK GOOGLE DRIVE HOẶC YOUTUBE CỦA CÔ VÀO DƯỚI ĐÂY:
+            const rawVideoLink = "https://drive.google.com/file/d/1f1jZMIuYu3fi8ttsOfTi-IDOGvvTaXmQ/view?usp=drive_link"; 
+            
+            // Tự động chuyển đổi link
+            const videoUrl = getEmbedUrl(rawVideoLink);
 
-            frame.src = videoUrl; // Gán link vào iframe
+            frame.src = videoUrl; 
             modal.classList.add('active');
+        }
+
+        // Hàm hỗ trợ chuyển đổi link
+        function getEmbedUrl(url) {
+            // Handle Google Drive
+            if (url.includes("drive.google.com")) {
+                // Extract ID between /file/d/ and /view or end of string
+                const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    return `https://drive.google.com/file/d/${match[1]}/preview`;
+                }
+            }
+            
+            // Handle YouTube
+            let videoId = "";
+            if (url.includes("v=")) {
+                videoId = url.split("v=")[1].split("&")[0];
+            } 
+            else if (url.includes("youtu.be/")) {
+                videoId = url.split("youtu.be/")[1].split("?")[0];
+            }
+            
+            if(videoId) {
+                return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            }
+            
+            return url;
         }
 
         function closeVideo() {
@@ -481,7 +508,6 @@
             }, 300);
         }
 
-        // Đóng khi click ra ngoài
         document.getElementById('video-modal').addEventListener('click', (e) => {
             if (e.target.id === 'video-modal') closeVideo();
         });
