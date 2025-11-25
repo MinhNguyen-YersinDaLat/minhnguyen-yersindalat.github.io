@@ -1,0 +1,2548 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Reading Quiz - Wildlife Conservation</title>
+  <style>
+    /* --- SCALER CSS START (Phần thêm vào để co giãn) --- */
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      /* Background giữ nguyên ở body để làm nền cho các khoảng trống nếu có */
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #2d3748;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      transition: background 1.5s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Wrapper định vị game ở giữa màn hình */
+    #app-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Scaler giữ kích thước chuẩn và scale theo màn hình */
+    #game-scaler {
+      /* Kích thước thiết kế chuẩn (Base resolution) */
+      width: 1280px; 
+      height: 800px;
+      position: relative;
+      transform-origin: center center;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5); /* Thêm bóng đổ để game nổi bật */
+      background: rgba(255, 255, 255, 0.1); /* Nền mờ nhẹ */
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    /* --- SCALER CSS END --- */
+
+    /* Theme màu động cho từng mission */
+    body.mission-1 {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+    }
+
+    body.mission-2 {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    }
+
+    body.mission-3 {
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
+    }
+
+    body.mission-4 {
+      background: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%);
+    }
+
+    body.mission-5 {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
+    }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .game-container {
+      width: 100%; /* Đổi từ max-width sang width 100% của scaler */
+      height: 100%;
+      margin: 0 auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      padding: 10px 20px;
+      border-radius: 15px;
+      box-shadow: 
+        0 8px 32px rgba(0,0,0,0.2),
+        0 2px 8px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: nowrap;
+      border: 3px solid rgba(255,255,255,0.6);
+      backdrop-filter: blur(15px);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: rotate(45deg);
+      animation: header-shine 4s ease-in-out infinite;
+    }
+
+    @keyframes header-shine {
+      0%, 100% { transform: translateX(-100%) rotate(45deg); }
+      50% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 32px; /* Tăng size chữ */
+      font-weight: 800;
+      text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 18px; /* Tăng size chữ */
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .progress-bar {
+      background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+      height: 12px;
+      border-radius: 20px;
+      overflow: hidden;
+      flex-grow: 1;
+      min-width: 120px;
+      box-shadow: 
+        inset 0 3px 6px rgba(0,0,0,0.15),
+        0 1px 2px rgba(255,255,255,0.5);
+      border: 2px solid rgba(255,255,255,0.8);
+      position: relative;
+      z-index: 1;
+    }
+
+    .progress-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.3), transparent);
+      border-radius: 20px 20px 0 0;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #48bb78, #38a169, #2f855a, #48bb78);
+      background-size: 200% 100%;
+      height: 100%;
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 
+        0 0 20px rgba(72, 187, 120, 0.6),
+        inset 0 1px 0 rgba(255,255,255,0.4);
+      position: relative;
+      overflow: hidden;
+      animation: progress-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes progress-glow {
+      0%, 100% { 
+        box-shadow: 0 0 20px rgba(72, 187, 120, 0.6);
+        background-position: 0% 0%;
+      }
+      50% { 
+        box-shadow: 0 0 30px rgba(72, 187, 120, 0.9);
+        background-position: 100% 0%;
+      }
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* --- FIX LAYOUT --- */
+    /* Thêm styles cho #game-area để nó co giãn đúng cách */
+    #game-area {
+      flex: 1; /* Chiếm toàn bộ không gian còn lại */
+      min-height: 0; /* Quan trọng để con flex không bị tràn */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      flex: 1; /* Chiếm toàn bộ không gian của #game-area */
+      overflow: hidden;
+      min-height: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .left-panel, .right-panel {
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 
+        0 10px 40px rgba(0,0,0,0.2),
+        0 2px 8px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+      border: 3px solid rgba(255,255,255,0.8);
+      backdrop-filter: blur(15px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transform-style: preserve-3d;
+      height: 100%; /* Đảm bảo chiếm hết chiều cao grid cell */
+    }
+
+    .left-panel::before, .right-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+      background-size: 200% 100%;
+      animation: shimmer-border 3s linear infinite;
+      border-radius: 20px 20px 0 0;
+      z-index: 10; /* Đảm bảo viền luôn nổi lên trên */
+    }
+
+    @keyframes shimmer-border {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    .left-panel:hover, .right-panel:hover {
+      transform: translateY(-4px) scale(1.01); /* Giảm hiệu ứng scale để tránh tràn */
+      box-shadow: 
+        0 20px 60px rgba(0,0,0,0.25),
+        0 5px 15px rgba(0,0,0,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    .mission-title {
+      font-size: 36px; /* Tăng size chữ */
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 15px;
+      text-align: center;
+      text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+      flex-shrink: 0;
+      position: relative;
+      padding: 15px;
+      animation: title-pulse 3s ease-in-out infinite;
+    }
+
+    .mission-title::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+    }
+
+    @keyframes title-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    .stage-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+
+    .stage-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stage-dot.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transform: scale(1.3);
+      box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5);
+      animation: pulse-dot 2s infinite;
+    }
+
+    .stage-dot.completed {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      box-shadow: 0 3px 12px rgba(72, 187, 120, 0.5);
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1.5); }
+      50% { transform: scale(1.7); }
+    }
+
+    .question-text {
+      font-size: 28px; /* Tăng size chữ */
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 15px;
+      line-height: 1.6;
+      padding: 18px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 12px;
+      border-left: 5px solid #667eea;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+
+    .keyword-container {
+      font-size: 28px; /* Tăng size chữ */
+      line-height: 1.8;
+      margin-bottom: 15px;
+      padding: 0;
+    }
+
+    .keyword-word {
+      display: inline;
+      padding: 4px 2px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .keyword-word:hover {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+      text-shadow: 0 0 12px rgba(102, 126, 234, 0.6);
+      transform: scale(1.08) translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .keyword-word.selected {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      animation: glow-success 0.6s ease;
+      box-shadow: 0 4px 20px rgba(72, 187, 120, 0.6);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .keyword-word.wrong {
+      animation: shake-intense 0.5s ease;
+      color: #f56565;
+    }
+
+    @keyframes glow-success {
+      0%, 100% { box-shadow: 0 0 10px rgba(72, 187, 120, 0.5); }
+      50% { box-shadow: 0 0 30px rgba(72, 187, 120, 0.9); }
+    }
+
+    @keyframes shake-intense {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-12px) rotate(-5deg); }
+      20%, 40%, 60%, 80% { transform: translateX(12px) rotate(5deg); }
+    }
+
+    /* Screen shake effect */
+    @keyframes screen-shake {
+      0%, 100% { transform: translate(0, 0); }
+      10%, 30%, 50%, 70%, 90% { transform: translate(-5px, 2px); }
+      20%, 40%, 60%, 80% { transform: translate(5px, -2px); }
+    }
+
+    .shake-screen {
+      animation: screen-shake 0.5s ease;
+    }
+
+    .paragraph-container {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      line-height: 1.6;
+      font-size: 24px; /* Tăng size chữ */
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+
+    /* Vietnam Map Styles - Enhanced & Realistic */
+    .vietnam-map {
+      width: 100%;
+      height: 100%;
+      min-height: 350px;
+      position: relative;
+      background: linear-gradient(to bottom, #e0f7fa 0%, #b2ebf2 30%, #80deea 60%, #4dd0e1 100%);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: inset 0 3px 15px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+
+    /* Animated sea turtles swimming */
+    .sea-turtle {
+      position: absolute;
+      font-size: 30px;
+      opacity: 0.3;
+      animation: swim-turtle 25s infinite linear;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .turtle1 {
+      top: 20%;
+      left: -50px;
+      animation-delay: 0s;
+    }
+
+    .turtle2 {
+      top: 60%;
+      left: -80px;
+      animation-delay: 12s;
+      font-size: 25px;
+    }
+
+    .turtle3 {
+      top: 40%;
+      left: -60px;
+      animation-delay: 8s;
+      font-size: 35px;
+    }
+
+    @keyframes swim-turtle {
+      0% { 
+        transform: translateX(0) rotate(0deg); 
+        opacity: 0;
+      }
+      5% { opacity: 0.3; }
+      95% { opacity: 0.3; }
+      100% { 
+        transform: translateX(calc(100vw + 100px)) rotate(10deg); 
+        opacity: 0;
+      }
+    }
+
+    /* Clouds animation */
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 100px;
+      opacity: 0.6;
+      animation: float-cloud 30s infinite linear;
+      box-shadow: 0 2px 8px rgba(255,255,255,0.5);
+    }
+
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 100px;
+    }
+
+    .cloud1 {
+      width: 70px;
+      height: 25px;
+      top: 8%;
+      left: -100px;
+    }
+
+    .cloud1::before {
+      width: 45px;
+      height: 35px;
+      top: -18px;
+      left: 10px;
+    }
+
+    .cloud1::after {
+      width: 50px;
+      height: 30px;
+      top: -15px;
+      right: 10px;
+    }
+
+    .cloud2 {
+      width: 90px;
+      height: 30px;
+      top: 22%;
+      left: -150px;
+      animation-delay: 15s;
+    }
+
+    .cloud2::before {
+      width: 55px;
+      height: 40px;
+      top: -20px;
+      left: 15px;
+    }
+
+    .cloud2::after {
+      width: 60px;
+      height: 35px;
+      top: -17px;
+      right: 15px;
+    }
+
+    @keyframes float-cloud {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(100vw + 200px)); }
+    }
+
+    /* Vietnam map shape - Realistic S shape */
+    .vietnam-shape {
+      position: absolute;
+      width: 200px;
+      height: 460px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+      clip-path: polygon(
+        /* Mi    n Bắc - phần đầu rộng (Cao Bằng, Lạng Sơn) */
+        42% 0%, 45% 0.5%, 48% 1%, 52% 1.5%, 56% 2%, 60% 3%, 63% 4%, 66% 5.5%, 68% 7%, 69% 9%, 70% 11%,
+        /* Vịnh Bắc Bộ - cong vào */
+        70% 13%, 69% 15%, 68% 17%, 66% 19%, 64% 21%, 62% 23%,
+        /* Thanh Hóa, Nghệ An - bắt đầu thắt lưới */
+        60% 25%, 58% 27%, 56% 29%, 55% 31%, 54% 33%, 53% 35%,
+        /* Miền Trung - phần hẹp nhất (Quảng Bình, Quảng Trị, Huế) */
+        52% 37%, 51% 39%, 51% 41%, 51% 43%, 51% 45%, 51% 47%, 52% 49%,
+        /* Đà Nẵng, Quảng Nam - bắt đầu mở rộng */
+        53% 51%, 54% 53%, 56% 55%, 58% 57%, 60% 59%,
+        /* Khánh Hòa, Ninh Thuận - ven biển miền Trung */
+        62% 61%, 64% 63%, 66% 65%, 67% 67%, 68% 69%, 68% 71%,
+        /* Bình Thuận, Bà Rịa - chuyển sang miền Nam */
+        68% 73%, 67% 75%, 66% 77%, 65% 79%, 64% 81%,
+        /* Miền Nam - mở rộng (TP.HCM, Đồng Nai) */
+        63% 83%, 62% 85%, 61% 87%, 60% 89%, 58% 91%, 56% 93%, 54% 95%, 51% 97%, 48% 98%, 45% 98.5%,
+        /* Cà Mau - mũi cuối cùng */
+        42% 98%, 39% 97%, 37% 95%, 35% 93%,
+        /* Bờ Tây miền Nam (Kiên Giang, An Giang) */
+        34% 91%, 33% 89%, 32% 87%, 32% 85%, 32% 83%, 32% 81%,
+        /* Đồng bằng sông Cửu Long - phình rộng */
+        33% 79%, 34% 77%, 35% 75%, 36% 73%, 37% 71%, 38% 69%,
+        /* Tây Nguyên (Gia Lai, Kon Tum) */
+        39% 67%, 40% 65%, 41% 63%, 42% 61%, 43% 59%, 44% 57%,
+        /* Miền Trung bờ Tây - thắt lại */
+        45% 55%, 46% 53%, 47% 51%, 47% 49%, 47% 47%, 47% 45%, 47% 43%,
+        /* Quảng Bình, Hà Tĩnh bờ Tây */
+        46% 41%, 45% 39%, 44% 37%, 43% 35%, 42% 33%,
+        /* Thanh Hóa, Ninh Bình bờ Tây */
+        41% 31%, 40% 29%, 39% 27%, 38% 25%, 37% 23%,
+        /* Vịnh Bắc Bộ bờ Tây */
+        36% 21%, 35% 19%, 35% 17%, 35% 15%, 36% 13%,
+        /* Miền Bắc bờ Tây (Điện Biên, Lai Châu) */
+        37% 11%, 38% 9%, 39% 7%, 40% 5%, 41% 3%, 42% 1.5%
+      );
+      box-shadow: 
+        0 10px 40px rgba(16, 185, 129, 0.5),
+        inset 0 2px 10px rgba(255,255,255,0.3),
+        inset 0 -2px 10px rgba(0,0,0,0.1);
+      opacity: 0.9;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    }
+
+    /* Hoàng Sa Islands - Paracel Islands */
+    .hoang-sa {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      border-radius: 50% 45% 50% 45%;
+      top: 36%;
+      right: 26%;
+      opacity: 0.85;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      animation: float-island 4s ease-in-out infinite;
+      border: 2px solid rgba(255,255,255,0.5);
+    }
+
+    .hoang-sa::after {
+      content: '🏝️';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+    }
+
+    .hoang-sa-label {
+      position: absolute;
+      bottom: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      font-weight: 700;
+      color: #047857;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.7);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Trường Sa Islands - Spratly Islands */
+    .truong-sa {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      border-radius: 45% 50% 45% 50%;
+      bottom: 26%;
+      right: 19%;
+      opacity: 0.85;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      animation: float-island 5s ease-in-out infinite;
+      animation-delay: 1s;
+      border: 2px solid rgba(255,255,255,0.5);
+    }
+
+    .truong-sa::after {
+      content: '🏝️';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+    }
+
+    .truong-sa-label {
+      position: absolute;
+      bottom: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      font-weight: 700;
+      color: #047857;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.7);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    @keyframes float-island {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-10px) scale(1.05); }
+    }
+
+    /* Map location pins - Enhanced */
+    .map-location {
+      position: absolute;
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
+      z-index: 10;
+      border: 3px solid white;
+    }
+
+    .map-location::after {
+      content: '📍';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(45deg);
+      font-size: 20px;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+    }
+
+    .map-location:hover {
+      transform: rotate(-45deg) scale(1.35);
+      box-shadow: 0 10px 35px rgba(249, 115, 22, 0.8);
+      filter: brightness(1.1);
+    }
+
+    .map-location.correct {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      animation: pulse-location 1.5s ease infinite, ripple-effect 2s ease infinite;
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.9);
+    }
+
+    @keyframes pulse-location {
+      0%, 100% { transform: rotate(-45deg) scale(1); }
+      50% { transform: rotate(-45deg) scale(1.5); }
+    }
+
+    @keyframes ripple-effect {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7),
+                    0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 20px rgba(16, 185, 129, 0),
+                    0 0 0 40px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0),
+                    0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    .location-label {
+      position: absolute;
+      bottom: -38px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 1;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .location-label::before {
+      content: '🐢';
+      margin-right: 6px;
+      font-size: 14px;
+    }
+
+    .map-location:hover .location-label {
+      transform: translateX(-50%) rotate(45deg) scale(1.15);
+      background: rgba(0,0,0,1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+    }
+
+    /* Beach Signboards - Enhanced */
+    .beach-scene {
+      width: 100%;
+      height: 100%;
+      min-height: 350px;
+      background: linear-gradient(to bottom, #fef3c7 0%, #fde68a 40%, #fcd34d 70%, #f59e0b 100%);
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 3px 15px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+
+    /* Sun */
+    .sun {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, #fbbf24 0%, #f59e0b 100%);
+      border-radius: 50%;
+      top: 30px;
+      right: 50px;
+      box-shadow: 0 0 40px rgba(251, 191, 36, 0.8);
+      animation: rotate-sun 20s linear infinite;
+    }
+
+    @keyframes rotate-sun {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Palm trees */
+    .palm-tree {
+      position: absolute;
+      bottom: 0;
+    }
+
+    .palm-trunk {
+      width: 15px;
+      height: 100px;
+      background: linear-gradient(to bottom, #92400e 0%, #78350f 100%);
+      border-radius: 8px;
+      margin: 0 auto;
+    }
+
+    .palm-leaves {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 50px;
+    }
+
+    .signboard {
+      position: absolute;
+      width: 160px;
+      padding: 12px;
+      background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+      border: 4px solid #654321;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      color: white;
+      font-size: 18px; /* Tăng size chữ */
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      z-index: 5;
+    }
+
+    .signboard::before {
+      content: '📋';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px; /* Tăng size icon */
+    }
+
+    .signboard:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+    }
+
+    .signboard.wrong-answer {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      animation: flash-red 0.6s ease;
+    }
+
+    @keyframes flash-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Underwater Control Panels - Enhanced */
+    .underwater-scene {
+      background: linear-gradient(to bottom, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: inset 0 3px 15px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Bubbles */
+    .bubble {
+      position: absolute;
+      bottom: -50px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.3));
+      border-radius: 50%;
+      animation: rise-bubble 6s infinite ease-in;
+      opacity: 0.6;
+    }
+
+    .bubble1 { width: 20px; height: 20px; left: 10%; animation-delay: 0s; }
+    .bubble2 { width: 30px; height: 30px; left: 30%; animation-delay: 2s; }
+    .bubble3 { width: 25px; height: 25px; left: 50%; animation-delay: 4s; }
+    .bubble4 { width: 35px; height: 35px; left: 70%; animation-delay: 1s; }
+    .bubble5 { width: 22px; height: 22px; left: 90%; animation-delay: 3s; }
+
+    @keyframes rise-bubble {
+      0% { bottom: -50px; opacity: 0; }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.6; }
+      100% { bottom: 100%; opacity: 0; }
+    }
+
+    .diving-panel {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,249,255,0.95) 100%);
+      padding: 15px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      border: 3px solid #0284c7;
+      text-align: center;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .diving-panel::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+      transform: rotate(45deg);
+      transition: all 0.5s ease;
+    }
+
+    .diving-panel:hover::before {
+      left: 100%;
+    }
+
+    .diving-panel:hover {
+      transform: translateY(-8px) scale(1.08);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      border-color: #38bdf8;
+    }
+
+    /* Art Gallery - Enhanced */
+    .art-gallery {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      padding: 0;
+      flex: 1;
+    }
+
+    .art-frame {
+      border: 6px solid #8b4513;
+      padding: 12px;
+      background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px; /* Tăng size chữ */
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .art-frame::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .art-frame:hover::before {
+      transform: translateX(100%);
+    }
+
+    .art-frame:hover {
+      transform: scale(1.1) rotate(2deg);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+    }
+
+    .art-frame.lit {
+      box-shadow: 0 0 50px rgba(251, 191, 36, 1);
+      border-color: #fbbf24;
+      animation: glow-frame 1.5s ease infinite;
+    }
+
+    @keyframes glow-frame {
+      0%, 100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
+      50% { box-shadow: 0 0 60px rgba(251, 191, 36, 1); }
+    }
+
+    .art-frame.dimmed {
+      opacity: 0.2;
+      filter: grayscale(100%);
+    }
+
+    /* Auction Hammer - Enhanced */
+    .auction-scene {
+      text-align: center;
+      padding: 15px;
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .auction-stage {
+      background: linear-gradient(135deg, #7c2d12 0%, #92400e 100%);
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+
+    .hammer {
+      width: 80px;
+      height: 80px;
+      margin: 15px auto;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 60px;
+      filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+    }
+
+    .hammer:hover {
+      transform: scale(1.15) rotate(-10deg);
+    }
+
+    .hammer.hitting {
+      animation: hit-intense 0.6s ease;
+    }
+
+    @keyframes hit-intense {
+      0% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-60deg) translateY(-30px) scale(1.1); }
+      50% { transform: rotate(-70deg) translateY(-35px) scale(1.15); }
+      75% { transform: rotate(10deg) translateY(5px) scale(0.95); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    .auction-btn {
+      padding: 12px;
+      border: 3px solid #8b4513;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      font-size: 18px; /* Tăng size chữ */
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .auction-btn:hover {
+      background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .auction-btn.sold {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      border-color: #48bb78;
+      animation: sold-flash 0.8s ease;
+    }
+
+    @keyframes sold-flash {
+      0%, 100% { transform: scale(1); }
+      25%, 75% { transform: scale(1.1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .next-mission-btn {
+      display: block;
+      margin: 35px auto;
+      padding: 18px 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 35px;
+      font-size: 28px; /* Tăng size chữ */
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .next-mission-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease;
+    }
+
+    .next-mission-btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .next-mission-btn:hover {
+      transform: translateY(-8px) scale(1.08);
+      box-shadow: 0 15px 50px rgba(102, 126, 234, 0.8);
+      animation: button-pulse 0.8s ease infinite;
+    }
+
+    @keyframes button-pulse {
+      0%, 100% { box-shadow: 0 15px 50px rgba(102, 126, 234, 0.8); }
+      50% { box-shadow: 0 15px 60px rgba(102, 126, 234, 1); }
+    }
+
+    .next-mission-btn:disabled {
+      background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .score-display {
+      font-size: 28px; /* Tăng size chữ */
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      flex-shrink: 0;
+      white-space: nowrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Thêm CSS cho thông tin bản quyền */
+    .copyright-footer {
+      text-align: center;
+      margin-top: auto; /* Tự động đẩy xuống đáy */
+      padding: 8px 0 0 0;
+      font-size: 16px; /* Tăng size chữ */
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      width: 100%;
+      letter-spacing: 0.5px;
+    }
+
+    /* CSS cho nút fullscreen */
+    #fullscreen-btn {
+      background: rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      color: #667eea;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      margin-left: 10px;
+    }
+
+    #fullscreen-btn:hover {
+      background: white;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .completion-message {
+      text-align: center;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 20px;
+      margin-top: 10px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+      animation: fadeIn 0.8s ease;
+      max-height: calc(100% - 20px);
+      overflow-y: auto;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .completion-message h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      animation: bounce 1s ease infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .completion-message p {
+      font-size: 14px;
+      margin: 6px 0;
+      font-weight: 600;
+    }
+
+    /* Enhanced Particle effects */
+    .particle {
+      position: fixed;
+      pointer-events: none;
+      animation: float-particle 3s ease-out forwards;
+      z-index: 9999;
+    }
+
+    @keyframes float-particle {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(-50px) rotate(180deg) scale(1.5);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-150px) rotate(360deg) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    /* Confetti animation */
+    .confetti {
+      position: fixed;
+      pointer-events: none;
+      animation: confetti-fall 2s ease-out forwards;
+      z-index: 9999;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(-20px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* Star burst effect */
+    .star-burst {
+      position: fixed;
+      pointer-events: none;
+      animation: star-burst 1s ease-out forwards;
+      z-index: 9999;
+    }
+
+    @keyframes star-burst {
+      0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.5) rotate(180deg);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(0.5) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .art-gallery {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .progress-bar {
+        order: 3;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <!-- Thêm Wrapper và Scaler -->
+  <div id="app-wrapper">
+    <div id="game-scaler">
+      <div class="game-container">
+       <header>
+        <div class="header-left">
+         <h1 id="game-title">🐢 Wildlife Conservation News Quiz</h1>
+         <p class="subtitle" id="instructions-text">English 12 - Unit 8: Interactive Reading Comprehension</p>
+        </div>
+        <div class="progress-bar">
+         <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="score-display">
+         Score: <span id="score">0</span> / 500
+        </div>
+        <!-- Nút Fullscreen -->
+        <button id="fullscreen-btn" title="Toggle Fullscreen">⛶</button>
+       </header>
+       <div id="game-area">
+        <div class="game-layout">
+         <div class="left-panel" id="left-panel"><!-- Interactive minigame area -->
+         </div>
+         <div class="right-panel" id="right-panel"><!-- Question and options area -->
+         </div>
+        </div><button class="next-mission-btn hidden" id="next-mission-btn">Next Mission 🚀</button>
+       </div>
+       <div id="completion-area" class="hidden"></div>
+       
+       <!-- Thêm thông tin bản quyền ở đây -->
+       <div class="copyright-footer">
+        © Teacher Nguyen Thi Thao Uyen - Yersin Elementary, Middle & High School Da Lat
+       </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const config = {
+      game_title: "🐢 Wildlife Conservation News Quiz",
+      instructions_text: "English 12 - Unit 8: Interactive Reading Comprehension"
+    };
+
+    const defaultConfig = {
+      game_title: "🐢 Wildlife Conservation News Quiz",
+      instructions_text: "English 12 - Unit 8: Interactive Reading Comprehension"
+    };
+
+    // --- FULLSCREEN LOGIC ---
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    // --- AUTO SCALER LOGIC START ---
+    // Script này giúp game luôn vừa vặn với màn hình mà không cần đổi CSS gốc
+    function resizeGame() {
+      const wrapper = document.getElementById('app-wrapper');
+      const scaler = document.getElementById('game-scaler');
+      if (!wrapper || !scaler) return;
+
+      const baseWidth = 1280; // Chiều rộng chuẩn thiết kế
+      const baseHeight = 800; // Chiều cao chuẩn thiết kế
+      const winWidth = window.innerWidth;
+      const winHeight = window.innerHeight;
+
+      // Tính tỷ lệ scale nhỏ nhất để vừa cả chiều ngang và dọc
+      // Thêm hệ số 0.98 để tạo vùng an toàn, tránh bị cắt mép
+      const scale = Math.min(winWidth / baseWidth, winHeight / baseHeight) * 0.98;
+      
+      // Áp dụng scale
+      scaler.style.transform = `scale(${scale})`;
+    }
+
+    // Gọi hàm resize khi cửa sổ thay đổi hoặc tải xong
+    window.addEventListener('resize', resizeGame);
+    window.addEventListener('load', resizeGame);
+    // --- AUTO SCALER LOGIC END ---
+
+    // Enhanced Sound effects using Web Audio API
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      switch(type) {
+        case 'correct':
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+          oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+          oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+          gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.4);
+          break;
+        case 'wrong':
+          oscillator.type = 'sawtooth';
+          oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+          oscillator.frequency.setValueAtTime(180, audioContext.currentTime + 0.1);
+          oscillator.frequency.setValueAtTime(140, audioContext.currentTime + 0.2);
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.3);
+          break;
+        case 'click':
+          oscillator.type = 'square';
+          oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.08);
+          break;
+        case 'complete':
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+          oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.12);
+          oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.24);
+          oscillator.frequency.setValueAtTime(1046.50, audioContext.currentTime + 0.36);
+          oscillator.frequency.setValueAtTime(1318.51, audioContext.currentTime + 0.48);
+          gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.7);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.7);
+          break;
+        case 'powerup':
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3);
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.3);
+          break;
+      }
+    }
+
+    function createParticles(x, y, color) {
+      // Enhanced particles with emojis
+      const emojis = ['✨', '⭐', '💫', '🌟', '💥', '🎉', '🎊'];
+      
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.fontSize = (Math.random() * 20 + 15) + 'px';
+        particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        particle.style.transform = `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px)`;
+        document.body.appendChild(particle);
+        
+        setTimeout(() => particle.remove(), 3000);
+      }
+    }
+
+    function createConfetti(x, y) {
+      const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe', '#fd79a8'];
+      const shapes = ['🎊', '🎉', '🎈', '🎁', '🌟', '⭐', '✨'];
+      
+      for (let i = 0; i < 30; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = (x + Math.random() * 200 - 100) + 'px';
+        confetti.style.top = y + 'px';
+        confetti.style.fontSize = (Math.random() * 25 + 15) + 'px';
+        confetti.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+        confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 2500);
+      }
+    }
+
+    function createStarBurst(x, y) {
+      for (let i = 0; i < 8; i++) {
+        const star = document.createElement('div');
+        star.className = 'star-burst';
+        star.style.left = x + 'px';
+        star.style.top = y + 'px';
+        star.style.fontSize = '30px';
+        star.textContent = '⭐';
+        const angle = (i / 8) * 360;
+        const distance = 80;
+        star.style.transform = `translate(${Math.cos(angle * Math.PI / 180) * distance}px, ${Math.sin(angle * Math.PI / 180) * distance}px)`;
+        document.body.appendChild(star);
+        
+        setTimeout(() => star.remove(), 1000);
+      }
+    }
+
+    // Game data
+    const missions = [
+      {
+        id: 1,
+        question: "Where is the sea turtle spawning ground?",
+        questionKeywords: ["Where", "sea turtle", "spawning ground"],
+        paragraph: "More than 600 volunteers participated in sea turtle conservation activities held on Con Dao island last week. Volunteers made sure that their spawning ground is safe. They also rescued turtle eggs and buried them in the sand. Sea turtles are threatened with extinction worldwide, and their populations have decreased dramatically in many places.",
+        paragraphKeywords: ["Con Dao island", "spawning ground", "volunteers"],
+        options: [
+          { text: "A. Con Dao Island", correct: true, location: "Con Dao Island" },
+          { text: "B. Ha Noi", correct: false, location: "Hà Nội" },
+          { text: "C. Khanh Hoa", correct: false, location: "Khánh Hòa" },
+          { text: "D. Nha Trang", correct: false, location: "Nha Trang" }
+        ],
+        minigameType: "map"
+      },
+      {
+        id: 2,
+        question: "Which of the following is NOT true about sea turtles?",
+        questionKeywords: ["NOT TRUE"],
+        paragraph: "More than 600 volunteers participated in sea turtle conservation activities held on Con Dao island last week. Volunteers made sure that their spawning ground is safe. They also rescued turtle eggs and buried them in the sand. Sea turtles are threatened with extinction worldwide, and their populations have decreased dramatically in many places. That is why sea turtle conservation programmes are organised annually around the world.",
+        paragraphKeywords: ["Volunteer", "help", "burying", "sand", "Population", "gone down", "Receive", "volunteer", "every year", "Facing extinction"],
+        options: [
+          { text: "A. Volunteers help sea turtles by burying them in the sand.", correct: true },
+          { text: "B. Their populations have gone down significantly.", correct: false },
+          { text: "C. They receive help from volunteers every year.", correct: false },
+          { text: "D. They are facing extinction all over the world.", correct: false }
+        ],
+        minigameType: "signboards"
+      },
+      {
+        id: 3,
+        question: "Why did the management board of Nha Trang Bay have to monitor the number of divers and swimmers there?",
+        questionKeywords: ["Why", "monitor", "diver", "swimmer"],
+        paragraph: "Local authorities are taking measures to restore the coral reef ecosystem in Nha Trang Bay. They will organise regular clean-up of the seabed and removal of marine debris. Diving clubs will also help by having their professional divers collect broken pieces of coral, re-grow them in underwater nurseries, and then re-attach them to reefs. In addition, the bay's management board will also monitor the number of swimmers and divers to avoid putting too much stress on the ecosystem.",
+        paragraphKeywords: ["monitor", "swimmers", "divers", "stress", "ecosystem"],
+        options: [
+          { text: "A. To train more professional divers.", correct: false },
+          { text: "B. To restore the coral system.", correct: false },
+          { text: "C. To avoid putting pressure on the system.", correct: true },
+          { text: "D. To promote the natural habitat of the bay.", correct: false }
+        ],
+        minigameType: "underwater"
+      },
+      {
+        id: 4,
+        question: "How many paintings will be on display in the wildlife exhibition?",
+        questionKeywords: ["How many", "painting", "wildlife exhibition"],
+        paragraph: "An exhibition entitled 'Paint for wildlife' will be held in Ha Noi next week. It will include more than 30 paintings by secondary school students across the country. Visitors will also have the opportunity to meet the young artists and discuss the stories behind their beautiful paintings.",
+        paragraphKeywords: ["more than 30", "paintings", "exhibition"],
+        options: [
+          { text: "A. Around 600.", correct: false },
+          { text: "B. Around 300.", correct: false },
+          { text: "C. Around 25.", correct: false },
+          { text: "D. Around 30.", correct: true }
+        ],
+        minigameType: "gallery"
+      },
+      {
+        id: 5,
+        question: "What will happen to the paintings at the exhibition?",
+        questionKeywords: ["Happen", "painting", "exhibition"],
+        paragraph: "An exhibition entitled 'Paint for wildlife' will be held in Ha Noi next week. It will include more than 30 paintings by secondary school students across the country. All of them will be on sale to raise money for the protection of endangered and vulnerable species. The event organisers hope to raise public awareness of wildlife conservation through art, and contribute to efforts to save rare and endangered animals.",
+        paragraphKeywords: ["sale", "raise money", "protection"],
+        options: [
+          { text: "A. They will be donated to visitors.", correct: false },
+          { text: "B. They will be sold to raise money for wildlife conservation.", correct: true },
+          { text: "C. They will be shown in public places.", correct: false },
+          { text: "D. They will be given to different schools.", correct: false }
+        ],
+        minigameType: "auction"
+      }
+    ];
+
+    let currentMission = 0;
+    let currentStage = 1;
+    let score = 0;
+    let selectedQuestionKeywords = [];
+    let selectedParagraphKeywords = [];
+    let totalCorrect = 0;
+    let totalWrong = 0;
+    let startTime = Date.now();
+    let userAnswers = []; // Lưu câu trả lời của người dùng
+
+    // Initialize game
+    function initGame() {
+      updateProgress();
+      loadMission(currentMission);
+      resizeGame(); // Initial scale calculation
+    }
+
+    function updateProgress() {
+      const progress = (currentMission / missions.length) * 100;
+      document.getElementById('progress-fill').style.width = progress + '%';
+    }
+
+    function loadMission(missionIndex) {
+      if (missionIndex >= missions.length) {
+        showCompletion();
+        return;
+      }
+
+      const mission = missions[missionIndex];
+      
+      // Fade out effect
+      const gameLayout = document.querySelector('.game-layout');
+      gameLayout.style.opacity = '0';
+      gameLayout.style.transform = 'scale(0.95)';
+      
+      setTimeout(() => {
+        currentStage = 1;
+        selectedQuestionKeywords = [];
+        selectedParagraphKeywords = [];
+
+        // Update body theme based on mission
+        document.body.className = `mission-${mission.id}`;
+
+        document.getElementById('next-mission-btn').classList.add('hidden');
+
+        // Show mission intro animation
+        showMissionIntro(mission, () => {
+          loadStage1(mission);
+          updateStageIndicators();
+          
+          // Fade in effect
+          gameLayout.style.opacity = '1';
+          gameLayout.style.transform = 'scale(1)';
+        });
+      }, 300);
+    }
+
+    function showMissionIntro(mission, callback) {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      `;
+      
+      const missionIcons = ['🗺️', '🏖️', '🌊', '🎨', '⚖️'];
+      const missionTitles = [
+        'Find the Location',
+        'Spot the False Statement',
+        'Underwater Monitoring',
+        'Art Gallery Count',
+        'Auction Decision'
+      ];
+      
+      overlay.innerHTML = `
+        <div style="text-align: center; color: white; animation: slideUp 0.5s ease;">
+          <div style="font-size: 120px; margin-bottom: 30px; animation: bounce 1s ease infinite;">${missionIcons[mission.id - 1]}</div>
+          <h2 style="font-size: 56px; font-weight: 800; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">MISSION ${mission.id}</h2>
+          <p style="font-size: 32px; font-weight: 600; opacity: 0.95; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">${missionTitles[mission.id - 1]}</p>
+          <div style="margin-top: 50px; font-size: 20px; opacity: 0.8;">Loading in <span id="countdown">3</span>...</div>
+        </div>
+      `;
+      
+      document.querySelector('.game-container').appendChild(overlay);
+      
+      let count = 3;
+      const countdownEl = document.getElementById('countdown');
+      const interval = setInterval(() => {
+        count--;
+        if (countdownEl) countdownEl.textContent = count;
+        if (count <= 0) {
+          clearInterval(interval);
+          overlay.style.animation = 'fadeOut 0.3s ease';
+          setTimeout(() => {
+            overlay.remove();
+            callback();
+          }, 300);
+        }
+      }, 1000);
+    }
+
+    function updateStageIndicators() {
+      const stages = [1, 2, 3];
+      const indicators = stages.map(stage => {
+        let className = 'stage-dot';
+        if (stage === currentStage) className += ' active';
+        if (stage < currentStage) className += ' completed';
+        return `<div class="${className}"></div>`;
+      }).join('');
+
+      const rightPanel = document.getElementById('right-panel');
+      const existingIndicators = rightPanel.querySelector('.stage-indicator');
+      if (existingIndicators) {
+        existingIndicators.innerHTML = indicators;
+      }
+    }
+
+    function loadStage1(mission) {
+      const leftPanel = document.getElementById('left-panel');
+      const rightPanel = document.getElementById('right-panel');
+
+      const words = mission.question.split(' ');
+      const keywordSpans = words.map(word => {
+        const cleanWord = word.replace(/[?,]/g, '');
+        const isKeyword = mission.questionKeywords.some(kw => 
+          cleanWord.toLowerCase().includes(kw.toLowerCase()) || 
+          kw.toLowerCase().includes(cleanWord.toLowerCase())
+        );
+        return `<span class="keyword-word" data-word="${cleanWord}" data-correct="${isKeyword}">${word}</span>`;
+      }).join(' ');
+
+      leftPanel.innerHTML = `
+        <div class="mission-title">Mission ${mission.id} - Find Keywords</div>
+        <div style="text-align: center; padding: 30px 20px;">
+          <div style="font-size: 80px; margin-bottom: 20px; animation: bounce 2s ease infinite;">🔍</div>
+          <h3 style="color: #667eea; font-size: 22px; font-weight: 700; margin-bottom: 15px;">Click on Important Words!</h3>
+          <p style="color: #718096; line-height: 1.6; font-size: 15px; margin-bottom: 20px;">Select the keywords to reveal the paragraph and answer options!</p>
+        </div>
+      `;
+
+      rightPanel.innerHTML = `
+        <div class="stage-indicator">
+          <div class="stage-dot active"></div>
+          <div class="stage-dot"></div>
+          <div class="stage-dot"></div>
+        </div>
+        <div style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); padding: 30px; border-radius: 15px; border-left: 6px solid #667eea; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 25px;">
+          <div style="font-size: 18px; font-weight: 800; color: #667eea; margin-bottom: 20px;">Question ${mission.id}</div>
+          <div class="keyword-container">
+            ${keywordSpans}
+          </div>
+        </div>
+        <div id="stage1-feedback" style="margin-top: 25px; text-align: center; font-weight: 700; font-size: 18px;"></div>
+      `;
+
+      document.querySelectorAll('.keyword-word').forEach(word => {
+        word.addEventListener('click', () => handleKeywordClick(word, mission));
+      });
+    }
+
+    function handleKeywordClick(wordElement, mission) {
+      if (wordElement.classList.contains('selected')) return;
+
+      playSound('click');
+      const isCorrect = wordElement.dataset.correct === 'true';
+      const word = wordElement.dataset.word;
+
+      if (isCorrect) {
+        wordElement.classList.add('selected');
+        selectedQuestionKeywords.push(word);
+        totalCorrect++;
+        const bonusPoints = 20;
+        score += bonusPoints;
+        updateScore();
+        playSound('correct');
+        const rect = wordElement.getBoundingClientRect();
+        createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#48bb78');
+        createStarBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        showPointsPopup(rect.left + rect.width / 2, rect.top + rect.height / 2, `+${bonusPoints}`);
+
+        if (selectedQuestionKeywords.length === 1) {
+          const rightPanel = document.getElementById('right-panel');
+          const keywordBox = rightPanel.querySelector('.keyword-container').parentElement;
+          
+          const paragraphHTML = `
+            <div class="paragraph-container" id="paragraph-display" style="margin-top: 25px;">
+              ${mission.paragraph}
+            </div>
+          `;
+          
+          keywordBox.insertAdjacentHTML('afterend', paragraphHTML);
+        }
+
+        if (selectedQuestionKeywords.length === 2) {
+          highlightParagraphKeywords(mission);
+          showAnswerOptions(mission);
+        }
+
+        const totalKeywords = mission.questionKeywords.length;
+        if (selectedQuestionKeywords.length >= totalKeywords) {
+          document.getElementById('stage1-feedback').innerHTML = 
+            '<span style="color: #48bb78;">✓ Great! All keywords found!</span>';
+        }
+      } else {
+        wordElement.classList.add('wrong');
+        totalWrong++;
+        score = Math.max(0, score - 5);
+        updateScore();
+        playSound('wrong');
+        setTimeout(() => wordElement.classList.remove('wrong'), 500);
+      }
+    }
+
+    function highlightParagraphKeywords(mission) {
+      const paragraphDisplay = document.getElementById('paragraph-display');
+      if (!paragraphDisplay) return;
+
+      const words = mission.paragraph.split(' ');
+      const highlightedHTML = words.map(word => {
+        const cleanWord = word.replace(/[.,]/g, '');
+        const isKeyword = mission.paragraphKeywords.some(kw => 
+          cleanWord.toLowerCase().includes(kw.toLowerCase()) || 
+          kw.toLowerCase().includes(cleanWord.toLowerCase()) ||
+          kw.toLowerCase().split(' ').some(part => cleanWord.toLowerCase().includes(part))
+        );
+        
+        if (isKeyword) {
+          return `<span style="background: #faf089; font-weight: 700; padding: 3px 6px; border-radius: 5px; box-shadow: 0 2px 8px rgba(250, 240, 137, 0.5);">${word}</span>`;
+        }
+        return word;
+      }).join(' ');
+
+      paragraphDisplay.innerHTML = highlightedHTML;
+    }
+
+    function showAnswerOptions(mission) {
+      const leftPanel = document.getElementById('left-panel');
+      
+      switch (mission.minigameType) {
+        case 'map':
+          loadMapMinigame(mission, true);
+          break;
+        case 'signboards':
+          loadSignboardsMinigame(mission, true);
+          break;
+        case 'underwater':
+          loadUnderwaterMinigame(mission, true);
+          break;
+        case 'gallery':
+          loadGalleryMinigame(mission, true);
+          break;
+        case 'auction':
+          loadAuctionMinigame(mission, true);
+          break;
+      }
+    }
+
+    function handleCorrectAnswer(selectedOption) {
+      totalCorrect++;
+      const bonusPoints = 100;
+      score += bonusPoints;
+      updateScore();
+      playSound('complete');
+      
+      // Lưu câu trả lời đúng
+      const mission = missions[currentMission];
+      userAnswers.push({
+        question: mission.question,
+        correctAnswer: selectedOption,
+        isCorrect: true
+      });
+      
+      document.getElementById('stage1-feedback').innerHTML = 
+        `<span style="color: #48bb78; font-size: 22px;">✓ Correct! +${bonusPoints} points! 🎉</span>`;
+      
+      // Celebration confetti
+      createConfetti(window.innerWidth / 2, window.innerHeight / 2);
+      showPointsPopup(window.innerWidth / 2, window.innerHeight / 2, `+${bonusPoints}`);
+      
+      setTimeout(() => {
+        currentMission++;
+        updateProgress();
+        loadMission(currentMission);
+      }, 2000);
+    }
+
+    function handleWrongAnswer() {
+      totalWrong++;
+      score = Math.max(0, score - 10);
+      updateScore();
+      playSound('wrong');
+      document.getElementById('stage1-feedback').innerHTML = 
+        '<span style="color: #f56565; font-size: 20px;">✗ Try again! Read the highlighted keywords.</span>';
+    }
+
+    function loadMapMinigame(mission, isStage1 = false) {
+      const leftPanel = document.getElementById('left-panel');
+      leftPanel.innerHTML = `
+        <div class="mission-title">🗺️ MAP</div>
+        <div class="vietnam-map" id="vietnam-map">
+          <!-- Sea turtles swimming -->
+          <div class="sea-turtle turtle1">🐢</div>
+          <div class="sea-turtle turtle2">🐢</div>
+          <div class="sea-turtle turtle3">🐢</div>
+          
+          <!-- Clouds -->
+          <div class="cloud cloud1"></div>
+          <div class="cloud cloud2"></div>
+          
+          <!-- Vietnam shape -->
+          <div class="vietnam-shape"></div>
+          
+          <!-- Hoàng Sa và Trường Sa - Chủ quyền Việt Nam -->
+          <div class="hoang-sa">
+            <div class="hoang-sa-label">Hoàng Sa</div>
+          </div>
+          <div class="truong-sa">
+            <div class="truong-sa-label">Trường Sa</div>
+          </div>
+          
+          <!-- Location markers -->
+          <!-- Con Dao Island - phía Nam, ngoài khơi -->
+          <div class="map-location" style="bottom: 8%; left: 28%;" data-location="${mission.options[0].location}" data-correct="${mission.options[0].correct}">
+            <div class="location-label">${mission.options[0].location}</div>
+          </div>
+          <!-- Hà Nội - miền Bắc, phía Tây Bắc của bản đồ -->
+          <div class="map-location" style="top: 12%; left: 42%;" data-location="${mission.options[1].location}" data-correct="${mission.options[1].correct}">
+            <div class="location-label">${mission.options[1].location}</div>
+          </div>
+          <!-- Khánh Hòa - miền Trung, sát bờ biển phía Đông -->
+          <div class="map-location" style="top: 56%; left: 59%;" data-location="${mission.options[2].location}" data-correct="${mission.options[2].correct}">
+            <div class="location-label">${mission.options[2].location}</div>
+          </div>
+          <!-- Nha Trang - miền Trung, sát bờ biển, gần Khánh Hòa -->
+          <div class="map-location" style="top: 64%; left: 56%;" data-location="${mission.options[3].location}" data-correct="${mission.options[3].correct}">
+            <div class="location-label">${mission.options[3].location}</div>
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll('.map-location').forEach(loc => {
+        loc.addEventListener('click', () => handleMapClick(loc, mission, isStage1));
+      });
+    }
+
+    function handleMapClick(loc, mission, isStage1 = false) {
+      playSound('click');
+      const isCorrect = loc.dataset.correct === 'true';
+      
+      if (isCorrect) {
+        loc.classList.add('correct');
+        playSound('complete');
+        createParticles(loc.getBoundingClientRect().left + loc.offsetWidth / 2, 
+                       loc.getBoundingClientRect().top + loc.offsetHeight / 2, 
+                       '#48bb78');
+        if (isStage1) {
+          handleCorrectAnswer(loc.dataset.location);
+        } else {
+          score += 40;
+          updateScore();
+          document.getElementById('stage3-feedback').innerHTML = 
+            '<span style="color: #48bb78; font-size: 22px;">✓ Correct! Con Dao Island is the answer!</span>';
+          setTimeout(() => completeMission(), 1500);
+        }
+      } else {
+        const map = document.getElementById('vietnam-map');
+        map.style.animation = 'shake-intense 0.5s ease';
+        playSound('wrong');
+        if (isStage1) {
+          handleWrongAnswer();
+        } else {
+          score = Math.max(0, score - 10);
+          updateScore();
+        }
+        setTimeout(() => map.style.animation = '', 500);
+      }
+    }
+
+    function loadSignboardsMinigame(mission, isStage1 = false) {
+      const leftPanel = document.getElementById('left-panel');
+      leftPanel.innerHTML = `
+        <div class="mission-title">🏖️ Find the FALSE Statement!</div>
+        <div class="beach-scene">
+          <div class="sun"></div>
+          <div class="palm-tree" style="left: 10%; bottom: 0;">
+            <div class="palm-trunk"></div>
+            <div class="palm-leaves">🌴</div>
+          </div>
+          <div class="palm-tree" style="right: 10%; bottom: 0;">
+            <div class="palm-trunk"></div>
+            <div class="palm-leaves">🌴</div>
+          </div>
+          
+          <div class="signboard" style="top: 15%; left: 8%;" data-index="0">
+            ${mission.options[0].text}
+          </div>
+          <div class="signboard" style="top: 15%; right: 8%;" data-index="1">
+            ${mission.options[1].text}
+          </div>
+          <div class="signboard" style="bottom: 15%; left: 8%;" data-index="2">
+            ${mission.options[2].text}
+          </div>
+          <div class="signboard" style="bottom: 15%; right: 8%;" data-index="3">
+            ${mission.options[3].text}
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll('.signboard').forEach(sign => {
+        sign.addEventListener('click', () => handleSignboardClick(sign, mission, isStage1));
+      });
+    }
+
+    function handleSignboardClick(sign, mission, isStage1 = false) {
+      playSound('click');
+      const index = parseInt(sign.dataset.index);
+      const option = mission.options[index];
+
+      if (option.correct) {
+        sign.classList.add('wrong-answer');
+        playSound('complete');
+        createParticles(sign.getBoundingClientRect().left + sign.offsetWidth / 2, 
+                       sign.getBoundingClientRect().top + sign.offsetHeight / 2, 
+                       '#48bb78');
+        if (isStage1) {
+          handleCorrectAnswer(option.text);
+        } else {
+          score += 40;
+          updateScore();
+          document.getElementById('stage3-feedback').innerHTML = 
+            '<span style="color: #48bb78; font-size: 22px;">✓ Correct! That statement is FALSE!</span>';
+          setTimeout(() => completeMission(), 1500);
+        }
+      } else {
+        sign.style.animation = 'shake-intense 0.5s ease';
+        playSound('wrong');
+        if (isStage1) {
+          handleWrongAnswer();
+        } else {
+          score = Math.max(0, score - 10);
+          updateScore();
+        }
+        setTimeout(() => sign.style.animation = '', 500);
+      }
+    }
+
+    function loadUnderwaterMinigame(mission, isStage1 = false) {
+      const leftPanel = document.getElementById('left-panel');
+      
+      const divingIcons = ['🤿', '🏊', '🌊', '🐠'];
+      
+      leftPanel.innerHTML = `
+        <div class="mission-title">🌊 Underwater Control Center</div>
+        <p style="text-align: center; color: #718096; margin-bottom: 25px; font-size: 16px; font-weight: 600;">Choose the correct monitoring action!</p>
+        <div class="underwater-scene">
+          <div class="bubble bubble1"></div>
+          <div class="bubble bubble2"></div>
+          <div class="bubble bubble3"></div>
+          <div class="bubble bubble4"></div>
+          <div class="bubble bubble5"></div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; position: relative; z-index: 10;">
+            ${mission.options.map((opt, index) => `
+              <div class="diving-panel" data-index="${index}">
+                <div style="font-size: 60px; margin-bottom: 15px;">${divingIcons[index]}</div>
+                <div style="font-size: 20px; line-height: 1.6; color: #1e293b; font-weight: 600;">${opt.text}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="margin-top: 25px; text-align: center; color: white; font-size: 15px; font-weight: 600; position: relative; z-index: 10;">
+            🐠 Click on the panel to select your answer 🐠
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll('.diving-panel').forEach(panel => {
+        panel.addEventListener('click', () => handleUnderwaterClick(panel, mission, isStage1));
+      });
+    }
+
+    function handleUnderwaterClick(panel, mission, isStage1 = false) {
+      playSound('click');
+      const index = parseInt(panel.dataset.index);
+      const option = mission.options[index];
+
+      if (option.correct) {
+        panel.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        panel.style.color = 'white';
+        panel.style.borderColor = '#10b981';
+        panel.style.transform = 'translateY(-8px) scale(1.08)';
+        panel.querySelector('div:last-child').style.color = 'white';
+        playSound('complete');
+        createParticles(panel.getBoundingClientRect().left + panel.offsetWidth / 2, 
+                       panel.getBoundingClientRect().top + panel.offsetHeight / 2, 
+                       '#10b981');
+        
+        if (isStage1) {
+          handleCorrectAnswer(option.text);
+        } else {
+          score += 40;
+          updateScore();
+          document.getElementById('stage3-feedback').innerHTML = 
+            '<span style="color: #48bb78; font-size: 22px;">✓ Correct! Monitoring helps avoid ecosystem pressure!</span>';
+          setTimeout(() => completeMission(), 1500);
+        }
+      } else {
+        panel.style.animation = 'shake-intense 0.5s ease';
+        panel.style.background = 'rgba(239, 68, 68, 0.3)';
+        panel.style.borderColor = '#ef4444';
+        playSound('wrong');
+        
+        if (isStage1) {
+          handleWrongAnswer();
+        } else {
+          score = Math.max(0, score - 10);
+          updateScore();
+        }
+        
+        setTimeout(() => {
+          panel.style.animation = '';
+          panel.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,249,255,0.95) 100%)';
+          panel.style.borderColor = '#0284c7';
+        }, 500);
+      }
+    }
+
+    function loadGalleryMinigame(mission, isStage1 = false) {
+      const leftPanel = document.getElementById('left-panel');
+      
+      const artworks = ['🎨', '🖼️', '🌅', '🦋'];
+      
+      leftPanel.innerHTML = `
+        <div class="mission-title">🎨 Art Gallery Exhibition</div>
+        <p style="text-align: center; color: #718096; margin-bottom: 25px; font-size: 16px; font-weight: 600;">Click on the correct painting!</p>
+        <div class="art-gallery">
+          ${mission.options.map((opt, index) => `
+            <div class="art-frame" data-index="${index}">
+              <div style="font-size: 60px; margin-bottom: 15px;">${artworks[index]}</div>
+              <div style="font-size: 16px; line-height: 1.5;">${opt.text}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      document.querySelectorAll('.art-frame').forEach(frame => {
+        frame.addEventListener('click', () => handleGalleryClick(frame, mission, isStage1));
+      });
+    }
+
+    function handleGalleryClick(frame, mission, isStage1 = false) {
+      playSound('click');
+      const index = parseInt(frame.dataset.index);
+      const option = mission.options[index];
+
+      if (option.correct) {
+        frame.classList.add('lit');
+        document.querySelectorAll('.art-frame').forEach(f => {
+          if (f !== frame) f.classList.add('dimmed');
+        });
+        playSound('complete');
+        createParticles(frame.getBoundingClientRect().left + frame.offsetWidth / 2, 
+                       frame.getBoundingClientRect().top + frame.offsetHeight / 2, 
+                       '#fbbf24');
+        if (isStage1) {
+          handleCorrectAnswer(option.text);
+        } else {
+          score += 40;
+          updateScore();
+          document.getElementById('stage3-feedback').innerHTML = 
+            '<span style="color: #48bb78; font-size: 22px;">✓ Correct! Around 30 paintings!</span>';
+          setTimeout(() => completeMission(), 1500);
+        }
+      } else {
+        frame.classList.add('dimmed');
+        playSound('wrong');
+        if (isStage1) {
+          handleWrongAnswer();
+        } else {
+          score = Math.max(0, score - 10);
+          updateScore();
+        }
+      }
+    }
+
+    function loadAuctionMinigame(mission, isStage1 = false) {
+      const leftPanel = document.getElementById('left-panel');
+      leftPanel.innerHTML = `
+        <div class="mission-title">⚖️ Auction Time!</div>
+        <div class="auction-scene">
+          <div class="auction-stage">
+            <div style="position: relative; width: 200px; height: 200px; margin: 0 auto;">
+              <!-- Con rùa -->
+              <div id="turtle-character" style="
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 80px;
+                transition: all 0.5s ease;
+                filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+              ">🐢</div>
+              
+              <!-- Hộp quà -->
+              <div id="gift-box" style="
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%) scale(0);
+                font-size: 70px;
+                opacity: 0;
+                transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+              ">🎁</div>
+              
+              <!-- Hiệu ứng tim và sao khi nhận quà -->
+              <div id="love-effect" style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 40px;
+                opacity: 0;
+                pointer-events: none;
+              "></div>
+            </div>
+            <h3 style="color: white; font-size: 24px; font-weight: 700; margin-top: 20px;">What happens to the paintings?</h3>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            ${mission.options.map((opt, index) => `
+              <div class="auction-btn" data-index="${index}">
+                ${opt.text}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll('.auction-btn').forEach(btn => {
+        btn.addEventListener('click', () => handleAuctionClick(btn, mission, isStage1));
+      });
+    }
+
+    function handleAuctionClick(btn, mission, isStage1 = false) {
+      const index = parseInt(btn.dataset.index);
+      const option = mission.options[index];
+      const turtle = document.getElementById('turtle-character');
+      const giftBox = document.getElementById('gift-box');
+      const loveEffect = document.getElementById('love-effect');
+
+      playSound('click');
+
+      if (option.correct) {
+        btn.classList.add('sold');
+        
+        // Hoạt ảnh: Hộp quà rơi xuống
+        if (giftBox) {
+          giftBox.style.opacity = '1';
+          giftBox.style.transform = 'translateX(-50%) scale(1)';
+          
+          // Sau 0.6s, rùa nhảy lên nhận quà
+          setTimeout(() => {
+            if (turtle) {
+              turtle.style.transform = 'translateX(-50%) translateY(-60px) scale(1.1)';
+            }
+            
+            // Hiệu ứng tim và sao bay ra
+            setTimeout(() => {
+              if (loveEffect) {
+                loveEffect.innerHTML = '💖✨💖✨💖';
+                loveEffect.style.opacity = '1';
+                loveEffect.style.animation = 'float-particle 1.5s ease-out forwards';
+              }
+              
+              // Hộp quà biến mất (đã được rùa nhận)
+              if (giftBox) {
+                giftBox.style.transform = 'translateX(-50%) scale(0)';
+                giftBox.style.opacity = '0';
+              }
+              
+              // Rùa vui vẻ nhảy nhót
+              if (turtle) {
+                turtle.style.animation = 'bounce 0.5s ease infinite';
+              }
+            }, 300);
+          }, 600);
+        }
+        
+        playSound('complete');
+        createParticles(btn.getBoundingClientRect().left + btn.offsetWidth / 2, 
+                       btn.getBoundingClientRect().top + btn.offsetHeight / 2, 
+                       '#48bb78');
+        
+        if (isStage1) {
+          handleCorrectAnswer(option.text);
+        } else {
+          score += 40;
+          updateScore();
+          document.getElementById('stage3-feedback').innerHTML = 
+            '<span style="color: #48bb78; font-size: 22px;">✓ SOLD! Correct answer!</span>';
+          setTimeout(() => completeMission(), 1500);
+        }
+      } else {
+        // Rùa buồn khi chọn sai
+        if (turtle) {
+          turtle.style.animation = 'shake-intense 0.5s ease';
+          setTimeout(() => {
+            turtle.style.animation = '';
+          }, 500);
+        }
+        
+        btn.style.animation = 'shake-intense 0.5s ease';
+        playSound('wrong');
+        if (isStage1) {
+          handleWrongAnswer();
+        } else {
+          score = Math.max(0, score - 10);
+          updateScore();
+        }
+        setTimeout(() => btn.style.animation = '', 500);
+      }
+    }
+
+    function completeMission() {
+      document.getElementById('next-mission-btn').classList.remove('hidden');
+      const nextBtn = document.getElementById('next-mission-btn');
+      const newListener = () => {
+        playSound('click');
+        currentMission++;
+        updateProgress();
+        loadMission(currentMission);
+      };
+      nextBtn.addEventListener('click', newListener, { once: true });
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = score;
+    }
+
+
+
+    function showPointsPopup(x, y, text) {
+      const popup = document.createElement('div');
+      popup.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y}px;
+        transform: translate(-50%, -50%);
+        color: #10b981;
+        font-size: 32px;
+        font-weight: 800;
+        z-index: 9999;
+        pointer-events: none;
+        text-shadow: 0 2px 10px rgba(16, 185, 129, 0.8);
+        animation: float-points 1.5s ease-out forwards;
+      `;
+      popup.textContent = text;
+      document.body.appendChild(popup);
+      
+      setTimeout(() => popup.remove(), 1500);
+    }
+
+    // Add combo popup animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes combo-popup {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+      }
+      @keyframes float-points {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        100% { transform: translate(-50%, -100px) scale(1.5); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    function showCompletion() {
+      playSound('complete');
+      document.getElementById('game-area').classList.add('hidden');
+      const completionArea = document.getElementById('completion-area');
+      completionArea.classList.remove('hidden');
+
+      const endTime = Date.now();
+      const totalTime = Math.floor((endTime - startTime) / 1000);
+      const minutes = Math.floor(totalTime / 60);
+      const seconds = totalTime % 60;
+      const accuracy = totalCorrect + totalWrong > 0 ? ((totalCorrect / (totalCorrect + totalWrong)) * 100).toFixed(1) : 0;
+
+      const percentage = (score / 500) * 100;
+      let message = '';
+      let emoji = '';
+      let rank = '';
+      if (percentage >= 90) {
+        message = 'Perfect Master!';
+        emoji = '🏆';
+        rank = 'S Rank';
+      } else if (percentage >= 80) {
+        message = 'Outstanding!';
+        emoji = '🌟';
+        rank = 'A Rank';
+      } else if (percentage >= 70) {
+        message = 'Great Job!';
+        emoji = '👏';
+        rank = 'B Rank';
+      } else if (percentage >= 60) {
+        message = 'Good Work!';
+        emoji = '💪';
+        rank = 'C Rank';
+      } else {
+        message = 'Keep Practicing!';
+        emoji = '📚';
+        rank = 'D Rank';
+      }
+
+      // Tạo danh sách câu hỏi và đáp án
+      const questionsHTML = userAnswers.map((answer, index) => `
+        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: left; border-left: 4px solid #10b981;">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #fbbf24;">
+            ❓ Question ${index + 1}: ${answer.question}
+          </div>
+          <div style="font-size: 12px; color: #d1fae5; margin-left: 15px;">
+            ✅ <strong>Answer:</strong> ${answer.correctAnswer}
+          </div>
+        </div>
+      `).join('');
+
+      completionArea.innerHTML = `
+        <div class="completion-message">
+          <h2>🎉 Quiz Complete! 🎉</h2>
+          <p style="font-size: 40px; margin: 15px 0;">${emoji} ${message} ${emoji}</p>
+
+          <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; margin: 15px 0; max-height: 350px; overflow-y: auto;">
+            <h3 style="font-size: 20px; margin-bottom: 12px;">📝 Questions & Correct Answers</h3>
+            ${questionsHTML}
+          </div>
+
+          <div style="display: flex; gap: 15px; justify-content: center; margin-top: 15px;">
+              <button onclick="restartGame()" style="
+                padding: 12px 35px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                border: none;
+                border-radius: 25px;
+                font-size: 18px;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+                transition: all 0.3s ease;
+              " onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 10px 30px rgba(16, 185, 129, 0.7)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 6px 20px rgba(16, 185, 129, 0.5)';">
+                🔄 Play Again
+              </button>
+
+              <button onclick="window.location.href='index.html'" style="
+                padding: 12px 35px;
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                color: white;
+                border: none;
+                border-radius: 25px;
+                font-size: 18px;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+                transition: all 0.3s ease;
+              " onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 10px 30px rgba(59, 130, 246, 0.7)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 6px 20px rgba(59, 130, 246, 0.5)';">
+                🏠 Home
+              </button>
+          </div>
+
+          <p style="margin-top: 20px; font-size: 14px;">You've completed all 5 missions on Wildlife Conservation!</p>
+          <p style="font-size: 13px; margin-top: 10px; opacity: 0.9;">🐢 Thank you for learning about protecting our planet! 🌍</p>
+        </div>
+      `;
+    }
+
+    function restartGame() {
+      // Reset tất cả biến
+      currentMission = 0;
+      currentStage = 1;
+      score = 0;
+      selectedQuestionKeywords = [];
+      selectedParagraphKeywords = [];
+      totalCorrect = 0;
+      totalWrong = 0;
+      userAnswers = [];
+      startTime = Date.now();
+      
+      // Ẩn màn hình kết thúc và hiện game
+      document.getElementById('completion-area').classList.add('hidden');
+      document.getElementById('game-area').classList.remove('hidden');
+      
+      // Reset body theme
+      document.body.className = '';
+      
+      // Khởi động lại game
+      updateScore();
+      updateProgress();
+      loadMission(0);
+      resizeGame(); // Recalculate scale on restart
+    }
+
+    window.addEventListener('DOMContentLoaded', initGame);
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig: defaultConfig,
+        onConfigChange: async (newConfig) => {
+          document.getElementById('game-title').textContent = newConfig.game_title || defaultConfig.game_title;
+          document.getElementById('instructions-text').textContent = newConfig.instructions_text || defaultConfig.instructions_text;
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["game_title", config.game_title || defaultConfig.game_title],
+          ["instructions_text", config.instructions_text || defaultConfig.instructions_text]
+        ])
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a2e94e0767b107e',t:'MTc2Mzg3OTA0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
