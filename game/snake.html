@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>🌌 QUANTUM SNAKE: CITY EDITION</title>
+  <title>🌌 QUANTUM SNAKE: ULTIMATE VISUALS</title>
   
   <!-- Font Chakra Petch -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,9 +14,10 @@
     :root {
       --q-cyan: #00f0ff;
       --q-pink: #ff0055;
+      --q-purple: #bc13fe;
       --q-void: #050508;
-      --q-panel-bg: rgba(10, 15, 25, 0.95);
-      --q-border: rgba(0, 240, 255, 0.5);
+      --q-panel-bg: rgba(8, 12, 20, 0.85); /* Trong suốt hơn một chút */
+      --q-border: rgba(0, 240, 255, 0.4);
     }
     
     * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -32,34 +33,48 @@
       position: relative;
     }
 
-    /* MẶT TRĂNG CSS - Giữ nguyên vị trí cố định phía sau */
+    /* HIỆU ỨNG SCANLINES (Vân Tivi) */
+    .scanlines {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+      background-size: 100% 4px;
+      z-index: 999; /* Trên cùng */
+      pointer-events: none; /* Không chặn click */
+      opacity: 0.3;
+    }
+
+    /* MẶT TRĂNG CSS */
     .moon-bg {
       position: fixed;
       top: 50px;
       right: 50px;
-      width: 100px;
-      height: 100px;
+      width: 120px; /* To hơn chút */
+      height: 120px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #e0f7fa 0%, #80deea 100%);
-      box-shadow: 0 0 60px rgba(0, 243, 255, 0.3);
+      /* Gradient phức tạp hơn */
+      background: radial-gradient(circle at 30% 30%, #fff, #e0f7fa 20%, #4dd0e1 100%);
+      box-shadow: 0 0 80px rgba(0, 243, 255, 0.2);
       z-index: 0;
-      opacity: 0.8;
+      opacity: 0.9;
       animation: moonPulse 8s infinite alternate;
     }
+    /* Crater (Hố) */
     .moon-bg::before {
-      content: ''; position: absolute; top: 20px; left: 25px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: rgba(0,0,0,0.1);
+      content: ''; position: absolute; top: 25px; left: 30px;
+      width: 25px; height: 25px; border-radius: 50%;
+      background: rgba(0,0,0,0.05);
+      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
     }
     .moon-bg::after {
-      content: ''; position: absolute; bottom: 30px; right: 25px;
-      width: 15px; height: 15px; border-radius: 50%;
-      background: rgba(0,0,0,0.1);
+      content: ''; position: absolute; bottom: 35px; right: 30px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(0,0,0,0.05);
+      box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
     }
 
     @keyframes moonPulse {
-      0% { transform: scale(1); box-shadow: 0 0 40px rgba(0, 243, 255, 0.3); }
-      100% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0, 243, 255, 0.6); }
+      0% { transform: scale(1); box-shadow: 0 0 50px rgba(0, 243, 255, 0.2); }
+      100% { transform: scale(1.02); box-shadow: 0 0 90px rgba(0, 243, 255, 0.5); }
     }
 
     #main-wrapper {
@@ -72,78 +87,86 @@
     /* --- ANIMATIONS --- */
     @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     @keyframes textGlitch {
-      0% { text-shadow: 2px 2px var(--q-pink), -2px -2px var(--q-cyan); }
-      50% { text-shadow: 2px -2px var(--q-pink), -2px 2px var(--q-cyan); }
-      100% { text-shadow: 2px 2px var(--q-pink), -2px -2px var(--q-cyan); }
+      0% { text-shadow: 3px 0 var(--q-pink), -3px 0 var(--q-cyan); }
+      2% { text-shadow: -3px 0 var(--q-pink), 3px 0 var(--q-cyan); }
+      4% { text-shadow: 3px 0 var(--q-pink), -3px 0 var(--q-cyan); }
+      6% { text-shadow: 0 0 transparent; }
+      100% { text-shadow: 0 0 transparent; }
     }
     
-    .anim-enter { animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    .anim-enter { animation: zoomIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
     /* --- UI ELEMENTS --- */
     .glass-panel {
       background: var(--q-panel-bg);
-      border: 2px solid var(--q-border);
-      box-shadow: 0 0 40px rgba(0, 240, 255, 0.15), inset 0 0 50px rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
       border-radius: 24px;
-      padding: 30px;
+      padding: 35px;
       max-width: 480px; width: 90%;
       position: absolute;
       transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
       z-index: 100;
-      display: flex; flex-direction: column; gap: 15px;
+      display: flex; flex-direction: column; gap: 18px;
       visibility: visible;
     }
     
     .glass-panel.hidden-panel {
-        opacity: 0;
-        pointer-events: none;
-        visibility: hidden;
-        transform: scale(0.9);
+        opacity: 0; pointer-events: none; visibility: hidden; transform: scale(0.95);
     }
 
+    /* Decor corners - Cyberpunk Style */
     .glass-panel::before, .glass-panel::after {
-      content: ''; position: absolute; width: 30px; height: 30px;
-      border: 4px solid var(--q-cyan); transition: 0.3s;
-      box-shadow: 0 0 15px var(--q-cyan);
+      content: ''; position: absolute; width: 40px; height: 40px;
+      border: 2px solid var(--q-cyan); transition: 0.3s;
+      pointer-events: none;
     }
-    .glass-panel::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-    .glass-panel::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+    .glass-panel::before { top: -2px; left: -2px; border-right: none; border-bottom: none; border-radius: 20px 0 0 0; }
+    .glass-panel::after { bottom: -2px; right: -2px; border-left: none; border-top: none; border-radius: 0 0 20px 0; }
 
     h1 {
       margin: 0;
       font-family: 'Chakra Petch', sans-serif;
-      font-weight: 700; font-size: 2.8rem;
+      font-weight: 700; font-size: 3.2rem;
       color: #fff;
-      text-transform: uppercase; letter-spacing: 2px;
+      text-transform: uppercase; letter-spacing: 4px;
       text-align: center;
-      line-height: 1.1;
-      animation: textGlitch 3s infinite alternate-reverse;
+      line-height: 1;
+      animation: textGlitch 5s infinite; /* Glitch effect thỉnh thoảng */
+      background: linear-gradient(to bottom, #fff 40%, var(--q-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.6));
     }
 
     .subtitle {
-      color: #ccc; font-size: 1rem;
-      text-align: center; text-transform: uppercase; letter-spacing: 3px;
-      font-weight: 600; margin-top: -5px; opacity: 0.8;
-      border-bottom: 1px solid var(--q-cyan);
-      display: inline-block; padding-bottom: 5px;
+      color: var(--q-cyan); font-size: 1rem;
+      text-align: center; text-transform: uppercase; letter-spacing: 4px;
+      font-weight: 600; margin-top: -5px; opacity: 0.9;
+      padding-bottom: 5px;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
     }
 
     .control-group {
-      background: rgba(255,255,255,0.03);
+      background: rgba(0,0,0,0.3);
       border-radius: 12px; padding: 12px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid rgba(0, 240, 255, 0.1);
+      transition: 0.3s;
     }
+    .control-group:hover { border-color: rgba(0, 240, 255, 0.3); }
     
     .control-label {
-      font-size: 0.85rem; color: var(--q-cyan); 
-      text-transform: uppercase; font-weight: 700; letter-spacing: 1px;
-      margin-bottom: 6px; display: block;
+      font-size: 0.8rem; color: #889; 
+      text-transform: uppercase; font-weight: 700; letter-spacing: 2px;
+      margin-bottom: 8px; display: block;
     }
 
     select, input {
-      width: 100%; padding: 12px;
-      background: #000; border: 1px solid #333; border-radius: 8px;
-      color: #fff; font-family: 'Chakra Petch', sans-serif; font-size: 1rem; font-weight: 600;
+      width: 100%; padding: 14px;
+      background: rgba(0,0,0,0.5); 
+      border: 1px solid #334; border-radius: 8px;
+      color: #fff; font-family: 'Chakra Petch', sans-serif; font-size: 1.1rem; font-weight: 600;
       outline: none; transition: 0.3s; appearance: none;
     }
     
@@ -154,24 +177,33 @@
       background-size: 12px auto;
     }
 
-    select:focus, input:focus { border-color: var(--q-cyan); box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); }
+    select:focus, input:focus { 
+      border-color: var(--q-cyan); 
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); 
+      background: rgba(0,0,0,0.8);
+    }
 
     #dynamicParams { display: flex; gap: 15px; animation: zoomIn 0.3s ease-out; }
     .param-box { flex: 1; }
 
     .btn-start {
-      width: 100%; padding: 15px;
-      background: linear-gradient(90deg, var(--q-cyan), #0051ff);
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, var(--q-cyan) 0%, #0051ff 100%);
       border: none; border-radius: 12px;
-      color: #fff; font-weight: 700; font-size: 1.2rem;
+      color: #fff; font-weight: 700; font-size: 1.3rem;
       text-transform: uppercase; letter-spacing: 2px;
       cursor: pointer; position: relative; overflow: hidden;
       font-family: 'Chakra Petch', sans-serif;
-      transition: 0.3s;
-      box-shadow: 0 5px 20px rgba(0, 240, 255, 0.3);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 5px 15px rgba(0, 81, 255, 0.4);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
-    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0, 240, 255, 0.5); filter: brightness(1.1); }
+    .btn-start:hover { 
+      transform: translateY(-3px) scale(1.02); 
+      box-shadow: 0 10px 30px rgba(0, 240, 255, 0.5); 
+      filter: brightness(1.2);
+    }
+    .btn-start:active { transform: translateY(1px); }
 
     /* --- GAME UI --- */
     #gameUI { 
@@ -183,7 +215,7 @@
     .hud-bar {
       display: flex; width: 100%; max-width: 800px;
       justify-content: space-between; align-items: center;
-      margin-bottom: 10px; padding: 0 15px;
+      margin-bottom: 15px; padding: 0 20px;
     }
 
     .hud-item { display: flex; flex-direction: column; }
@@ -191,36 +223,42 @@
     .hud-value { font-family: 'Chakra Petch', sans-serif; font-size: 2rem; color: #fff; text-shadow: 0 0 10px var(--q-cyan); font-weight: bold;}
     
     .hud-center {
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       border: 1px solid var(--q-cyan);
-      padding: 5px 25px; border-radius: 30px;
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+      padding: 8px 30px; border-radius: 30px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
       text-align: center;
       transition: opacity 0.3s;
+      backdrop-filter: blur(5px);
     }
     .hud-center.hidden-hint { opacity: 0; }
 
     .canvas-container {
       position: relative; border-radius: 16px;
-      filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.1)); 
-      background: #000; box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+      /* GPU Glow mạnh hơn */
+      filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.15)); 
+      background: #000; 
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+      /* Quan trọng để bo tròn canvas đúng chuẩn */
+      overflow: hidden; 
     }
-    canvas { display: block; border-radius: 16px; }
+    canvas { display: block; }
 
     /* CONTROLS */
     .controls {
-      position: absolute; top: 15px; right: 15px;
-      display: flex; gap: 10px; z-index: 200;
+      position: absolute; top: 20px; right: 20px;
+      display: flex; gap: 12px; z-index: 200;
     }
     .btn-icon {
-      width: 44px; height: 44px;
-      background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 10px; color: #fff;
+      width: 48px; height: 48px;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px; color: #fff;
       display: flex; justify-content: center; align-items: center;
       cursor: pointer; transition: 0.2s;
+      backdrop-filter: blur(4px);
     }
-    .btn-icon:hover { background: var(--q-cyan); color:#000; border-color:var(--q-cyan); }
-    .btn-icon svg { width: 22px; height: 22px; fill: currentColor; }
+    .btn-icon:hover { background: var(--q-cyan); color:#000; border-color:var(--q-cyan); box-shadow: 0 0 15px var(--q-cyan); }
+    .btn-icon svg { width: 24px; height: 24px; fill: currentColor; }
 
     /* UTILS & MODALS */
     .hidden { display: none !important; }
@@ -228,7 +266,7 @@
     
     #pauseModal, #gameOverModal {
       position: absolute; top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
       display: flex; justify-content: center; align-items: center;
       z-index: 50; 
       opacity: 0; pointer-events: none; visibility: hidden;
@@ -244,19 +282,20 @@
 
     /* COPYRIGHT FOOTER */
     .copyright {
-      position: absolute; bottom: 15px; width: 100%;
-      text-align: center; font-size: 0.9rem;
-      color: rgba(255,255,255,0.4);
+      position: absolute; bottom: 20px; width: 100%;
+      text-align: center; font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       z-index: 90;
       text-shadow: 0 0 5px rgba(0,0,0,0.8);
+      font-weight: 500;
     }
     .copyright strong { color: var(--q-cyan); font-weight: 700; }
 
     /* STATS TABLE */
-    .stats-table { width: 100%; margin: 15px 0; border-collapse: collapse; color: #ddd; font-size: 0.95rem; }
-    .stats-table td { padding: 8px 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .stats-table { width: 100%; margin: 15px 0; border-collapse: collapse; color: #ddd; font-size: 1rem; }
+    .stats-table td { padding: 10px 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .stats-table td:last-child { text-align: right; font-weight: 700; color: #fff; }
     .stats-header { color: var(--q-cyan); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
   </style>
@@ -268,6 +307,8 @@
     <source src="musicsnake.mp3" type="audio/mpeg">
   </audio>
 
+  <!-- Scanlines Effect Overlay -->
+  <div class="scanlines"></div>
   <div class="moon-bg"></div>
   <div id="flashOverlay"></div>
 
@@ -370,14 +411,14 @@
     <!-- GAME OVER MODAL -->
     <div id="gameOverModal">
       <div class="glass-panel" style="border-color: var(--q-pink);">
-        <h2 style="color: var(--q-pink); margin: 0; text-align: center; font-size: 2.2rem; text-shadow: 0 0 20px var(--q-pink);">TỔNG KẾT</h2>
+        <h2 style="color: var(--q-pink); margin: 0; text-align: center; font-size: 2.5rem; text-shadow: 0 0 20px var(--q-pink);">TỔNG KẾT</h2>
         
         <div id="statsContent">
             <!-- Content injected via JS -->
         </div>
         
-        <div style="display:flex; justify-content: center; width:100%; margin-top: 10px;">
-          <button class="btn-start" style="background: linear-gradient(135deg, var(--q-pink), #990033); width: 80%; font-size: 1.1rem;" onclick="backToMenu()">VỀ TRANG CHỦ</button>
+        <div style="display:flex; justify-content: center; width:100%; margin-top: 15px;">
+          <button class="btn-start" style="background: linear-gradient(135deg, var(--q-pink), #990033); width: 80%; font-size: 1.1rem; box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4);" onclick="backToMenu()">VỀ TRANG CHỦ</button>
         </div>
       </div>
     </div>
@@ -450,17 +491,28 @@
     
     generateBuildings() {
         let x = 0;
-        while(x < canvas.width * 2) { // Generate đủ rộng để scroll
-            let w = Math.random() * 30 + 20;
-            let h = Math.random() * 50 * this.heightMult + 20;
-            this.buildings.push({x: x, w: w, h: h});
+        while(x < canvas.width * 2) { 
+            let w = Math.random() * 30 + 30; // Tòa nhà rộng hơn
+            let h = Math.random() * 80 * this.heightMult + 40;
+            // Generate windows
+            let windows = [];
+            if(Math.random() > 0.3) { // 70% tòa nhà có cửa sổ
+               let rows = Math.floor(h / 15);
+               let cols = Math.floor(w / 10);
+               for(let r=0; r<rows; r++) {
+                   for(let c=0; c<cols; c++) {
+                       if(Math.random() > 0.4) {
+                           windows.push({rx: c*10+2, ry: r*15+5, rw: 4, rh: 8});
+                       }
+                   }
+               }
+            }
+            this.buildings.push({x: x, w: w, h: h, windows: windows});
             x += w;
         }
     }
     
     update(dt) {
-        // Chỉ di chuyển khi rắn di chuyển (hoặc luôn di chuyển chậm để tạo không khí)
-        // Ở đây cho di chuyển chậm liên tục
         this.offset += this.speed * (dt * 0.05);
         if(this.offset > canvas.width) {
             this.offset -= canvas.width;
@@ -470,27 +522,37 @@
     draw(ctx) {
         ctx.save();
         ctx.fillStyle = this.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
+        
+        // Không dùng shadowBlur cho toàn bộ tòa nhà để tối ưu
         
         ctx.beginPath();
         let groundY = canvas.height;
         
+        // Vẽ Buildings
         this.buildings.forEach(b => {
             let drawX = b.x - this.offset;
-            // Wrap around logic đơn giản: vẽ 2 lần để lấp khoảng trống khi scroll
-            if(drawX < -b.w) drawX += this.buildings[this.buildings.length-1].x + b.w; // Simplified loop visual logic
+            if(drawX < -b.w) drawX += this.buildings[this.buildings.length-1].x + b.w; 
             
-            // Draw regular
-            ctx.rect(drawX, groundY - b.h, b.w, b.h);
-            
-            // Draw duplicate for loop (nếu cần thiết, ở đây dùng mảng dài gấp đôi canvas để cheat)
-            if (drawX < canvas.width) {
-                 ctx.rect(drawX + canvas.width, groundY - b.h, b.w, b.h); 
-            }
+            // Vẽ thân tòa nhà
+            let renderBuilding = (dx) => {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(dx, groundY - b.h, b.w, b.h);
+                
+                // Vẽ cửa sổ (chỉ cho lớp gần)
+                if(this.speed > 1) {
+                    ctx.fillStyle = "rgba(0, 240, 255, 0.3)";
+                    b.windows.forEach(w => {
+                        // Nhấp nháy ngẫu nhiên
+                        if(Math.random() > 0.98) return; 
+                        ctx.fillRect(dx + w.rx, groundY - b.h + w.ry, w.rw, w.rh);
+                    });
+                }
+            };
+
+            renderBuilding(drawX);
+            if (drawX < canvas.width) renderBuilding(drawX + canvas.width); 
         });
         
-        ctx.fill();
         ctx.restore();
     }
   }
@@ -515,8 +577,11 @@
     }
   }
 
+  // Lớp Sao Băng
   class ShootingStar {
-    constructor() { this.reset(); }
+    constructor() {
+      this.reset();
+    }
     reset() {
       this.x = Math.random() * canvas.width + 100;
       this.y = Math.random() * canvas.height * 0.5;
@@ -563,11 +628,14 @@
       this.life = 1.0;
       this.color = color;
       this.size = Math.random() * 3 + 1;
+      this.gravity = 0.2; // Thêm trọng lực
     }
     update() {
-      this.x += this.vx; this.y += this.vy;
-      this.vx *= 0.94; this.vy *= 0.94;
-      this.life -= 0.03;
+      this.x += this.vx; 
+      this.y += this.vy;
+      this.vy += this.gravity; // Rơi xuống
+      this.vx *= 0.94; 
+      this.life -= 0.02;
     }
     draw(ctx) {
       ctx.globalAlpha = Math.max(0, this.life);
@@ -609,9 +677,11 @@
     draw(ctx) {
       ctx.globalAlpha = Math.max(0, this.life);
       ctx.fillStyle = this.color;
-      ctx.font = "900 20px 'Chakra Petch'";
+      ctx.font = "900 24px 'Chakra Petch'";
       ctx.textAlign = "center";
+      ctx.shadowColor = this.color; ctx.shadowBlur = 10;
       ctx.fillText(this.text, this.x, this.y + this.yOffset);
+      ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
     }
   }
@@ -637,8 +707,8 @@
     // Layer 1: Far, slow, dim
     // Layer 2: Near, faster, brighter
     cityLayers = [];
-    cityLayers.push(new CityLayer(0.5, "rgba(0, 240, 255, 0.05)", 2)); // Far
-    cityLayers.push(new CityLayer(1.5, "rgba(188, 19, 254, 0.1)", 1.5)); // Near
+    cityLayers.push(new CityLayer(0.5, "rgba(0, 100, 255, 0.15)", 2)); // Far
+    cityLayers.push(new CityLayer(1.5, "rgba(0, 240, 255, 0.2)", 1.5)); // Near
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
@@ -786,7 +856,7 @@
   function genFoods() {
     foods = [];
     let nextVal = nextSeq();
-    // Revert Fibonacci side-effect manually for display correctness
+    // Revert Fibonacci side-effect
     if (gameMode === 'fibonacci') {
         let actualNext = currentVal; 
         currentVal = prevVal; 
@@ -912,7 +982,7 @@
             playTone(600 + (combo*100), 'sine', 0.1);
             
             shakeIntensity = 5;
-            for(let i=0; i<10; i++) particles.push(new Particle(cx, cy, f.color));
+            for(let i=0; i<15; i++) particles.push(new Particle(cx, cy, f.color));
             floatingTexts.push(new FloatingText(cx, cy - 20, `+${10*combo}`, f.color));
             if(combo > 1) floatingTexts.push(new FloatingText(cx, cy - 40, `COMBO x${combo}!`, '#ff0055'));
 
@@ -957,6 +1027,7 @@
     // Draw Background Elements
     stars.forEach(s => { s.update(dt); s.draw(ctx); });
     shootingStars.forEach(s => { s.update(); s.draw(ctx); });
+    
     // Vẽ thành phố Parallax
     cityLayers.forEach(layer => layer.draw(ctx));
 
@@ -981,10 +1052,21 @@
 
     let pulse = 1 + Math.sin(globalTime * 3) * 0.05;
     
+    // Draw Orbital Rings for Food
     foods.forEach(f => {
       let cx = f.pos.x * box + box/2;
       let cy = f.pos.y * box + box/2;
       let r = (box/2 - 4) * pulse;
+
+      // Draw Ring
+      ctx.beginPath();
+      ctx.strokeStyle = f.color;
+      ctx.lineWidth = 1;
+      let angle = globalTime * 2 + (f.isCorrect ? 0 : 2); // Different phases
+      
+      // Ellipse ring effect
+      ctx.ellipse(cx, cy, r + 5, r - 2, angle, 0, Math.PI * 2);
+      ctx.stroke();
 
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
       ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fill();
@@ -1002,6 +1084,7 @@
       ctx.fillText(f.val, cx, cy);
     });
 
+    // Draw Snake with Core
     if(snake.length > 0) {
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       let fatness = Math.min(10, eatenCount / 2);
@@ -1024,6 +1107,7 @@
           ctx.shadowBlur = 0;
       }
       
+      // Main Body
       ctx.beginPath();
       ctx.strokeStyle = snakeGrad;
       ctx.moveTo(headPos.x*box+box/2, headPos.y*box+box/2);
@@ -1031,6 +1115,15 @@
       ctx.stroke();
       ctx.shadowBlur = 0;
 
+      // Inner Core (White)
+      ctx.lineWidth = (box - 24);
+      ctx.strokeStyle = "rgba(255,255,255,0.7)";
+      ctx.beginPath();
+      ctx.moveTo(headPos.x*box+box/2, headPos.y*box+box/2);
+      for(let i=1; i<snake.length; i++) { ctx.lineTo(snake[i].x*box+box/2, snake[i].y*box+box/2); }
+      ctx.stroke();
+
+      // Head
       ctx.fillStyle = "#fff";
       ctx.beginPath(); ctx.arc(headPos.x*box+box/2, headPos.y*box+box/2, (box/3) + (fatness/4), 0, Math.PI*2); ctx.fill();
     }
