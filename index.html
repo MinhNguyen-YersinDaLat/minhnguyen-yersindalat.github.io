@@ -821,115 +821,24 @@
             const [searchQuery, setSearchQuery] = useState('');
             const [viewingResource, setViewingResource] = useState(null);
 
-            // --- RESOURCE VIEWER ---
-            const ResourceViewer = ({ resource, onClose }) => {
-                const [loading, setLoading] = useState(true);
-                const [loadError, setLoadError] = useState(false);
-
-                if (!resource) return null;
-
-                const getBasePath = () => {
-                    if (resource.path) return resource.path;
-                    switch(resource.category) {
-                        case 'doc': return 'tai-lieu/';
-                        case 'game': return 'game/';
-                        case 'tool': return 'app/';
-                        case 'project': return resource.path || '';
-                        case 'infographic': return 'infographic/';
-                        default: return '';
-                    }
-                };
-
-                const relativePath = getBasePath() + resource.filename;
-                // Lấy absolute URL để dùng cho Office Viewer
-                // Lưu ý: window.location.href có thể chứa index.html hoặc hash, cần xử lý cẩn thận
-                // Lấy base URL của site (ví dụ: https://username.github.io/repo/)
-                let baseUrl = window.location.origin + window.location.pathname;
-                // Xóa 'index.html' nếu có ở cuối
-                if (baseUrl.endsWith('index.html')) {
-                    baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
-                }
-                // Đảm bảo có dấu / ở cuối
-                if (!baseUrl.endsWith('/')) {
-                    baseUrl += '/';
-                }
-                
-                const absoluteUrl = baseUrl + relativePath;
-
-                const extension = resource.filename.split('.').pop().toLowerCase();
-                const isOffice = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension);
-                const isLocal = window.location.hostname === '' || window.location.hostname === 'localhost' || window.location.protocol === 'file:';
-
-                let viewerUrl = relativePath;
-                if (isOffice) {
-                    viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
-                } else {
-                     // Ensure PDF/HTML etc use encoded URI for iframe source to handle spaces
-                     viewerUrl = encodeURI(relativePath);
-                     if(extension === 'pdf') {
-                        viewerUrl += "#toolbar=0&navpanes=0&view=FitH";
-                     }
-                }
-
-                return (
-                    <div className="viewer-overlay" onClick={onClose}>
-                        <div className="viewer-container" onClick={e => e.stopPropagation()}>
-                            <div className="h-16 bg-[#0b1121] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
-                                        {resource.category === 'game' ? <Icons.Gamepad2 size={20}/> : 
-                                        resource.category === 'tool' ? <Icons.Calculator size={20}/> : <Icons.DocPDF size={20}/>}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white font-math tracking-wide text-lg">{resource.title}</h3>
-                                        <p className="text-xs text-slate-400 font-mono">{resource.filename}</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => window.open(encodeURI(relativePath), '_blank')} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors"><Icons.ExternalLink size={16}/> Mở tab mới</button>
-                                    <button onClick={onClose} className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors"><Icons.X size={24}/></button>
-                                </div>
-                            </div>
-                            <div className="flex-1 bg-[#1e293b] relative w-full h-full">
-                                {loading && !loadError && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0f172a]"><div className="loading-spinner mb-4"></div><p className="text-slate-400 animate-pulse">Đang tải tài nguyên...</p></div>
-                                )}
-                                {isOffice && isLocal ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a] text-center p-8 z-20">
-                                        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><Icons.DocWord size={40}/></div>
-                                        <h3 className="text-2xl font-bold text-white mb-2">Chế độ xem trước không khả dụng Offline</h3>
-                                        <p className="text-slate-400 mb-8 max-w-md">File Word/Excel cần được đưa lên GitHub Pages để xem online.</p>
-                                        <a href={encodeURI(relativePath)} download className="px-8 py-4 bg-cyan-600 text-white rounded-xl font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-1"><Icons.Download size={20}/> Tải về máy</a>
-                                    </div>
-                                ) : (
-                                    <iframe src={viewerUrl} className="w-full h-full border-0 block" title="Content Viewer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={() => setLoading(false)} onError={() => { setLoading(false); setLoadError(true); }} />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
             // Xử lý mở tài nguyên
             const handleOpenResource = (resource) => {
-                if (resource.category === 'doc' || resource.category === 'infographic') { // Open Doc & Infographic in Modal
-                    setViewingResource(resource);
+                let basePath = '';
+                if (resource.path) {
+                    basePath = resource.path;
                 } else {
-                    let basePath = '';
-                    if (resource.path) {
-                        basePath = resource.path;
-                    } else {
-                        switch(resource.category) {
-                            case 'game': basePath = 'game/'; break;
-                            case 'tool': basePath = 'app/'; break;
-                            case 'infographic': basePath = 'infographic/'; break;
-                            default: basePath = '';
-                        }
+                    switch(resource.category) {
+                        case 'doc': basePath = 'tai-lieu/'; break;
+                        case 'game': basePath = 'game/'; break;
+                        case 'tool': basePath = 'app/'; break;
+                        case 'infographic': basePath = 'infographic/'; break;
+                        default: basePath = '';
                     }
-                    // Fix: Encode URL để xử lý tên file có dấu cách khi mở tab mới
-                    const url = basePath + resource.filename;
-                    window.open(encodeURI(url), '_blank'); 
                 }
+                // Fix: Encode URL để xử lý tên file có dấu cách khi mở tab mới
+                const url = basePath + resource.filename;
+                // Mở trong tab mới
+                window.open(encodeURI(url), '_blank'); 
             };
 
             const getTitle = () => {
@@ -973,9 +882,6 @@
                         </main>
                         <Footer />
                     </div>
-
-                    {/* VIEWER MODAL */}
-                    {viewingResource && <ResourceViewer resource={viewingResource} onClose={() => setViewingResource(null)} />}
                 </div>
             );
         };
