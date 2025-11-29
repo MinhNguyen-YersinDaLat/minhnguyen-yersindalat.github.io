@@ -421,6 +421,7 @@
         const Sidebar = ({ currentView, setView, mobileOpen, setMobileOpen }) => {
             const menuItems = [
                 { id: 'dashboard', label: 'Tổng Quan', icon: Icons.Home },
+                { id: 'lifeskills', label: 'Kỹ Năng Sống', icon: Icons.Target },
                 { id: 'documents', label: 'Kho Tài Liệu', icon: Icons.BookOpen },
                 { id: 'games', label: 'Game Tư Duy', icon: Icons.Gamepad2 },
                 { id: 'tools', label: 'Công Cụ', icon: Icons.Calculator },
@@ -495,7 +496,7 @@
         const DashboardView = ({ setView, openViewer }) => {
             return (
                 <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto w-full fade-in-up">
-                    {/* Welcome Banner */}
+                    {/* Welcome Banner - Updated with Teacher Info */}
                     <div className="relative rounded-[32px] p-1 overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-1000"></div>
                         <div className="relative bg-[#0f172a]/90 backdrop-blur-2xl rounded-[30px] p-8 md:p-12 border border-white/10 overflow-hidden flex flex-col md:flex-row gap-10 items-center">
@@ -521,11 +522,11 @@
                                 </div>
                             </div>
                             
-                            {/* School Info Card */}
+                            {/* School Info Card - Updated TTC Group */}
                             <div className="w-full md:w-80 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
                                 <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><Icons.Home size={18} className="text-cyan-400"/> Về Trường Yersin</h3>
                                 <p className="text-sm text-slate-400 mb-4 leading-relaxed">
-                                    Thành lập năm 2005, trực thuộc IGC Group. Tọa lạc tại 27 Tôn Thất Tùng, Đà Lạt. Trường nổi bật với triết lý "Ngôi trường hạnh phúc", cơ sở vật chất hiện đại và môi trường học tập xanh.
+                                    Thành lập năm 2005, trực thuộc <strong>Tập đoàn TTC (Thành Thành Công)</strong>. Tọa lạc tại 27 Tôn Thất Tùng, Đà Lạt. Trường nổi bật với triết lý "Ngôi trường hạnh phúc", cơ sở vật chất hiện đại và môi trường học tập xanh.
                                 </p>
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Chất lượng cao
@@ -533,31 +534,37 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            );
+        };
 
-                    {/* LIFE SKILLS PROJECTS */}
-                    <div>
-                        <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
+        const LifeSkillsView = ({ openViewer }) => {
+            return (
+                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
+                    <div className="mb-12 text-center">
+                        <h2 className="text-4xl font-black text-white flex items-center justify-center gap-3 font-math mb-4">
                             <Icons.Target className="text-rose-500"/> DỰ ÁN KỸ NĂNG SỐNG
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {DATA_CONFIG.projects.map((proj, i) => {
-                                const ProjIcon = CustomIcons[proj.iconType] || Icons.Gamepad2;
-                                return (
-                                    <div key={i} onClick={() => openViewer({...proj, category: 'project'})} className="glass-card p-6 rounded-[24px] flex items-center gap-6 group cursor-pointer hover:bg-rose-900/10 border border-rose-500/20">
-                                        <div className={`icon-box w-20 h-20 bg-[#0b1121] text-rose-500 border border-white/10 shadow-lg group-hover:scale-110 p-2`}>
-                                            <ProjIcon size={48} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-rose-400 transition-colors">{proj.title}</h3>
-                                            <p className="text-slate-400 text-sm font-medium">{proj.desc}</p>
-                                            <div className="mt-4 flex items-center gap-2 text-xs font-bold text-rose-500 uppercase tracking-widest group-hover:gap-3 transition-all">
-                                                KHÁM PHÁ <Icons.ArrowRight size={14}/>
-                                            </div>
+                        <p className="text-slate-400 text-lg">Các dự án và trò chơi giáo dục giúp trang bị kỹ năng cần thiết cho cuộc sống.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {DATA_CONFIG.projects.map((proj, i) => {
+                            const ProjIcon = CustomIcons[proj.iconType] || Icons.Gamepad2;
+                            return (
+                                <div key={i} onClick={() => openViewer({...proj, category: 'project'})} className="glass-card p-6 rounded-[24px] flex items-center gap-6 group cursor-pointer hover:bg-rose-900/10 border border-rose-500/20">
+                                    <div className={`icon-box w-20 h-20 bg-[#0b1121] text-rose-500 border border-white/10 shadow-lg group-hover:scale-110 p-2`}>
+                                        <ProjIcon size={48} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-rose-400 transition-colors">{proj.title}</h3>
+                                        <p className="text-slate-400 text-sm font-medium">{proj.desc}</p>
+                                        <div className="mt-4 flex items-center gap-2 text-xs font-bold text-rose-500 uppercase tracking-widest group-hover:gap-3 transition-all">
+                                            KHÁM PHÁ <Icons.ArrowRight size={14}/>
                                         </div>
                                     </div>
-                                )
-                            })}
-                        </div>
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             );
@@ -671,6 +678,7 @@
             const getTitle = () => {
                 switch(currentView) {
                     case 'dashboard': return 'Tổng Quan';
+                    case 'lifeskills': return 'Kỹ Năng Sống';
                     case 'documents': return 'Tài Liệu';
                     case 'games': return 'Game Zone';
                     case 'tools': return 'Công Cụ';
@@ -688,6 +696,7 @@
                         <Header title={getTitle()} setMobileOpen={setMobileOpen} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                         <main className="flex-1 overflow-y-auto scroll-smooth">
                             {currentView === 'dashboard' && <DashboardView setView={setCurrentView} openViewer={handleOpenResource} />} 
+                            {currentView === 'lifeskills' && <LifeSkillsView openViewer={handleOpenResource} />}
                             {currentView === 'documents' && <DocumentsView searchQuery={searchQuery} openViewer={handleOpenResource} />}
                             {currentView === 'games' && <GamesView searchQuery={searchQuery} openViewer={handleOpenResource} />}
                             {currentView === 'tools' && <ToolsView searchQuery={searchQuery} openViewer={handleOpenResource} />}
