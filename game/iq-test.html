@@ -2,736 +2,711 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>🎲 Math Genius: Sequence Master (Canvas Edition)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>🎲 Math Genius: Ultimate Canvas Edition</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
 
   :root {
-    --bg-color: #0f172a;
-    --card-bg: #1e293b;
-    --primary: #8b5cf6;
-    --accent: #f472b6;
-    --text: #f1f5f9;
-    --success: #10b981;
-    --fail: #ef4444;
-    --input-bg: #334155;
+    --bg-dark: #050505;
+    --card-dark: rgba(20, 20, 25, 0.95);
+    --primary: #00f2ff;
+    --accent: #ff0055;
+    --success: #00ff9d;
+    --warning: #ffcc00;
+    --text: #ffffff;
+    --font-head: 'Orbitron', sans-serif;
+    --font-body: 'Rajdhani', sans-serif;
   }
 
-  [data-theme="light"] {
-    --bg-color: #f0f9ff;
-    --card-bg: #ffffff;
-    --primary: #6366f1;
-    --accent: #ec4899;
-    --text: #1e293b;
-    --success: #059669;
-    --fail: #dc2626;
-    --input-bg: #e2e8f0;
-  }
-
-  * { box-sizing: border-box; user-select: none; }
+  * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
   
   body {
     margin: 0; padding: 0;
-    font-family: 'Quicksand', sans-serif;
-    background-color: var(--bg-color);
+    background-color: var(--bg-dark);
     color: var(--text);
-    overflow: hidden; /* Canvas covers full screen usually, but we use card layout */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    transition: background 0.3s;
+    overflow: hidden;
+    position: fixed; /* Prevent scroll bounce on mobile */
+    width: 100%; height: 100%;
+    font-family: var(--font-body);
   }
 
-  .game-container {
+  /* Fullscreen Canvas Background */
+  #bgCanvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+  }
+
+  /* Game Container */
+  .game-ui {
     position: relative;
+    z-index: 10;
     width: 100%;
-    max-width: 600px;
-    height: 95vh;
-    background: var(--card-bg);
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    transition: background 0.3s;
+    justify-content: space-between; /* Push HUD top and Controls bottom */
+    background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%);
+    padding-bottom: env(safe-area-inset-bottom); /* iOS Safe Area */
   }
 
-  /* Canvas Layer */
+  /* Main Interactive Canvas */
   #gameCanvas {
-    width: 100%;
-    flex: 1; /* Chiếm phần lớn diện tích */
-    cursor: crosshair;
-    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.05) 100%);
-  }
-
-  /* UI Overlay Layer */
-  .ui-layer {
-    padding: 15px 20px;
-    background: rgba(0,0,0,0.02);
-    z-index: 10;
-    backdrop-filter: blur(5px);
-    border-top: 1px solid rgba(255,255,255,0.1);
-  }
-
-  /* Header Controls */
-  .header-controls {
     position: absolute;
-    top: 0; left: 0; right: 0;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    z-index: 20;
-    pointer-events: none; /* Let clicks pass through to canvas if needed */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1; /* Behind controls */
+    pointer-events: none; /* Let clicks pass through */
   }
-  .header-controls > * { pointer-events: auto; }
 
-  .theme-btn, .settings-btn {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: var(--text);
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    backdrop-filter: blur(4px);
+  /* Header HUD */
+  .hud-top {
+    position: relative; z-index: 20;
+    padding: 15px 20px;
+    padding-top: max(15px, env(safe-area-inset-top));
+    display: flex; justify-content: space-between; align-items: center;
+    pointer-events: none;
   }
+  
+  .score-box {
+    text-align: left;
+    text-shadow: 0 0 10px var(--primary);
+  }
+  .score-label { font-size: 12px; opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
+  .score-val { font-family: var(--font-head); font-size: 28px; font-weight: 900; color: var(--primary); line-height: 1; }
+
+  /* Timer moved to Canvas drawing for better scaling, 
+     keeping placeholder for layout balance if needed, but reducing visual clutter */
+  .timer-placeholder { width: 50px; } 
 
   /* Bottom Controls */
-  .control-panel {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
+  .control-dock {
+    position: relative; z-index: 20;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: transparent;
+    display: flex; gap: 10px; align-items: stretch;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 100%;
+    max-width: 600px;
+    align-self: center;
   }
-
+  
+  /* Mobile Optimization for inputs */
   input[type="number"] {
-    flex: 1;
-    padding: 12px 15px;
+    flex: 2;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255,255,255,0.2);
     border-radius: 12px;
-    border: 2px solid transparent;
-    background: var(--input-bg);
-    color: var(--text);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.2rem;
+    color: #fff;
+    padding: 12px;
+    font-family: var(--font-head);
+    font-size: 22px; /* Large font prevents zoom on iOS */
     outline: none;
     transition: all 0.2s;
+    text-align: center;
+    -moz-appearance: textfield; /* Remove arrows */
   }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
   input[type="number"]:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+    background: rgba(0, 20, 40, 0.8);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
   }
 
-  button {
-    padding: 0 25px;
-    border-radius: 12px;
+  .btn {
     border: none;
+    border-radius: 12px;
+    font-family: var(--font-head);
     font-weight: 700;
-    font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.1s, filter 0.2s;
+    text-transform: uppercase;
+    transition: all 0.1s;
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.95); }
+  
+  .btn-submit { 
+    flex: 1.5; 
+    background: var(--primary); 
+    color: #000; 
+    font-size: 18px; 
+    box-shadow: 0 5px 15px rgba(0, 242, 255, 0.3);
   }
   
-  #submitBtn { background: var(--primary); color: white; }
-  #hintBtn { background: var(--accent); color: white; }
-  
-  button:active { transform: scale(0.95); }
-  button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+  .btn-hint { 
+    width: 60px; 
+    background: rgba(255,255,255,0.1); 
+    backdrop-filter: blur(5px);
+    color: var(--text); 
+    font-size: 12px; 
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .btn-hint span { font-size: 10px; opacity: 0.7; }
 
-  /* Settings Modal */
-  .modal {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+  /* Modal System */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
     z-index: 100;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s;
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    padding: 20px;
   }
-  .modal.active { opacity: 1; pointer-events: auto; }
-  
-  .modal-content {
-    background: var(--card-bg);
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+  .modal-card {
+    background: var(--card-dark);
+    border: 1px solid var(--primary);
+    box-shadow: 0 0 40px rgba(0, 242, 255, 0.15);
     padding: 30px;
     border-radius: 20px;
-    width: 90%;
-    max-width: 400px;
+    width: 100%; max-width: 400px;
     text-align: center;
-    border: 1px solid var(--primary);
+    max-height: 90vh;
+    overflow-y: auto;
   }
 
-  .modal h2 { margin-top: 0; color: var(--primary); font-family: 'Orbitron', sans-serif; }
+  h1 { margin: 0 0 5px 0; font-family: var(--font-head); color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-size: 28px; }
+  h2 { margin: 0 0 25px 0; font-family: var(--font-body); font-weight: 300; color: #aaa; font-size: 16px; letter-spacing: 4px; }
 
-  .form-group { margin-bottom: 15px; text-align: left; }
-  label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--text); }
-  select, input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #555; background: var(--input-bg); color: var(--text); }
+  .setting-row { margin-bottom: 20px; text-align: left; }
+  .setting-row label { display: block; margin-bottom: 8px; color: var(--primary); font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  
+  select {
+    width: 100%; padding: 15px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; border-radius: 10px;
+    font-family: var(--font-body); font-size: 16px;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+  }
 
   .btn-start {
-    width: 100%; margin-top: 15px;
-    background: linear-gradient(45deg, var(--primary), var(--accent));
-    color: white; padding: 15px; font-size: 1.2rem;
-  }
-  
-  /* Leaderboard in Modal */
-  .leaderboard-list {
-    list-style: none; padding: 0; margin: 10px 0;
-    max-height: 150px; overflow-y: auto;
-    text-align: left;
-  }
-  .leaderboard-list li {
-    padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);
-    display: flex; justify-content: space-between;
+    width: 100%; padding: 18px;
+    background: linear-gradient(135deg, var(--accent), #ff5e00);
+    border-radius: 12px;
+    color: white; font-size: 20px; font-weight: 900; letter-spacing: 2px;
+    margin-top: 15px;
+    box-shadow: 0 10px 20px rgba(255, 0, 85, 0.3);
   }
 
-  /* Utility classes */
-  .hidden { display: none !important; }
+  .mute-toggle {
+    position: absolute; top: max(15px, env(safe-area-inset-top)); right: 20px;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+    color: #fff; padding: 8px 12px; border-radius: 20px;
+    cursor: pointer; z-index: 50; font-size: 12px; font-weight: bold;
+    pointer-events: auto;
+  }
 </style>
 </head>
-<body data-theme="dark">
+<body>
 
-<div class="game-container">
-  <!-- Header Overlay -->
-  <div class="header-controls">
-    <button class="theme-btn" id="themeBtn">🌓 Theme</button>
-    <div style="font-family: 'Orbitron'; font-size: 1.2rem; color: var(--primary);">MATH GENIUS</div>
-    <button class="settings-btn" id="menuBtn">⚙️ Menu</button>
+<div id="bgCanvas"></div>
+
+<div class="game-ui">
+  <!-- Top HUD -->
+  <div class="hud-top">
+    <div class="score-box">
+      <div class="score-label">Score</div>
+      <div class="score-val" id="scoreDisplay">0</div>
+    </div>
+    <button class="mute-toggle" id="muteBtn">🔊 ON</button>
   </div>
 
-  <!-- Main Canvas Area -->
+  <!-- Drawing Canvas -->
   <canvas id="gameCanvas"></canvas>
 
   <!-- Bottom Interactions -->
-  <div class="ui-layer" id="uiLayer">
-    <div style="text-align: center; margin-bottom: 10px; font-style: italic; opacity: 0.7; height: 20px;" id="hintText"></div>
-    <div class="control-panel">
-      <input type="number" id="answerInput" placeholder="Số tiếp theo?" autocomplete="off">
-      <button id="submitBtn">NHẬP</button>
-      <button id="hintBtn">GỢI Ý</button>
-    </div>
+  <div class="control-dock" id="controlDock">
+    <button class="btn btn-hint" id="hintBtn">
+      HINT
+      <span>(-2)</span>
+    </button>
+    <input type="number" id="answerInput" placeholder="?" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+    <button class="btn btn-submit" id="submitBtn">ENTER</button>
   </div>
+</div>
 
-  <!-- Start/Settings Modal -->
-  <div class="modal active" id="startModal">
-    <div class="modal-content">
-      <h2>CẤU HÌNH GAME</h2>
-      
-      <div class="form-group">
-        <label>Chủ đề dãy số</label>
-        <select id="topicSelect">
-          <option value="all">Tất cả (Hỗn hợp)</option>
-          <option value="csc">Cấp số cộng</option>
-          <option value="csn">Cấp số nhân</option>
-          <option value="fib">Fibonacci & Biến thể</option>
-          <option value="prime">Số nguyên tố</option>
-          <option value="square">Lũy thừa</option>
-        </select>
-      </div>
+<!-- START / SETTINGS MODAL -->
+<div class="modal-overlay active" id="startModal">
+  <div class="modal-card">
+    <h1>Math Genius</h1>
+    <h2>Ultimate Edition</h2>
+    
+    <div class="setting-row">
+      <label>Mode</label>
+      <select id="modeSelect">
+        <option value="mixed">Mixed (Hỗn hợp)</option>
+        <option value="csc">Arithmetic (+)</option>
+        <option value="csn">Geometric (×)</option>
+        <option value="fib">Fibonacci</option>
+        <option value="prime">Primes</option>
+        <option value="alt">Alternating</option>
+      </select>
+    </div>
 
-      <div class="form-group">
-        <label>Độ khó</label>
-        <select id="difficultySelect">
-          <option value="easy">Tập sự (Dễ)</option>
-          <option value="medium">Chuyên gia (Vừa)</option>
-          <option value="hard">Thiên tài (Khó)</option>
-        </select>
-      </div>
+    <div class="setting-row">
+      <label>Difficulty</label>
+      <select id="diffSelect">
+        <option value="easy">Cadet (Dễ)</option>
+        <option value="medium">Officer (Vừa)</option>
+        <option value="hard">Commander (Khó)</option>
+      </select>
+    </div>
 
-      <button class="btn-start" id="startBtn">BẮT ĐẦU CHƠI</button>
-      
-      <div style="margin-top: 20px; border-top: 1px solid #555; padding-top: 10px;">
-        <h4 style="margin:0 0 10px 0;">Bảng vàng</h4>
-        <ul class="leaderboard-list" id="leaderboard"></ul>
-      </div>
+    <button class="btn btn-start" id="startBtn">PLAY NOW</button>
+    <div style="margin-top:20px; font-size:12px; opacity:0.5;">
+      Best Score: <span id="highScore" style="color:var(--primary); font-weight:bold;">0</span>
     </div>
   </div>
 </div>
 
 <script>
 /**
- * MATH GENIUS - CANVAS PRO EDITION
- * Refactored by: "The 30-Year Experience Dev"
+ * MATH GENIUS: ULTIMATE CANVAS EDITION
+ * Fully Responsive & Mobile Optimized
  */
 
-// --- UTILITIES ---
-const Utils = {
-  randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
-  lerp: (start, end, t) => start * (1 - t) + end * t,
-  easeOutBack: (x) => {
-    const c1 = 1.70158;
-    const c3 = c1 + 1;
-    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
-  },
-  // Detect if light or dark theme active for canvas colors
-  getColors: () => {
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
-    return {
-      text: isDark ? '#f1f5f9' : '#1e293b',
-      primary: isDark ? '#8b5cf6' : '#6366f1',
-      accent: isDark ? '#f472b6' : '#ec4899',
-      success: isDark ? '#10b981' : '#059669',
-      fail: isDark ? '#ef4444' : '#dc2626',
-      dim: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
-    };
+// --- AUDIO ENGINE ---
+class SoundEngine {
+  constructor() {
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.muted = false;
+    this.masterGain = this.ctx.createGain();
+    this.masterGain.connect(this.ctx.destination);
+    this.masterGain.gain.value = 0.3;
   }
-};
 
-// --- LOGIC ENGINE ---
-class SequenceGenerator {
-  static generate(type, diff) {
-    const len = 5; // Luôn hiện 5 số, đoán số thứ 6
-    const limit = diff === 'easy' ? 20 : diff === 'medium' ? 50 : 100;
-    
-    let seq = [], ans = 0, hint = "";
-    
-    // Helper để chọn ngẫu nhiên nếu type = all
-    if (type === 'all') {
-      const types = ['csc', 'csn', 'fib', 'prime', 'square'];
-      type = types[Utils.randInt(0, types.length - 1)];
-    }
+  toggleMute() {
+    this.muted = !this.muted;
+    this.masterGain.gain.value = this.muted ? 0 : 0.3;
+    return this.muted;
+  }
 
-    switch (type) {
-      case 'csc': {
-        const d = Utils.randInt(2, diff === 'hard' ? 20 : 10);
-        const start = Utils.randInt(1, limit);
-        for(let i=0; i<len; i++) seq.push(start + i*d);
-        ans = start + len*d;
-        hint = `Cộng dần một hằng số d = ${d}`;
-        break;
-      }
-      case 'csn': {
-        const q = Utils.randInt(2, diff === 'hard' ? 5 : 3);
-        const start = Utils.randInt(1, diff === 'easy' ? 5 : 10);
-        for(let i=0; i<len; i++) seq.push(start * Math.pow(q, i));
-        ans = start * Math.pow(q, len);
-        hint = `Nhân dần với hằng số q = ${q}`;
-        break;
-      }
-      case 'fib': {
-        const a = Utils.randInt(1, 5);
-        const b = Utils.randInt(a, a+5);
-        seq = [a, b];
-        for(let i=2; i<len; i++) seq.push(seq[i-1] + seq[i-2]);
-        ans = seq[len-1] + seq[len-2];
-        hint = `Số sau bằng tổng hai số liền trước`;
-        break;
-      }
-      case 'square': {
-        const start = Utils.randInt(1, 5);
-        for(let i=0; i<len; i++) seq.push(Math.pow(start+i, 2));
-        ans = Math.pow(start+len, 2);
-        hint = `Bình phương các số tự nhiên liên tiếp`;
-        break;
-      }
-      case 'prime': {
-        // Dãy số nguyên tố đơn giản bắt đầu từ random
-        const primes = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71];
-        const startIdx = Utils.randInt(0, 5);
-        seq = primes.slice(startIdx, startIdx + len);
-        ans = primes[startIdx + len];
-        hint = `Dãy số nguyên tố liền kề`;
-        break;
-      }
-    }
-    return { seq, ans, hint, type };
+  playTone(freq, type, duration, startTime = 0) {
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + startTime);
+    gain.gain.setValueAtTime(1, this.ctx.currentTime + startTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + startTime + duration);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(this.ctx.currentTime + startTime);
+    osc.stop(this.ctx.currentTime + startTime + duration);
+  }
+
+  playSuccess() {
+    this.playTone(523.25, 'sine', 0.1, 0);
+    this.playTone(659.25, 'sine', 0.1, 0.1);
+    this.playTone(783.99, 'sine', 0.3, 0.2);
+    this.playTone(1046.50, 'square', 0.4, 0.3);
+  }
+  playFail() {
+    this.playTone(150, 'sawtooth', 0.3, 0);
+    this.playTone(100, 'sawtooth', 0.5, 0.2);
+  }
+  playClick() {
+    this.playTone(400, 'sine', 0.1, 0);
   }
 }
 
-// --- PARTICLE SYSTEM ---
+// --- MATH LOGIC ---
+const MathCore = {
+  rand: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+  isPrime: (num) => {
+    if(num <= 1) return false;
+    if(num <= 3) return true;
+    if(num % 2 === 0 || num % 3 === 0) return false;
+    for(let i=5; i*i<=num; i+=6) if(num % i === 0 || num % (i+2) === 0) return false;
+    return true;
+  },
+  nextPrime: (num) => {
+    let next = num + 1;
+    while(!MathCore.isPrime(next)) next++;
+    return next;
+  },
+  generateSequence: (mode, diff) => {
+    const len = 5;
+    let seq = [], ans = 0, hint = "";
+    const range = diff === 'easy' ? 20 : diff === 'medium' ? 50 : 100;
+    
+    if (mode === 'mixed') {
+      const modes = ['csc', 'csn', 'fib', 'prime', 'alt'];
+      mode = modes[MathCore.rand(0, modes.length - 1)];
+    }
+
+    switch(mode) {
+      case 'csc': {
+        const d = MathCore.rand(2, diff === 'hard' ? 15 : 8) * (Math.random() > 0.5 ? 1 : -1);
+        const start = MathCore.rand(20, range);
+        for(let i=0; i<len; i++) seq.push(start + i*d);
+        ans = start + len*d;
+        hint = `Cộng thêm ${d}`;
+        break;
+      }
+      case 'csn': {
+        const q = MathCore.rand(2, diff === 'hard' ? 4 : 3);
+        const start = MathCore.rand(1, 5);
+        for(let i=0; i<len; i++) seq.push(start * Math.pow(q, i));
+        ans = start * Math.pow(q, len);
+        hint = `Nhân thêm ${q}`;
+        break;
+      }
+      case 'fib': {
+        const type = Math.random() > 0.7 ? 'tri' : 'fib';
+        if (type === 'fib') {
+          const a = MathCore.rand(1, 10);
+          const b = MathCore.rand(a, a+10);
+          seq = [a, b];
+          for(let i=2; i<len; i++) seq.push(seq[i-1] + seq[i-2]);
+          ans = seq[len-1] + seq[len-2];
+          hint = "Tổng 2 số trước (Fibonacci)";
+        } else {
+          seq = [1, 1, 2];
+          for(let i=3; i<len; i++) seq.push(seq[i-1] + seq[i-2] + seq[i-3]);
+          ans = seq[len-1] + seq[len-2] + seq[len-3];
+          hint = "Tổng 3 số trước (Tribonacci)";
+        }
+        break;
+      }
+      case 'prime': {
+        let start = MathCore.rand(2, range);
+        while(!MathCore.isPrime(start)) start++;
+        seq.push(start);
+        for(let i=1; i<len; i++) seq.push(MathCore.nextPrime(seq[i-1]));
+        ans = MathCore.nextPrime(seq[len-1]);
+        hint = "Số nguyên tố tiếp theo";
+        break;
+      }
+      case 'alt': {
+        const a = MathCore.rand(1, 5);
+        const b = MathCore.rand(2, 3);
+        let current = MathCore.rand(2, 10);
+        seq.push(current);
+        for(let i=1; i<len; i++) {
+          if (i % 2 !== 0) current += a; else current *= b;
+          seq.push(current);
+        }
+        if (len % 2 !== 0) ans = current + a; else ans = current * b;
+        hint = `+${a} rồi ×${b}`;
+        break;
+      }
+    }
+    return { seq, ans, hint, mode };
+  }
+};
+
+// --- VISUALS ---
 class Particle {
-  constructor(x, y, color, type = 'confetti') {
+  constructor(x, y, color) {
     this.x = x; this.y = y;
     this.color = color;
-    this.size = Utils.randInt(3, 8);
-    this.vx = (Math.random() - 0.5) * 10;
-    this.vy = (Math.random() - 0.5) * 10;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 5 + 2;
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
     this.life = 1.0;
-    this.decay = Math.random() * 0.02 + 0.01;
-    this.gravity = 0.2;
-    this.type = type;
+    this.decay = Math.random() * 0.03 + 0.02;
+    this.size = Math.random() * 4 + 2;
   }
   update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.vy += this.gravity;
-    this.life -= this.decay;
-    if (this.type === 'star') this.rotation += 0.1;
+    this.x += this.vx; this.y += this.vy;
+    this.vy += 0.1; this.life -= this.decay;
   }
   draw(ctx) {
-    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.globalAlpha = this.life;
     ctx.fillStyle = this.color;
     ctx.beginPath();
-    if (this.type === 'confetti') {
-      ctx.fillRect(this.x, this.y, this.size, this.size);
-    } else {
-      ctx.arc(this.x, this.y, this.size/2, 0, Math.PI*2);
-      ctx.fill();
-    }
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+    ctx.fill();
     ctx.globalAlpha = 1;
   }
 }
 
-// --- GAME RENDERER (CANVAS) ---
-class GameRenderer {
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.particles = [];
-    this.width = canvas.width;
-    this.height = canvas.height;
-    
-    // Animation state
-    this.floatingOffset = 0;
-    this.numbers = []; // {val, x, y, targetX, targetY, scale, alpha}
-    this.feedback = { text: '', scale: 0, alpha: 0, type: 'neutral' };
-    
-    this.resize();
-    window.addEventListener('resize', () => this.resize());
+class Shockwave {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.radius = 10; this.alpha = 1;
   }
-
-  resize() {
-    const parent = this.canvas.parentElement;
-    this.canvas.width = parent.clientWidth;
-    this.canvas.height = parent.clientHeight;
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
-  }
-
-  // Khởi tạo các số để chuẩn bị animate vào
-  setupSequence(seq) {
-    const spacing = Math.min(this.width / (seq.length + 1), 100);
-    const startX = (this.width - spacing * (seq.length - 1)) / 2;
-    
-    this.numbers = seq.map((val, i) => ({
-      val: val,
-      x: startX + i * spacing,
-      y: this.height / 2 + 100, // Bắt đầu từ dưới
-      targetX: startX + i * spacing,
-      targetY: this.height / 2,
-      scale: 0,
-      targetScale: 1,
-      alpha: 0
-    }));
-  }
-
-  triggerExplosion(x, y, color) {
-    for(let i=0; i<30; i++) {
-      this.particles.push(new Particle(x, y, color));
-    }
-  }
-
-  showFeedback(text, type) {
-    this.feedback = {
-      text: text,
-      scale: 0,
-      alpha: 1,
-      type: type // success or fail
-    };
-  }
-
-  clear() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
-  }
-
-  draw(dt, gameState) {
-    const colors = Utils.getColors();
-    this.clear();
-    this.floatingOffset += dt * 0.002;
-
-    // 1. Draw Background grid effect
-    this.ctx.strokeStyle = colors.dim;
-    this.ctx.lineWidth = 1;
-    const gridSize = 40;
-    const offset = (Date.now() / 50) % gridSize;
-    for(let x=offset; x<this.width; x+=gridSize) {
-      this.ctx.beginPath(); this.ctx.moveTo(x,0); this.ctx.lineTo(x,this.height); this.ctx.stroke();
-    }
-
-    // 2. Draw Timer (Circular)
-    const timerRadius = 40;
-    const timerX = this.width - 60;
-    const timerY = 60;
-    
-    this.ctx.beginPath();
-    this.ctx.arc(timerX, timerY, timerRadius, 0, Math.PI * 2);
-    this.ctx.strokeStyle = colors.dim;
-    this.ctx.lineWidth = 6;
-    this.ctx.stroke();
-
-    const pct = Math.max(0, gameState.timeLeft / gameState.totalTime);
-    this.ctx.beginPath();
-    this.ctx.arc(timerX, timerY, timerRadius, -Math.PI/2, -Math.PI/2 + (Math.PI*2 * pct));
-    this.ctx.strokeStyle = pct < 0.3 ? colors.fail : colors.primary;
-    this.ctx.stroke();
-    
-    this.ctx.fillStyle = colors.text;
-    this.ctx.font = "bold 18px Quicksand";
-    this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "middle";
-    this.ctx.fillText(Math.ceil(gameState.timeLeft), timerX, timerY);
-
-    // 3. Draw Score & Combo
-    this.ctx.textAlign = "left";
-    this.ctx.font = "bold 24px Orbitron";
-    this.ctx.fillStyle = colors.primary;
-    this.ctx.fillText(`SCORE: ${gameState.score}`, 30, 60);
-    
-    if (gameState.combo > 1) {
-      this.ctx.font = "bold 16px Quicksand";
-      this.ctx.fillStyle = colors.accent;
-      this.ctx.fillText(`COMBO x${gameState.combo} 🔥`, 30, 85);
-    }
-
-    // 4. Draw Sequence Numbers
-    this.ctx.font = "bold 40px Orbitron";
-    this.numbers.forEach((num, i) => {
-      // Lerp animation
-      num.x = Utils.lerp(num.x, num.targetX, 0.1);
-      num.y = Utils.lerp(num.y, num.targetY + Math.sin(this.floatingOffset + i)*10, 0.1);
-      num.scale = Utils.lerp(num.scale, num.targetScale, 0.1);
-      num.alpha = Utils.lerp(num.alpha, 1, 0.05);
-
-      this.ctx.save();
-      this.ctx.translate(num.x, num.y);
-      this.ctx.scale(num.scale, num.scale);
-      
-      // Shadow/Glow
-      this.ctx.shadowColor = colors.primary;
-      this.ctx.shadowBlur = 15;
-      
-      this.ctx.fillStyle = colors.text;
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.fillText(num.val, 0, 0);
-      
-      this.ctx.restore();
-    });
-
-    // Draw the "?" box
-    if (this.numbers.length > 0) {
-      const lastNum = this.numbers[this.numbers.length-1];
-      const spacing = lastNum.targetX - this.numbers[this.numbers.length-2].targetX;
-      const qX = lastNum.targetX + spacing;
-      const qY = lastNum.targetY + Math.sin(this.floatingOffset + this.numbers.length)*10;
-      
-      this.ctx.fillStyle = colors.accent;
-      this.ctx.font = "bold 40px Orbitron";
-      this.ctx.fillText("?", qX, qY);
-    }
-
-    // 5. Draw Feedback (Correct/Wrong)
-    if (this.feedback.alpha > 0.01) {
-      this.ctx.save();
-      this.ctx.globalAlpha = this.feedback.alpha;
-      this.feedback.scale = Utils.lerp(this.feedback.scale, 1.5, 0.2);
-      this.feedback.alpha = Utils.lerp(this.feedback.alpha, 0, 0.02); // Fade out
-      
-      this.ctx.translate(this.width/2, this.height/2 - 100);
-      this.ctx.scale(this.feedback.scale, this.feedback.scale);
-      this.ctx.font = "bold 40px Quicksand";
-      this.ctx.fillStyle = this.feedback.type === 'success' ? colors.success : colors.fail;
-      this.ctx.fillText(this.feedback.text, 0, 0);
-      this.ctx.restore();
-    }
-
-    // 6. Update & Draw Particles
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      let p = this.particles[i];
-      p.update();
-      p.draw(this.ctx);
-      if (p.life <= 0) this.particles.splice(i, 1);
-    }
+  update() { this.radius += 10; this.alpha -= 0.04; }
+  draw(ctx) {
+    if(this.alpha <= 0) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(0, 242, 255, ${this.alpha})`;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
   }
 }
 
-// --- GAME CONTROLLER ---
+// --- GAME MAIN ---
 class Game {
   constructor() {
     this.canvas = document.getElementById('gameCanvas');
-    this.renderer = new GameRenderer(this.canvas);
+    this.ctx = this.canvas.getContext('2d');
+    this.sound = new SoundEngine();
     
-    // UI Elements
     this.input = document.getElementById('answerInput');
-    this.submitBtn = document.getElementById('submitBtn');
-    this.hintBtn = document.getElementById('hintBtn');
-    this.hintText = document.getElementById('hintText');
+    this.scoreEl = document.getElementById('scoreDisplay');
     this.modal = document.getElementById('startModal');
-    this.startBtn = document.getElementById('startBtn');
-    this.uiLayer = document.getElementById('uiLayer');
     
-    // State
     this.state = {
-      score: 0,
-      combo: 0,
-      timeLeft: 0,
-      totalTime: 20,
-      currentQ: null,
-      isPlaying: false
+      score: 0, timeLeft: 0, maxTime: 20,
+      currentQ: null, isPlaying: false,
+      feedbackText: '', feedbackAlpha: 0, feedbackColor: '#fff'
     };
-
-    this.timerLoop = null;
+    
+    this.entities = { numbers: [], particles: [], shockwaves: [] };
+    
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    this.setupEvents();
+    
     this.lastTime = 0;
-
-    this.bindEvents();
-    this.loadLeaderboard();
+    requestAnimationFrame(t => this.loop(t));
+    document.getElementById('highScore').textContent = localStorage.getItem('math_hs') || 0;
   }
 
-  bindEvents() {
-    this.startBtn.addEventListener('click', () => this.startGame());
+  resize() {
+    // Dynamic resizing for canvas sharpness
+    const parent = this.canvas.parentElement;
+    this.W = parent.offsetWidth;
+    this.H = parent.offsetHeight;
+    this.canvas.width = this.W;
+    this.canvas.height = this.H;
     
-    this.submitBtn.addEventListener('click', () => this.checkAnswer());
-    
-    this.input.addEventListener('keydown', (e) => {
+    // Scale factor for fonts/elements
+    // Base 600px width. Mobile (<600) gets smaller scale
+    this.scale = Math.min(1, this.W / 600);
+  }
+
+  setupEvents() {
+    document.getElementById('startBtn').addEventListener('click', () => {
+      this.startGame();
+      this.sound.playClick();
+    });
+    document.getElementById('submitBtn').addEventListener('click', () => this.checkAnswer());
+    this.input.addEventListener('keydown', e => {
       if(e.key === 'Enter') this.checkAnswer();
     });
-
-    this.hintBtn.addEventListener('click', () => {
-      if(this.state.score >= 2) {
+    document.getElementById('hintBtn').addEventListener('click', (e) => {
+      if(this.state.score >= 2 && this.state.isPlaying) {
         this.state.score -= 2;
-        this.hintText.textContent = this.state.currentQ.hint;
-        this.hintBtn.disabled = true;
+        this.updateScore();
+        alert(this.state.currentQ.hint);
+        e.target.disabled = true;
       }
     });
-
-    document.getElementById('menuBtn').addEventListener('click', () => {
-      this.stopGame();
-      this.modal.classList.add('active');
-    });
-
-    document.getElementById('themeBtn').addEventListener('click', () => {
-      const b = document.body;
-      b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    document.getElementById('muteBtn').addEventListener('click', (e) => {
+      const isMuted = this.sound.toggleMute();
+      e.target.textContent = isMuted ? "🔊 OFF" : "🔊 ON";
     });
   }
 
   startGame() {
-    // Get Settings
-    const topic = document.getElementById('topicSelect').value;
-    const diff = document.getElementById('difficultySelect').value;
-    
-    this.config = { topic, diff };
+    const mode = document.getElementById('modeSelect').value;
+    const diff = document.getElementById('diffSelect').value;
+    this.config = { mode, diff };
     this.state.score = 0;
-    this.state.combo = 0;
     this.state.isPlaying = true;
-    
+    this.updateScore();
     this.modal.classList.remove('active');
-    this.uiLayer.classList.remove('hidden');
-    
-    // Start Game Loop
-    this.lastTime = performance.now();
-    requestAnimationFrame((t) => this.loop(t));
-    
-    this.nextQuestion();
+    this.nextLevel();
   }
 
-  stopGame() {
-    this.state.isPlaying = false;
-    this.saveScore(this.state.score);
-  }
-
-  nextQuestion() {
-    if (!this.state.isPlaying) return;
-
-    this.state.currentQ = SequenceGenerator.generate(this.config.topic, this.config.diff);
-    this.renderer.setupSequence(this.state.currentQ.seq);
+  nextLevel() {
+    if(!this.state.isPlaying) return;
+    this.state.currentQ = MathCore.generateSequence(this.config.mode, this.config.diff);
+    this.state.maxTime = this.config.diff === 'easy' ? 20 : (this.config.diff === 'medium' ? 15 : 10);
+    this.state.timeLeft = this.state.maxTime;
     
-    this.input.value = "";
+    const seq = this.state.currentQ.seq;
+    // Responsive spacing
+    const count = seq.length + 1;
+    // Max width allowed for numbers row (90% of screen)
+    const rowWidth = this.W * 0.9;
+    const spacing = rowWidth / count;
+    const startX = (this.W - rowWidth) / 2 + spacing/2;
+    
+    this.entities.numbers = seq.map((val, i) => ({
+      val: val,
+      x: startX + i * spacing,
+      y: this.H + 100,
+      targetY: this.H / 2, // Vertically centered
+      scale: 0,
+      delay: i * 5
+    }));
+    
+    this.entities.numbers.push({
+      val: '?',
+      x: startX + seq.length * spacing,
+      y: this.H + 100,
+      targetY: this.H / 2,
+      scale: 0,
+      delay: seq.length * 5,
+      isQ: true
+    });
+
+    this.input.value = '';
     this.input.focus();
     this.input.disabled = false;
-    this.submitBtn.disabled = false;
-    this.hintBtn.disabled = false;
-    this.hintText.textContent = "";
-    
-    // Reset Timer
-    this.state.totalTime = this.config.diff === 'easy' ? 20 : 15;
-    this.state.timeLeft = this.state.totalTime;
+    document.getElementById('hintBtn').disabled = false;
   }
 
   checkAnswer() {
-    if (!this.state.isPlaying) return;
+    if(!this.state.isPlaying) return;
+    const userVal = parseInt(this.input.value);
     
-    const val = parseFloat(this.input.value);
-    const correct = this.state.currentQ.ans;
-    const colors = Utils.getColors();
-
-    if (val === correct) {
-      // Correct
-      this.state.score += 10 + (this.state.combo * 2);
-      this.state.combo++;
-      this.renderer.showFeedback("CHÍNH XÁC!", "success");
-      this.renderer.triggerExplosion(this.renderer.width/2, this.renderer.height/2, colors.success);
-      
-      // Delay to next question
+    if (userVal === this.state.currentQ.ans) {
+      this.sound.playSuccess();
+      this.state.score += 10 + Math.floor(this.state.timeLeft);
+      this.updateScore();
+      this.entities.shockwaves.push(new Shockwave(this.W/2, this.H/2));
+      for(let i=0; i<30; i++) this.entities.particles.push(new Particle(this.W/2, this.H/2, '#00ff9d'));
+      this.showFeedback('CHÍNH XÁC!', '#00ff9d');
       this.input.disabled = true;
-      setTimeout(() => this.nextQuestion(), 1000);
+      setTimeout(() => this.nextLevel(), 1200);
     } else {
-      // Wrong
-      this.state.combo = 0;
-      this.renderer.showFeedback("SAI RỒI!", "fail");
-      this.input.value = "";
+      this.sound.playFail();
+      this.state.timeLeft -= 5; // Harder penalty
+      this.showFeedback('SAI RỒI!', '#ff0055');
+      this.input.value = '';
       this.input.focus();
-      // Penalty time?
-      this.state.timeLeft -= 2;
     }
-  }
-
-  loop(timestamp) {
-    if (!this.state.isPlaying) return;
-
-    const dt = timestamp - this.lastTime;
-    this.lastTime = timestamp;
-
-    // Logic Timer
-    this.state.timeLeft -= dt / 1000;
-    if (this.state.timeLeft <= 0) {
-      this.gameOver();
-      return; // Stop loop
-    }
-
-    // Render
-    this.renderer.draw(dt, this.state);
-
-    requestAnimationFrame((t) => this.loop(t));
   }
 
   gameOver() {
     this.state.isPlaying = false;
-    this.renderer.showFeedback("HẾT GIỜ!", "fail");
+    this.sound.playFail();
+    const oldHs = localStorage.getItem('math_hs') || 0;
+    if(this.state.score > oldHs) {
+      localStorage.setItem('math_hs', this.state.score);
+      document.getElementById('highScore').textContent = this.state.score;
+    }
+    this.showFeedback('HẾT GIỜ!', '#ff0055');
     setTimeout(() => {
-      alert(`Kết thúc! Điểm của bạn: ${this.state.score}`);
-      this.stopGame();
       this.modal.classList.add('active');
-      this.loadLeaderboard();
-    }, 1000);
+      document.querySelector('.modal-card h2').textContent = `SCORE: ${this.state.score}`;
+    }, 2000);
   }
 
-  saveScore(score) {
-    if (score === 0) return;
-    let lb = JSON.parse(localStorage.getItem('math_lb') || '[]');
-    lb.push({ score, date: new Date().toLocaleDateString() });
-    lb.sort((a,b) => b.score - a.score);
-    localStorage.setItem('math_lb', JSON.stringify(lb.slice(0, 5)));
+  updateScore() { this.scoreEl.textContent = this.state.score; }
+  showFeedback(text, color) {
+    this.state.feedbackText = text;
+    this.state.feedbackColor = color;
+    this.state.feedbackAlpha = 1;
   }
 
-  loadLeaderboard() {
-    const list = document.getElementById('leaderboard');
-    list.innerHTML = "";
-    const lb = JSON.parse(localStorage.getItem('math_lb') || '[]');
-    lb.forEach(item => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${item.date}</span> <strong>${item.score} pts</strong>`;
-      list.appendChild(li);
+  loop(timestamp) {
+    const dt = timestamp - this.lastTime;
+    this.lastTime = timestamp;
+    this.ctx.clearRect(0,0,this.W, this.H);
+
+    // Grid Background
+    const time = Date.now() * 0.001;
+    this.ctx.strokeStyle = 'rgba(0, 242, 255, 0.08)';
+    this.ctx.lineWidth = 1;
+    const gridSize = 50 * this.scale;
+    const offsetX = (time * 20) % gridSize;
+    for(let x=offsetX; x<this.W; x+=gridSize) {
+      this.ctx.beginPath(); this.ctx.moveTo(x,0); this.ctx.lineTo(x,this.H); this.ctx.stroke();
+    }
+
+    if(this.state.isPlaying) {
+      this.state.timeLeft -= dt/1000;
+      if(this.state.timeLeft <= 0) { this.state.timeLeft = 0; this.gameOver(); }
+    }
+
+    // DRAW TIMER (Scalable)
+    // Draw in top right corner, avoiding UI
+    const tR = 30 * this.scale;
+    const tX = this.W - tR - 20;
+    const tY = tR + 60; // Below Top HUD
+
+    this.ctx.beginPath();
+    this.ctx.arc(tX, tY, tR, 0, Math.PI*2);
+    this.ctx.strokeStyle = 'rgba(255,255,255,0.1)'; this.ctx.lineWidth=5*this.scale; this.ctx.stroke();
+    
+    const pct = this.state.timeLeft / this.state.maxTime;
+    this.ctx.beginPath();
+    this.ctx.arc(tX, tY, tR, -Math.PI/2, -Math.PI/2 + (Math.PI*2 * pct));
+    this.ctx.strokeStyle = pct < 0.3 ? '#ff0055' : '#00f2ff';
+    this.ctx.stroke();
+
+    this.ctx.fillStyle = "#fff";
+    this.ctx.font = `bold ${20*this.scale}px Orbitron`;
+    this.ctx.textAlign = "center";
+    this.ctx.textBaseline = "middle";
+    this.ctx.fillText(Math.ceil(this.state.timeLeft), tX, tY);
+
+    // DRAW NUMBERS (Scalable)
+    // Adjust font size based on scale, but don't let it get too small
+    const fontSize = Math.max(24, 48 * this.scale);
+    this.ctx.font = `900 ${fontSize}px Orbitron`;
+    
+    this.entities.numbers.forEach(n => {
+      if(n.delay > 0) n.delay--;
+      else {
+        n.y += (n.targetY - n.y) * 0.1;
+        n.scale += (1 - n.scale) * 0.1;
+      }
+      const floatY = n.y + Math.sin(time*3 + n.x)*5;
+      
+      this.ctx.save();
+      this.ctx.translate(n.x, floatY);
+      this.ctx.scale(n.scale, n.scale);
+      this.ctx.shadowBlur = 15;
+      this.ctx.shadowColor = n.isQ ? '#ff0055' : '#00f2ff';
+      this.ctx.fillStyle = n.isQ ? '#ff0055' : '#fff';
+      this.ctx.fillText(n.val, 0, 0);
+      this.ctx.restore();
     });
-    if(lb.length === 0) list.innerHTML = "<li>Chưa có dữ liệu</li>";
+
+    // EFFECTS
+    this.entities.shockwaves.forEach((sw, i) => {
+      sw.update(); sw.draw(this.ctx);
+      if(sw.alpha <= 0) this.entities.shockwaves.splice(i, 1);
+    });
+    this.entities.particles.forEach((p, i) => {
+      p.update(); p.draw(this.ctx);
+      if(p.life <= 0) this.entities.particles.splice(i, 1);
+    });
+
+    // FEEDBACK
+    if(this.state.feedbackAlpha > 0) {
+      this.ctx.save();
+      this.ctx.globalAlpha = this.state.feedbackAlpha;
+      this.ctx.translate(this.W/2, this.H/2 - 80*this.scale);
+      const s = 1 + (1-this.state.feedbackAlpha);
+      this.ctx.scale(s, s);
+      this.ctx.font = `bold ${40*this.scale}px Rajdhani`;
+      this.ctx.fillStyle = this.state.feedbackColor;
+      this.ctx.fillText(this.state.feedbackText, 0, 0);
+      this.ctx.restore();
+      this.state.feedbackAlpha -= 0.02;
+    }
+
+    requestAnimationFrame(t => this.loop(t));
   }
 }
 
-// Initialize Game
-window.onload = () => {
-  const game = new Game();
-};
-
+window.onload = () => new Game();
 </script>
 </body>
 </html>
