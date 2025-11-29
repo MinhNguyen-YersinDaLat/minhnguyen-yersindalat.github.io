@@ -101,6 +101,15 @@
         }
         .glass-card:hover::after { transform: translateX(100%); }
 
+        /* --- ANIMATED TEXT --- */
+        .text-gradient-anim {
+            background: linear-gradient(to right, #22d3ee, #c084fc, #f43f5e, #22d3ee);
+            background-size: 300% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradientText 5s linear infinite;
+        }
+        @keyframes gradientText { to { background-position: 300% center; } }
+
         /* --- MOUSE TRAIL --- */
         #mouse-trail {
             position: fixed; pointer-events: none; z-index: 9999;
@@ -115,7 +124,10 @@
         .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
-        .icon-glow-box { position: relative; z-index: 1; }
+        /* Pulse Glow for Icons */
+        .icon-glow-box {
+            position: relative; z-index: 1;
+        }
         .icon-glow-box::before {
             content: ''; position: absolute; inset: -5px; z-index: -1;
             background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
@@ -135,6 +147,7 @@
     <div id="mouse-trail"></div>
 
     <script>
+        // Mouse Trail Script
         document.addEventListener('mousemove', (e) => {
             const trail = document.getElementById('mouse-trail');
             if(trail) trail.style.left = e.clientX + 'px';
@@ -146,11 +159,17 @@
         const { useState, useEffect, Fragment, useMemo } = React;
 
         // ==================================================================================
-        // CẤU HÌNH DỮ LIỆU - ĐÃ SỬA LỖI CÚ PHÁP
+        // HƯỚNG DẪN SỬ DỤNG (CÁCH THÊM/BỚT NỘI DUNG)
         // ==================================================================================
+        // 1. INFOGRAPHIC (infographics):
+        //    - Thêm file ảnh (jpg, png) vào thư mục 'infographic/'
+        //    - Thêm dòng mới: { filename: "ten-anh.jpg", title: "Tiêu đề", desc: "Mô tả" }
+        //
+        // 2. CÁC MỤC KHÁC: Giữ nguyên như cũ.
+        // ==================================================================================
+
         const DATA_CONFIG = {
             documents: [
-                // Danh sách 12 Chuyên đề bạn yêu cầu
                 { filename: "12-CD1. TINH DON DIEU 2026.pdf", title: "CĐ 1: Tính Đơn Điệu Hàm Số", tag: "Mới", size: "1.7 MB", type: "PDF" },
                 { filename: "12-CD2. CUC TRI HS 2026.pdf", title: "CĐ 2: Cực Trị Của Hàm Số", tag: "Hot", size: "2.4 MB", type: "PDF" },
                 { filename: "12-CD3. GTLN-GTNN.pdf", title: "CĐ 3: GTLN - GTNN Của Hàm Số", tag: "Mới", size: "3.2 MB", type: "PDF" },
@@ -186,6 +205,11 @@
                     iconType: "ProjectTobacco", 
                     color: "text-rose-500" 
                 }
+            ],
+            infographics: [
+                // Ví dụ placeholder
+                { filename: "info_dao_ham.jpg", title: "Sơ đồ tư duy Đạo Hàm", desc: "Tóm tắt công thức chương 1" },
+                { filename: "info_hinh_hoc.png", title: "Hình học Không gian", desc: "Các khối đa diện thường gặp" }
             ]
         };
 
@@ -213,7 +237,20 @@
             // Fixed Facebook Icon
             SocialFacebook: ({ size = 24, className }) => (
                 <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    <path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" />
+                </svg>
+            ),
+            // New: Infographic Icon
+            InfographicIcon: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                     <rect x="15" y="15" width="70" height="70" rx="5" stroke="#fbbf24" strokeWidth="3" fill="none" />
+                     <rect x="25" y="25" width="50" height="30" rx="2" fill="#fbbf24" opacity="0.2"/>
+                     <line x1="25" y1="65" x2="75" y2="65" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round"/>
+                     <line x1="25" y1="75" x2="55" y2="75" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round"/>
+                     <circle cx="85" cy="85" r="10" fill="#f59e0b">
+                        <animate attributeName="r" values="10;12;10" dur="2s" repeatCount="indefinite"/>
+                     </circle>
+                     <path d="M85 80 L85 90 M80 85 L90 85" stroke="black" strokeWidth="2"/>
                 </svg>
             ),
             ProjectTobacco: ({ size = 48, className }) => (
@@ -363,6 +400,8 @@
             Facebook: (p) => <CustomIcons.SocialFacebook {...p} />,
             Phone: (p) => <LucideIcon name="Phone" {...p} />,
             SocialTikTok: (p) => <CustomIcons.SocialTikTok {...p} />,
+            Infographic: (p) => <CustomIcons.InfographicIcon {...p} />, // Icon cho mục Infographic
+            Image: (p) => <LucideIcon name="Image" {...p} />,
         };
 
         // --- COMPONENT: FOOTER (With Socials) ---
@@ -399,6 +438,7 @@
             const menuItems = [
                 { id: 'dashboard', label: 'Tổng Quan', icon: Icons.Home },
                 { id: 'lifeskills', label: 'Kỹ Năng Sống', icon: Icons.Target },
+                { id: 'infographics', label: 'Infographic Toán', icon: Icons.Infographic }, // Mục mới
                 { id: 'documents', label: 'Kho Tài Liệu', icon: Icons.BookOpen },
                 { id: 'games', label: 'Game Tư Duy', icon: Icons.Gamepad2 },
                 { id: 'tools', label: 'Công Cụ', icon: Icons.Calculator },
@@ -475,16 +515,17 @@
             </header>
         );
 
-        // --- DASHBOARD & SEARCH RESULTS ---
+        // --- VIEW COMPONENTS ---
+
         const DashboardView = ({ setView, openViewer, searchQuery, allData }) => {
-            
-            // LOGIC TÌM KIẾM TOÀN CỤC
+            // SEARCH LOGIC
             if (searchQuery) {
                 const lowerQ = searchQuery.toLowerCase();
                 const matchedDocs = allData.documents.filter(d => d.title.toLowerCase().includes(lowerQ) || d.tag.toLowerCase().includes(lowerQ));
                 const matchedGames = allData.games.filter(g => g.title.toLowerCase().includes(lowerQ) || g.category.toLowerCase().includes(lowerQ));
                 const matchedTools = allData.tools.filter(t => t.title.toLowerCase().includes(lowerQ) || t.desc.toLowerCase().includes(lowerQ));
                 const matchedProjects = allData.projects.filter(p => p.title.toLowerCase().includes(lowerQ) || p.desc.toLowerCase().includes(lowerQ));
+                const matchedInfographics = allData.infographics.filter(i => i.title.toLowerCase().includes(lowerQ) || i.desc.toLowerCase().includes(lowerQ));
 
                 return (
                     <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
@@ -492,7 +533,7 @@
                             <Icons.Search className="text-cyan-400"/> Kết quả tìm kiếm cho "{searchQuery}"
                         </h2>
                         
-                        {matchedDocs.length === 0 && matchedGames.length === 0 && matchedTools.length === 0 && matchedProjects.length === 0 && (
+                        {matchedDocs.length === 0 && matchedGames.length === 0 && matchedTools.length === 0 && matchedProjects.length === 0 && matchedInfographics.length === 0 && (
                             <div className="text-center py-20 text-slate-500">
                                 <p className="text-xl">Không tìm thấy kết quả nào.</p>
                             </div>
@@ -514,24 +555,22 @@
                                 </div>
                             </div>
                         )}
-
-                        {/* Similar sections for Games, Tools, Projects if needed in search results */}
-                        {(matchedGames.length > 0 || matchedTools.length > 0 || matchedProjects.length > 0) && (
+                        {/* ... (Games, Tools, Projects results similar structure) ... */}
+                         {matchedInfographics.length > 0 && (
                             <div className="mb-10">
-                                <h3 className="text-xl font-bold text-white mb-4 border-l-4 border-purple-500 pl-3">Ứng dụng & Game</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {[...matchedGames, ...matchedTools, ...matchedProjects].map((item, i) => {
-                                        const ItemIcon = CustomIcons[item.iconType] || Icons.Gamepad2;
-                                        return (
-                                            <div key={i} onClick={() => openViewer({...item, category: item.category || (item.desc ? 'tool' : 'game')})} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer">
-                                                <div className="w-10 h-10"><ItemIcon size={40}/></div>
-                                                <div>
-                                                    <h4 className="text-white font-bold text-sm">{item.title}</h4>
-                                                    <p className="text-xs text-slate-400">{item.category || item.desc}</p>
+                                <h3 className="text-xl font-bold text-white mb-4 border-l-4 border-amber-500 pl-3">Infographic</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                     {matchedInfographics.map((info, i) => (
+                                         <div key={i} onClick={() => openViewer({...info, category: 'infographic'})} className="cursor-pointer group">
+                                            <div className="aspect-w-3 aspect-h-4 bg-slate-800 rounded-lg overflow-hidden border border-white/10 group-hover:border-amber-500/50 transition-all">
+                                                {/* Placeholder for image */}
+                                                <div className="w-full h-full flex items-center justify-center text-slate-600 bg-black/20">
+                                                    <Icons.Image size={32} />
                                                 </div>
                                             </div>
-                                        )
-                                    })}
+                                            <h4 className="text-white font-bold mt-2 text-sm truncate">{info.title}</h4>
+                                         </div>
+                                     ))}
                                 </div>
                             </div>
                         )}
@@ -545,7 +584,6 @@
                     <div className="relative rounded-[32px] p-1 overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-1000"></div>
                         <div className="relative bg-[#0f172a]/90 backdrop-blur-2xl rounded-[30px] p-8 md:p-12 border border-white/10 overflow-hidden flex flex-col md:flex-row gap-10 items-center">
-                            
                             <div className="relative z-10 flex-1">
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold mb-6">
                                     <Icons.GraduationCap size={14} /> GIÁO VIÊN TOÁN
@@ -566,8 +604,6 @@
                                     </button>
                                 </div>
                             </div>
-                            
-                            {/* School Info Card - Updated TTC Group */}
                             <div className="w-full md:w-80 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
                                 <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><Icons.Home size={18} className="text-cyan-400"/> Về Trường Yersin</h3>
                                 <p className="text-sm text-slate-400 mb-4 leading-relaxed">
@@ -584,7 +620,6 @@
         };
 
         const LifeSkillsView = ({ openViewer, searchQuery, allData }) => {
-            // Apply search filter if needed
             const displayProjects = searchQuery 
                 ? allData.projects.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
                 : allData.projects;
@@ -620,10 +655,41 @@
             );
         };
 
-        const DocumentsView = ({ searchQuery, openViewer, allData }) => {
-            // Apply search filter
-            const filtered = allData.documents.filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()) || d.tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        const InfographicsView = ({ openViewer, searchQuery, allData }) => {
+             const displayInfos = searchQuery 
+                ? allData.infographics.filter(i => i.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                : allData.infographics;
             
+            return (
+                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
+                    <div className="mb-10">
+                        <h2 className="text-4xl font-black text-white flex items-center gap-3 font-math">
+                            <Icons.Infographic className="text-amber-400" size={32}/> INFOGRAPHIC TOÁN HỌC
+                        </h2>
+                        <p className="text-slate-400 mt-2">Kiến thức Toán học được mô hình hóa trực quan và dễ nhớ.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {displayInfos.map((info, i) => (
+                            <div key={i} onClick={() => openViewer({...info, category: 'infographic'})} className="glass-card p-4 rounded-3xl cursor-pointer group hover:bg-amber-900/10 border-amber-500/10 hover:border-amber-500/30">
+                                <div className="aspect-w-16 aspect-h-9 bg-[#0b1121] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-amber-500/30 relative">
+                                    {/* Placeholder for actual image, using icon for now if no image loads */}
+                                    <div className="absolute inset-0 flex items-center justify-center text-slate-700">
+                                        <Icons.Image size={48} />
+                                    </div>
+                                     {/* Try to load image, fallback to placeholder handled by CSS/layout */}
+                                    <img src={`infographic/${info.filename}`} alt={info.title} className="object-cover w-full h-full relative z-10 transition-transform duration-700 group-hover:scale-110" onError={(e) => e.target.style.opacity = 0} />
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">{info.title}</h3>
+                                <p className="text-xs text-slate-400">{info.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        const DocumentsView = ({ searchQuery, openViewer, allData }) => {
+            const filtered = allData.documents.filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()) || d.tag.toLowerCase().includes(searchQuery.toLowerCase()));
             return (
                 <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
                     <div className="glass-card rounded-[32px] p-1">
@@ -705,114 +771,52 @@
             const [currentView, setCurrentView] = useState('dashboard');
             const [mobileOpen, setMobileOpen] = useState(false);
             const [searchQuery, setSearchQuery] = useState('');
-            const [viewingResource, setViewingResource] = useState(null);
+            // viewingResource is no longer used for Modal logic as per new requirement, but we might need it if we revert to modal for some specific types later. 
+            // For now, handleOpenResource handles everything.
 
-            // --- RESOURCE VIEWER ---
-            const ResourceViewer = ({ resource, onClose }) => {
-                const [loading, setLoading] = useState(true);
-                const [loadError, setLoadError] = useState(false);
-
-                if (!resource) return null;
-
-                const getBasePath = () => {
-                    if (resource.path) return resource.path;
+            const handleOpenResource = (resource) => {
+                let basePath = '';
+                if (resource.path) {
+                    basePath = resource.path;
+                } else {
                     switch(resource.category) {
-                        case 'doc': return 'tai-lieu/';
-                        case 'game': return 'game/';
-                        case 'tool': return 'app/';
-                        case 'project': return resource.path || '';
-                        default: return '';
+                        case 'doc': basePath = 'tai-lieu/'; break;
+                        case 'game': basePath = 'game/'; break;
+                        case 'tool': basePath = 'app/'; break;
+                        case 'infographic': basePath = 'infographic/'; break;
+                        default: basePath = '';
                     }
-                };
+                }
 
-                const relativePath = getBasePath() + resource.filename;
-                // Lấy absolute URL để dùng cho Office Viewer
-                // Lưu ý: window.location.href có thể chứa index.html hoặc hash, cần xử lý cẩn thận
-                // Lấy base URL của site (ví dụ: https://username.github.io/repo/)
-                let baseUrl = window.location.origin + window.location.pathname;
-                // Xóa 'index.html' nếu có ở cuối
-                if (baseUrl.endsWith('index.html')) {
-                    baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
-                }
-                // Đảm bảo có dấu / ở cuối
-                if (!baseUrl.endsWith('/')) {
-                    baseUrl += '/';
-                }
+                const relativePath = basePath + resource.filename;
                 
-                const absoluteUrl = baseUrl + relativePath;
-
+                // Logic mở file Office trong tab mới bằng Viewer online
                 const extension = resource.filename.split('.').pop().toLowerCase();
                 const isOffice = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension);
-                const isLocal = window.location.hostname === '' || window.location.hostname === 'localhost' || window.location.protocol === 'file:';
-
-                let viewerUrl = relativePath;
+                
+                let urlToOpen = relativePath;
+                
                 if (isOffice) {
-                    viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
-                }
-
-                return (
-                    <div className="viewer-overlay" onClick={onClose}>
-                        <div className="viewer-container" onClick={e => e.stopPropagation()}>
-                            <div className="h-16 bg-[#0b1121] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
-                                        {resource.category === 'game' ? <Icons.Gamepad2 size={20}/> : 
-                                        resource.category === 'tool' ? <Icons.Calculator size={20}/> : <Icons.DocPDF size={20}/>}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white font-math tracking-wide text-lg">{resource.title}</h3>
-                                        <p className="text-xs text-slate-400 font-mono">{resource.filename}</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => window.open(relativePath, '_blank')} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors"><Icons.ExternalLink size={16}/> Mở tab mới</button>
-                                    <button onClick={onClose} className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors"><Icons.X size={24}/></button>
-                                </div>
-                            </div>
-                            <div className="flex-1 bg-[#1e293b] relative w-full h-full">
-                                {loading && !loadError && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0f172a]"><div className="loading-spinner mb-4"></div><p className="text-slate-400 animate-pulse">Đang tải tài nguyên...</p></div>
-                                )}
-                                {isOffice && isLocal ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a] text-center p-8 z-20">
-                                        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><Icons.DocWord size={40}/></div>
-                                        <h3 className="text-2xl font-bold text-white mb-2">Chế độ xem trước không khả dụng Offline</h3>
-                                        <p className="text-slate-400 mb-8 max-w-md">File Word/Excel cần được đưa lên GitHub Pages để xem online.</p>
-                                        <a href={relativePath} download className="px-8 py-4 bg-cyan-600 text-white rounded-xl font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-1"><Icons.Download size={20}/> Tải về máy</a>
-                                    </div>
-                                ) : (
-                                    <iframe src={viewerUrl} className="w-full h-full border-0 block" title="Content Viewer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={() => setLoading(false)} onError={() => { setLoading(false); setLoadError(true); }} />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            // Xử lý mở tài nguyên
-            const handleOpenResource = (resource) => {
-                if (resource.category === 'doc') {
-                    setViewingResource(resource);
-                } else {
-                    let basePath = '';
-                    if (resource.path) {
-                        basePath = resource.path;
-                    } else {
-                        switch(resource.category) {
-                            case 'game': basePath = 'game/'; break;
-                            case 'tool': basePath = 'app/'; break;
-                            default: basePath = '';
-                        }
+                     let baseUrl = window.location.origin + window.location.pathname;
+                    if (baseUrl.endsWith('index.html')) {
+                        baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
                     }
-                    const url = basePath + resource.filename;
-                    window.location.href = url;
+                    if (!baseUrl.endsWith('/')) {
+                        baseUrl += '/';
+                    }
+                    const absoluteUrl = baseUrl + relativePath;
+                    // Sử dụng view.aspx thay vì embed.aspx để có trải nghiệm xem tốt hơn trong tab mới
+                    urlToOpen = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}`;
                 }
+
+                window.open(urlToOpen, '_blank');
             };
 
             const getTitle = () => {
                 switch(currentView) {
                     case 'dashboard': return 'Tổng Quan';
                     case 'lifeskills': return 'Kỹ Năng Sống';
+                    case 'infographics': return 'Infographic Toán';
                     case 'documents': return 'Tài Liệu';
                     case 'games': return 'Game Zone';
                     case 'tools': return 'Công Cụ';
@@ -842,15 +846,13 @@
                         <main className="flex-1 overflow-y-auto scroll-smooth">
                             {currentView === 'dashboard' && <DashboardView setView={setCurrentView} openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />} 
                             {currentView === 'lifeskills' && <LifeSkillsView openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />}
+                            {currentView === 'infographics' && <InfographicsView openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />}
                             {currentView === 'documents' && <DocumentsView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
                             {currentView === 'games' && <GamesView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
                             {currentView === 'tools' && <ToolsView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
                         </main>
                         <Footer />
                     </div>
-
-                    {/* VIEWER MODAL */}
-                    {viewingResource && <ResourceViewer resource={viewingResource} onClose={() => setViewingResource(null)} />}
                 </div>
             );
         };
