@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Math Genius: Arcade Scholar</title>
 <style>
-  /* Fonts: 'Crimson Pro' for Math look, 'Righteous' for Game look */
-  @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,600;0,800;1,700&family=Righteous&display=swap');
+  /* CẬP NHẬT FONT: Montserrat & Merriweather (Hỗ trợ Tiếng Việt tuyệt đối) */
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@400;600;700;800&display=swap');
 
   :root {
     --bg-paper: #f0f4f8;
@@ -20,8 +20,9 @@
     --card-shadow: 0 0.5rem 0 #cbd5e1, 0 1rem 1.5rem rgba(0,0,0,0.1);
     --card-active: 0 0 0 #cbd5e1, inset 0 0 0.5rem rgba(0,0,0,0.1);
     
-    --font-math: 'Crimson Pro', serif;
-    --font-game: 'Righteous', cursive;
+    /* Font Variables Updated */
+    --font-math: 'Merriweather', serif;
+    --font-game: 'Montserrat', sans-serif;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -142,7 +143,7 @@
   }
   .combo-text {
     position: absolute; left: 25px; top: 50%; transform: translateY(-50%) rotate(-90deg);
-    font-size: 0.7rem; letter-spacing: 4px; color: var(--text-sub); opacity: 0.6; transform-origin: center; font-weight: 700;
+    font-size: 0.7rem; letter-spacing: 4px; color: var(--text-sub); opacity: 0.6; transform-origin: center; font-weight: 800;
   }
 
   /* Feedback */
@@ -219,19 +220,23 @@
   .cursor { width: 3px; height: 60%; background: var(--game-accent); margin-left: 5px; animation: blink 1s infinite; }
   @keyframes blink { 50%{opacity:0;} }
 
-  /* 3. KEYPAD - Responsive Grid */
+  /* 3. CONTROL PAD CONTAINER */
   .control-pad {
     flex: 0 0 auto;
     background: #fff;
     border-top: 2px solid #e2e8f0;
-    padding: 10px; 
-    padding-bottom: max(15px, env(safe-area-inset-bottom));
-    display: grid; grid-template-columns: repeat(4, 1fr); 
-    gap: clamp(5px, 2vw, 10px);
+    padding: 10px 10px 0 10px;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
     width: 100%; max-width: 600px;
-    margin: 0 auto; /* Center on tablets */
+    margin: 0 auto;
+    display: flex; flex-direction: column;
+    gap: 8px;
+  }
+
+  .keys-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); 
+    gap: clamp(5px, 2vw, 10px);
   }
 
   .key {
@@ -256,6 +261,47 @@
   }
   .key.go:active { background: #312e81; }
 
+  /* COPYRIGHT FOOTER - In Game */
+  .copyright-footer {
+    text-align: center;
+    padding: 5px 0 max(5px, env(safe-area-inset-bottom)) 0;
+    opacity: 0.6;
+    font-family: var(--font-math);
+    font-size: 0.75rem;
+    color: var(--ink-blue);
+    width: 100%;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .copyright-footer b { font-weight: 800; }
+
+  /* COPYRIGHT BOX - In Menu */
+  .copyright-menu {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 2px dashed #cbd5e1;
+    color: var(--ink-blue);
+    opacity: 0.8;
+  }
+  .copy-name {
+    font-family: var(--font-math);
+    font-weight: 900;
+    font-size: 1rem;
+    display: block;
+    color: var(--ink-blue);
+  }
+  .copy-school {
+    font-family: var(--font-game);
+    font-size: 0.75rem;
+    color: #64748b;
+    display: block;
+    margin-top: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
   /* MODALS */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -275,6 +321,7 @@
     box-shadow: 10px 10px 0 var(--game-accent);
     transform: rotate(-2deg);
     max-height: 90vh; overflow-y: auto;
+    position: relative;
   }
 
   h1 { margin: 0 0 10px; font-size: 2rem; color: var(--ink-blue); line-height: 1; font-weight: 900; }
@@ -291,7 +338,7 @@
   .btn-big {
     width: 100%; padding: 15px;
     background: var(--game-success); color: #fff;
-    font-size: 1.2rem; border: 3px solid #065f46; font-weight: 800;
+    font-size: 1.2rem; border: 3px solid #065f46; font-weight: 700;
     border-radius: 12px; margin-top: 10px; cursor: pointer;
     box-shadow: 0 4px 0 #065f46;
     transition: transform 0.1s;
@@ -355,25 +402,31 @@
     </div>
   </div>
 
-  <!-- CONTROLS -->
+  <!-- CONTROLS & FOOTER -->
   <div class="control-pad">
-    <div class="key hint" id="btnHint">💡</div>
-    <div class="key act" id="btnClear">C</div>
-    <div class="key act" id="btnBack">⌫</div>
-    <div class="key act" id="btnNeg">+/-</div>
+    <div class="keys-grid">
+      <div class="key hint" id="btnHint">💡</div>
+      <div class="key act" id="btnClear">C</div>
+      <div class="key act" id="btnBack">⌫</div>
+      <div class="key act" id="btnNeg">+/-</div>
 
-    <div class="key num" data-k="1">1</div>
-    <div class="key num" data-k="2">2</div>
-    <div class="key num" data-k="3">3</div>
-    <div class="key num" data-k="4">4</div>
-    <div class="key num" data-k="5">5</div>
-    <div class="key num" data-k="6">6</div>
-    <div class="key num" data-k="7">7</div>
-    <div class="key num" data-k="8">8</div>
-    <div class="key num" data-k="9">9</div>
-    <div class="key num" data-k="0">0</div>
-    
-    <button class="key go" id="btnEnter">NHẬP</button>
+      <div class="key num" data-k="1">1</div>
+      <div class="key num" data-k="2">2</div>
+      <div class="key num" data-k="3">3</div>
+      <div class="key num" data-k="4">4</div>
+      <div class="key num" data-k="5">5</div>
+      <div class="key num" data-k="6">6</div>
+      <div class="key num" data-k="7">7</div>
+      <div class="key num" data-k="8">8</div>
+      <div class="key num" data-k="9">9</div>
+      <div class="key num" data-k="0">0</div>
+      
+      <button class="key go" id="btnEnter">NHẬP</button>
+    </div>
+    <!-- BẢN QUYỀN TÁC GIẢ IN-GAME -->
+    <div class="copyright-footer">
+      <b>Thầy Thái Minh Nguyên</b> • Trường TH, THCS & THPT YERSIN ĐÀ LẠT
+    </div>
   </div>
 </div>
 
@@ -387,8 +440,8 @@
       <label>CHỦ ĐỀ</label>
       <select id="modeSel">
         <option value="mixed">HỖN HỢP</option>
-        <option value="csc">CỘNG (+)</option>
-        <option value="csn">NHÂN (×)</option>
+        <option value="csc">CẤP SỐ CỘNG (+)</option>
+        <option value="csn">CẤP SỐ NHÂN (×)</option>
         <option value="fib">FIBONACCI</option>
         <option value="prime">NGUYÊN TỐ</option>
       </select>
@@ -404,6 +457,12 @@
     </div>
     
     <button class="btn-big" id="startBtn">BẮT ĐẦU</button>
+
+    <!-- BẢN QUYỀN TÁC GIẢ MENU -->
+    <div class="copyright-menu">
+      <span class="copy-name">Thầy Thái Minh Nguyên</span>
+      <small class="copy-school">Trường TH, THCS & THPT YERSIN ĐÀ LẠT</small>
+    </div>
   </div>
 </div>
 
