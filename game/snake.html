@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>🌌 QUANTUM SNAKE: YERSIN EDITION</title>
+  <title>🌌 QUANTUM SNAKE: CITY EDITION</title>
   
   <!-- Font Chakra Petch -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,7 +32,7 @@
       position: relative;
     }
 
-    /* MẶT TRĂNG CSS */
+    /* MẶT TRĂNG CSS - Giữ nguyên vị trí cố định phía sau */
     .moon-bg {
       position: fixed;
       top: 50px;
@@ -226,7 +226,6 @@
     .hidden { display: none !important; }
     .txt-accent { color: var(--q-pink); text-shadow: 0 0 15px var(--q-pink); }
     
-    /* MODALS: Default state hidden */
     #pauseModal, #gameOverModal {
       position: absolute; top:0; left:0; width:100%; height:100%;
       background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
@@ -235,7 +234,6 @@
       opacity: 0; pointer-events: none; visibility: hidden;
       transition: opacity 0.3s;
     }
-    /* Class .show toggles visibility */
     .show { opacity: 1 !important; pointer-events: auto !important; visibility: visible !important; }
 
     #flashOverlay {
@@ -431,12 +429,71 @@
   let floatingTexts = [];
   let stars = [];
   let sparkles = []; 
-  let shootingStars = []; // Sao băng
+  let shootingStars = []; 
+  let cityLayers = []; // Lớp thành phố parallax
   let shakeIntensity = 0;
   let globalTime = 0;
 
   // Math Logic
   let gameMode = 'geometric', param1 = 2, paramStart = 1, currentVal = 1, prevVal = 0;
+
+  // --- CITY SKYLINE CLASS ---
+  class CityLayer {
+    constructor(speed, color, heightMult) {
+        this.speed = speed;
+        this.color = color;
+        this.heightMult = heightMult;
+        this.offset = 0;
+        this.buildings = [];
+        this.generateBuildings();
+    }
+    
+    generateBuildings() {
+        let x = 0;
+        while(x < canvas.width * 2) { // Generate đủ rộng để scroll
+            let w = Math.random() * 30 + 20;
+            let h = Math.random() * 50 * this.heightMult + 20;
+            this.buildings.push({x: x, w: w, h: h});
+            x += w;
+        }
+    }
+    
+    update(dt) {
+        // Chỉ di chuyển khi rắn di chuyển (hoặc luôn di chuyển chậm để tạo không khí)
+        // Ở đây cho di chuyển chậm liên tục
+        this.offset += this.speed * (dt * 0.05);
+        if(this.offset > canvas.width) {
+            this.offset -= canvas.width;
+        }
+    }
+    
+    draw(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        
+        ctx.beginPath();
+        let groundY = canvas.height;
+        
+        this.buildings.forEach(b => {
+            let drawX = b.x - this.offset;
+            // Wrap around logic đơn giản: vẽ 2 lần để lấp khoảng trống khi scroll
+            if(drawX < -b.w) drawX += this.buildings[this.buildings.length-1].x + b.w; // Simplified loop visual logic
+            
+            // Draw regular
+            ctx.rect(drawX, groundY - b.h, b.w, b.h);
+            
+            // Draw duplicate for loop (nếu cần thiết, ở đây dùng mảng dài gấp đôi canvas để cheat)
+            if (drawX < canvas.width) {
+                 ctx.rect(drawX + canvas.width, groundY - b.h, b.w, b.h); 
+            }
+        });
+        
+        ctx.fill();
+        ctx.restore();
+    }
+  }
 
   // --- CLASSES ---
   class Star {
@@ -458,30 +515,25 @@
     }
   }
 
-  // Lớp Sao Băng
   class ShootingStar {
-    constructor() {
-      this.reset();
-    }
+    constructor() { this.reset(); }
     reset() {
       this.x = Math.random() * canvas.width + 100;
       this.y = Math.random() * canvas.height * 0.5;
       this.len = Math.random() * 80 + 20;
       this.speed = Math.random() * 10 + 10;
       this.size = Math.random() * 2 + 0.5;
-      this.angle = Math.PI / 4; // Bay chéo 45 độ
+      this.angle = Math.PI / 4; 
       this.active = false;
-      this.waitTime = globalTime + Math.random() * 5 + 2; // Xuất hiện ngẫu nhiên sau vài giây
+      this.waitTime = globalTime + Math.random() * 5 + 2; 
     }
     update() {
-      if (globalTime > this.waitTime && !this.active) {
-          this.active = true;
-      }
+      if (globalTime > this.waitTime && !this.active) { this.active = true; }
       if (this.active) {
           this.x -= this.speed;
           this.y += this.speed;
           if (this.x < -100 || this.y > canvas.height + 100) {
-              this.reset(); // Reset khi bay khỏi màn hình
+              this.reset(); 
               this.waitTime = globalTime + Math.random() * 10 + 5;
           }
       }
@@ -495,8 +547,7 @@
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
       ctx.lineTo(this.x + this.len, this.y - this.len);
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = "#ffffff";
+      ctx.shadowBlur = 10; ctx.shadowColor = "#ffffff";
       ctx.stroke();
       ctx.restore();
     }
@@ -581,6 +632,13 @@
     // Init Shooting Stars
     shootingStars = [];
     for(let i=0; i<2; i++) shootingStars.push(new ShootingStar());
+
+    // Init City Layers (Vector Style)
+    // Layer 1: Far, slow, dim
+    // Layer 2: Near, faster, brighter
+    cityLayers = [];
+    cityLayers.push(new CityLayer(0.5, "rgba(0, 240, 255, 0.05)", 2)); // Far
+    cityLayers.push(new CityLayer(1.5, "rgba(188, 19, 254, 0.1)", 1.5)); // Near
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
@@ -818,6 +876,9 @@
     globalTime += dt * 0.001;
     moveTimer += dt;
     
+    // Cập nhật City Parallax
+    cityLayers.forEach(layer => layer.update(dt));
+
     if (moveTimer >= currentSpeed) {
       moveTimer = 0;
       if (nextDir) dir = nextDir;
@@ -896,9 +957,11 @@
     // Draw Background Elements
     stars.forEach(s => { s.update(dt); s.draw(ctx); });
     shootingStars.forEach(s => { s.update(); s.draw(ctx); });
-    // drawMoon(ctx); // Removed - using CSS
+    // Vẽ thành phố Parallax
+    cityLayers.forEach(layer => layer.draw(ctx));
 
-    ctx.strokeStyle = "rgba(0, 240, 255, 0.03)";
+    // Grid (nhẹ hơn để không che thành phố)
+    ctx.strokeStyle = "rgba(0, 240, 255, 0.02)";
     ctx.lineWidth = 1;
     for(let i=0; i<=cols; i++) { ctx.beginPath(); ctx.moveTo(i*box,0); ctx.lineTo(i*box,canvas.height); ctx.stroke(); }
     for(let i=0; i<=rows; i++) { ctx.beginPath(); ctx.moveTo(0,i*box); ctx.lineTo(canvas.width,i*box); ctx.stroke(); }
