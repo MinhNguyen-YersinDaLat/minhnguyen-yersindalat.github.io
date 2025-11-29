@@ -495,7 +495,7 @@
         const DashboardView = ({ setView, openViewer }) => {
             return (
                 <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto w-full fade-in-up">
-                    {/* Welcome Banner - Updated with Teacher Info */}
+                    {/* Welcome Banner */}
                     <div className="relative rounded-[32px] p-1 overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-1000"></div>
                         <div className="relative bg-[#0f172a]/90 backdrop-blur-2xl rounded-[30px] p-8 md:p-12 border border-white/10 overflow-hidden flex flex-col md:flex-row gap-10 items-center">
@@ -648,6 +648,26 @@
             const [searchQuery, setSearchQuery] = useState('');
             const [viewingResource, setViewingResource] = useState(null);
 
+            // Xử lý mở tài nguyên
+            const handleOpenResource = (resource) => {
+                if (resource.category === 'doc') {
+                    setViewingResource(resource);
+                } else {
+                    let basePath = '';
+                    if (resource.path) {
+                        basePath = resource.path;
+                    } else {
+                        switch(resource.category) {
+                            case 'game': basePath = 'game/'; break;
+                            case 'tool': basePath = 'app/'; break;
+                            default: basePath = '';
+                        }
+                    }
+                    const url = basePath + resource.filename;
+                    window.location.href = url;
+                }
+            };
+
             const getTitle = () => {
                 switch(currentView) {
                     case 'dashboard': return 'Tổng Quan';
@@ -667,10 +687,10 @@
                     <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden backdrop-blur-[2px]">
                         <Header title={getTitle()} setMobileOpen={setMobileOpen} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                         <main className="flex-1 overflow-y-auto scroll-smooth">
-                            {currentView === 'dashboard' && <DashboardView setView={setCurrentView} openViewer={setViewingResource} />} 
-                            {currentView === 'documents' && <DocumentsView searchQuery={searchQuery} openViewer={setViewingResource} />}
-                            {currentView === 'games' && <GamesView searchQuery={searchQuery} openViewer={setViewingResource} />}
-                            {currentView === 'tools' && <ToolsView searchQuery={searchQuery} openViewer={setViewingResource} />}
+                            {currentView === 'dashboard' && <DashboardView setView={setCurrentView} openViewer={handleOpenResource} />} 
+                            {currentView === 'documents' && <DocumentsView searchQuery={searchQuery} openViewer={handleOpenResource} />}
+                            {currentView === 'games' && <GamesView searchQuery={searchQuery} openViewer={handleOpenResource} />}
+                            {currentView === 'tools' && <ToolsView searchQuery={searchQuery} openViewer={handleOpenResource} />}
                         </main>
                     </div>
 
