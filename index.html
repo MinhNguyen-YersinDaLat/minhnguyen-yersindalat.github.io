@@ -33,115 +33,154 @@
             color: #f8fafc;
             margin: 0; padding: 0;
             overflow-x: hidden;
+            cursor: default;
         }
 
         .font-math { font-family: 'Space Grotesk', sans-serif; }
 
-        /* BACKGROUND */
+        /* --- ADVANCED BACKGROUND --- */
         .math-universe {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 90%);
+            background: radial-gradient(circle at 50% -20%, #1e293b 0%, #020617 80%);
             overflow: hidden;
         }
+        
+        /* Grid Floor 3D */
         .grid-floor {
-            position: absolute; width: 200%; height: 200%; bottom: -50%; left: -50%;
+            position: absolute; width: 300%; height: 200%; bottom: -50%; left: -100%;
             background-image: 
-                linear-gradient(rgba(34, 211, 238, 0.07) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
-            background-size: 80px 80px;
-            transform: perspective(500px) rotateX(60deg);
-            animation: gridMove 30s linear infinite;
-            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%);
+                linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+            transform: perspective(800px) rotateX(70deg);
+            animation: gridMove 20s linear infinite;
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
         }
         @keyframes gridMove {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(80px); }
+            0% { transform: perspective(800px) rotateX(70deg) translateY(0); }
+            100% { transform: perspective(800px) rotateX(70deg) translateY(60px); }
         }
 
-        /* GLASS CARD - Tăng độ mờ nền để chữ rõ hơn */
+        /* Floating Particles */
+        .particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: floatParticle linear infinite;
+        }
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            20% { opacity: 0.5; }
+            80% { opacity: 0.5; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* --- GLASS CARD ULTRA --- */
         .glass-card {
-            background: rgba(15, 23, 42, 0.7); /* Tối hơn */
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08); 
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative; overflow: hidden;
         }
-        .glass-card::before {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.05) 40%, transparent 60%);
+        
+        /* Shimmer Effect */
+        .glass-card::after {
+            content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
             transform: translateX(-100%); transition: 0.6s;
         }
+        
         .glass-card:hover {
-            transform: translateY(-6px) scale(1.01);
-            border-color: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.5), 0 0 15px rgba(34, 211, 238, 0.15);
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(34, 211, 238, 0.3);
+            box-shadow: 0 20px 50px -10px rgba(34, 211, 238, 0.15);
             background: rgba(30, 41, 59, 0.8);
         }
-        .glass-card:hover::before { transform: translateX(100%); }
+        .glass-card:hover::after { transform: translateX(100%); }
 
-        /* ICON BOX */
-        .icon-box {
-            position: relative; display: flex; align-items: center; justify-content: center;
-            border-radius: 20px; overflow: hidden; transition: all 0.4s ease;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+        /* --- ANIMATED TEXT --- */
+        .text-gradient-anim {
+            background: linear-gradient(to right, #22d3ee, #c084fc, #f43f5e, #22d3ee);
+            background-size: 300% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradientText 5s linear infinite;
         }
-        .glass-card:hover .icon-box { transform: scale(1.05); }
+        @keyframes gradientText { to { background-position: 300% center; } }
 
-        /* AVATAR STYLES */
-        .avatar-glow {
-            box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
-            border: 2px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-        }
-        .avatar-glow:hover {
-            box-shadow: 0 0 30px rgba(34, 211, 238, 0.6);
-            border-color: rgba(34, 211, 238, 0.5);
+        /* --- MOUSE TRAIL --- */
+        #mouse-trail {
+            position: fixed; pointer-events: none; z-index: 9999;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            transition: transform 0.1s ease-out;
         }
 
-        /* VIEWER MODAL */
-        .viewer-overlay {
-            position: fixed; inset: 0; z-index: 100;
-            background: rgba(0,0,0,0.9); backdrop-filter: blur(12px);
-            display: flex; justify-content: center; align-items: center;
-            animation: fadeIn 0.2s ease-out;
-        }
-        .viewer-container {
-            width: 95%; height: 95%; max-width: 1600px;
-            background: #0f172a; border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-            animation: zoomIn 0.3s ease-out;
-        }
+        /* --- ANIMATIONS --- */
+        .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
-        .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #22d3ee;
-            border-radius: 50%;
-            width: 40px; height: 40px;
-            animation: spin 1s linear infinite;
+        /* Pulse Glow for Icons */
+        .icon-glow-box {
+            position: relative; z-index: 1;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .icon-glow-box::before {
+            content: ''; position: absolute; inset: -5px; z-index: -1;
+            background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .glass-card:hover .icon-glow-box::before { opacity: 0.6; }
 
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; border: 2px solid #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; border: 1px solid #020617; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body>
     <div id="root"></div>
+    <div id="mouse-trail"></div>
+
+    <script>
+        // Mouse Trail Script
+        document.addEventListener('mousemove', (e) => {
+            const trail = document.getElementById('mouse-trail');
+            if(trail) trail.style.left = e.clientX + 'px';
+            if(trail) trail.style.top = e.clientY + 'px';
+        });
+    </script>
 
     <script type="text/babel">
         const { useState, useEffect, Fragment, useMemo } = React;
 
-        // --- CẤU HÌNH DỮ LIỆU ---
+        // ==================================================================================
+        // HƯỚNG DẪN SỬ DỤNG (CÁCH THÊM/BỚT NỘI DUNG)
+        // ==================================================================================
+        // Để thêm nội dung mới, bạn hãy chỉnh sửa biến DATA_CONFIG bên dưới.
+        //
+        // 1. TÀI LIỆU (documents):
+        //    - Thêm file PDF/Word vào thư mục 'tai-lieu/' nằm cùng cấp với file index.html này.
+        //    - Thêm dòng mới vào mảng 'documents' theo mẫu:
+        //      { filename: "ten-file.pdf", title: "Tiêu đề hiển thị", tag: "Nhãn (Mới/Hot...)", size: "Dung lượng", type: "PDF/DOCX" },
+        //
+        // 2. GAME (games):
+        //    - Thêm folder game hoặc file .html game vào thư mục 'game/'.
+        //    - Thêm dòng mới vào mảng 'games' theo mẫu:
+        //      { filename: "ten-file-game.html", title: "Tên Game", category: "Thể loại", iconType: "GameSnake/GameSudoku...", color: "màu sắc", plays: "Lượt chơi" },
+        //
+        // 3. CÔNG CỤ (tools):
+        //    - Thêm file công cụ .html vào thư mục 'app/'.
+        //    - Thêm dòng mới vào mảng 'tools' tương tự như game.
+        //
+        // 4. DỰ ÁN (projects):
+        //    - Tương tự như trên, điền đúng đường dẫn thư mục vào 'path'.
+        // ==================================================================================
+
         const DATA_CONFIG = {
             documents: [
                 { filename: "De-thi-thu-2025-L1.pdf", title: "Đề thi thử THPT 2025 - Lần 1", tag: "Mới", size: "2.4 MB", type: "PDF" },
@@ -190,6 +229,16 @@
 
         // CUSTOM HIGH-FIDELITY ANIMATED SVGs
         const CustomIcons = {
+            SocialTikTok: ({ size = 24, className }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                </svg>
+            ),
+            SocialFacebook: ({ size = 24, className }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+                    <path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" />
+                </svg>
+            ),
             // Project: Tobacco
             ProjectTobacco: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
@@ -344,80 +393,44 @@
             FileText: (p) => <LucideIcon name="FileText" {...p} />,
             GraduationCap: (p) => <LucideIcon name="GraduationCap" {...p} />,
             Target: (p) => <LucideIcon name="Target" {...p} />,
-            ArrowRight: (p) => <LucideIcon name="ArrowRight" {...p} />
+            ArrowRight: (p) => <LucideIcon name="ArrowRight" {...p} />,
+            Facebook: (p) => <CustomIcons.SocialFacebook {...p} />,
+            Phone: (p) => <LucideIcon name="Phone" {...p} />,
+            SocialTikTok: (p) => <CustomIcons.SocialTikTok {...p} />,
         };
 
-        // --- RESOURCE VIEWER MODAL ---
-        const ResourceViewer = ({ resource, onClose }) => {
-            const [loading, setLoading] = useState(true);
-            const [loadError, setLoadError] = useState(false);
-
-            if (!resource) return null;
-
-            const getBasePath = () => {
-                if (resource.path) return resource.path;
-                switch(resource.category) {
-                    case 'doc': return 'tai-lieu/';
-                    case 'game': return 'game/';
-                    case 'tool': return 'app/';
-                    case 'project': return resource.path || '';
-                    default: return '';
-                }
-            };
-
-            const relativePath = getBasePath() + resource.filename;
-            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-            const absoluteUrl = baseUrl + relativePath;
-
-            const extension = resource.filename.split('.').pop().toLowerCase();
-            const isOffice = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension);
-            const isLocal = window.location.hostname === '' || window.location.hostname === 'localhost' || window.location.protocol === 'file:';
-
-            let viewerUrl = relativePath;
-            if (isOffice) {
-                viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
-            }
-
-            return (
-                <div className="viewer-overlay" onClick={onClose}>
-                    <div className="viewer-container" onClick={e => e.stopPropagation()}>
-                        <div className="h-16 bg-[#0b1121] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
-                            <div className="flex items-center gap-4">
-                                <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
-                                    {resource.category === 'game' ? <Icons.Gamepad2 size={20}/> : 
-                                     resource.category === 'tool' ? <Icons.Calculator size={20}/> : <Icons.DocPDF size={20}/>}
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-white font-math tracking-wide text-lg">{resource.title}</h3>
-                                    <p className="text-xs text-slate-400 font-mono">{resource.filename}</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <button onClick={() => window.open(relativePath, '_blank')} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors"><Icons.ExternalLink size={16}/> Mở tab mới</button>
-                                <button onClick={onClose} className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors"><Icons.X size={24}/></button>
-                            </div>
+        // --- COMPONENT: FOOTER (With Socials) ---
+        const Footer = () => (
+            <footer className="relative z-10 border-t border-white/10 bg-[#020617]/90 backdrop-blur-md px-6 py-8 mt-auto shrink-0">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="text-center md:text-left">
+                        <p className="text-sm font-bold text-white mb-1 flex items-center justify-center md:justify-start gap-2">
+                            © 2025 THÁI MINH NGUYÊN
+                        </p>
+                        <p className="text-xs text-slate-400">Giáo viên Toán - Trường TH, THCS & THPT Yersin Đà Lạt</p>
+                    </div>
+                    
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                        <div className="flex items-center gap-4">
+                            <a href="https://www.facebook.com/thaiminhnguyen1996/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(37,99,235,0.8)] hover:-translate-y-1">
+                                <Icons.Facebook size={24} />
+                            </a>
+                            <a href="https://www.tiktok.com/@m_nguyen96?_r=1&_t=ZS-91nZSGUVIt5" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-black text-white hover:bg-gray-900 border border-white/10 transition-all shadow-[0_0_15px_rgba(236,72,153,0.2)] hover:shadow-[0_0_20px_rgba(236,72,153,0.6)] hover:-translate-y-1">
+                                <Icons.SocialTikTok size={24} />
+                            </a>
                         </div>
-                        <div className="flex-1 bg-[#1e293b] relative w-full h-full">
-                            {loading && !loadError && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0f172a]"><div className="loading-spinner mb-4"></div><p className="text-slate-400 animate-pulse">Đang tải tài nguyên...</p></div>
-                            )}
-                            {isOffice && isLocal ? (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a] text-center p-8 z-20">
-                                    <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><Icons.DocWord size={40}/></div>
-                                    <h3 className="text-2xl font-bold text-white mb-2">Chế độ xem trước không khả dụng Offline</h3>
-                                    <p className="text-slate-400 mb-8 max-w-md">File Word/Excel cần được đưa lên GitHub Pages để xem online.</p>
-                                    <a href={relativePath} download className="px-8 py-4 bg-cyan-600 text-white rounded-xl font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-1"><Icons.Download size={20}/> Tải về máy</a>
-                                </div>
-                            ) : (
-                                <iframe src={viewerUrl} className="w-full h-full border-0 block" title="Content Viewer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={() => setLoading(false)} onError={() => { setLoading(false); setLoadError(true); }} />
-                            )}
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-900/20 border border-emerald-500/20 text-emerald-400 hover:text-emerald-300 hover:border-emerald-500/50 transition-all">
+                            <Icons.Phone size={20} className="animate-pulse"/>
+                            <span className="text-sm font-mono font-bold">0924.336.827 - 0977.917.249</span>
                         </div>
                     </div>
                 </div>
-            );
-        };
+            </footer>
+        );
 
         // --- SUB-COMPONENTS ---
+        // (Sidebar, Header, Views... - Same structure, just passed 'searchQuery' logic)
+        
         const Sidebar = ({ currentView, setView, mobileOpen, setMobileOpen }) => {
             const menuItems = [
                 { id: 'dashboard', label: 'Tổng Quan', icon: Icons.Home },
@@ -471,7 +484,7 @@
         };
 
         const Header = ({ title, setMobileOpen, searchQuery, setSearchQuery }) => (
-            <header className="h-24 sticky top-0 z-30 px-6 md:px-10 flex items-center justify-between backdrop-blur-sm shrink-0 bg-[#020617]/80 border-b border-white/5">
+            <header className="h-24 sticky top-0 z-30 px-6 md:px-10 flex items-center justify-between backdrop-blur-sm shrink-0 bg-[#020617]/80 border-b border-white/5 shadow-2xl">
                 <div className="flex items-center gap-4">
                     <button className="md:hidden p-2 text-slate-400 hover:text-white bg-white/5 rounded-lg border border-white/10" onClick={() => setMobileOpen(true)}><Icons.Menu size={24} /></button>
                     <div className="hidden md:block">
@@ -480,11 +493,17 @@
                     </div>
                 </div>
                 <div className="flex items-center gap-4 md:gap-6">
-                    <div className="relative hidden md:block group">
+                    <div className="relative hidden md:block group w-96">
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl opacity-30 group-hover:opacity-100 transition duration-500 blur"></div>
-                        <div className="relative flex items-center bg-[#0b1121] rounded-xl px-4 py-2.5 w-80 border border-white/10">
+                        <div className="relative flex items-center bg-[#0b1121] rounded-xl px-4 py-3 border border-white/10">
                             <Icons.Search className="text-slate-500 mr-3" size={20} />
-                            <input type="text" placeholder="Tìm tài liệu, game..." className="bg-transparent border-none text-white text-sm w-full focus:outline-none placeholder:text-slate-600 font-medium" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
+                            <input 
+                                type="text" 
+                                placeholder="Tìm tài liệu, game, công cụ..." 
+                                className="bg-transparent border-none text-white text-sm w-full focus:outline-none placeholder:text-slate-600 font-medium" 
+                                value={searchQuery} 
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
                     </div>
                     <button className="relative p-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all border border-white/10"><Icons.Bell size={22} /><span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#0b1121] shadow-[0_0_10px_#f43f5e]"></span></button>
@@ -492,11 +511,73 @@
             </header>
         );
 
-        /* VIEWS */
-        const DashboardView = ({ setView, openViewer }) => {
+        // --- DASHBOARD & SEARCH RESULTS ---
+        const DashboardView = ({ setView, openViewer, searchQuery, allData }) => {
+            
+            // LOGIC TÌM KIẾM TOÀN CỤC
+            if (searchQuery) {
+                const lowerQ = searchQuery.toLowerCase();
+                const matchedDocs = allData.documents.filter(d => d.title.toLowerCase().includes(lowerQ) || d.tag.toLowerCase().includes(lowerQ));
+                const matchedGames = allData.games.filter(g => g.title.toLowerCase().includes(lowerQ) || g.category.toLowerCase().includes(lowerQ));
+                const matchedTools = allData.tools.filter(t => t.title.toLowerCase().includes(lowerQ) || t.desc.toLowerCase().includes(lowerQ));
+                const matchedProjects = allData.projects.filter(p => p.title.toLowerCase().includes(lowerQ) || p.desc.toLowerCase().includes(lowerQ));
+
+                return (
+                    <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
+                        <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                            <Icons.Search className="text-cyan-400"/> Kết quả tìm kiếm cho "{searchQuery}"
+                        </h2>
+                        
+                        {matchedDocs.length === 0 && matchedGames.length === 0 && matchedTools.length === 0 && matchedProjects.length === 0 && (
+                            <div className="text-center py-20 text-slate-500">
+                                <p className="text-xl">Không tìm thấy kết quả nào.</p>
+                            </div>
+                        )}
+
+                        {matchedDocs.length > 0 && (
+                            <div className="mb-10">
+                                <h3 className="text-xl font-bold text-white mb-4 border-l-4 border-cyan-500 pl-3">Tài liệu</h3>
+                                <div className="space-y-3">
+                                    {matchedDocs.map((doc, i) => (
+                                        <div key={i} onClick={() => openViewer({...doc, category: 'doc'})} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer">
+                                            <div className="p-2 bg-cyan-900/30 rounded text-cyan-400"><Icons.FileText size={20}/></div>
+                                            <div className="flex-1">
+                                                <h4 className="text-white font-bold">{doc.title}</h4>
+                                                <span className="text-xs text-slate-400">{doc.tag}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Similar sections for Games, Tools, Projects if needed in search results */}
+                        {(matchedGames.length > 0 || matchedTools.length > 0 || matchedProjects.length > 0) && (
+                            <div className="mb-10">
+                                <h3 className="text-xl font-bold text-white mb-4 border-l-4 border-purple-500 pl-3">Ứng dụng & Game</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {[...matchedGames, ...matchedTools, ...matchedProjects].map((item, i) => {
+                                        const ItemIcon = CustomIcons[item.iconType] || Icons.Gamepad2;
+                                        return (
+                                            <div key={i} onClick={() => openViewer({...item, category: item.category || (item.desc ? 'tool' : 'game')})} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer">
+                                                <div className="w-10 h-10"><ItemIcon size={40}/></div>
+                                                <div>
+                                                    <h4 className="text-white font-bold text-sm">{item.title}</h4>
+                                                    <p className="text-xs text-slate-400">{item.category || item.desc}</p>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
             return (
                 <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto w-full fade-in-up">
-                    {/* Welcome Banner - Updated with Teacher Info */}
+                    {/* Welcome Banner */}
                     <div className="relative rounded-[32px] p-1 overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-1000"></div>
                         <div className="relative bg-[#0f172a]/90 backdrop-blur-2xl rounded-[30px] p-8 md:p-12 border border-white/10 overflow-hidden flex flex-col md:flex-row gap-10 items-center">
@@ -538,7 +619,12 @@
             );
         };
 
-        const LifeSkillsView = ({ openViewer }) => {
+        const LifeSkillsView = ({ openViewer, searchQuery, allData }) => {
+            // Apply search filter if needed
+            const displayProjects = searchQuery 
+                ? allData.projects.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                : allData.projects;
+
             return (
                 <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
                     <div className="mb-12 text-center">
@@ -548,7 +634,7 @@
                         <p className="text-slate-400 text-lg">Các dự án và trò chơi giáo dục giúp trang bị kỹ năng cần thiết cho cuộc sống.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {DATA_CONFIG.projects.map((proj, i) => {
+                        {displayProjects.map((proj, i) => {
                             const ProjIcon = CustomIcons[proj.iconType] || Icons.Gamepad2;
                             return (
                                 <div key={i} onClick={() => openViewer({...proj, category: 'project'})} className="glass-card p-6 rounded-[24px] flex items-center gap-6 group cursor-pointer hover:bg-rose-900/10 border border-rose-500/20">
@@ -570,8 +656,10 @@
             );
         };
 
-        const DocumentsView = ({ searchQuery, openViewer }) => {
-            const filtered = DATA_CONFIG.documents.filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()) || d.tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        const DocumentsView = ({ searchQuery, openViewer, allData }) => {
+            // Apply search filter
+            const filtered = allData.documents.filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()) || d.tag.toLowerCase().includes(searchQuery.toLowerCase()));
+            
             return (
                 <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
                     <div className="glass-card rounded-[32px] p-1">
@@ -600,8 +688,8 @@
             );
         };
 
-        const GamesView = ({ searchQuery, openViewer }) => {
-            const filtered = DATA_CONFIG.games.filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        const GamesView = ({ searchQuery, openViewer, allData }) => {
+            const filtered = allData.games.filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase()));
             return (
                 <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -627,8 +715,8 @@
             );
         };
 
-        const ToolsView = ({ searchQuery, openViewer }) => {
-            const filtered = DATA_CONFIG.tools.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        const ToolsView = ({ searchQuery, openViewer, allData }) => {
+            const filtered = allData.tools.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
             return (
                 <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -654,6 +742,88 @@
             const [mobileOpen, setMobileOpen] = useState(false);
             const [searchQuery, setSearchQuery] = useState('');
             const [viewingResource, setViewingResource] = useState(null);
+
+            // --- RESOURCE VIEWER ---
+            const ResourceViewer = ({ resource, onClose }) => {
+                const [loading, setLoading] = useState(true);
+                const [loadError, setLoadError] = useState(false);
+
+                if (!resource) return null;
+
+                const getBasePath = () => {
+                    if (resource.path) return resource.path;
+                    switch(resource.category) {
+                        case 'doc': return 'tai-lieu/';
+                        case 'game': return 'game/';
+                        case 'tool': return 'app/';
+                        case 'project': return resource.path || '';
+                        default: return '';
+                    }
+                };
+
+                const relativePath = getBasePath() + resource.filename;
+                // Lấy absolute URL để dùng cho Office Viewer
+                // Lưu ý: window.location.href có thể chứa index.html hoặc hash, cần xử lý cẩn thận
+                // Lấy base URL của site (ví dụ: https://username.github.io/repo/)
+                let baseUrl = window.location.origin + window.location.pathname;
+                // Xóa 'index.html' nếu có ở cuối
+                if (baseUrl.endsWith('index.html')) {
+                    baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
+                }
+                // Đảm bảo có dấu / ở cuối
+                if (!baseUrl.endsWith('/')) {
+                    baseUrl += '/';
+                }
+                
+                const absoluteUrl = baseUrl + relativePath;
+
+                const extension = resource.filename.split('.').pop().toLowerCase();
+                const isOffice = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension);
+                const isLocal = window.location.hostname === '' || window.location.hostname === 'localhost' || window.location.protocol === 'file:';
+
+                let viewerUrl = relativePath;
+                if (isOffice) {
+                    viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
+                }
+
+                return (
+                    <div className="viewer-overlay" onClick={onClose}>
+                        <div className="viewer-container" onClick={e => e.stopPropagation()}>
+                            <div className="h-16 bg-[#0b1121] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
+                                        {resource.category === 'game' ? <Icons.Gamepad2 size={20}/> : 
+                                        resource.category === 'tool' ? <Icons.Calculator size={20}/> : <Icons.DocPDF size={20}/>}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-white font-math tracking-wide text-lg">{resource.title}</h3>
+                                        <p className="text-xs text-slate-400 font-mono">{resource.filename}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => window.open(relativePath, '_blank')} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors"><Icons.ExternalLink size={16}/> Mở tab mới</button>
+                                    <button onClick={onClose} className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors"><Icons.X size={24}/></button>
+                                </div>
+                            </div>
+                            <div className="flex-1 bg-[#1e293b] relative w-full h-full">
+                                {loading && !loadError && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0f172a]"><div className="loading-spinner mb-4"></div><p className="text-slate-400 animate-pulse">Đang tải tài nguyên...</p></div>
+                                )}
+                                {isOffice && isLocal ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a] text-center p-8 z-20">
+                                        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><Icons.DocWord size={40}/></div>
+                                        <h3 className="text-2xl font-bold text-white mb-2">Chế độ xem trước không khả dụng Offline</h3>
+                                        <p className="text-slate-400 mb-8 max-w-md">File Word/Excel cần được đưa lên GitHub Pages để xem online.</p>
+                                        <a href={relativePath} download className="px-8 py-4 bg-cyan-600 text-white rounded-xl font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-1"><Icons.Download size={20}/> Tải về máy</a>
+                                    </div>
+                                ) : (
+                                    <iframe src={viewerUrl} className="w-full h-full border-0 block" title="Content Viewer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={() => setLoading(false)} onError={() => { setLoading(false); setLoadError(true); }} />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
 
             // Xử lý mở tài nguyên
             const handleOpenResource = (resource) => {
@@ -688,19 +858,31 @@
 
             return (
                 <div className="min-h-screen flex relative overflow-hidden">
-                    <div className="math-universe"><div className="grid-floor"></div><div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent"></div></div>
+                    <div className="math-universe">
+                        <div className="grid-floor"></div>
+                        {/* Particles */}
+                        {[...Array(15)].map((_, i) => (
+                            <div key={i} className="particle" style={{
+                                left: `${Math.random()*100}%`, 
+                                width: `${Math.random()*3+1}px`, height: `${Math.random()*3+1}px`,
+                                animationDuration: `${10+Math.random()*20}s`, animationDelay: `${Math.random()*-20}s`
+                            }}></div>
+                        ))}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent"></div>
+                    </div>
                     
                     <Sidebar currentView={currentView} setView={setCurrentView} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
                     <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden backdrop-blur-[2px]">
                         <Header title={getTitle()} setMobileOpen={setMobileOpen} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                         <main className="flex-1 overflow-y-auto scroll-smooth">
-                            {currentView === 'dashboard' && <DashboardView setView={setCurrentView} openViewer={handleOpenResource} />} 
-                            {currentView === 'lifeskills' && <LifeSkillsView openViewer={handleOpenResource} />}
-                            {currentView === 'documents' && <DocumentsView searchQuery={searchQuery} openViewer={handleOpenResource} />}
-                            {currentView === 'games' && <GamesView searchQuery={searchQuery} openViewer={handleOpenResource} />}
-                            {currentView === 'tools' && <ToolsView searchQuery={searchQuery} openViewer={handleOpenResource} />}
+                            {currentView === 'dashboard' && <DashboardView setView={setCurrentView} openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />} 
+                            {currentView === 'lifeskills' && <LifeSkillsView openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />}
+                            {currentView === 'documents' && <DocumentsView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
+                            {currentView === 'games' && <GamesView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
+                            {currentView === 'tools' && <ToolsView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
                         </main>
+                        <Footer />
                     </div>
 
                     {/* VIEWER MODAL */}
