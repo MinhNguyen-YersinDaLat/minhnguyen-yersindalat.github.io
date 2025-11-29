@@ -568,10 +568,10 @@
             </header>
         );
 
-        // --- VIEW COMPONENTS ---
-
+        // --- DASHBOARD & SEARCH RESULTS ---
         const DashboardView = ({ setView, openViewer, searchQuery, allData }) => {
-            // SEARCH LOGIC
+            
+            // LOGIC TÌM KIẾM TOÀN CỤC
             if (searchQuery) {
                 const lowerQ = searchQuery.toLowerCase();
                 const matchedDocs = allData.documents.filter(d => d.title.toLowerCase().includes(lowerQ) || d.tag.toLowerCase().includes(lowerQ));
