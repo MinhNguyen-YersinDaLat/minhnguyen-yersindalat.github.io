@@ -159,15 +159,8 @@
         const { useState, useEffect, Fragment, useMemo } = React;
 
         // ==================================================================================
-        // HƯỚNG DẪN SỬ DỤNG (CÁCH THÊM/BỚT NỘI DUNG)
+        // CẤU HÌNH DỮ LIỆU
         // ==================================================================================
-        // 1. INFOGRAPHIC (infographics):
-        //    - Thêm file ảnh (jpg, png) vào thư mục 'infographic/'
-        //    - Thêm dòng mới: { filename: "ten-anh.jpg", title: "Tiêu đề", desc: "Mô tả" }
-        //
-        // 2. CÁC MỤC KHÁC: Giữ nguyên như cũ.
-        // ==================================================================================
-
         const DATA_CONFIG = {
             documents: [
                 { filename: "12-CD1. TINH DON DIEU 2026.pdf", title: "CĐ 1: Tính Đơn Điệu Hàm Số", tag: "Mới", size: "1.7 MB", type: "PDF" },
@@ -207,7 +200,7 @@
                 }
             ],
             infographics: [
-                // Ví dụ placeholder
+                // Placeholder
                 { filename: "info_dao_ham.jpg", title: "Sơ đồ tư duy Đạo Hàm", desc: "Tóm tắt công thức chương 1" },
                 { filename: "info_hinh_hoc.png", title: "Hình học Không gian", desc: "Các khối đa diện thường gặp" }
             ]
@@ -240,55 +233,6 @@
                     <path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" />
                 </svg>
             ),
-            // Menu Icons
-            MenuDashboard: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <path d="M50 20 L20 45 V85 H80 V45 L50 20 Z" stroke="#22d3ee" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M35 85 V55 H65 V85" stroke="#22d3ee" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                    <rect x="42" y="35" width="16" height="10" fill="#22d3ee" opacity="0.5">
-                         <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
-                    </rect>
-                </svg>
-            ),
-            MenuLifeSkills: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <circle cx="50" cy="50" r="35" stroke="#f43f5e" strokeWidth="6"/>
-                    <circle cx="50" cy="50" r="20" stroke="#f43f5e" strokeWidth="4" opacity="0.5"/>
-                    <circle cx="50" cy="50" r="5" fill="#f43f5e">
-                        <animate attributeName="r" values="5;8;5" dur="1.5s" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-            ),
-            MenuDocuments: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <path d="M20 30 Q50 30 50 50 Q50 30 80 30 V80 Q50 80 50 100 Q50 80 20 80 V30 Z" stroke="#34d399" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M50 50 V100" stroke="#34d399" strokeWidth="6" strokeLinecap="round"/>
-                    <path d="M25 45 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                    <path d="M25 55 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                    <path d="M55 45 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                    <path d="M55 55 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                </svg>
-            ),
-            MenuGames: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <rect x="15" y="35" width="70" height="40" rx="10" stroke="#a855f7" strokeWidth="6"/>
-                    <path d="M30 55 H40 M35 50 V60" stroke="#a855f7" strokeWidth="6" strokeLinecap="round"/>
-                    <circle cx="65" cy="50" r="4" fill="#a855f7"/>
-                    <circle cx="75" cy="55" r="4" fill="#a855f7"/>
-                     <animateTransform attributeName="transform" type="rotate" values="-5 50 50; 5 50 50; -5 50 50" dur="3s" repeatCount="indefinite"/>
-                </svg>
-            ),
-            MenuTools: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <rect x="25" y="20" width="50" height="70" rx="5" stroke="#38bdf8" strokeWidth="6"/>
-                    <rect x="35" y="30" width="30" height="20" fill="#38bdf8" opacity="0.3"/>
-                    <circle cx="40" cy="65" r="4" fill="#38bdf8"/>
-                    <circle cx="60" cy="65" r="4" fill="#38bdf8"/>
-                    <circle cx="40" cy="75" r="4" fill="#38bdf8"/>
-                    <circle cx="60" cy="75" r="4" fill="#38bdf8"/>
-                </svg>
-            ),
-            // New: Infographic Icon
             InfographicIcon: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
                      <rect x="15" y="15" width="70" height="70" rx="5" stroke="#fbbf24" strokeWidth="4" fill="none" />
@@ -417,6 +361,54 @@
                     <rect x="19" y="65" width="15" height="10" fill="#f43f5e" opacity="0.3">
                         <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" begin="1s" repeatCount="indefinite"/>
                     </rect>
+                </svg>
+            ),
+            // Menu Icons
+            MenuDashboard: ({ size = 24, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <path d="M50 20 L20 45 V85 H80 V45 L50 20 Z" stroke="#22d3ee" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M35 85 V55 H65 V85" stroke="#22d3ee" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                    <rect x="42" y="35" width="16" height="10" fill="#22d3ee" opacity="0.5">
+                         <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+                    </rect>
+                </svg>
+            ),
+            MenuLifeSkills: ({ size = 24, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <circle cx="50" cy="50" r="35" stroke="#f43f5e" strokeWidth="6"/>
+                    <circle cx="50" cy="50" r="20" stroke="#f43f5e" strokeWidth="4" opacity="0.5"/>
+                    <circle cx="50" cy="50" r="5" fill="#f43f5e">
+                        <animate attributeName="r" values="5;8;5" dur="1.5s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            ),
+            MenuDocuments: ({ size = 24, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <path d="M20 30 Q50 30 50 50 Q50 30 80 30 V80 Q50 80 50 100 Q50 80 20 80 V30 Z" stroke="#34d399" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M50 50 V100" stroke="#34d399" strokeWidth="6" strokeLinecap="round"/>
+                    <path d="M25 45 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
+                    <path d="M25 55 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
+                    <path d="M55 45 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
+                    <path d="M55 55 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
+                </svg>
+            ),
+            MenuGames: ({ size = 24, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <rect x="15" y="35" width="70" height="40" rx="10" stroke="#a855f7" strokeWidth="6"/>
+                    <path d="M30 55 H40 M35 50 V60" stroke="#a855f7" strokeWidth="6" strokeLinecap="round"/>
+                    <circle cx="65" cy="50" r="4" fill="#a855f7"/>
+                    <circle cx="75" cy="55" r="4" fill="#a855f7"/>
+                     <animateTransform attributeName="transform" type="rotate" values="-5 50 50; 5 50 50; -5 50 50" dur="3s" repeatCount="indefinite"/>
+                </svg>
+            ),
+            MenuTools: ({ size = 24, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <rect x="25" y="20" width="50" height="70" rx="5" stroke="#38bdf8" strokeWidth="6"/>
+                    <rect x="35" y="30" width="30" height="20" fill="#38bdf8" opacity="0.3"/>
+                    <circle cx="40" cy="65" r="4" fill="#38bdf8"/>
+                    <circle cx="60" cy="65" r="4" fill="#38bdf8"/>
+                    <circle cx="40" cy="75" r="4" fill="#38bdf8"/>
+                    <circle cx="60" cy="75" r="4" fill="#38bdf8"/>
                 </svg>
             ),
             DocPDF: ({size=24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><text x="8" y="18" fontSize="6" fill="#f43f5e" fontWeight="bold">PDF</text></svg>,
@@ -829,9 +821,98 @@
             const [searchQuery, setSearchQuery] = useState('');
             const [viewingResource, setViewingResource] = useState(null);
 
+            // --- RESOURCE VIEWER ---
+            const ResourceViewer = ({ resource, onClose }) => {
+                const [loading, setLoading] = useState(true);
+                const [loadError, setLoadError] = useState(false);
+
+                if (!resource) return null;
+
+                const getBasePath = () => {
+                    if (resource.path) return resource.path;
+                    switch(resource.category) {
+                        case 'doc': return 'tai-lieu/';
+                        case 'game': return 'game/';
+                        case 'tool': return 'app/';
+                        case 'project': return resource.path || '';
+                        case 'infographic': return 'infographic/';
+                        default: return '';
+                    }
+                };
+
+                const relativePath = getBasePath() + resource.filename;
+                // Lấy absolute URL để dùng cho Office Viewer
+                // Lưu ý: window.location.href có thể chứa index.html hoặc hash, cần xử lý cẩn thận
+                // Lấy base URL của site (ví dụ: https://username.github.io/repo/)
+                let baseUrl = window.location.origin + window.location.pathname;
+                // Xóa 'index.html' nếu có ở cuối
+                if (baseUrl.endsWith('index.html')) {
+                    baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
+                }
+                // Đảm bảo có dấu / ở cuối
+                if (!baseUrl.endsWith('/')) {
+                    baseUrl += '/';
+                }
+                
+                const absoluteUrl = baseUrl + relativePath;
+
+                const extension = resource.filename.split('.').pop().toLowerCase();
+                const isOffice = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension);
+                const isLocal = window.location.hostname === '' || window.location.hostname === 'localhost' || window.location.protocol === 'file:';
+
+                let viewerUrl = relativePath;
+                if (isOffice) {
+                    viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
+                } else {
+                     // Ensure PDF/HTML etc use encoded URI for iframe source to handle spaces
+                     viewerUrl = encodeURI(relativePath);
+                     if(extension === 'pdf') {
+                        viewerUrl += "#toolbar=0&navpanes=0&view=FitH";
+                     }
+                }
+
+                return (
+                    <div className="viewer-overlay" onClick={onClose}>
+                        <div className="viewer-container" onClick={e => e.stopPropagation()}>
+                            <div className="h-16 bg-[#0b1121] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
+                                        {resource.category === 'game' ? <Icons.Gamepad2 size={20}/> : 
+                                        resource.category === 'tool' ? <Icons.Calculator size={20}/> : <Icons.DocPDF size={20}/>}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-white font-math tracking-wide text-lg">{resource.title}</h3>
+                                        <p className="text-xs text-slate-400 font-mono">{resource.filename}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => window.open(encodeURI(relativePath), '_blank')} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors"><Icons.ExternalLink size={16}/> Mở tab mới</button>
+                                    <button onClick={onClose} className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors"><Icons.X size={24}/></button>
+                                </div>
+                            </div>
+                            <div className="flex-1 bg-[#1e293b] relative w-full h-full">
+                                {loading && !loadError && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0f172a]"><div className="loading-spinner mb-4"></div><p className="text-slate-400 animate-pulse">Đang tải tài nguyên...</p></div>
+                                )}
+                                {isOffice && isLocal ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a] text-center p-8 z-20">
+                                        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><Icons.DocWord size={40}/></div>
+                                        <h3 className="text-2xl font-bold text-white mb-2">Chế độ xem trước không khả dụng Offline</h3>
+                                        <p className="text-slate-400 mb-8 max-w-md">File Word/Excel cần được đưa lên GitHub Pages để xem online.</p>
+                                        <a href={encodeURI(relativePath)} download className="px-8 py-4 bg-cyan-600 text-white rounded-xl font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-1"><Icons.Download size={20}/> Tải về máy</a>
+                                    </div>
+                                ) : (
+                                    <iframe src={viewerUrl} className="w-full h-full border-0 block" title="Content Viewer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={() => setLoading(false)} onError={() => { setLoading(false); setLoadError(true); }} />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
             // Xử lý mở tài nguyên
             const handleOpenResource = (resource) => {
-                if (resource.category === 'doc') {
+                if (resource.category === 'doc' || resource.category === 'infographic') { // Open Doc & Infographic in Modal
                     setViewingResource(resource);
                 } else {
                     let basePath = '';
@@ -845,8 +926,9 @@
                             default: basePath = '';
                         }
                     }
+                    // Fix: Encode URL để xử lý tên file có dấu cách khi mở tab mới
                     const url = basePath + resource.filename;
-                    window.open(url, '_blank'); // Mở tab mới
+                    window.open(encodeURI(url), '_blank'); 
                 }
             };
 
