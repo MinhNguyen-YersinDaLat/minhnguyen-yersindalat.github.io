@@ -3,314 +3,368 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Math Genius: Quantum Realm</title>
+<title>Math Genius: Arcade Scholar</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&family=Chakra+Petch:wght@400;600;700&display=swap');
+  /* FONT CHANGE: Merriweather (Serif) & Montserrat (Sans) */
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@400;600;800;900&display=swap');
 
   :root {
-    --bg-void: #0a0515;
-    --q-cyan: #00f0ff;
-    --q-purple: #bc13fe;
-    --q-pink: #ff0055;
-    --q-gold: #ffd700;
-    --glass-surf: rgba(25, 10, 40, 0.6);
-    --border-glow: rgba(188, 19, 254, 0.5);
-    --font-head: 'Bruno Ace SC', cursive;
-    --font-body: 'Chakra Petch', sans-serif;
+    --bg-paper: #f0f4f8;
+    --grid-line: rgba(99, 102, 241, 0.15);
+    --ink-blue: #1e1b4b;
+    --game-accent: #f43f5e; /* Rose */
+    --game-success: #10b981; /* Emerald */
+    --game-warn: #f59e0b; /* Amber */
+    --combo-fire: #ff5722;
+    
+    --card-shadow: 0 8px 0 #cbd5e1, 0 15px 20px rgba(0,0,0,0.1);
+    --card-active: 0 0 0 #cbd5e1, inset 0 0 10px rgba(0,0,0,0.1);
+    
+    /* UPDATED FONTS */
+    --font-math: 'Merriweather', serif;
+    --font-game: 'Montserrat', sans-serif;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 
   body {
     margin: 0; padding: 0;
-    background-color: var(--bg-void);
-    color: #fff;
-    font-family: var(--font-body);
+    background-color: var(--bg-paper);
+    color: var(--ink-blue);
+    font-family: var(--font-game);
     height: 100vh; height: 100dvh;
     overflow: hidden;
     display: flex; flex-direction: column;
   }
 
   /* --- LAYERS --- */
-  .abs-fill { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .world-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    overflow: hidden; z-index: 0; pointer-events: none;
+    perspective: 1000px;
+  }
   
-  #voidCanvas { z-index: 0; } /* Background Animation */
-  #partCanvas { z-index: 50; } /* Foreground Sparks */
-
-  /* GRID FLOOR (Perspective) */
-  .quantum-grid {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 45%;
-    background: linear-gradient(180deg, transparent 0%, rgba(188, 19, 254, 0.15) 100%);
-    perspective: 800px; z-index: 1; pointer-events: none; overflow: hidden;
+  /* Math Rain Canvas (Background) */
+  #bgCanvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; opacity: 0.15; /* Subtle background */
   }
-  .grid-mesh {
-    width: 200%; height: 200%; margin-left: -50%;
+
+  .grid-floor {
+    position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
     background-image: 
-      linear-gradient(rgba(188, 19, 254, 0.3) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(188, 19, 254, 0.3) 1px, transparent 1px);
+      linear-gradient(var(--grid-line) 2px, transparent 2px),
+      linear-gradient(90deg, var(--grid-line) 2px, transparent 2px);
     background-size: 60px 60px;
-    transform: rotateX(70deg) translateY(0);
-    transform-origin: 50% 100%;
-    animation: warpGrid 4s linear infinite;
-    mask-image: linear-gradient(to bottom, transparent 0%, black 50%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 50%);
+    transform: rotateX(60deg);
+    animation: planeFly 20s linear infinite;
+    z-index: 1;
   }
-  @keyframes warpGrid { from { background-position: 0 0; } to { background-position: 0 60px; } }
+  
+  /* Vignette overlay */
+  .vignette {
+    position: absolute; top:0; left:0; width:100%; height:100%;
+    background: radial-gradient(circle, transparent 40%, rgba(255,255,255,0.9) 100%);
+    z-index: 2;
+  }
+  
+  @keyframes planeFly { from { background-position: 0 0; } to { background-position: 0 60px; } }
 
-  /* UI SHELL */
-  .quantum-shell {
+  /* Effects Layer (Foreground) */
+  #fxCanvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 50; pointer-events: none; }
+
+  /* --- UI SHELL --- */
+  .app-shell {
     position: relative; z-index: 10;
     width: 100%; height: 100%;
     display: flex; flex-direction: column;
     padding-bottom: env(safe-area-inset-bottom);
-    background: radial-gradient(circle at top, transparent 0%, #000 120%);
   }
 
   /* 1. HUD */
-  .hud-strip {
+  .hud-bar {
     flex: 0 0 auto;
     padding: max(15px, env(safe-area-inset-top)) 20px 10px;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: flex-start;
   }
 
-  .stat-block {
-    background: linear-gradient(90deg, rgba(188,19,254,0.2), transparent);
-    border-left: 3px solid var(--q-purple);
+  .score-badge {
+    background: #fff;
+    border: 3px solid var(--ink-blue);
+    border-radius: 12px;
     padding: 5px 15px;
-    display: flex; flex-direction: column;
+    box-shadow: 4px 4px 0 var(--ink-blue);
+    transform: skew(-10deg);
   }
-  .stat-lbl { font-size: 10px; color: var(--q-cyan); letter-spacing: 2px; }
-  .stat-val { font-family: var(--font-head); font-size: 24px; color: #fff; text-shadow: 0 0 10px var(--q-purple); }
+  .lbl { font-size: 11px; color: var(--game-accent); letter-spacing: 1px; font-weight: 800; }
+  .val { font-size: 28px; line-height: 1; color: var(--ink-blue); font-weight: 900; }
 
-  .timer-diamond {
-    width: 50px; height: 50px;
-    transform: rotate(45deg);
-    border: 2px solid rgba(255,255,255,0.1);
-    box-shadow: 0 0 10px rgba(188,19,254,0.3);
-    display: grid; place-items: center;
-    position: relative;
+  .timer-pill {
+    background: #fff; border: 3px solid var(--ink-blue);
+    border-radius: 30px; height: 40px; width: 100px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 4px 4px 0 var(--ink-blue);
+    position: relative; overflow: hidden;
   }
-  .timer-diamond::before {
-    content:''; position: absolute; top:2px; left:2px; right:2px; bottom:2px;
-    border: 2px solid var(--q-cyan);
-    opacity: 0; transition: opacity 0.3s;
+  .timer-bar {
+    position: absolute; top:0; left:0; height:100%; width:100%;
+    background: var(--game-success); opacity: 0.3; transform-origin: left;
+    transition: width 0.1s linear;
   }
-  .timer-diamond.low::before { opacity: 1; border-color: var(--q-pink); animation: blink fast 0.5s infinite; }
-  .timer-num { transform: rotate(-45deg); font-weight: bold; font-size: 18px; }
+  .timer-txt { position: relative; font-size: 20px; z-index: 2; font-weight: 800; }
 
-  /* 2. GAME AREA */
-  .play-zone {
+  /* 2. GAMEPLAY AREA */
+  .game-stage {
     flex: 1;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     position: relative;
   }
 
-  /* Feedback Text */
-  .feedback-msg {
-    position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%) scale(0);
-    font-family: var(--font-head); font-size: 40px; font-weight: 900;
-    color: #fff; text-shadow: 0 0 20px currentColor;
-    pointer-events: none; opacity: 0; z-index: 100; white-space: nowrap;
+  /* Combo Meter (Left) */
+  .combo-meter {
+    position: absolute; left: 15px; top: 20%; bottom: 20%; width: 10px;
+    background: rgba(0,0,0,0.1); border-radius: 5px;
+    display: flex; flex-direction: column-reverse; overflow: hidden;
+  }
+  .combo-liquid {
+    width: 100%; height: 0%;
+    background: linear-gradient(to top, var(--game-success), var(--game-warn), var(--combo-fire));
+    transition: height 0.3s;
+    box-shadow: 0 0 10px var(--combo-fire);
+  }
+  .combo-text {
+    position: absolute; left: 30px; top: 50%; transform: translateY(-50%) rotate(-90deg);
+    font-size: 12px; letter-spacing: 4px; color: var(--text-sub); opacity: 0.6; transform-origin: center; font-weight: 700;
+  }
+
+  /* Feedback */
+  .feedback-pop {
+    position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0);
+    background: var(--ink-blue); color: #fff;
+    padding: 12px 24px; border-radius: 8px;
+    font-size: 20px; text-transform: uppercase; font-weight: 800;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    z-index: 100; pointer-events: none; opacity: 0;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  .feedback-msg.show { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
+  .feedback-pop.show { opacity: 1; transform: translate(-50%, -100%) scale(1.2); }
 
-  /* Hexagon Cards Container */
-  .hex-grid {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
-    width: 100%; max-width: 600px; padding: 10px; margin-bottom: 20px;
+  /* Card Grid */
+  .grid-wrap {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;
+    width: 100%; max-width: 600px; padding: 20px;
   }
 
-  .hex-card {
-    width: 60px; height: 70px;
-    background: var(--glass-surf);
-    position: relative;
+  .math-tile {
+    width: 70px; height: 95px;
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     display: flex; justify-content: center; align-items: center;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    font-family: var(--font-head); font-size: 22px; color: #fff;
-    transition: transform 0.3s;
-    backdrop-filter: blur(5px);
-    box-shadow: inset 0 0 20px rgba(188, 19, 254, 0.2);
-    animation: hexFloat 4s ease-in-out infinite;
-  }
-  /* Border hack for clip-path */
-  .hex-card::after {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    box-shadow: inset 0 0 0 2px rgba(0, 240, 255, 0.3);
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    font-family: var(--font-math); font-size: 34px; font-weight: 700;
+    color: var(--ink-blue);
+    box-shadow: var(--card-shadow);
+    transform: translateY(0);
+    transition: transform 0.1s, box-shadow 0.1s;
+    position: relative; overflow: hidden;
   }
   
-  .hex-card:nth-child(odd) { animation-delay: 0.5s; }
-  @keyframes hexFloat { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
-
-  .hex-card.q {
-    color: var(--q-gold);
-    animation: hexPulse 1s infinite alternate;
+  /* NEW: Shine Effect (Thẻ bài phản quang) */
+  .math-tile::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
+    transform: skewX(-25deg);
+    animation: shine 4s infinite;
   }
-  .hex-card.q::after { background: rgba(255, 215, 0, 0.1); box-shadow: inset 0 0 0 2px var(--q-gold); }
-  @keyframes hexPulse { to { transform: scale(1.05); text-shadow: 0 0 10px var(--q-gold); } }
+  @keyframes shine { 
+    0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } 
+  }
 
-  /* Input Display */
-  .input-prism {
-    width: 260px; height: 60px;
-    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.8), transparent);
-    border-top: 1px solid var(--q-cyan);
-    border-bottom: 1px solid var(--q-cyan);
+  /* 3D Press Effect */
+  .math-tile:active { transform: translateY(8px); box-shadow: var(--card-active); }
+  
+  /* Question Mark Tile */
+  .math-tile.q {
+    background: #fff1f2; border-color: var(--game-accent); color: var(--game-accent);
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+  /* Input */
+  .input-slate {
+    width: 280px; height: 75px;
+    background: #fff;
+    border: 3px solid var(--ink-blue);
+    border-radius: 16px;
     display: flex; justify-content: center; align-items: center;
-    position: relative;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+    margin-top: 10px; position: relative;
   }
-  .input-val { font-family: var(--font-head); font-size: 32px; color: var(--q-cyan); letter-spacing: 3px; }
-  .input-cursor { width: 10px; height: 2px; background: var(--q-cyan); position: absolute; bottom: 10px; animation: blink 0.8s infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
+  .input-val { font-family: var(--font-math); font-size: 46px; font-weight: 900; color: var(--ink-blue); letter-spacing: 2px; }
+  .cursor { width: 3px; height: 35px; background: var(--game-accent); margin-left: 5px; animation: blink 1s infinite; }
+  @keyframes blink { 50%{opacity:0;} }
 
-  /* 3. CONTROLS */
+  /* 3. KEYPAD */
   .control-pad {
     flex: 0 0 auto;
-    background: rgba(10, 5, 20, 0.9);
-    border-top: 2px solid var(--q-purple);
-    padding: 15px; padding-bottom: max(20px, env(safe-area-inset-bottom));
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-    box-shadow: 0 -10px 40px rgba(188, 19, 254, 0.2);
+    background: #fff;
+    border-top: 2px solid #e2e8f0;
+    padding: 20px; padding-bottom: max(25px, env(safe-area-inset-bottom));
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    border-radius: 30px 30px 0 0;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
   }
 
-  .btn {
-    height: 55px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #fff; font-family: var(--font-head); font-size: 20px;
+  .key {
+    height: 60px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-bottom-width: 4px;
+    border-radius: 12px;
+    color: var(--ink-blue); font-family: var(--font-game); font-size: 24px; font-weight: 700;
     display: flex; justify-content: center; align-items: center;
-    cursor: pointer; position: relative;
-    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-    transition: all 0.1s;
+    cursor: pointer; transition: all 0.1s;
   }
-  .btn:active { background: rgba(188, 19, 254, 0.3); border-color: var(--q-purple); transform: scale(0.95); }
+  .key:active { transform: translateY(3px); border-bottom-width: 1px; background: #e2e8f0; }
   
-  .btn.hint { color: var(--q-gold); border-color: rgba(255, 215, 0, 0.3); font-size: 22px; }
-  .btn.act { color: var(--q-pink); border-color: rgba(255, 0, 85, 0.3); font-size: 16px; }
+  .key.act { color: var(--game-accent); font-size: 18px; }
+  .key.hint { background: #fffbeb; border-color: #fcd34d; border-bottom-color: #d97706; color: #d97706; }
   
-  .btn.go {
+  .key.go {
     grid-column: span 2;
-    background: linear-gradient(90deg, var(--q-purple), var(--q-cyan));
-    color: #000; font-weight: 900; border: none;
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+    background: var(--ink-blue); color: #fff; border-color: #0f172a;
   }
-  .btn.go:active { filter: brightness(1.2); }
+  .key.go:active { background: #312e81; }
 
-  /* 4. MODALS */
-  .modal-wrap {
+  /* MODALS */
+  .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); z-index: 200;
+    background: rgba(30, 27, 75, 0.9); z-index: 200;
     display: flex; justify-content: center; align-items: center;
     opacity: 0; pointer-events: none; transition: opacity 0.3s;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(5px);
   }
-  .modal-wrap.active { opacity: 1; pointer-events: auto; }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
 
-  .quantum-card {
+  .paper-card {
     width: 90%; max-width: 380px;
-    background: #05020a;
-    border: 1px solid var(--q-purple);
-    box-shadow: 0 0 60px rgba(188, 19, 254, 0.2);
-    padding: 30px; text-align: center;
-    position: relative;
-  }
-  .quantum-card::after {
-    content:''; position: absolute; top:-5px; left:-5px; right:-5px; bottom:-5px;
-    border: 1px solid var(--q-cyan); opacity: 0.3; pointer-events: none;
+    background: #fff; padding: 40px 30px; text-align: center;
+    border-radius: 24px;
+    border: 4px solid var(--ink-blue);
+    box-shadow: 10px 10px 0 var(--game-accent);
+    transform: rotate(-2deg);
   }
 
-  h1 { font-family: var(--font-head); color: var(--q-cyan); margin: 0 0 10px; font-size: 26px; text-transform: uppercase; }
-  p.sub { color: #888; font-size: 12px; margin-bottom: 25px; letter-spacing: 3px; }
+  h1 { margin: 0 0 10px; font-size: 36px; color: var(--ink-blue); line-height: 1; font-weight: 900; }
+  p.sub { color: #64748b; font-size: 14px; margin-bottom: 30px; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
 
-  .q-row { margin-bottom: 20px; text-align: left; }
-  label { color: var(--q-purple); font-size: 11px; display: block; margin-bottom: 8px; font-weight: bold; letter-spacing: 1px; }
+  .row { margin-bottom: 20px; text-align: left; }
+  label { display: block; font-size: 12px; font-weight: 800; color: var(--ink-blue); margin-bottom: 8px; }
   select {
-    width: 100%; padding: 12px; background: rgba(255,255,255,0.05);
-    border: 1px solid #333; color: #fff; font-family: var(--font-body); font-size: 16px; outline: none;
+    width: 100%; padding: 15px; background: #f1f5f9;
+    border: 2px solid #cbd5e1; color: var(--ink-blue);
+    font-family: var(--font-game); font-size: 16px; border-radius: 12px; outline: none; font-weight: 600;
   }
 
-  .btn-launch {
-    width: 100%; padding: 15px;
-    background: var(--q-cyan); color: #000;
-    font-family: var(--font-head); font-weight: 700; font-size: 18px; border: none;
-    cursor: pointer; margin-top: 15px;
-    clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px);
+  .btn-big {
+    width: 100%; padding: 18px;
+    background: var(--game-success); color: #fff;
+    font-size: 20px; border: 3px solid #065f46; font-weight: 800;
+    border-radius: 12px; margin-top: 15px; cursor: pointer;
+    box-shadow: 0 4px 0 #065f46;
     transition: transform 0.1s;
   }
-  .btn-launch:active { transform: scale(0.98); background: #fff; }
+  .btn-big:active { transform: translateY(4px); box-shadow: none; }
 
-  /* Message Box */
-  #msgText { color: #fff; font-size: 16px; line-height: 1.6; margin: 20px 0; min-height: 40px; }
+  /* Stronger Shake Animation */
+  .shake-screen { animation: shakeHard 0.5s ease-in-out; }
+  @keyframes shakeHard {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-5px, -5px); }
+    30% { transform: translate(5px, 5px); }
+    50% { transform: translate(-5px, 5px); }
+    70% { transform: translate(5px, -5px); }
+    90% { transform: translate(-2px, 2px); }
+  }
 
 </style>
 </head>
 <body>
 
 <!-- BACKGROUND -->
-<div class="abs-fill" id="voidContainer">
-  <canvas id="voidCanvas"></canvas>
-  <div class="quantum-grid"><div class="grid-mesh"></div></div>
+<div class="world-container">
+  <canvas id="bgCanvas"></canvas> <!-- Math Rain -->
+  <div class="grid-floor"></div>
+  <div class="vignette"></div>
 </div>
+<canvas id="fxCanvas"></canvas> <!-- Confetti -->
 
-<div class="quantum-shell">
+<div class="app-shell" id="appShell">
   <!-- HUD -->
-  <div class="hud-strip">
-    <div class="stat-block">
-      <span class="stat-lbl">SCORE</span>
-      <span class="stat-val" id="scoreVal">0</span>
+  <div class="hud-bar">
+    <div class="score-badge">
+      <div class="lbl">ĐIỂM SỐ</div>
+      <div class="val" id="scoreVal">0</div>
     </div>
-    <div class="timer-diamond" id="timerBox">
-      <span class="timer-num" id="timerVal">60</span>
+    <div class="timer-pill">
+      <div class="timer-bar" id="timeBar"></div>
+      <div class="timer-txt" id="timerVal">60</div>
     </div>
   </div>
 
   <!-- GAMEPLAY -->
-  <div class="play-zone">
-    <!-- Feedback Text -->
-    <div class="feedback-msg" id="feedback">PERFECT</div>
+  <div class="game-stage">
+    <!-- COMBO -->
+    <div class="combo-meter">
+      <div class="combo-liquid" id="comboFill"></div>
+    </div>
+    <div class="combo-text">COMBO</div>
 
-    <!-- Cards -->
-    <div class="hex-grid" id="cardGrid"></div>
+    <!-- FEEDBACK -->
+    <div class="feedback-pop" id="feedback">CHÍNH XÁC</div>
 
-    <!-- Display -->
-    <div class="input-prism" id="inputBox">
+    <!-- CARDS -->
+    <div class="grid-wrap" id="cardGrid"></div>
+
+    <!-- INPUT -->
+    <div class="input-slate" id="inputBox">
       <span class="input-val" id="inputTxt"></span>
-      <div class="input-cursor"></div>
+      <div class="cursor"></div>
     </div>
   </div>
 
-  <!-- KEYPAD -->
+  <!-- CONTROLS -->
   <div class="control-pad">
-    <div class="btn hint" id="btnHint">💡</div>
-    <div class="btn act" id="btnClear">C</div>
-    <div class="btn act" id="btnBack">⌫</div>
-    <div class="btn act" id="btnNeg">+/-</div>
+    <div class="key hint" id="btnHint">💡</div>
+    <div class="key act" id="btnClear">C</div>
+    <div class="key act" id="btnBack">⌫</div>
+    <div class="key act" id="btnNeg">+/-</div>
 
-    <div class="btn num" data-k="1">1</div>
-    <div class="btn num" data-k="2">2</div>
-    <div class="btn num" data-k="3">3</div>
-    <div class="btn num" data-k="4">4</div>
-    <div class="btn num" data-k="5">5</div>
-    <div class="btn num" data-k="6">6</div>
-    <div class="btn num" data-k="7">7</div>
-    <div class="btn num" data-k="8">8</div>
-    <div class="btn num" data-k="9">9</div>
-    <div class="btn num" data-k="0">0</div>
+    <div class="key num" data-k="1">1</div>
+    <div class="key num" data-k="2">2</div>
+    <div class="key num" data-k="3">3</div>
+    <div class="key num" data-k="4">4</div>
+    <div class="key num" data-k="5">5</div>
+    <div class="key num" data-k="6">6</div>
+    <div class="key num" data-k="7">7</div>
+    <div class="key num" data-k="8">8</div>
+    <div class="key num" data-k="9">9</div>
+    <div class="key num" data-k="0">0</div>
     
-    <button class="btn go" id="btnEnter">EXECUTE</button>
+    <button class="key go" id="btnEnter">NHẬP</button>
   </div>
 </div>
 
-<!-- START MENU -->
-<div class="modal-wrap active" id="menuModal">
-  <div class="quantum-card">
-    <h1>QUANTUM REALM</h1>
-    <p class="sub">MATH GENIUS EDITION</p>
+<!-- MENUS -->
+<div class="modal-overlay show" id="startMenu">
+  <div class="paper-card">
+    <h1>ARCADE SCHOLAR</h1>
+    <p class="sub">CHINH PHỤC TOÁN HỌC</p>
     
-    <div class="q-row">
-      <label>MODE</label>
+    <div class="row">
+      <label>CHỦ ĐỀ</label>
       <select id="modeSel">
-        <option value="mixed">HỖN HỢP (MIXED)</option>
+        <option value="mixed">HỖN HỢP</option>
         <option value="csc">CỘNG (+)</option>
         <option value="csn">NHÂN (×)</option>
         <option value="fib">FIBONACCI</option>
@@ -318,8 +372,8 @@
       </select>
     </div>
     
-    <div class="q-row">
-      <label>DIFFICULTY</label>
+    <div class="row">
+      <label>ĐỘ KHÓ</label>
       <select id="diffSel">
         <option value="easy">DỄ (60s)</option>
         <option value="medium">VỪA (45s)</option>
@@ -327,24 +381,19 @@
       </select>
     </div>
     
-    <button class="btn-launch" id="startBtn">KHỞI ĐỘNG</button>
+    <button class="btn-big" id="startBtn">BẮT ĐẦU</button>
   </div>
 </div>
 
-<!-- INFO MODAL -->
-<div class="modal-wrap" id="infoModal">
-  <div class="quantum-card" style="border-color: var(--q-gold);">
-    <h1 style="color: var(--q-gold);">GỢI Ý</h1>
-    <p id="msgText">...</p>
-    <button class="btn-launch" id="closeInfo" style="background:#333; color:#fff;">ĐÓNG</button>
+<div class="modal-overlay" id="infoModal">
+  <div class="paper-card" style="border-color: var(--game-warn); box-shadow: 10px 10px 0 var(--game-warn);">
+    <h1 style="color: var(--game-warn);">GỢI Ý</h1>
+    <p id="msgText" style="font-size:24px; color: #1e293b; margin:20px 0; font-family: var(--font-math);">...</p>
+    <button class="btn-big" id="closeInfo" style="background:var(--ink-blue); border-color:#0f172a; box-shadow: 0 4px 0 #0f172a;">ĐÓNG</button>
   </div>
 </div>
-
-<!-- PARTICLES -->
-<canvas id="partCanvas" class="abs-fill"></canvas>
 
 <script>
-// --- UTILS ---
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -364,69 +413,87 @@ const SFX = {
     osc.start(); osc.stop(this.ctx.currentTime + dur);
   },
   tap() { this.play('triangle', 600, 300, 0.05); },
-  win() { this.play('sine', 400, 800, 0.1); setTimeout(()=>this.play('square',800,1200,0.2), 100); },
+  win() { this.play('sine', 500, 1000, 0.1); setTimeout(()=>this.play('triangle', 800, 1200, 0.2), 100); },
   lose() { this.play('sawtooth', 150, 50, 0.3); },
-  alert() { this.play('square', 800, 400, 0.1, 0.2); }
+  alert() { this.play('square', 600, 600, 0.1, 0.2); }
 };
 
-// --- VFX ---
-const VFX = {
-  void: { cvs:$('#voidCanvas'), ctx:$('#voidCanvas').getContext('2d'), parts:[] },
-  fg: { cvs:$('#partCanvas'), ctx:$('#partCanvas').getContext('2d'), sparks:[] },
+// --- VISUAL FX ---
+const FX = {
+  bg: $('#bgCanvas').getContext('2d'),
+  fg: $('#fxCanvas').getContext('2d'),
+  rain: [], sparks: [],
   
   init() {
     this.resize(); window.onresize = () => this.resize();
-    // Background Particles
-    for(let i=0; i<80; i++) {
-      this.void.parts.push({
-        x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
-        r: Math.random()*1.5, a: Math.random()*0.5+0.1,
-        vy: Math.random()*0.5+0.1
+    // Initialize Math Rain
+    const symbols = ['+', '-', '×', '÷', '∑', 'π', '√', '∞'];
+    for(let i=0; i<40; i++) {
+      this.rain.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        txt: symbols[Math.floor(Math.random() * symbols.length)],
+        size: Math.random() * 20 + 10,
+        speed: Math.random() * 1.5 + 0.5
       });
     }
     this.loop();
   },
   
   resize() {
-    [this.void, this.fg].forEach(l => {
-      l.cvs.width = window.innerWidth; l.cvs.height = window.innerHeight;
+    [$('#bgCanvas'), $('#fxCanvas')].forEach(c => {
+      c.width = window.innerWidth; c.height = window.innerHeight;
     });
   },
 
-  burst(x, y, color) {
-    for(let i=0; i<30; i++) {
-      this.fg.sparks.push({
-        x, y, color, vx:(Math.random()-.5)*12, vy:(Math.random()-.5)*12, life:1, size:Math.random()*4+1
+  confetti(x, y) {
+    const colors = ['#e11d48', '#059669', '#d97706', '#2563eb'];
+    for(let i=0; i<40; i++) {
+      this.sparks.push({
+        x, y, 
+        vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*20,
+        life: 1, size: Math.random()*8+4,
+        color: colors[Math.floor(Math.random()*colors.length)]
       });
     }
   },
 
   loop() {
-    // 1. Void BG
-    const vc = this.void.ctx;
-    vc.clearRect(0,0,this.void.cvs.width, this.void.cvs.height);
-    vc.fillStyle = '#bc13fe';
-    this.void.parts.forEach(p => {
-      p.y -= p.vy;
-      if(p.y < 0) { p.y = this.void.cvs.height; p.x = Math.random()*this.void.cvs.width; }
-      vc.globalAlpha = p.a;
-      vc.beginPath(); vc.arc(p.x, p.y, p.r, 0, Math.PI*2); vc.fill();
+    // 1. Math Rain (Background)
+    const b = this.bg;
+    b.clearRect(0,0,b.canvas.width, b.canvas.height);
+    b.fillStyle = '#1e1b4b'; 
+    b.font = 'bold 20px serif'; // Fallback
+    
+    this.rain.forEach(p => {
+      p.y += p.speed;
+      if(p.y > b.canvas.height) p.y = -50;
+      b.globalAlpha = 0.15; 
+      b.font = `bold ${p.size}px 'Merriweather', serif`;
+      b.fillText(p.txt, p.x, p.y);
     });
 
-    // 2. FG Sparks
-    const fc = this.fg.ctx;
-    fc.clearRect(0,0,this.fg.cvs.width, this.fg.cvs.height);
-    fc.globalCompositeOperation = 'lighter';
-    for(let i=this.fg.sparks.length-1; i>=0; i--) {
-      let p = this.fg.sparks[i];
-      p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.03;
-      fc.globalAlpha = Math.max(0, p.life);
-      fc.fillStyle = p.color;
-      fc.beginPath(); fc.arc(p.x, p.y, p.size, 0, Math.PI*2); fc.fill();
-      if(p.life <= 0) this.fg.sparks.splice(i,1);
+    // 2. Confetti (Foreground)
+    const f = this.fg;
+    f.clearRect(0,0,f.canvas.width, f.canvas.height);
+    for(let i=this.sparks.length-1; i>=0; i--) {
+      let p = this.sparks[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.5; // gravity
+      p.life -= 0.02;
+      
+      f.globalAlpha = Math.max(0, p.life);
+      f.fillStyle = p.color;
+      
+      f.save();
+      f.translate(p.x, p.y);
+      f.rotate(p.life * 5); // spin
+      f.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      f.restore();
+      
+      if(p.life <= 0) this.sparks.splice(i,1);
     }
     
-    requestAnimationFrame(() => this.loop());
+    requestAnimationFrame(()=>this.loop());
   }
 };
 
@@ -441,16 +508,16 @@ const Logic = {
     
     if(m==='csc') {
       let d = rand(2,10)*(Math.random()>.5?1:-1), s = rand(10,50);
-      for(let i=0;i<len;i++) seq.push(s+i*d); ans=s+len*d; hint=`Cộng thêm ${d}`;
+      for(let i=0;i<len;i++) seq.push(s+i*d); ans=s+len*d; hint=`Quy luật: Cộng thêm ${d}`;
     } else if(m==='csn') {
       let q = rand(2,3), s = rand(1,5);
-      for(let i=0;i<len;i++) seq.push(s*Math.pow(q,i)); ans=s*Math.pow(q,len); hint=`Nhân thêm ${q}`;
+      for(let i=0;i<len;i++) seq.push(s*Math.pow(q,i)); ans=s*Math.pow(q,len); hint=`Quy luật: Nhân thêm ${q}`;
     } else if(m==='fib') {
       let a=rand(1,5), b=rand(a,a+5); seq=[a,b];
-      for(let i=2;i<len;i++) seq.push(seq[i-1]+seq[i-2]); ans=seq[len-1]+seq[len-2]; hint="Fibonacci: Tổng 2 số trước";
+      for(let i=2;i<len;i++) seq.push(seq[i-1]+seq[i-2]); ans=seq[len-1]+seq[len-2]; hint="Fibonacci: Tổng 2 số liền trước";
     } else {
       let p=rand(2,50); while(!Logic.isPrime(p)) p++; seq.push(p);
-      for(let i=1;i<len;i++) seq.push(Logic.nextPrime(seq[i-1])); ans=Logic.nextPrime(seq[len-1]); hint="Nguyên tố tiếp theo";
+      for(let i=1;i<len;i++) seq.push(Logic.nextPrime(seq[i-1])); ans=Logic.nextPrime(seq[len-1]); hint="Dãy số nguyên tố tăng dần";
     }
     return { seq, ans, hint };
   }
@@ -458,24 +525,23 @@ const Logic = {
 
 // --- GAME ---
 const Game = {
-  state: { score: 0, time: 0, maxT: 60, input: "", playing: false },
-  q: null,
+  state: { score: 0, time: 0, maxT: 60, input: "", playing: false, combo: 0 },
+  q: null, fbTimer: null,
 
   init() {
-    VFX.init();
+    FX.init();
     
-    $$('.btn.num').forEach(b => {
-      b.addEventListener('touchstart', () => b.style.background = 'rgba(188,19,254,0.3)');
-      b.addEventListener('touchend', () => b.style.background = '');
+    $$('.key.num').forEach(b => {
       b.onclick = () => this.type(b.dataset.k);
     });
+    
     $('#btnBack').onclick = () => this.del();
     $('#btnClear').onclick = () => this.clr();
     $('#btnNeg').onclick = () => this.neg();
     $('#btnEnter').onclick = () => this.check();
     $('#startBtn').onclick = () => this.start();
     $('#btnHint').onclick = () => this.hint();
-    $('#closeInfo').onclick = () => $('#infoModal').classList.remove('active');
+    $('#closeInfo').onclick = () => $('#infoModal').classList.remove('show');
   },
 
   type(k) { 
@@ -488,12 +554,16 @@ const Game = {
     this.state.input = this.state.input.startsWith('-') ? this.state.input.slice(1) : '-' + this.state.input;
     this.ui(); SFX.tap(); 
   },
-  ui() { $('#inputTxt').innerText = this.state.input; },
+  ui() { 
+    $('#inputTxt').innerText = this.state.input; 
+  },
 
   start() {
-    $('#menuModal').classList.remove('active');
-    this.state.score = 0; this.state.playing = true;
+    $('#startMenu').classList.remove('show');
+    this.state.score = 0; this.state.combo = 0; this.state.playing = true;
     this.state.maxT = $('#diffSel').value==='easy'?60:($('#diffSel').value==='medium'?45:30);
+    $('#scoreVal').innerText = "0";
+    this.updateCombo();
     this.next(); this.loop();
   },
 
@@ -502,17 +572,17 @@ const Game = {
     this.state.time = this.state.maxT;
     this.state.input = ""; this.ui();
     
-    // FIX: Hide previous feedback immediately when next question starts
     $('#feedback').classList.remove('show');
+    if(this.fbTimer) clearTimeout(this.fbTimer);
 
     const g = $('#cardGrid'); g.innerHTML = '';
-    this.q.seq.forEach(n => {
+    this.q.seq.forEach((n,i) => {
       let d = document.createElement('div');
-      d.className = 'hex-card'; d.innerText = n;
+      d.className = 'math-tile'; d.innerText = n;
       g.appendChild(d);
     });
     let qm = document.createElement('div');
-    qm.className = 'hex-card q'; qm.innerText = '?';
+    qm.className = 'math-tile q'; qm.innerText = '?';
     g.appendChild(qm);
   },
 
@@ -523,22 +593,34 @@ const Game = {
 
     if(v === this.q.ans) {
       SFX.win();
-      this.state.score += 10 + Math.ceil(this.state.time/5);
-      $('#scoreVal').innerText = this.state.score;
-      this.msg("CHÍNH XÁC", "#00ff9d");
+      this.state.combo = Math.min(this.state.combo + 1, 10);
+      let bonus = this.state.combo * 2;
+      this.state.score += 10 + bonus;
       
-      const rect = $('.play-zone').getBoundingClientRect();
-      VFX.burst(rect.left+rect.width/2, rect.top+rect.height/2, '#00ff9d');
+      $('#scoreVal').innerText = this.state.score;
+      this.msg(`CHÍNH XÁC! +${10+bonus}`, "#10b981");
+      
+      const rect = $('.game-stage').getBoundingClientRect();
+      FX.confetti(rect.left+rect.width/2, rect.top+rect.height/2);
       
       setTimeout(() => this.next(), 1000);
     } else {
       SFX.lose();
+      this.state.combo = 0;
       this.state.time -= 5;
-      this.msg("SAI RỒI", "#ff0055");
-      $('#inputBox').style.borderColor = '#ff0055';
-      setTimeout(()=>$('#inputBox').style.borderColor='', 300);
+      this.msg("SAI RỒI (-5s)", "#f43f5e", 1500);
+      
+      // Stronger Screen Shake
+      $('#appShell').classList.add('shake-screen');
+      setTimeout(()=>$('#appShell').classList.remove('shake-screen'), 500);
+      
       this.state.input = ""; this.ui();
     }
+    this.updateCombo();
+  },
+
+  updateCombo() {
+    $('#comboFill').style.height = (this.state.combo * 10) + '%';
   },
 
   hint() {
@@ -546,20 +628,25 @@ const Game = {
       this.state.score -= 2;
       $('#scoreVal').innerText = this.state.score;
       $('#msgText').innerText = this.q.hint;
-      $('#infoModal').classList.add('active');
+      $('#infoModal').classList.add('show');
     } else {
       SFX.alert();
-      this.msg("CẦN 2 ĐIỂM", "#ffd700");
+      this.msg("THIẾU ĐIỂM", "#f59e0b", 1500);
     }
   },
 
-  msg(t, c) {
+  msg(t, col, autoHide=0) {
+    if(this.fbTimer) clearTimeout(this.fbTimer);
+    
     let el = $('#feedback');
-    el.innerText = t; el.style.color = c; el.style.textShadow = `0 0 20px ${c}`;
-    // Force restart animation
-    el.classList.remove('show');
-    void el.offsetWidth; // trigger reflow
+    el.innerText = t; el.style.backgroundColor = col;
     el.classList.add('show');
+    
+    if(autoHide > 0) {
+      this.fbTimer = setTimeout(() => {
+        el.classList.remove('show');
+      }, autoHide);
+    }
   },
 
   loop() {
@@ -567,14 +654,16 @@ const Game = {
     this.state.time -= 0.05;
     
     $('#timerVal').innerText = Math.ceil(this.state.time);
+    $('#timeBar').style.width = (this.state.time / this.state.maxT * 100) + '%';
     
-    if(this.state.time < 10) $('#timerBox').classList.add('low');
-    else $('#timerBox').classList.remove('low');
+    if(this.state.time < 10) $('#timeBar').style.background = '#f43f5e';
+    else $('#timeBar').style.background = '#10b981';
 
     if(this.state.time <= 0) {
       this.state.playing = false;
-      $('#menuModal').classList.add('active');
-      $('#menuModal h1').innerText = "HẾT GIỜ";
+      $('#startMenu').classList.add('show');
+      $('h1').innerText = "HẾT GIỜ";
+      $('.sub').innerText = `TỔNG ĐIỂM: ${this.state.score}`;
       $('#startBtn').innerText = "CHƠI LẠI";
     } else {
       setTimeout(() => this.loop(), 50);
