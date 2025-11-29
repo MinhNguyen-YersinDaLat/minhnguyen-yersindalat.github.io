@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Math Genius: Arcade Scholar</title>
 <style>
-  /* CẬP NHẬT FONT: Montserrat & Merriweather (Hỗ trợ Tiếng Việt tuyệt đối) */
-  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@400;600;700;800&display=swap');
+  /* Fonts: 'Crimson Pro' for Math look, 'Righteous' for Game look */
+  @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,600;0,800;1,700&family=Righteous&display=swap');
 
   :root {
     --bg-paper: #f0f4f8;
@@ -21,6 +21,15 @@
     --card-active: 0 0 0 #cbd5e1, inset 0 0 0.5rem rgba(0,0,0,0.1);
     
     /* Font Variables Updated */
+    --font-math: 'Merriweather', serif;
+    --font-game: 'Montserrat', sans-serif;
+  }
+  
+  /* RE-IMPORTING THE FONTS YOU LIKED from previous step to ensure best look */
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@400;600;800;900&display=swap');
+  
+  /* Overriding variables to use the requested fonts */
+  :root {
     --font-math: 'Merriweather', serif;
     --font-game: 'Montserrat', sans-serif;
   }
@@ -115,7 +124,7 @@
     background: var(--game-success); opacity: 0.3; transform-origin: left;
     transition: width 0.1s linear;
   }
-  .timer-txt { position: relative; font-size: 1.2rem; z-index: 2; font-weight: 800; }
+  .timer-txt { position: relative; font-size: 1.2rem; z-index: 2; font-weight: 700; }
 
   /* 2. GAMEPLAY AREA - Flexible Space */
   .game-stage {
@@ -143,7 +152,7 @@
   }
   .combo-text {
     position: absolute; left: 25px; top: 50%; transform: translateY(-50%) rotate(-90deg);
-    font-size: 0.7rem; letter-spacing: 4px; color: var(--text-sub); opacity: 0.6; transform-origin: center; font-weight: 800;
+    font-size: 0.7rem; letter-spacing: 4px; color: var(--text-sub); opacity: 0.6; transform-origin: center; font-weight: 700;
   }
 
   /* Feedback */
@@ -151,7 +160,7 @@
     position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
     background: var(--ink-blue); color: #fff;
     padding: 0.8rem 1.5rem; border-radius: 8px;
-    font-size: 1.2rem; text-transform: uppercase; font-weight: 800;
+    font-size: 1.2rem; text-transform: uppercase; font-weight: 700;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     z-index: 100; pointer-events: none; opacity: 0;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -328,7 +337,7 @@
   p.sub { color: #64748b; font-size: 0.8rem; margin-bottom: 20px; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
 
   .row { margin-bottom: 15px; text-align: left; }
-  label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--ink-blue); margin-bottom: 5px; }
+  label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--ink-blue); margin-bottom: 5px; }
   select {
     width: 100%; padding: 12px; background: #f1f5f9;
     border: 2px solid #cbd5e1; color: var(--ink-blue);
@@ -440,8 +449,8 @@
       <label>CHỦ ĐỀ</label>
       <select id="modeSel">
         <option value="mixed">HỖN HỢP</option>
-        <option value="csc">CẤP SỐ CỘNG (+)</option>
-        <option value="csn">CẤP SỐ NHÂN (×)</option>
+        <option value="csc">CỘNG (+)</option>
+        <option value="csn">NHÂN (×)</option>
         <option value="fib">FIBONACCI</option>
         <option value="prime">NGUYÊN TỐ</option>
       </select>
@@ -608,8 +617,10 @@ const Logic = {
 const Game = {
   state: { score: 0, time: 0, maxT: 60, input: "", playing: false, combo: 0 },
   q: null, fbTimer: null,
+  bgm: new Audio('iq-testmusic.mp3'),
 
   init() {
+    this.bgm.loop = true;
     FX.init();
     
     $$('.key.num').forEach(b => {
@@ -646,6 +657,7 @@ const Game = {
     $('#scoreVal').innerText = "0";
     this.updateCombo();
     this.next(); this.loop();
+    this.bgm.play().catch(e => console.warn("Audio error:", e));
   },
 
   next() {
@@ -742,6 +754,8 @@ const Game = {
 
     if(this.state.time <= 0) {
       this.state.playing = false;
+      this.bgm.pause();
+      this.bgm.currentTime = 0;
       $('#startMenu').classList.add('show');
       $('h1').innerText = "HẾT GIỜ";
       $('.sub').innerText = `TỔNG ĐIỂM: ${this.state.score}`;
