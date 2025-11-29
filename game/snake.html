@@ -2,211 +2,774 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>🐍 Rắn Săn Mồi Cấp Số Nhân</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>🐍 NEON SNAKE: MATH CORRECTED</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;500;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  
   <style>
+    :root {
+      --primary: #00f3ff;   /* Neon Cyan */
+      --secondary: #bc13fe; /* Neon Purple */
+      --accent: #ff0055;    /* Neon Red */
+      --success: #00ff9d;   /* Neon Green */
+      --bg-dark: #050508;   
+      --glass: rgba(15, 20, 30, 0.85); 
+      --border: rgba(255, 255, 255, 0.15);
+      --glow-primary: 0 0 15px rgba(0, 243, 255, 0.6);
+      --glow-text: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
     body {
-      background-color: #fff0f5;
-      font-family: 'Comic Sans MS', cursive;
+      background-color: var(--bg-dark);
+      background-image: 
+        linear-gradient(rgba(188, 19, 254, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-position: center top;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      margin: 0; padding: 0;
+      height: 100vh; width: 100vw;
+      overflow: hidden;
+      color: #fff;
+      display: flex; justify-content: center; align-items: center;
+    }
+
+    body::after {
+      content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
+      background: radial-gradient(circle at center, transparent 0%, #000 120%);
+      pointer-events: none; z-index: -1;
+    }
+
+    #main-wrapper {
+      position: relative; width: 100%; height: 100%;
+      display: flex; flex-direction: column; 
+      justify-content: center; align-items: center;
+      z-index: 10;
+    }
+
+    .btn-icon {
+      position: absolute; top: 15px; right: 15px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      cursor: pointer; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+    .btn-icon:hover { background: var(--primary); color: #000; box-shadow: var(--glow-primary); }
+    .btn-icon svg { width: 24px; height: 24px; fill: currentColor; }
+
+    .copyright {
+      position: absolute; bottom: 10px; left: 0; width: 100%;
+      text-align: center; font-size: 0.75rem;
+      color: rgba(255,255,255,0.2); letter-spacing: 1px;
+      z-index: 5; pointer-events: none;
+    }
+
+    .glass-panel {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05);
+      max-width: 480px; width: 90%;
+      position: relative;
+      transition: opacity 0.4s, transform 0.4s;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900; font-size: 2.5rem;
+      background: linear-gradient(135deg, #fff 30%, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase; letter-spacing: 2px;
+      text-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
       text-align: center;
     }
-    .container {
-      display: flex;
+
+    .subtitle {
+      color: var(--primary); font-size: 0.9rem; margin-bottom: 25px;
+      text-align: center; text-transform: uppercase; letter-spacing: 3px; opacity: 0.8;
+      font-weight: 600;
+    }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block; font-size: 0.85rem; margin-bottom: 8px;
+      color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase;
+    }
+
+    select, input {
+      width: 100%; padding: 14px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+      color: #fff; font-family: 'Be Vietnam Pro', sans-serif; font-size: 1rem; font-weight: 600;
+      outline: none; transition: 0.3s;
+    }
+    select:focus, input:focus {
+      border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-start {
+      width: 100%; padding: 16px; margin-top: 15px;
+      background: linear-gradient(90deg, var(--primary), #2980b9);
+      border: none; border-radius: 12px;
+      color: #000; font-weight: 800; font-size: 1.1rem;
+      text-transform: uppercase; letter-spacing: 1px;
+      cursor: pointer; box-shadow: var(--glow-primary);
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 243, 255, 0.4);
+      filter: brightness(1.1);
+    }
+
+    #gameUI { 
+      display: none; flex-direction: column; align-items: center; 
+      width: 100%; height: 100%; 
       justify-content: center;
-      align-items: center;
-      margin-top: 10px;
+      z-index: 20; 
     }
-    .chibi {
-      font-size: 300px;
-      animation: jump 1s infinite alternate;
+
+    .hud-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      width: 100%; max-width: 800px;
+      margin-bottom: 10px; padding: 0 10px;
     }
-    @keyframes jump {
-      to { transform: translateY(-20px); }
+
+    .hud-box {
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 8px 20px;
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 100px;
     }
+    .hud-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; margin-bottom: 2px;}
+    .hud-val { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; color: #fff; text-shadow: var(--glow-text); }
+
+    #targetWrapper { transition: opacity 0.5s, transform 0.5s; }
+    #targetWrapper.hidden-hint { opacity: 0; transform: translateY(-10px); pointer-events: none; }
+
     canvas {
-      background: #fff;
-      border: 5px solid #ff91a4;
-      margin: 10px;
+      background: rgba(10, 12, 16, 0.9);
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      touch-action: none;
+      display: block;
     }
-    #info {
-      font-size: 20px;
-      margin-top: 10px;
+
+    .mobile-control-hint {
+      margin-top: 15px; font-size: 0.85rem; color: rgba(255,255,255,0.4); font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
     }
-    button {
-      font-size: 18px;
-      padding: 10px 20px;
-      margin-top: 10px;
-      background-color: #ff69b4;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
+
+    #gameOverModal {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 50; opacity: 0; pointer-events: none; transition: 0.3s;
     }
-    button:hover {
-      background-color: #ff1493;
+    #gameOverModal.show { opacity: 1; pointer-events: auto; }
+    
+    .score-big { font-family: 'Orbitron', sans-serif; font-size: 4.5rem; font-weight: 900; color: var(--primary); margin: 0; line-height: 1; text-shadow: var(--glow-primary); }
+    .info-box {
+      margin: 20px 0; padding: 15px;
+      background: rgba(255, 0, 85, 0.1); border: 1px solid rgba(255, 0, 85, 0.3);
+      border-radius: 12px; color: #ffbdc9;
     }
+
+    .hidden { display: none !important; }
+    .row { display: flex; gap: 12px; }
+    .col { flex: 1; }
+    .txt-accent { color: var(--accent) !important; text-shadow: 0 0 10px var(--accent); }
+    .txt-success { color: var(--success) !important; text-shadow: 0 0 10px var(--success); }
   </style>
 </head>
 <body>
-  <h1>🐍 Rắn Săn Mồi Cấp Số Nhân</h1>
-  <div class="container">
-    <div class="chibi">🐷</div>
-    <canvas id="gameCanvas" width="600" height="600"></canvas>
-    <div class="chibi">🐰</div>
+
+  <button class="btn-icon" onclick="toggleFullScreen()" title="Toàn Màn Hình">
+    <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+  </button>
+
+  <div id="main-wrapper">
+
+    <!-- START SCREEN -->
+    <div id="startScreen" class="glass-panel">
+      <h1>Neon Snake</h1>
+      <div class="subtitle">Toán Học & Tốc Độ</div>
+      
+      <div class="form-group">
+        <label>Chế Độ Chơi</label>
+        <select id="modeSelect" onchange="updateFormInputs()">
+          <option value="geometric" selected>Cấp Số Nhân (x)</option>
+          <option value="arithmetic">Cấp Số Cộng (+)</option>
+          <option value="natural">Số Tự Nhiên (1, 2, 3...)</option>
+          <option value="even">Số Chẵn (2, 4, 6...)</option>
+          <option value="odd">Số Lẻ (1, 3, 5...)</option>
+          <option value="prime">Số Nguyên Tố</option>
+          <option value="fibonacci">Fibonacci</option>
+          <option value="divisible">Bội Số Của N</option>
+        </select>
+      </div>
+
+      <div class="row hidden" id="customParams">
+        <div class="col" id="u1Container">
+          <div class="form-group">
+            <label>Số Đầu (u₁)</label>
+            <input type="number" id="startInput" value="1" min="0" max="100">
+          </div>
+        </div>
+        <div class="col" id="paramContainer">
+          <div class="form-group">
+            <label id="paramLabel">Công Bội (q)</label>
+            <input type="number" id="paramInput" value="2" min="1" max="20">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-start" onclick="initGame()">BẮT ĐẦU CHƠI</button>
+      
+      <div style="margin-top: 25px; font-size: 0.8rem; color: rgba(255,255,255,0.5); text-align: center; line-height: 1.6;">
+        Luật chơi: Ăn số <b>tiếp theo</b> trong dãy.<br>Gợi ý sẽ biến mất sau <span style="color:#fff; font-weight:bold">3 lượt</span>.
+      </div>
+    </div>
+
+    <!-- GAME UI -->
+    <div id="gameUI">
+      <div class="hud-bar">
+        <div class="hud-box" id="targetWrapper">
+          <div class="hud-label">CẦN TÌM</div>
+          <div class="hud-val txt-success" id="targetBadge">?</div>
+        </div>
+        
+        <div style="display:flex; gap:10px">
+          <div class="hud-box">
+            <div class="hud-label">ĐIỂM</div>
+            <div class="hud-val" id="score">0</div>
+          </div>
+          <div class="hud-box">
+            <div class="hud-label">KỶ LỤC</div>
+            <div class="hud-val" id="highscore">0</div>
+          </div>
+        </div>
+      </div>
+      
+      <canvas id="gameCanvas"></canvas>
+      
+      <div class="mobile-control-hint">
+        <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-4h2v2h-2zm0-2h2V7h-2z"/></svg>
+        Vuốt màn hình để di chuyển
+      </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="gameOverModal">
+      <div class="glass-panel" style="text-align: center; border-color: var(--accent); box-shadow: 0 20px 60px rgba(255, 0, 85, 0.2);">
+        <h2 style="color: var(--accent); margin: 0 0 10px 0; font-family:'Orbitron'; font-size:2.5rem; text-shadow: 0 0 20px var(--accent);">THẤT BẠI!</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">Bạn đã va chạm hoặc ăn sai số.</p>
+        
+        <div style="font-size: 0.9rem; text-transform:uppercase; color:rgba(255,255,255,0.5); letter-spacing:1px; margin-bottom:5px">Tổng Điểm</div>
+        <div class="score-big" id="finalScore">0</div>
+        
+        <div class="info-box">
+          Số cần tìm là: <strong id="missedTarget" style="font-size: 1.4rem; color:#fff; display:block; margin-top:5px"></strong>
+        </div>
+
+        <div class="row">
+          <button class="btn-start" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff;" onclick="backToMenu()">MENU</button>
+          <button class="btn-start" onclick="restartGame()">CHƠI LẠI</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="copyright">
+      © 2025 NEON MATH GAMES
+    </div>
+
   </div>
 
-  <div id="info">
-    📌 Số đầu: <span id="startNumber"></span> | ✖ Công bội: <span id="ratio"></span><br>
-    🍓 Điểm: <span id="score">0</span> | 🏆 Kỷ lục: <span id="highscore">0</span><br>
-    ✅ Đã ăn: <span id="eatenList">[]</span><br>
-    <button onclick="restartGame()">🔁 Chơi lại</button>
-  </div>
+<script>
+  // --- CORE VARIABLES ---
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  
+  const box = 30;
+  let rows, cols;
+  
+  const startScreen = document.getElementById('startScreen');
+  const gameUI = document.getElementById('gameUI');
+  const modal = document.getElementById('gameOverModal');
+  const targetWrapper = document.getElementById('targetWrapper');
+  const customParams = document.getElementById('customParams');
 
-  <audio id="bgMusic" src="background.mp3" loop></audio>
-  <audio id="correctSound" src="correct.mp3"></audio>
-  <audio id="wrongSound" src="wrong.mp3"></audio>
+  let gameLoop;
+  let snake = [];
+  let dir = '', nextDir = '';
+  let score = 0;
+  let foods = [];
+  let particles = [];
+  let highscore = localStorage.getItem('highscore_evo') || 0;
+  let eatenCount = 0;
+  
+  let gameMode = 'geometric';
+  let param1 = 2; // q, d, N
+  let paramStart = 1; // u1
+  let currentVal = 1;
+  let prevVal = 0; 
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const box = 30;
-    let snake, dir, score, highscore, eaten, start, ratio, target, foods;
+  document.getElementById("highscore").textContent = highscore;
 
-    const bgMusic = document.getElementById("bgMusic");
-    const correctSound = document.getElementById("correctSound");
-    const wrongSound = document.getElementById("wrongSound");
+  // --- RESPONSIVE CANVAS ---
+  function resizeCanvas() {
+    const maxWidth = Math.min(window.innerWidth - 30, 800);
+    const maxHeight = Math.min(window.innerHeight - 200, 800); 
 
-    highscore = localStorage.getItem('highscore') || 0;
-    document.getElementById("highscore").textContent = highscore;
+    const newCols = Math.floor(maxWidth / box);
+    const newRows = Math.floor(maxHeight / box);
 
-    document.addEventListener('keydown', e => {
-      switch(e.key) {
-        case 'ArrowUp': if (dir !== 'DOWN') dir = 'UP'; break;
-        case 'ArrowDown': if (dir !== 'UP') dir = 'DOWN'; break;
-        case 'ArrowLeft': if (dir !== 'RIGHT') dir = 'LEFT'; break;
-        case 'ArrowRight': if (dir !== 'LEFT') dir = 'RIGHT'; break;
+    canvas.width = newCols * box;
+    canvas.height = newRows * box;
+    
+    cols = newCols;
+    rows = newRows;
+  }
+  
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    if (gameUI.style.display === 'flex') draw(); 
+  });
+  resizeCanvas(); 
+
+  // --- AUDIO SYSTEM ---
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = new AudioContext();
+
+  function playTone(freq, type, duration, vol = 0.1) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function sfx(action) {
+    if (action === 'eat') {
+      playTone(600, 'sine', 0.1, 0.15);
+      setTimeout(() => playTone(1200, 'square', 0.1, 0.05), 80); 
+    } else if (action === 'die') {
+      playTone(100, 'sawtooth', 0.6, 0.3);
+      setTimeout(() => playTone(50, 'sawtooth', 0.6, 0.3), 200);
+    } else if (action === 'move') {
+      playTone(300, 'triangle', 0.03, 0.02); 
+    }
+  }
+
+  // --- PARTICLE EFFECTS ---
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x; this.y = y;
+      this.vx = (Math.random() - 0.5) * 8;
+      this.vy = (Math.random() - 0.5) * 8;
+      this.life = 1.0;
+      this.color = color;
+      this.size = Math.random() * 4 + 1;
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      this.life -= 0.04;
+      this.vx *= 0.92; this.vy *= 0.92;
+      this.size *= 0.9;
+    }
+    draw(ctx) {
+      ctx.globalAlpha = this.life;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function spawnParticles(x, y, color) {
+    for(let i=0; i<15; i++) particles.push(new Particle(x, y, color));
+  }
+
+  // --- MENU LOGIC ---
+  function updateFormInputs() {
+    const mode = document.getElementById('modeSelect').value;
+    const u1Cont = document.getElementById('u1Container');
+    const pCont = document.getElementById('paramContainer');
+    const pLabel = document.getElementById('paramLabel');
+    const pInput = document.getElementById('paramInput');
+    const sInput = document.getElementById('startInput');
+
+    customParams.classList.add('hidden');
+    u1Cont.classList.add('hidden');
+    pCont.classList.add('hidden');
+
+    if (mode === 'arithmetic') {
+      customParams.classList.remove('hidden');
+      u1Cont.classList.remove('hidden');
+      pCont.classList.remove('hidden');
+      pLabel.textContent = "Công Sai (d)";
+      pInput.value = 5; sInput.value = 0;
+    } else if (mode === 'geometric') {
+      customParams.classList.remove('hidden');
+      u1Cont.classList.remove('hidden');
+      pCont.classList.remove('hidden');
+      pLabel.textContent = "Công Bội (q)";
+      pInput.value = 2; sInput.value = 1;
+    } else if (mode === 'divisible') {
+      customParams.classList.remove('hidden');
+      pCont.classList.remove('hidden');
+      pLabel.textContent = "Số Chia (N)";
+      pInput.value = 3;
+    }
+  }
+
+  function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => console.log(err));
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function initGame() {
+    gameMode = document.getElementById('modeSelect').value;
+    param1 = parseInt(document.getElementById('paramInput').value);
+    paramStart = parseInt(document.getElementById('startInput').value);
+    
+    // Safety check for inputs
+    if (isNaN(param1)) param1 = 2;
+    if (isNaN(paramStart)) paramStart = 1;
+
+    startScreen.style.opacity = 0;
+    setTimeout(() => {
+      startScreen.classList.add('hidden');
+      gameUI.style.display = 'flex';
+      resizeCanvas(); 
+      restartGame();
+    }, 300);
+  }
+
+  function backToMenu() {
+    modal.classList.remove('show');
+    gameUI.style.display = 'none';
+    startScreen.classList.remove('hidden');
+    startScreen.style.opacity = 1;
+    clearInterval(gameLoop);
+  }
+
+  // --- MATH LOGIC ---
+  function isPrime(n) {
+    if (n<=1) return false;
+    for(let i=2; i<=Math.sqrt(n); i++) if(n%i===0) return false;
+    return true;
+  }
+  function nextPrime(n) {
+    let x = n+1; while(!isPrime(x)) x++; return x;
+  }
+  
+  function initSeq() {
+    switch(gameMode) {
+      case 'natural': currentVal=1; break;
+      case 'even': currentVal=2; break;
+      case 'odd': currentVal=1; break;
+      case 'arithmetic': currentVal=paramStart; break;
+      case 'geometric': currentVal=paramStart; break;
+      case 'divisible': currentVal=param1; break; // Bắt đầu từ số chia (ví dụ N=3 thì bắt đầu 3)
+      case 'prime': currentVal=2; break;
+      case 'fibonacci': prevVal=0; currentVal=1; break; // 0, 1 -> next 1
+      default: currentVal=1;
+    }
+    updateTargetUI();
+  }
+
+  function nextSeq() {
+    switch(gameMode) {
+      case 'natural': return currentVal+1;
+      case 'even': return currentVal+2;
+      case 'odd': return currentVal+2;
+      case 'arithmetic': return currentVal+param1;
+      case 'geometric': return currentVal*param1;
+      case 'divisible': return currentVal+param1;
+      case 'prime': return nextPrime(currentVal);
+      case 'fibonacci': 
+        let next = prevVal + currentVal;
+        prevVal = currentVal;
+        return next;
+      default: return currentVal+1;
+    }
+  }
+
+  function updateTargetUI() {
+    document.getElementById("targetBadge").textContent = currentVal;
+    if(eatenCount >= 3) targetWrapper.classList.add('hidden-hint');
+    else targetWrapper.classList.remove('hidden-hint');
+  }
+
+  // --- GAMEPLAY LOOP ---
+  function getSafePos() {
+    let pos, safe=false;
+    let attempts = 0;
+    while(!safe && attempts < 100) {
+      pos = { x: Math.floor(Math.random()*cols), y: Math.floor(Math.random()*rows) };
+      // Tránh rắn và thức ăn hiện có
+      safe = !snake.some(s=>s.x===pos.x && s.y===pos.y) && !foods.some(f=>f.pos && f.pos.x===pos.x && f.pos.y===pos.y);
+      attempts++;
+    }
+    return pos;
+  }
+
+  function genFoods() {
+    foods = [];
+    // 1. Correct food
+    foods.push({ val: currentVal, pos: getSafePos(), isCorrect: true });
+    
+    // 2. Fake foods (FIXED LOGIC)
+    let attempts = 0;
+    while(foods.length < 4 && attempts < 100) { // Safety break để tránh treo máy
+      let fake;
+      let range = Math.max(5, Math.floor(currentVal * 0.5));
+      let diff = Math.floor(Math.random() * range * 2) - range;
+      
+      // Tạo sự đa dạng cho fake
+      // Đôi khi tạo số gần đúng (lệch 1-2 đơn vị)
+      // Đôi khi tạo bội số sai (đặc biệt trong Geometric)
+      if (gameMode === 'geometric' && Math.random() < 0.3) {
+          // Thử lừa bằng cách nhân đôi hoặc chia đôi sai
+          let wrongMult = (Math.random() > 0.5 ? 2 : 0.5);
+          fake = Math.floor(currentVal * wrongMult);
+          if (fake === currentVal) fake = currentVal + 1; // Nếu lỡ trùng thì +1
+      } else {
+          fake = currentVal + diff;
       }
-      bgMusic.play().catch(()=>{});
+      
+      // Điều kiện hợp lệ:
+      // 1. Phải > 0
+      // 2. Không được trùng số đúng (currentVal)
+      // 3. Không được trùng với các số fake đã có trong mảng foods
+      if (fake > 0 && fake !== currentVal && !foods.some(f=>f.val===fake)) {
+        foods.push({ val: fake, pos: getSafePos(), isCorrect: false });
+      }
+      
+      attempts++;
+    }
+    
+    // Fallback: Nếu không tìm đủ fake sau 100 lần lặp (rất hiếm), điền bừa số random lớn
+    while (foods.length < 4) {
+       let safeRandom = Math.floor(Math.random() * 100) + currentVal + 10;
+       if (!foods.some(f=>f.val===safeRandom)) {
+           foods.push({ val: safeRandom, pos: getSafePos(), isCorrect: false });
+       }
+    }
+  }
+
+  function update() {
+    if(nextDir) {
+      if(nextDir!==dir) sfx('move');
+      dir = nextDir;
+    }
+    if(dir === '') return;
+
+    let head = { ...snake[0] };
+    if(dir==='LEFT') head.x--;
+    if(dir==='RIGHT') head.x++;
+    if(dir==='UP') head.y--;
+    if(dir==='DOWN') head.y++;
+
+    // Collision Check
+    if(head.x<0 || head.x>=cols || head.y<0 || head.y>=rows || snake.some(s=>s.x===head.x && s.y===head.y)) {
+      return gameOver();
+    }
+
+    snake.unshift(head);
+
+    let eatenIdx = foods.findIndex(f => f.pos.x === head.x && f.pos.y === head.y);
+    if(eatenIdx !== -1) {
+      let food = foods[eatenIdx];
+      
+      if(food.isCorrect) {
+        score += 10;
+        eatenCount++;
+        sfx('eat');
+        spawnParticles(head.x*box + box/2, head.y*box + box/2, '#00ff9d'); 
+        
+        currentVal = nextSeq();
+        updateTargetUI();
+        genFoods();
+      } else {
+        spawnParticles(head.x*box + box/2, head.y*box + box/2, '#ff0055');
+        return gameOver();
+      }
+    } else {
+      snake.pop();
+    }
+    
+    document.getElementById("score").textContent = score;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Neon Grid
+    ctx.strokeStyle = "rgba(0, 243, 255, 0.03)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < cols; i++) {
+        ctx.beginPath(); ctx.moveTo(i * box, 0); ctx.lineTo(i * box, canvas.height); ctx.stroke();
+    }
+    for (let j = 0; j < rows; j++) {
+        ctx.beginPath(); ctx.moveTo(0, j * box); ctx.lineTo(canvas.width, j * box); ctx.stroke();
+    }
+
+    // Particles
+    for(let i=particles.length-1; i>=0; i--) {
+      particles[i].update();
+      particles[i].draw(ctx);
+      if(particles[i].life <= 0) particles.splice(i, 1);
+    }
+
+    // Snake
+    snake.forEach((s, i) => {
+      if (i === 0) {
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = "var(--primary)";
+          ctx.fillStyle = "#fff";
+      } else {
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = `rgba(0, 243, 255, ${Math.max(0.3, 1 - i/snake.length)})`;
+      }
+      
+      let p = 2;
+      ctx.beginPath();
+      ctx.roundRect(s.x*box+p, s.y*box+p, box-p*2, box-p*2, 8);
+      ctx.fill();
+      ctx.shadowBlur = 0;
     });
 
-    function restartGame() {
-      snake = [{ x: 5, y: 5 }];
-      dir = 'RIGHT';
-      score = 0;
-      eaten = [];
-      start = Math.floor(Math.random() * 5) + 1;
-      ratio = Math.floor(Math.random() * 3) + 2;
-      target = start;
-      foods = [];
+    // Foods
+    foods.forEach(f => {
+      let x = f.pos.x * box;
+      let y = f.pos.y * box;
+      let pulse = Math.sin(Date.now() / 200) * 2;
+      
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "rgba(255,255,255,0.4)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.lineWidth = 2;
+      
+      ctx.beginPath();
+      ctx.roundRect(x+5 - pulse/2, y+5 - pulse/2, box-10 + pulse, box-10 + pulse, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
 
-      document.getElementById("startNumber").textContent = start;
-      document.getElementById("ratio").textContent = ratio;
-      document.getElementById("score").textContent = 0;
-      document.getElementById("eatenList").textContent = JSON.stringify(eaten);
+      ctx.fillStyle = "#fff";
+      let fontSize = 14;
+      if (f.val > 99) fontSize = 12;
+      if (f.val > 999) fontSize = 10;
+      
+      ctx.font = `700 ${fontSize}px 'Be Vietnam Pro'`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(f.val, x + box/2, y + box/2 + 1);
+    });
+  }
 
-      generateFoods();
+  function restartGame() {
+    let startX = Math.floor(cols/2);
+    let startY = Math.floor(rows/2);
+    snake = [{x:startX, y:startY}, {x:startX-1, y:startY}, {x:startX-2, y:startY}];
+    
+    dir = ''; nextDir = '';
+    score = 0; eatenCount = 0;
+    particles = [];
+    foods = [];
+    modal.classList.remove('show');
+    targetWrapper.classList.remove('hidden-hint');
+    
+    initSeq();
+    genFoods();
+
+    if(gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(() => { update(); draw(); }, 140);
+  }
+
+  function gameOver() {
+    sfx('die');
+    if(score > highscore) {
+      highscore = score;
+      localStorage.setItem('highscore_evo', highscore);
+      document.getElementById('highscore').textContent = highscore;
     }
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('missedTarget').textContent = currentVal;
+    modal.classList.add('show');
+    clearInterval(gameLoop);
+  }
 
-    function getRandomEmptyPosition() {
-      let pos;
-      do {
-        pos = {
-          x: Math.floor(Math.random() * (canvas.width / box)),
-          y: Math.floor(Math.random() * (canvas.height / box))
-        };
-      } while (snake.some(s => s.x === pos.x && s.y === pos.y));
-      return pos;
-    }
+  // --- CONTROLS ---
+  document.addEventListener('keydown', e => {
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+    if(e.key==='ArrowUp' && dir!=='DOWN') nextDir='UP';
+    if(e.key==='ArrowDown' && dir!=='UP') nextDir='DOWN';
+    if(e.key==='ArrowLeft' && dir!=='RIGHT') nextDir='LEFT';
+    if(e.key==='ArrowRight' && dir!=='LEFT') nextDir='RIGHT';
+  });
 
-    function generateFoods() {
-      foods = [];
-      foods.push({ value: target, pos: getRandomEmptyPosition(), correct: true });
-
-      while (foods.length < 4) {
-        let fakeValue;
-        do {
-          fakeValue = target + Math.floor((Math.random() - 0.5) * target);
-        } while (
-          fakeValue <= 0 ||
-          fakeValue === target ||
-          foods.some(f => f.value === fakeValue)
-        );
-        foods.push({ value: fakeValue, pos: getRandomEmptyPosition(), correct: false });
-      }
-    }
-
-    function shakeCanvas() {
-      canvas.style.transition = '0.1s';
-      canvas.style.transform = 'translate(5px, 5px)';
-      setTimeout(() => {
-        canvas.style.transform = 'translate(-5px, -5px)';
-        setTimeout(() => {
-          canvas.style.transform = 'translate(0, 0)';
-        }, 100);
-      }, 100);
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      snake.forEach((s, i) => {
-        ctx.fillStyle = i === 0 ? 'green' : 'lightgreen';
-        ctx.fillRect(s.x * box, s.y * box, box - 2, box - 2);
-      });
-
-      foods.forEach(f => {
-        ctx.fillStyle = "#000";
-        ctx.font = "bold 22px Arial";
-        ctx.fillText(f.value, f.pos.x * box + 4, f.pos.y * box + 24);
-      });
-
-      let head = { x: snake[0].x, y: snake[0].y };
-      if (dir === 'LEFT') head.x--;
-      if (dir === 'RIGHT') head.x++;
-      if (dir === 'UP') head.y--;
-      if (dir === 'DOWN') head.y++;
-
-      if (
-        head.x < 0 || head.x >= canvas.width / box ||
-        head.y < 0 || head.y >= canvas.height / box ||
-        snake.some(s => s.x === head.x && s.y === head.y)
-      ) {
-        wrongSound.play();
-        alert("Game Over! Điểm: " + score);
-        restartGame();
-        return;
-      }
-
-      snake.unshift(head);
-      const eatenFood = foods.find(f => f.pos.x === head.x && f.pos.y === head.y);
-      if (eatenFood) {
-        if (eatenFood.correct) {
-          eaten.push(eatenFood.value);
-          score += eatenFood.value;
-          correctSound.play();
-          target *= ratio;
-          generateFoods();
+  let tsX=0, tsY=0;
+  canvas.addEventListener('touchstart', e => { 
+      tsX=e.touches[0].clientX; 
+      tsY=e.touches[0].clientY; 
+  }, {passive:false});
+  
+  canvas.addEventListener('touchend', e => {
+    let dx = e.changedTouches[0].clientX - tsX;
+    let dy = e.changedTouches[0].clientY - tsY;
+    
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) { 
+        if(Math.abs(dx) > Math.abs(dy)) {
+          if(dx>0 && dir!=='LEFT') nextDir='RIGHT';
+          else if(dx<0 && dir!=='RIGHT') nextDir='LEFT';
         } else {
-          wrongSound.play();
-          shakeCanvas();
-          alert("Sai rồi! Bạn ăn nhầm số.");
-          restartGame();
-          return;
+          if(dy>0 && dir!=='UP') nextDir='DOWN';
+          else if(dy<0 && dir!=='DOWN') nextDir='UP';
         }
-      } else {
-        snake.pop();
-      }
-
-      document.getElementById("score").textContent = score;
-      document.getElementById("eatenList").textContent = JSON.stringify(eaten);
-      if (score > highscore) {
-        highscore = score;
-        localStorage.setItem('highscore', score);
-        document.getElementById('highscore').textContent = highscore;
-      }
+        if(audioCtx.state === 'suspended') audioCtx.resume();
     }
+  }, {passive:false});
 
-    // Khởi động game lần đầu
-    restartGame();
-    setInterval(draw, 200);
-  </script>
+  updateFormInputs();
+</script>
 </body>
 </html>
