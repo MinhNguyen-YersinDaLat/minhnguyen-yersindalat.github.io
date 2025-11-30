@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>GeometryIQ - MATH PERFECT</title>
+  <title>GeometryIQ - MOBILE FIXED</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* --- THEME & FONTS --- */
@@ -43,7 +43,7 @@
     }
     #viewport-container:active { cursor: grabbing; }
 
-    .math3d-svg { width: 100%; height: 100%; overflow: visible; }
+    .math3d-svg { width: 100%; height: 100%; overflow: visible; pointer-events: none; }
     
     .line-solid {
       fill: none; stroke: #22d3ee; stroke-width: 3.5;
@@ -219,6 +219,12 @@
   </div>
 
   <script>
+    /* --- SOUND ENGINE (GLOBAL SCOPE) --- */
+    const SFX = {
+      tone: (f,t,d) => { try{ let c=new(window.AudioContext||window.webkitAudioContext)(), o=c.createOscillator(), g=c.createGain(); o.type=t; o.frequency.value=f; g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d); o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+d); }catch(e){} },
+      click: ()=>SFX.tone(600,'triangle',0.1), ok: ()=>SFX.tone(523,'sine',0.3), no: ()=>SFX.tone(150,'sawtooth',0.3), tick: ()=>SFX.tone(800,'square',0.05)
+    };
+
     /* --- MATH 3D ENGINE --- */
     const Math3D = {
       rotate(v, ax, ay) {
@@ -234,17 +240,14 @@
 
     /* --- SHAPES (Screen-Space CCW Winding = Visible) --- */
     const Poly = {
-      // Faces defined CLOCKWISE relative to looking at them from outside
-      // This results in POSITIVE cross-product (Z>0) in standard screen coords (Y down)
-      // So condition for visibility: Cross Product > 0
       cube: {
         v: [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]],
-        f: [[3,2,1,0], [4,5,6,7], [0,1,5,4], [1,2,6,5], [2,3,7,6], [3,0,4,7]], // Corrected CW
+        f: [[3,2,1,0], [4,5,6,7], [0,1,5,4], [1,2,6,5], [2,3,7,6], [3,0,4,7]],
         p:{v:8,f:6,e:12}
       },
       tetra: { 
         v: [[1,1,1],[-1,-1,1],[-1,1,-1],[1,-1,-1]], 
-        f: [[0,2,1],[0,1,3],[0,3,2],[1,2,3]], // Corrected CW
+        f: [[0,2,1],[0,1,3],[0,3,2],[1,2,3]],
         p:{v:4,f:4,e:6} 
       },
       octa: {
@@ -254,12 +257,12 @@
       },
       pyramid: { 
         v: [[1,0,1],[1,0,-1],[-1,0,-1],[-1,0,1],[0,-1.5,0]], 
-        f: [[3,2,1,0],[0,1,4],[1,2,4],[2,3,4],[3,0,4]], // Corrected CW
+        f: [[3,2,1,0],[0,1,4],[1,2,4],[2,3,4],[3,0,4]],
         p:{v:5,f:5,e:8} 
       },
       prism: { 
         v: [[-1,-1,1],[1,-1,1],[0,1,1],[-1,-1,-1],[1,-1,-1],[0,1,-1]], 
-        f: [[0,2,1],[3,4,5],[0,1,4,3],[1,2,5,4],[2,0,3,5]], // Corrected CW
+        f: [[0,2,1],[3,4,5],[0,1,4,3],[1,2,5,4],[2,0,3,5]],
         p:{v:6,f:5,e:9} 
       }
     };
@@ -282,11 +285,9 @@
         const tv=this.s.v.map(v=>Math3D.rotate(v,this.r.x,this.r.y));
         const proj=tv.map(v=>Math3D.project(v,w,h,this.sc));
 
-        // Screen-Space Back-Face Culling
         const fv = this.s.f.map(f => {
-          // Calculate signed area of polygon on screen (only need first 3 points for planar)
           const p0=proj[f[0]], p1=proj[f[1]], p2=proj[f[2]];
-          return ((p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0])) > 0; // CW > 0
+          return ((p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0])) > 0;
         });
         
         const em={};
@@ -303,8 +304,6 @@
         });
         for(let k in em) {
           const [a,b]=k.split('-').map(Number);
-          // Solid if visible count > 0 (shared by at least one visible face)
-          // Dashed if visible count == 0 (only hidden faces)
           htm+=`<line x1="${proj[a][0]}" y1="${proj[a][1]}" x2="${proj[b][0]}" y2="${proj[b][1]}" class="${em[k]>0?'line-solid':'line-dashed'}"/>`;
         }
         this.svg.innerHTML=htm;
@@ -315,24 +314,25 @@
     const Game = {
       sc:0, lvl:1, lives:3, qCnt:0, t:30, tInt:null, curr:null, sel:null, ren:null, qDeck:[],
       init() {
-        const SFX = window.SFX = {
-          tone: (f,t,d) => { try{ let c=new(window.AudioContext||window.webkitAudioContext)(), o=c.createOscillator(), g=c.createGain(); o.type=t; o.frequency.value=f; g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d); o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+d); }catch(e){} },
-          click: ()=>SFX.tone(600,'triangle',0.1), ok: ()=>SFX.tone(523,'sine',0.3), no: ()=>SFX.tone(150,'sawtooth',0.3), tick: ()=>SFX.tone(800,'square',0.05)
-        };
-        
         ['btn-start','btn-restart'].forEach(i=>document.getElementById(i).onclick=()=>this.start());
         document.getElementById('lesson-close').onclick=()=>{ document.getElementById('lesson-modal').classList.add('hidden'); this.next(); };
         document.getElementById('confirm-btn').onclick=()=>this.check();
 
+        // 3D Control (Mobile Fix: passive: false)
         const vp=document.getElementById('viewport-container');
         let lx=0, ly=0, down=false;
         const move=(x,y)=>{ if(this.ren && down){ this.ren.rot(x-lx, y-ly); lx=x; ly=y; } };
-        vp.onmousedown=e=>{ down=true; lx=e.clientX; ly=e.clientY; };
-        window.onmousemove=e=>move(e.clientX,e.clientY);
-        window.onmouseup=()=>down=false;
-        vp.ontouchstart=e=>{ down=true; lx=e.touches[0].clientX; ly=e.touches[0].clientY; };
-        window.ontouchmove=e=>{ e.preventDefault(); move(e.touches[0].clientX,e.touches[0].clientY); };
-        window.ontouchend=()=>down=false;
+        
+        vp.addEventListener('mousedown', e=>{ down=true; lx=e.clientX; ly=e.clientY; });
+        window.addEventListener('mousemove', e=>move(e.clientX,e.clientY));
+        window.addEventListener('mouseup', ()=>down=false);
+        
+        vp.addEventListener('touchstart', e=>{ down=true; lx=e.touches[0].clientX; ly=e.touches[0].clientY; }, {passive: false});
+        window.addEventListener('touchmove', e=>{ 
+          if(down) e.preventDefault(); 
+          move(e.touches[0].clientX,e.touches[0].clientY); 
+        }, {passive: false});
+        window.addEventListener('touchend', ()=>down=false);
 
         this.bgFX();
       },
