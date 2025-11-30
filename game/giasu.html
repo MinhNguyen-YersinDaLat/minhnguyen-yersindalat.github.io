@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Đại Sảnh Toán Học - Cánh Cổng Tri Thức</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        magical: {
+                            dark: '#0f172a',
+                            panel: 'rgba(30, 41, 59, 0.8)',
+                            accent: '#8b5cf6',
+                            glow: '#38bdf8',
+                            gold: '#fbbf24',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'portal-spin': 'portalSpin 10s linear infinite',
+                        'zoom-in': 'zoomIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '1', boxShadow: '0 0 30px rgba(139, 92, 246, 0.6)' },
+                            '50%': { opacity: '.8', boxShadow: '0 0 15px rgba(139, 92, 246, 0.3)' },
+                        },
+                        portalSpin: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' }
+                        },
+                        zoomIn: {
+                            '0%': { transform: 'scale(0.95)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- KaTeX (Math Rendering) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
+    <!-- Document Parsers (PDF & Word) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #020617; 
+            color: #e2e8f0;
+            overflow: hidden;
+            height: 100dvh; 
+        }
+        
+        /* Background Effects */
+        .stars {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000 url(http://www.script-tutorials.com/demos/360/images/stars.png) repeat top center;
+            z-index: -2;
+        }
+        .twinkling {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent url(http://www.script-tutorials.com/demos/360/images/twinkling.png) repeat top center;
+            z-index: -1;
+            animation: move-twink-back 200s linear infinite;
+            opacity: 0.4;
+        }
+        @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Chat Bubbles */
+        .bubble-user {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .bubble-bot {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 10px; }
+
+        .katex { font-size: 1.1em; color: #e2e8f0; }
+        .avatar-glow { box-shadow: 0 0 10px #fbbf24; }
+        
+        .magic-text {
+            background: linear-gradient(to right, #818cf8, #c084fc, #38bdf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .typing-dot {
+            width: 6px; height: 6px; background-color: #94a3b8; border-radius: 50%;
+            display: inline-block; animation: typing 1.4s infinite ease-in-out both; margin: 0 2px;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        .portal-glow {
+            box-shadow: 0 0 60px rgba(139, 92, 246, 0.4), inset 0 0 60px rgba(139, 92, 246, 0.4);
+        }
+
+        .img-preview-container {
+            display: inline-block; position: relative; margin-bottom: 8px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .img-preview-remove {
+            position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px;
+        }
+        
+        /* SIDEBAR TRANSITIONS & FIXES */
+        #left-sidebar {
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s, opacity 0.3s;
+            overflow: hidden; /* CRITICAL FIX: Prevent content spill */
+            white-space: nowrap; /* Prevent text wrapping glitches */
+        }
+        
+        .sidebar-closed {
+            /* Mobile: Slide completely off-screen */
+            transform: translateX(-100%);
+        }
+
+        @media (min-width: 768px) {
+            .sidebar-closed {
+                /* Desktop: Collapse width to 0 */
+                width: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                transform: translateX(0); /* Reset transform to rely on width */
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background -->
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+
+    <!-- LANDING PAGE (GATEWAY) -->
+    <div id="landing-page" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 transition-opacity duration-700">
+        <div class="relative w-full max-w-md">
+            <!-- Portal Visuals -->
+            <div class="absolute inset-0 portal-glow rounded-3xl opacity-50"></div>
+            
+            <div class="relative glass-panel rounded-3xl p-8 border border-indigo-500/30 shadow-2xl overflow-hidden">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mx-auto flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/50 animate-pulse-glow">
+                        <i class="fas fa-hat-wizard text-2xl text-white"></i>
+                    </div>
+                    <h1 class="text-2xl font-serif font-bold text-white mb-2 magic-text">Đại Sảnh Toán Học</h1>
+                    <p class="text-xs text-indigo-300 uppercase tracking-widest">Cánh cổng tri thức Việt Nam</p>
+                </div>
+
+                <!-- Inputs -->
+                <div class="space-y-5">
+                    <!-- API Key -->
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between">
+                            <span>Chìa khóa (API Key)</span>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 hover:text-white transition text-[10px] flex items-center gap-1">
+                                Lấy Key miễn phí <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </label>
+                        <div class="relative group">
+                            <input type="password" id="landing-api-key" placeholder="Dán mã AIza... vào đây" 
+                                class="w-full pl-4 pr-4 py-3 bg-slate-900/60 border border-slate-600 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none placeholder:text-slate-600 group-hover:border-slate-500">
+                        </div>
+                    </div>
+
+                    <!-- SGK File Upload (Supports PDF, DOCX, TXT) -->
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <span><i class="fas fa-book"></i> Tài liệu SGK (PDF, Word, TXT)</span>
+                        </label>
+                        <div class="relative">
+                            <input type="file" id="landing-sgk-file" accept=".txt,.pdf,.docx,.doc" class="hidden">
+                            <label for="landing-sgk-file" class="flex items-center justify-between w-full p-3 bg-slate-900/60 border border-slate-600 border-dashed rounded-xl cursor-pointer hover:bg-slate-800/60 hover:border-indigo-500 transition-all group">
+                                <span id="file-name-display" class="text-xs text-slate-500 truncate group-hover:text-slate-300">Chọn file tài liệu...</span>
+                                <i class="fas fa-upload text-slate-500 group-hover:text-indigo-400"></i>
+                            </label>
+                        </div>
+                        <p class="text-[10px] text-slate-500 italic">* Hệ thống sẽ tự động đọc nội dung file để AI học.</p>
+                    </div>
+
+                    <!-- Enter Button -->
+                    <button id="btn-enter-world" class="w-full py-3.5 mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transform transition hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 group">
+                        <span>Bước vào Thế Giới Toán</span>
+                        <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    
+                    <div id="landing-error" class="text-xs text-center text-rose-400 min-h-[1rem]"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER (Initially Hidden) -->
+    <div id="main-app" class="flex flex-1 w-full h-full overflow-hidden relative z-10 hidden opacity-0 transition-opacity duration-1000">
+        
+        <!-- BACKDROP FOR MOBILE MENU -->
+        <div id="mobile-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden backdrop-blur-sm transition-opacity duration-300"></div>
+
+        <!-- 1. LEFT SIDEBAR (Config) -->
+        <aside id="left-sidebar" class="w-80 glass-panel border-r border-slate-700/50 flex flex-col z-40 shadow-2xl h-full absolute left-0 top-0 md:relative sidebar-closed">
+            <!-- Sidebar Header -->
+            <div class="p-5 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/60">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg flex items-center justify-center shadow-lg">
+                        <i class="fas fa-graduation-cap text-xs"></i>
+                    </span>
+                    <h1 class="text-sm font-bold text-white font-serif tracking-wide">Cấu Hình Lớp Học</h1>
+                </div>
+                <!-- Close Button Inside Sidebar -->
+                <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Sidebar Content -->
+            <div class="flex-1 p-4 overflow-y-auto">
+                <div class="bg-slate-900/40 rounded-xl p-4 border border-slate-700/50 mb-4">
+                    <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-2 font-bold">Trạng thái kết nối</div>
+                    <div id="connection-status" class="text-xs text-emerald-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="model-name-display">Đang chờ...</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/40 rounded-xl p-4 border border-slate-700/50">
+                    <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-2 font-bold">Kiến thức nền</div>
+                    <div id="kb-status" class="text-xs text-slate-300">
+                        <i class="fas fa-check-circle text-indigo-400 mr-1"></i> Kiến thức phổ thông
+                    </div>
+                    <div id="user-file-status" class="text-xs text-slate-300 mt-2 pt-2 border-t border-slate-700/50 hidden">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-file-alt text-indigo-400"></i> 
+                            <span id="user-file-name" class="truncate flex-1">File của bạn</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button onclick="document.getElementById('landing-page').classList.remove('hidden'); document.getElementById('landing-page').style.opacity = '1';" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg border border-slate-600 transition">
+                        <i class="fas fa-cog mr-1"></i> Thiết lập lại Key/File
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-3 text-center text-[9px] text-slate-600">GDPT 2018 Standard</div>
+        </aside>
+
+        <!-- 2. CENTER: CHAT INTERFACE -->
+        <main class="flex-1 flex flex-col relative min-w-0 z-10 h-full transition-all duration-300">
+            <!-- Header (Always Visible) -->
+            <div class="h-16 glass-panel border-b border-slate-700/50 flex justify-between items-center px-4 flex-shrink-0 z-30">
+                <div class="flex items-center gap-3">
+                    <!-- HAMBURGER BUTTON (Visible on ALL screens) -->
+                    <button onclick="toggleSidebar()" class="text-slate-400 p-2 hover:text-white hover:bg-white/10 rounded-lg transition active:scale-95 border border-slate-700/50">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                    <span class="font-serif font-bold text-white text-lg magic-text hidden sm:block">Đại Sảnh Toán Học</span>
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono hidden sm:block">
+                    Thầy Thái Minh Nguyên
+                </div>
+            </div>
+
+            <!-- Chat History -->
+            <div id="chat-container" class="flex-1 overflow-y-auto scroll-smooth pb-4 px-2 md:px-4">
+                <div class="max-w-3xl mx-auto py-6 space-y-8">
+                    <!-- Welcome Message (Auto-generated by JS) -->
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-slate-700/50 glass-panel p-3 md:p-5 relative z-50 flex-shrink-0">
+                <div class="max-w-3xl mx-auto relative">
+                    <div id="image-preview-area" class="px-2 hidden"></div>
+                    <div id="rag-indicator" class="hidden absolute -top-10 left-0 text-[10px] text-emerald-400 flex items-center gap-2 bg-slate-900/90 px-3 py-1 rounded-full border border-emerald-500/30 shadow-lg backdrop-blur animate-[fadeIn_0.3s_ease-out]">
+                        <i class="fas fa-book-open animate-pulse"></i>
+                        <span>Đã tham khảo tài liệu</span>
+                    </div>
+
+                    <div class="flex items-end gap-2 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-600 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all shadow-inner">
+                        <button id="btn-upload-img" class="p-2.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-xl transition" title="Gửi ảnh bài toán">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <input type="file" id="file-input" accept="image/*" class="hidden">
+
+                        <textarea id="user-input" rows="1" 
+                            class="flex-1 bg-transparent border-none focus:ring-0 p-2.5 text-slate-100 placeholder:text-slate-500 text-sm resize-none max-h-32 leading-relaxed"
+                            placeholder="Nhập câu hỏi..."></textarea>
+                        
+                        <div class="flex pb-0.5 pr-0.5">
+                            <button id="btn-send" class="p-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl shadow-lg transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-paper-plane text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-2 px-1">
+                        <div class="text-[9px] text-slate-600 select-none tracking-widest uppercase">
+                            Hỗ trợ LaTeX $E=mc^2$ & Đọc Ảnh
+                        </div>
+                        <button id="btn-mathtype-help" class="text-[9px] text-indigo-400 hover:text-indigo-300 underline cursor-pointer">
+                            <i class="fas fa-question-circle"></i> Mẹo dùng MathType
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MathType Help Modal -->
+    <div id="mathtype-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-[fadeIn_0.2s_ease-out]">
+            <button onclick="document.getElementById('mathtype-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-white mb-4 font-serif flex items-center gap-2">
+                <i class="fas fa-square-root-variable text-indigo-400"></i> Hướng dẫn MathType
+            </h3>
+            <div class="space-y-4 text-sm text-slate-300">
+                <p>Để copy công thức từ MathType sang đây mà không bị lỗi, hãy làm như sau:</p>
+                <ol class="list-decimal pl-5 space-y-2 marker:text-indigo-500">
+                    <li>Mở MathType trong Word.</li>
+                    <li>Vào menu <strong>Preferences</strong> > <strong>Cut and Copy Preferences</strong>.</li>
+                    <li>Chọn <strong>"Equation for application or website"</strong>.</li>
+                    <li>Trong danh sách, chọn <strong>"LaTeX 2.09 and later"</strong>.</li>
+                    <li>Nhấn OK. Giờ bạn có thể Copy công thức và Paste vào đây, AI sẽ hiểu ngay!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG & STATE ---
+        const STATE = {
+            apiKey: '', 
+            modelId: 'gemini-1.5-flash', 
+            embeddingModelId: 'text-embedding-004',
+            chunks: [], 
+            embeddings: [], 
+            chatHistory: [], 
+            currentPersona: {
+                name: "Thầy Thái Minh Nguyên",
+                role: "Chủ Nhiệm",
+                avatar: "./ava.jpg", 
+                desc: "Người dẫn dắt"
+            },
+            pendingImage: null,
+            pendingMimeType: null
+        };
+
+        const VN_EDU_CONTEXT = `
+        BỐI CẢNH: Môi trường giáo dục phổ thông Việt Nam (GDPT 2018).
+        NGÔN NGỮ: Tiếng Việt 100%, dùng từ ngữ thân thiện, học thuật nhưng dễ hiểu.
+        ĐỊNH DẠNG:
+        - Toán: Dùng LaTeX (Inline: $...$, Block: $$...$$).
+        - Phong cách: Giống một người thầy/cô hoặc nhà bác học đang nói chuyện trực tiếp.
+        KHẢ NĂNG ĐẶC BIỆT: Bạn có thể nhìn thấy hình ảnh (công thức toán, hình học) người dùng gửi lên. Hãy giải chi tiết nếu có ảnh.
+        `;
+
+        // --- DOCUMENT PARSING (PDF & WORD) ---
+        async function extractTextFromFile(file) {
+            const fileType = file.name.split('.').pop().toLowerCase();
+            
+            if (fileType === 'txt') {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsText(file);
+                });
+            } 
+            else if (fileType === 'pdf') {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
+                }
+                return fullText;
+            } 
+            else if (fileType === 'docx' || fileType === 'doc') {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                return result.value;
+            } 
+            else {
+                throw new Error("Định dạng file không được hỗ trợ. Hãy dùng .txt, .pdf hoặc .docx");
+            }
+        }
+
+        // --- LANDING PAGE LOGIC ---
+        const landingFileInput = document.getElementById('landing-sgk-file');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const btnEnter = document.getElementById('btn-enter-world');
+        const landingError = document.getElementById('landing-error');
+
+        landingFileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                fileNameDisplay.textContent = e.target.files[0].name;
+                fileNameDisplay.classList.add('text-indigo-400');
+            }
+        });
+
+        btnEnter.addEventListener('click', async () => {
+            const key = document.getElementById('landing-api-key').value.trim();
+            if (!key) {
+                landingError.textContent = "Vui lòng nhập API Key để mở cổng!";
+                return;
+            }
+            
+            landingError.textContent = "";
+            btnEnter.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Đang mở cổng...`;
+            btnEnter.disabled = true;
+
+            STATE.apiKey = key;
+
+            // 1. Validate Key & Auto Discover
+            try {
+                await autoDiscoverModels();
+                
+                // 2. Process File if exists
+                if (landingFileInput.files.length > 0) {
+                    btnEnter.innerHTML = `<i class="fas fa-book-reader fa-spin"></i> Đang đọc sách...`;
+                    const file = landingFileInput.files[0];
+                    try {
+                        const text = await extractTextFromFile(file);
+                        await ingestText(text);
+                        document.getElementById('user-file-status').classList.remove('hidden');
+                        document.getElementById('user-file-name').textContent = file.name;
+                    } catch (err) {
+                        console.error(err);
+                        alert("Lỗi đọc file: " + err.message);
+                    }
+                }
+
+                // 3. Transition UI
+                document.getElementById('landing-page').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('landing-page').classList.add('hidden');
+                    const mainApp = document.getElementById('main-app');
+                    mainApp.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        mainApp.classList.remove('opacity-0');
+                        showWelcomeMessage();
+                    });
+                }, 700);
+
+            } catch (e) {
+                landingError.textContent = "API Key không hợp lệ hoặc lỗi kết nối. Vui lòng kiểm tra lại.";
+                btnEnter.innerHTML = `Bước vào Thế Giới Toán <i class="fas fa-arrow-right"></i>`;
+                btnEnter.disabled = false;
+            }
+        });
+
+        async function ingestText(text) {
+            // Chunking
+            STATE.chunks = text.split(/\n\n+/).filter(c => c.length > 20);
+            STATE.embeddings = [];
+            // Try embedding check
+            try {
+                if(STATE.chunks.length > 0) await getEmbedding(STATE.chunks[0].substring(0, 100));
+            } catch(e) { console.warn("Embedding check failed", e); }
+        }
+
+        // --- CORE LOGIC ---
+        async function autoDiscoverModels() {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${STATE.apiKey}`;
+            const res = await fetch(url);
+            if(!res.ok) throw new Error("Key Invalid");
+            
+            const data = await res.json();
+            const models = data.models || [];
+            
+            let chatModel = models.find(m => m.name.includes('gemini-1.5-pro-latest')) ||
+                            models.find(m => m.name.includes('gemini-1.5-pro')) ||
+                            models.find(m => m.name.includes('gemini-1.5-flash')) || 
+                            models.find(m => m.name.includes('gemini-pro'));
+                            
+            let embedModel = models.find(m => m.name.includes('text-embedding-004'));
+
+            if(chatModel) {
+                STATE.modelId = chatModel.name.replace("models/", "");
+                let displayName = STATE.modelId.includes('pro') ? 'Gemini 1.5 PRO' : 'Gemini 1.5 Flash';
+                document.getElementById('model-name-display').textContent = displayName;
+            }
+            if(embedModel) STATE.embeddingModelId = embedModel.name.replace("models/", "");
+        }
+
+        async function callGemini(endpoint, payload) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${endpoint}?key=${STATE.apiKey}`;
+            const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            if(!res.ok) throw new Error((await res.json()).error?.message || res.statusText);
+            return res.json();
+        }
+
+        async function getEmbedding(text) {
+            try {
+                const data = await callGemini(`${STATE.embeddingModelId}:embedContent`, {
+                    model: `models/${STATE.embeddingModelId}`,
+                    content: { parts: [{ text: text.replace(/\n/g, ' ') }] }
+                });
+                return data.embedding.values;
+            } catch(e) { return new Array(768).fill(0); }
+        }
+
+        function cosineSim(a, b) {
+            let dot = 0, mA = 0, mB = 0;
+            for(let i=0; i<a.length; i++) { dot += a[i]*b[i]; mA += a[i]*a[i]; mB += b[i]*b[i]; }
+            return dot / (Math.sqrt(mA) * Math.sqrt(mB));
+        }
+
+        // --- UI INTERACTIONS ---
+        const els = {
+            chatContainer: document.getElementById('chat-container').firstElementChild,
+            chatScroll: document.getElementById('chat-container'),
+            userInput: document.getElementById('user-input'),
+            btnSend: document.getElementById('btn-send'),
+            btnUploadImg: document.getElementById('btn-upload-img'),
+            fileInput: document.getElementById('file-input'),
+            imgPreviewArea: document.getElementById('image-preview-area'),
+            ragIndicator: document.getElementById('rag-indicator')
+        };
+
+        function showWelcomeMessage() {
+            const welcomeHTML = `
+                <div class="flex flex-col items-center justify-center py-10 animate-[fadeIn_1s_ease-out] text-center px-4">
+                    <div class="relative w-24 h-24 mb-6">
+                        <div class="absolute inset-0 bg-indigo-500 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                        <div class="relative w-full h-full rounded-full p-1 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 shadow-2xl border-2 border-white/20">
+                            <img src="./ava.jpg" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&clothing=blazerAndShirt&eyes=happy'" class="w-full h-full rounded-full object-cover bg-slate-800">
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-serif font-bold text-white mb-3 text-shadow-glow">Chào mừng em!</h2>
+                    <div class="glass-panel p-5 rounded-2xl max-w-lg shadow-2xl border-t border-white/10 backdrop-blur-md">
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            "Ta là <strong class="text-indigo-400">Thái Minh Nguyên</strong>. Tại đây, em có thể trò chuyện với bất kỳ vĩ nhân toán học nào. Hãy đặt câu hỏi hoặc gọi tên người em muốn gặp nhé!"
+                        </p>
+                    </div>
+                    <div class="mt-8 flex flex-wrap justify-center gap-3">
+                        <button onclick="fillPrompt('Thầy ơi, giải thích định lý Pitago giúp em.')" class="px-4 py-2 glass-panel border border-slate-600 rounded-full text-xs font-medium text-indigo-300 hover:bg-white/10 transition">📐 Pitago</button>
+                        <button onclick="fillPrompt('Em muốn gặp ngài Isaac Newton.')" class="px-4 py-2 glass-panel border border-slate-600 rounded-full text-xs font-medium text-pink-300 hover:bg-white/10 transition">🍎 Newton</button>
+                        <button onclick="fillPrompt('Vẽ đồ thị hàm số bậc 2.')" class="px-4 py-2 glass-panel border border-slate-600 rounded-full text-xs font-medium text-emerald-300 hover:bg-white/10 transition">📈 Đồ thị</button>
+                    </div>
+                </div>
+            `;
+            els.chatContainer.innerHTML = welcomeHTML;
+        }
+
+        window.fillPrompt = (text) => {
+            els.userInput.value = text;
+            handleSend();
+        };
+
+        // --- CHAT HANDLERS ---
+        els.userInput.addEventListener('input', function() {
+            this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+        
+        els.userInput.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }});
+        els.btnSend.addEventListener('click', handleSend);
+
+        // Image handling
+        els.btnUploadImg.addEventListener('click', () => els.fileInput.click());
+        els.fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) handleImageFile(e.target.files[0]);
+        });
+        els.userInput.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.kind === 'file' && item.type.startsWith('image/')) handleImageFile(item.getAsFile());
+            }
+        });
+
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                STATE.pendingImage = e.target.result.split(',')[1];
+                STATE.pendingMimeType = e.target.result.split(';')[0].split(':')[1];
+                els.imgPreviewArea.innerHTML = `<div class="img-preview-container"><img src="${e.target.result}" class="h-16 object-contain rounded"><div class="img-preview-remove" onclick="clearImage()">✕</div></div>`;
+                els.imgPreviewArea.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.clearImage = () => {
+            STATE.pendingImage = null;
+            STATE.pendingMimeType = null;
+            els.imgPreviewArea.innerHTML = '';
+            els.imgPreviewArea.classList.add('hidden');
+            els.fileInput.value = '';
+        };
+
+        async function handleSend() {
+            const text = els.userInput.value.trim();
+            const hasImage = !!STATE.pendingImage;
+            if(!text && !hasImage) return;
+
+            // Render User Message
+            let displayHTML = `<div class="bubble-user text-white p-3.5 rounded-2xl rounded-tr-sm shadow-lg max-w-[85%] backdrop-blur-sm"><p class="text-sm leading-relaxed">${escapeHtml(text).replace(/\n/g, '<br>')}</p></div>`;
+            if (hasImage) {
+                displayHTML += `<img src="data:${STATE.pendingMimeType};base64,${STATE.pendingImage}" class="mt-2 rounded-lg max-h-48 border border-white/20 block ml-auto">`;
+            }
+            appendMessageHTML(displayHTML, 'end');
+
+            // Reset Input
+            els.userInput.value = '';
+            els.userInput.style.height = 'auto';
+            const imgData = STATE.pendingImage;
+            const mimeType = STATE.pendingMimeType;
+            clearImage();
+
+            const loadingId = addLoading();
+
+            try {
+                // RAG Retrieval
+                let context = "";
+                if (text.length > 0 && STATE.chunks.length > 0 && STATE.embeddings.length === 0) {
+                     // Simple scan if embeddings not ready
+                     context = STATE.chunks.slice(0, 3).join("\n\n"); 
+                     els.ragIndicator.classList.remove('hidden');
+                }
+
+                const systemPrompt = `
+                ${VN_EDU_CONTEXT}
+                CURRENT HOST: Thầy Thái Minh Nguyên.
+                TASK: Analyze input. If user asks for a specific person (e.g. Pitago), become them. Else stay as Host.
+                Output first line: [PERSONA: <Name>|<Role>].
+                Context: ${context}
+                `;
+
+                // Build Request
+                const parts = [];
+                if (text) parts.push({ text: systemPrompt + "\n\nUser: " + text });
+                else parts.push({ text: systemPrompt + "\n\n[User uploaded an image]" });
+                
+                if (imgData) parts.push({ inlineData: { mimeType: mimeType, data: imgData } });
+
+                const history = STATE.chatHistory.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{text: m.content}] }));
+                history.push({ role: 'user', parts: parts });
+
+                const data = await callGemini(`${STATE.modelId}:generateContent`, {
+                    contents: history,
+                    generationConfig: { temperature: 0.5 }
+                });
+
+                const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Xin lỗi, không có phản hồi.";
+                
+                let displayText = rawText;
+                const match = rawText.match(/\[PERSONA:\s*([^|]+)\|([^\]]+)\]/i);
+                if(match) {
+                    const name = match[1].trim();
+                    const role = match[2].trim();
+                    displayText = rawText.replace(match[0], "").trim();
+                    STATE.currentPersona = { name, role, avatar: getAvatarFor(name), desc: role };
+                }
+
+                removeMessage(loadingId);
+                renderBotMessage(displayText, STATE.currentPersona);
+                
+                STATE.chatHistory.push({ role: 'user', content: text + (hasImage ? " [IMG]" : "") });
+                STATE.chatHistory.push({ role: 'model', content: rawText });
+
+            } catch (e) {
+                removeMessage(loadingId);
+                appendMessageHTML(`<div class="text-rose-400 text-xs text-center p-2">Lỗi: ${e.message}</div>`, 'center');
+            }
+        }
+
+        // --- RENDER HELPERS ---
+        function appendMessageHTML(html, justify) {
+            const div = document.createElement('div');
+            div.className = `flex w-full mb-6 justify-${justify} animate-[fadeIn_0.5s_ease-out]`;
+            div.innerHTML = html;
+            els.chatContainer.appendChild(div);
+            els.chatScroll.scrollTop = els.chatScroll.scrollHeight;
+        }
+
+        function renderBotMessage(text, persona) {
+            const html = `
+                <div class="flex flex-col items-center mr-3 space-y-1 flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-yellow-400 to-amber-600 shadow-lg avatar-glow relative overflow-hidden">
+                        <img src="${persona.avatar}" onerror="this.src='https://api.dicebear.com/7.x/notionists/svg?seed=${persona.name}'" class="w-full h-full rounded-full object-cover bg-slate-800">
+                    </div>
+                    <span class="text-[8px] font-bold text-amber-400 uppercase tracking-wider bg-slate-800/80 px-1.5 py-0.5 rounded-full border border-amber-500/30 max-w-[60px] truncate text-center">${persona.name}</span>
+                </div>
+                <div class="bubble-bot p-4 md:p-5 rounded-2xl rounded-tl-sm shadow-lg flex-1 max-w-[85%] relative text-slate-200">
+                    <div class="prose prose-sm prose-invert max-w-none font-sans">
+                        ${parseMarkdown(text)}
+                    </div>
+                </div>
+            `;
+            appendMessageHTML(html, 'start');
+            renderMathInElement(els.chatContainer.lastElementChild, {
+                delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}],
+                throwOnError: false
+            });
+        }
+
+        function addLoading() {
+            const id = 'load-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "flex w-full mb-6 justify-start animate-pulse";
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-slate-700 mr-3 flex-shrink-0"></div>
+                <div class="bg-slate-800/50 p-4 rounded-2xl rounded-tl-sm shadow-sm w-24 h-14 border border-slate-700 flex items-center justify-center">
+                    <div class="typing-dot bg-indigo-400"></div><div class="typing-dot bg-purple-400"></div><div class="typing-dot bg-pink-400"></div>
+                </div>
+            `;
+            els.chatContainer.appendChild(div);
+            els.chatScroll.scrollTop = els.chatScroll.scrollHeight;
+            return id;
+        }
+
+        function removeMessage(id) { document.getElementById(id)?.remove(); }
+        function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        function parseMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-sky-300 drop-shadow-sm">$1</strong>')
+                .replace(/### (.*?)\n/g, '<h3 class="text-base font-bold mt-3 mb-2 text-indigo-300 font-serif">$1</h3>')
+                .replace(/^- (.*?)$/gm, '<li class="ml-3 flex items-start text-sm"><span class="mr-2 text-amber-400 mt-1 text-[10px]">✦</span><span>$1</span></li>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function getAvatarFor(name) {
+            const lower = name.toLowerCase();
+            if(lower.includes("nguyên")) return "./ava.jpg";
+            return `https://api.dicebear.com/7.x/notionists/svg?seed=${name}`;
+        }
+
+        // Sidebar & Menu Logic
+        function toggleSidebar() {
+            const sb = document.getElementById('left-sidebar');
+            const bd = document.getElementById('mobile-backdrop');
+            
+            if (sb.classList.contains('sidebar-closed')) {
+                // Open Sidebar
+                sb.classList.remove('sidebar-closed');
+                if(window.innerWidth < 768) bd.classList.remove('hidden');
+            } else {
+                // Close Sidebar
+                sb.classList.add('sidebar-closed');
+                bd.classList.add('hidden');
+            }
+        }
+
+        // Initialize sidebar as hidden
+        document.addEventListener('DOMContentLoaded', () => {
+            const sb = document.getElementById('left-sidebar');
+            // By default closed initially for cleaner look
+            sb.classList.add('sidebar-closed');
+        });
+
+        document.getElementById('btn-mathtype-help').addEventListener('click', () => document.getElementById('mathtype-modal').classList.remove('hidden'));
+    </script>
+</body>
+</html>
