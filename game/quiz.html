@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>GeometryIQ - MATH PERFECT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* --- THEME & FONTS --- */
+    @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background-color: #020617;
+      color: #e2e8f0;
+      overflow: hidden;
+      user-select: none;
+      touch-action: none;
+      height: 100vh; height: 100dvh;
+    }
+    
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* --- BACKGROUND ANIMATION --- */
+    .cyber-grid {
+      position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
+      background-image: 
+        linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+      background-size: 80px 80px;
+      transform: perspective(500px) rotateX(60deg);
+      animation: grid-scroll 30s linear infinite;
+      z-index: 0; pointer-events: none;
+      mask-image: radial-gradient(circle, #000 0%, transparent 70%);
+    }
+    @keyframes grid-scroll { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(80px); } }
+
+    /* --- 3D VIEWPORT --- */
+    #viewport-container {
+      position: relative; perspective: 1000px; z-index: 30;
+      cursor: grab; touch-action: none;
+      display: flex; justify-content: center; align-items: center;
+    }
+    #viewport-container:active { cursor: grabbing; }
+
+    .math3d-svg { width: 100%; height: 100%; overflow: visible; }
+    
+    .line-solid {
+      fill: none; stroke: #22d3ee; stroke-width: 3.5;
+      stroke-linecap: round; stroke-linejoin: round;
+      filter: drop-shadow(0 0 4px rgba(34,211,238,0.5));
+      vector-effect: non-scaling-stroke;
+    }
+    .line-dashed {
+      fill: none; stroke: #475569; stroke-width: 2; 
+      stroke-dasharray: 6, 6; opacity: 0.5;
+      vector-effect: non-scaling-stroke;
+    }
+    
+    .face-poly { fill: rgba(34, 211, 238, 0.1); stroke: none; transition: fill 0.2s; }
+    .face-poly:hover { fill: rgba(34, 211, 238, 0.25); }
+
+    /* --- UI ELEMENTS --- */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-opt {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      transition: all 0.2s; position: relative; overflow: hidden; z-index: 40;
+      touch-action: manipulation;
+    }
+    .btn-opt:hover:not(:disabled):not(.selected) {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(34, 211, 238, 0.4);
+      transform: translateY(-2px);
+    }
+    .btn-opt.selected {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: #22d3ee;
+      box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
+      transform: scale(1.02);
+    }
+    .btn-opt:disabled { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
+
+    #confirm-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
+      transition: all 0.3s;
+    }
+    #confirm-btn:active { transform: scale(0.95); }
+    #confirm-btn.hidden-btn { opacity: 0; pointer-events: none; transform: translateY(20px) scale(0.9); }
+
+    /* Timer Bar */
+    #timer-bar-container {
+      position: absolute; top: 0; left: 0; width: 100%; height: 4px; z-index: 60;
+      background: rgba(255,255,255,0.1);
+    }
+    #timer-bar {
+      height: 100%; background: #22d3ee; width: 100%;
+      box-shadow: 0 0 10px #22d3ee;
+      transition: width 1s linear, background-color 0.3s;
+    }
+    
+    #fx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+    .pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards; }
+    @keyframes popIn { from { transform: scale(0.9) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  </style>
+</head>
+<body class="safe-area-inset">
+
+  <!-- LAYER 0: BG -->
+  <div class="cyber-grid"></div>
+  <div class="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/80 to-transparent pointer-events-none"></div>
+  <canvas id="fx-canvas"></canvas>
+
+  <!-- LAYER 1: HUD -->
+  <div id="game-hud" class="hidden absolute top-0 left-0 w-full z-50 pointer-events-none flex flex-col">
+    <div id="timer-bar-container"><div id="timer-bar"></div></div>
+    
+    <div class="w-full flex justify-between items-start p-3 md:p-6 select-none">
+      <div class="glass-panel px-4 py-2 rounded-full flex items-center gap-4 pointer-events-auto">
+        <div class="flex gap-1 text-red-500 drop-shadow-md" id="lives-display"></div>
+        <div class="w-px h-4 bg-white/10"></div>
+        <div class="text-[10px] md:text-xs font-bold text-slate-400 tracking-wider">LEVEL <span id="level-display" class="text-white text-sm md:text-base ml-1">1</span></div>
+      </div>
+
+      <div class="flex items-center gap-3 pointer-events-auto">
+        <div class="glass-panel px-5 py-2 rounded-full text-right">
+          <div id="score-display" class="text-lg md:text-2xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">0000</div>
+        </div>
+        <button id="audio-btn" class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-cyan-400 hover:bg-white/10 transition">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 2: APP SCREENS -->
+  <div id="app" class="relative z-20 w-full h-full flex flex-col justify-center items-center p-4">
+
+    <!-- WELCOME SCREEN -->
+    <div id="screen-welcome" class="text-center w-full max-w-4xl animate-[popIn_0.6s_ease-out] flex flex-col items-center justify-center h-full">
+      <div class="relative mb-8 group">
+        <div class="absolute inset-0 bg-cyan-500/20 blur-[80px] rounded-full group-hover:bg-cyan-500/30 transition duration-1000"></div>
+        <h1 class="text-6xl md:text-[9rem] font-black text-white drop-shadow-2xl tracking-tighter leading-none relative z-10">
+          GEO<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">MASTER</span>
+        </h1>
+      </div>
+      
+      <div class="flex gap-3 mb-12">
+        <span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] md:text-xs font-mono text-cyan-200 tracking-wider">3D ENGINE</span>
+        <span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] md:text-xs font-mono text-blue-200 tracking-wider">MATH STANDARD</span>
+      </div>
+
+      <button id="btn-start" class="group relative px-12 py-5 md:px-16 md:py-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-black rounded-full text-lg md:text-2xl shadow-[0_0_40px_rgba(6,182,212,0.4)] transition-all hover:scale-105 active:scale-95 overflow-hidden">
+        <span class="relative z-10">START GAME</span>
+        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+      </button>
+    </div>
+
+    <!-- GAMEPLAY SCREEN -->
+    <div id="screen-game" class="hidden w-full max-w-6xl flex-col items-center h-full pt-14 md:pt-20 pb-2">
+      
+      <div class="text-center w-full mb-2 z-20 pointer-events-none shrink-0 px-4">
+        <h2 id="q-text" class="text-lg md:text-3xl font-bold text-slate-100 drop-shadow-lg min-h-[3rem] flex items-center justify-center leading-tight max-w-4xl mx-auto">
+          ...
+        </h2>
+      </div>
+
+      <div id="viewport-container" class="w-full flex-1 relative cursor-grab active:cursor-grabbing min-h-0">
+        <div id="viewport" class="w-[70vmin] h-[70vmin] max-w-[450px] max-h-[450px] relative flex justify-center items-center">
+          <!-- 3D Canvas injected here -->
+        </div>
+        <div class="absolute bottom-4 text-[10px] md:text-xs font-mono text-cyan-500/60 pointer-events-none animate-pulse tracking-widest bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm border border-white/5">
+          XOAY 3D / ROTATE
+        </div>
+      </div>
+
+      <div class="h-14 flex items-center justify-center mb-2 z-50 shrink-0">
+        <button id="confirm-btn" class="hidden-btn px-10 py-3 rounded-full text-white font-bold text-sm md:text-base shadow-lg tracking-widest border border-white/20 hover:shadow-cyan-500/50 flex items-center gap-2 uppercase backdrop-blur-md">
+          Xác nhận
+        </button>
+      </div>
+
+      <div id="options-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mb-4 z-40 relative shrink-0 h-auto px-2 md:px-0">
+        <!-- Buttons injected here -->
+      </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="lesson-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+      <div class="glass-panel w-full max-w-md rounded-3xl p-6 md:p-8 border-cyan-500/30 shadow-2xl animate-[popIn_0.3s]">
+        <div class="flex items-start justify-between mb-4 md:mb-6">
+          <div><div class="text-[10px] md:text-xs font-mono text-cyan-400 mb-1 uppercase tracking-widest">GHI CHÚ</div><h3 id="lesson-title" class="text-2xl md:text-3xl font-bold text-white">Title</h3></div>
+          <div id="lesson-icon" class="w-16 h-16 text-cyan-400"></div>
+        </div>
+        <p id="lesson-content" class="text-slate-300 text-sm leading-relaxed mb-6 bg-slate-900/50 p-4 rounded-xl border border-white/5">...</p>
+        <button id="lesson-close" class="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold text-sm transition uppercase tracking-wide shadow-lg">Đã Hiểu</button>
+      </div>
+    </div>
+
+    <div id="result-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+      <div class="text-center glass-panel p-8 md:p-12 rounded-3xl border-t border-purple-500/50 w-full max-w-sm shadow-2xl">
+        <div class="text-6xl mb-4">🏆</div>
+        <h2 class="text-2xl font-bold text-white mb-6 uppercase tracking-wider">Hoàn Thành</h2>
+        <div class="space-y-3 mb-8">
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg"><span class="text-xs text-slate-400 uppercase">Điểm số</span><span id="end-score" class="text-xl font-mono text-cyan-400 font-bold">0</span></div>
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg"><span class="text-xs text-slate-400 uppercase">Câu đúng</span><span id="end-correct" class="text-xl font-mono text-green-400 font-bold">0</span></div>
+        </div>
+        <button id="btn-restart" class="w-full py-3 bg-white text-black font-bold rounded-xl hover:scale-105 transition shadow-lg uppercase text-sm">Chơi Lại</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* --- MATH 3D ENGINE --- */
+    const Math3D = {
+      rotate(v, ax, ay) {
+        let x=v[0], y=v[1], z=v[2];
+        let cy=Math.cos(ay), sy=Math.sin(ay);
+        let x1=x*cy-z*sy, z1=x*sy+z*cy;
+        let cx=Math.cos(ax), sx=Math.sin(ax);
+        let y2=y*cx-z1*sx, z2=y*sx+z1*cx;
+        return [x1, y2, z2];
+      },
+      project(v, w, h, s) { return [ v[0]*s*(400/(400+v[2])) + w/2, v[1]*s*(400/(400+v[2])) + h/2 ]; }
+    };
+
+    /* --- SHAPES (Screen-Space CCW Winding = Visible) --- */
+    const Poly = {
+      // Faces defined CLOCKWISE relative to looking at them from outside
+      // This results in POSITIVE cross-product (Z>0) in standard screen coords (Y down)
+      // So condition for visibility: Cross Product > 0
+      cube: {
+        v: [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]],
+        f: [[3,2,1,0], [4,5,6,7], [0,1,5,4], [1,2,6,5], [2,3,7,6], [3,0,4,7]], // Corrected CW
+        p:{v:8,f:6,e:12}
+      },
+      tetra: { 
+        v: [[1,1,1],[-1,-1,1],[-1,1,-1],[1,-1,-1]], 
+        f: [[0,2,1],[0,1,3],[0,3,2],[1,2,3]], // Corrected CW
+        p:{v:4,f:4,e:6} 
+      },
+      octa: {
+        v: [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]],
+        f: [[0,4,2],[0,2,5],[0,5,3],[0,3,4],[1,2,4],[1,5,2],[1,3,5],[1,4,3]],
+        p:{v:6,f:8,e:12}
+      },
+      pyramid: { 
+        v: [[1,0,1],[1,0,-1],[-1,0,-1],[-1,0,1],[0,-1.5,0]], 
+        f: [[3,2,1,0],[0,1,4],[1,2,4],[2,3,4],[3,0,4]], // Corrected CW
+        p:{v:5,f:5,e:8} 
+      },
+      prism: { 
+        v: [[-1,-1,1],[1,-1,1],[0,1,1],[-1,-1,-1],[1,-1,-1],[0,1,-1]], 
+        f: [[0,2,1],[3,4,5],[0,1,4,3],[1,2,5,4],[2,0,3,5]], // Corrected CW
+        p:{v:6,f:5,e:9} 
+      }
+    };
+    const SName = { cube:'Lập Phương', tetra:'Tứ Diện', octa:'Bát Diện Đều', pyramid:'Chóp Tứ Giác', prism:'Lăng Trụ' };
+
+    class Render {
+      constructor(id, t) {
+        this.el=document.getElementById(id); this.s=Poly[t]; this.r={x:-0.5,y:0.5}; this.sc=120;
+        this.el.innerHTML=`<svg class="math3d-svg"></svg>`; this.svg=this.el.firstChild;
+        this.drag=false; this.loop();
+      }
+      rot(dx,dy) { this.r.y+=dx*0.01; this.r.x+=dy*0.01; this.drag=true; }
+      loop() {
+        if(!this.drag) this.r.y+=0.002; else this.drag=false;
+        this.draw(); requestAnimationFrame(()=>this.loop());
+      }
+      draw() {
+        if(!this.el.offsetParent) return; 
+        const w=this.el.clientWidth, h=this.el.clientHeight;
+        const tv=this.s.v.map(v=>Math3D.rotate(v,this.r.x,this.r.y));
+        const proj=tv.map(v=>Math3D.project(v,w,h,this.sc));
+
+        // Screen-Space Back-Face Culling
+        const fv = this.s.f.map(f => {
+          // Calculate signed area of polygon on screen (only need first 3 points for planar)
+          const p0=proj[f[0]], p1=proj[f[1]], p2=proj[f[2]];
+          return ((p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0])) > 0; // CW > 0
+        });
+        
+        const em={};
+        this.s.f.forEach((f,i)=>{
+          for(let j=0;j<f.length;j++) {
+            const a=f[j], b=f[(j+1)%f.length], k=a<b?a+'-'+b:b+'-'+a;
+            if(!em[k]) em[k]=0; if(fv[i]) em[k]++;
+          }
+        });
+
+        let htm='';
+        this.s.f.forEach((f,i)=>{
+          if(fv[i]) htm+=`<polygon points="${f.map(x=>proj[x].join(',')).join(' ')}" class="face-poly"/>`;
+        });
+        for(let k in em) {
+          const [a,b]=k.split('-').map(Number);
+          // Solid if visible count > 0 (shared by at least one visible face)
+          // Dashed if visible count == 0 (only hidden faces)
+          htm+=`<line x1="${proj[a][0]}" y1="${proj[a][1]}" x2="${proj[b][0]}" y2="${proj[b][1]}" class="${em[k]>0?'line-solid':'line-dashed'}"/>`;
+        }
+        this.svg.innerHTML=htm;
+      }
+    }
+
+    /* --- GAME --- */
+    const Game = {
+      sc:0, lvl:1, lives:3, qCnt:0, t:30, tInt:null, curr:null, sel:null, ren:null, qDeck:[],
+      init() {
+        const SFX = window.SFX = {
+          tone: (f,t,d) => { try{ let c=new(window.AudioContext||window.webkitAudioContext)(), o=c.createOscillator(), g=c.createGain(); o.type=t; o.frequency.value=f; g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d); o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+d); }catch(e){} },
+          click: ()=>SFX.tone(600,'triangle',0.1), ok: ()=>SFX.tone(523,'sine',0.3), no: ()=>SFX.tone(150,'sawtooth',0.3), tick: ()=>SFX.tone(800,'square',0.05)
+        };
+        
+        ['btn-start','btn-restart'].forEach(i=>document.getElementById(i).onclick=()=>this.start());
+        document.getElementById('lesson-close').onclick=()=>{ document.getElementById('lesson-modal').classList.add('hidden'); this.next(); };
+        document.getElementById('confirm-btn').onclick=()=>this.check();
+
+        const vp=document.getElementById('viewport-container');
+        let lx=0, ly=0, down=false;
+        const move=(x,y)=>{ if(this.ren && down){ this.ren.rot(x-lx, y-ly); lx=x; ly=y; } };
+        vp.onmousedown=e=>{ down=true; lx=e.clientX; ly=e.clientY; };
+        window.onmousemove=e=>move(e.clientX,e.clientY);
+        window.onmouseup=()=>down=false;
+        vp.ontouchstart=e=>{ down=true; lx=e.touches[0].clientX; ly=e.touches[0].clientY; };
+        window.ontouchmove=e=>{ e.preventDefault(); move(e.touches[0].clientX,e.touches[0].clientY); };
+        window.ontouchend=()=>down=false;
+
+        this.bgFX();
+      },
+      
+      start() {
+        this.sc=0; this.lvl=1; this.lives=3; this.qCnt=0; this.genDeck();
+        document.getElementById('screen-welcome').classList.add('hidden');
+        document.getElementById('result-modal').classList.add('hidden');
+        document.getElementById('screen-game').classList.remove('hidden'); document.getElementById('screen-game').classList.add('flex');
+        document.getElementById('game-hud').classList.remove('hidden');
+        this.updHUD(); this.next();
+      },
+
+      genDeck() {
+        this.qDeck=[];
+        for(let k in Poly) {
+          const n=SName[k], p=Poly[k].p;
+          this.qDeck.push({t:'id', q:`Đây là hình gì?`, k:k, a:n, s:k});
+          this.qDeck.push({t:'c', q:`Hình này có bao nhiêu ĐỈNH?`, k:k, a:String(p.v), s:k, v:p.v});
+          this.qDeck.push({t:'c', q:`Hình này có bao nhiêu MẶT?`, k:k, a:String(p.f), s:k, v:p.f});
+          this.qDeck.push({t:'c', q:`Hình này có bao nhiêu CẠNH?`, k:k, a:String(p.e), s:k, v:p.e});
+        }
+        this.qDeck.sort(()=>Math.random()-0.5);
+      },
+
+      updHUD() {
+        document.getElementById('score-display').innerText = this.sc;
+        document.getElementById('level-display').innerText = this.lvl;
+        document.getElementById('lives-display').innerHTML = '♥'.repeat(this.lives);
+      },
+
+      next() {
+        clearInterval(this.tInt); this.sel=null;
+        document.getElementById('confirm-btn').classList.add('hidden-btn');
+        if(this.ren) { cancelAnimationFrame(this.ren.loopId); this.ren=null; } 
+        document.getElementById('viewport').innerHTML='';
+
+        if(!this.qDeck.length) this.genDeck();
+        this.curr = this.qDeck.pop();
+        
+        let opts = [this.curr.a];
+        if(this.curr.t==='id') {
+          const all = Object.values(SName);
+          while(opts.length<4) { let r=all[Math.floor(Math.random()*all.length)]; if(!opts.includes(r)) opts.push(r); }
+        } else {
+          while(opts.length<4) { let r=Number(this.curr.v)+Math.floor(Math.random()*5)-2; if(!opts.includes(String(r)) && r>0) opts.push(String(r)); }
+        }
+        this.curr.opts = opts.sort(()=>Math.random()-0.5).map(t=>({id:t, txt:t}));
+
+        this.ren = new Render('viewport', this.curr.s);
+        document.getElementById('q-text').innerText = this.curr.q;
+        
+        const g=document.getElementById('options-grid'); g.innerHTML='';
+        this.curr.opts.forEach(o=>{
+          const b=document.createElement('button'); b.className='btn-opt rounded-2xl p-4 flex items-center justify-center min-h-[70px] md:min-h-[90px] pop-in';
+          b.innerHTML=`<span class="text-base md:text-xl font-bold font-mono text-cyan-100">${o.txt}</span>`;
+          b.onclick=()=>{ SFX.click(); this.sel=o.id; document.querySelectorAll('.btn-opt').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); document.getElementById('confirm-btn').classList.remove('hidden-btn'); };
+          g.appendChild(b);
+        });
+
+        this.timer();
+      },
+
+      check() {
+        if(!this.sel) return; clearInterval(this.tInt);
+        document.querySelectorAll('.btn-opt').forEach(b=>b.disabled=true);
+        document.getElementById('confirm-btn').classList.add('hidden-btn');
+        
+        if(this.sel === this.curr.a) {
+          SFX.ok(); this.sc+=100+this.t; this.qCnt++;
+          if(this.qCnt%5===0) this.lvl++;
+          this.updHUD(); setTimeout(()=>this.next(), 1000);
+        } else {
+          SFX.no(); this.lives--; this.updHUD();
+          if(this.lives<=0) setTimeout(()=>{ document.getElementById('result-modal').classList.remove('hidden'); document.getElementById('end-score').innerText=this.sc; document.getElementById('end-correct').innerText=this.qCnt; }, 1000);
+          else setTimeout(()=>{ document.getElementById('lesson-modal').classList.remove('hidden'); document.getElementById('lesson-title').innerText='Ghi Nhớ'; document.getElementById('lesson-content').innerText=`Hình ${SName[this.curr.s]} có đặc điểm: ${this.curr.v?this.curr.v+' '+this.curr.q.split(' ').pop():'Hãy quan sát kỹ nhé!'}`; }, 1000);
+        }
+      },
+
+      timer() {
+        this.t=30; const bar=document.getElementById('timer-bar');
+        this.tInt = setInterval(()=>{
+          this.t--; bar.style.width=`${(this.t/30)*100}%`;
+          if(this.t<=5) { bar.style.backgroundColor='#ef4444'; SFX.tick(); } else bar.style.backgroundColor='#22d3ee';
+          if(this.t<=0) this.check();
+        }, 1000);
+      },
+
+      bgFX() {
+        const c=document.getElementById('fx-canvas'), x=c.getContext('2d');
+        let w,h, p=[];
+        const rs=()=>{ w=c.width=window.innerWidth; h=c.height=window.innerHeight; }; window.onresize=rs; rs();
+        const syms=['π','∑','∫','∆','∞','√','λ','θ'];
+        const draw=()=>{
+          x.clearRect(0,0,w,h);
+          if(Math.random()<0.03) p.push({x:Math.random()*w, y:h+20, v:Math.random()*1+0.5, s:syms[Math.floor(Math.random()*syms.length)], sz:Math.random()*20+10, o:1});
+          p.forEach((i,idx)=>{
+            i.y-=i.v; i.o-=0.002;
+            x.fillStyle=`rgba(34,211,238,${i.o*0.15})`; x.font=`${i.sz}px serif`; x.fillText(i.s, i.x, i.y);
+            if(i.o<=0) p.splice(idx,1);
+          });
+          requestAnimationFrame(draw);
+        }; draw();
+      }
+    };
+    Game.init();
+  </script>
+</body>
+</html>
