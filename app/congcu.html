@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Trợ Lý Ảnh Hóa Giáo Dục - V29 Visual Mastery</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --theme-color: #059669;
+            --theme-glow: rgba(5, 150, 105, 0.4);
+            --theme-bg: #ecfdf5;
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --blur: 50px;
+        }
+
+        /* --- CORE LAYOUT --- */
+        body { 
+            font-family: 'Be Vietnam Pro', sans-serif; 
+            background-color: var(--theme-bg);
+            color: #0f172a;
+            transition: background-color 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            height: 100dvh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- ENHANCED DYNAMIC BACKGROUNDS --- */
+        .bg-pattern { position: fixed; inset: 0; z-index: -2; transition: opacity 0.5s ease; opacity: 0.15; pointer-events: none; mix-blend-mode: multiply; }
+        
+        /* Toán: Lưới Graph đậm nét */
+        body.theme-math .bg-pattern { 
+            background-image: 
+                linear-gradient(rgba(37, 99, 235, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.3) 1px, transparent 1px);
+            background-size: 40px 40px; 
+        }
+        /* Văn: Hoa văn giấy dó/Mực tàu */
+        body.theme-literature .bg-pattern { 
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23db2777' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+        /* Sử: Họa tiết cổ điển/Trống đồng */
+        body.theme-history .bg-pattern { 
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b45309' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); 
+            opacity: 0.15;
+        }
+        /* Địa: Đường đồng mức rõ ràng */
+        body.theme-geography .bg-pattern { 
+            background-image: repeating-radial-gradient(circle at 0 0, transparent 0, #ecfeff 10px), repeating-linear-gradient(#0891b255, #0891b255);
+            background-size: 20px 20px;
+            opacity: 0.2;
+        }
+        /* Khoa học: Mạng lưới phân tử */
+        body.theme-science .bg-pattern { 
+            background-image: radial-gradient(#16a34a 2px, transparent 2px);
+            background-size: 30px 30px; 
+            opacity: 0.4;
+        }
+        /* Anh Văn: Ký tự ABC */
+        body.theme-english .bg-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' font-family='sans-serif' font-size='20' fill='%232563eb' fill-opacity='0.2'%3EA%3C/text%3E%3Ctext x='50' y='60' font-family='sans-serif' font-size='20' fill='%23dc2626' fill-opacity='0.2'%3EB%3C/text%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .glass-panel { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(var(--blur)); 
+            border: 1px solid var(--glass-border); 
+            box-shadow: 0 20px 50px -12px rgba(0,0,0,0.1);
+        }
+
+        .edu-input { 
+            width: 100%; padding: 0.85rem 1.25rem;
+            border-radius: 1rem; 
+            border: 2px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.6); 
+            font-size: 1rem; font-weight: 700; color: #0f172a;
+            transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .edu-input:focus { outline: none; border-color: var(--theme-color); background: #fff; box-shadow: 0 0 0 4px var(--theme-glow); transform: translateY(-2px); }
+
+        /* --- BUTTONS & CARDS --- */
+        .selection-card:checked + label { 
+            border-color: var(--theme-color); background: #fff; 
+            box-shadow: 0 12px 25px -8px var(--theme-glow); 
+            transform: translateY(-4px) scale(1.02);
+            border-width: 2px;
+        }
+        .selection-card:checked + label i { color: var(--theme-color); transform: scale(1.2); }
+        
+        .sparkle-btn { 
+            background: linear-gradient(135deg, var(--theme-color), #0f172a); 
+            position: relative; overflow: hidden; transition: all 0.3s; z-index: 1;
+            box-shadow: 0 10px 25px -5px var(--theme-glow);
+        }
+        .sparkle-btn:hover { transform: translateY(-3px) scale(1.02); filter: brightness(1.1); box-shadow: 0 15px 35px -5px var(--theme-glow); }
+        .sparkle-btn::after {
+            content: ''; position: absolute; inset: 0; 
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .sparkle-btn:active::after { opacity: 1; transition: 0s; }
+
+        /* --- FLOATING ICONS (BIGGER & BOLDER) --- */
+        .float-icon { 
+            position: fixed; opacity: 0; pointer-events: none; z-index: -1; 
+            color: var(--theme-color); filter: blur(0.5px); 
+            animation: floatUp linear infinite; 
+            text-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        @keyframes floatUp { 
+            0% { transform: translateY(110vh) rotate(0deg) scale(0.8); opacity: 0; } 
+            20% { opacity: 0.25; } 80% { opacity: 0.25; } 
+            100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; } 
+        }
+
+        /* --- LAYOUT UTILS --- */
+        .scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 2rem; -webkit-overflow-scrolling: touch; }
+        .scroll-area::-webkit-scrollbar { width: 5px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+        
+        .step-container { display: none; height: 100%; flex-direction: column; opacity: 0; transform: translateY(20px); transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .step-container.active { display: flex; opacity: 1; transform: translateY(0); }
+
+        .grid-responsive { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        @media (min-width: 768px) { .grid-responsive { grid-template-columns: repeat(4, 1fr); } }
+    </style>
+</head>
+<body class="theme-general">
+
+    <!-- Backgrounds -->
+    <div class="bg-gradient-orb absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-[color:var(--theme-color)] opacity-15 blur-[120px] rounded-full animate-pulse"></div>
+    <div class="bg-gradient-orb absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-blue-500 opacity-15 blur-[100px] rounded-full"></div>
+    <div class="bg-pattern"></div>
+    <div id="floating-container"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="flex flex-col h-full w-full max-w-6xl mx-auto relative md:my-4 md:h-[95vh] md:rounded-[2.5rem] border border-white/60 md:shadow-2xl md:bg-white/30 md:backdrop-blur-2xl overflow-hidden ring-1 ring-white/40">
+        
+        <!-- HEADER -->
+        <header class="flex-none px-6 py-4 flex items-center justify-between border-b border-white/20 bg-white/50 backdrop-blur-md z-30">
+            <div class="flex items-center gap-4">
+                <div id="logo-icon" class="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-3xl shadow-xl transition-all duration-500 transform hover:scale-110 hover:rotate-6" style="background-color: var(--theme-color)">
+                    <i class="ph-bold ph-student"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-slate-800 leading-none tracking-tight">EDU <span class="text-[color:var(--theme-color)]">PROMPT</span></h1>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">V29 Visual Mastery</p>
+                </div>
+            </div>
+            <!-- Progress Stepper -->
+            <div class="flex gap-2">
+                <div class="step-dot w-10 h-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+                <div class="step-dot w-10 h-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+                <div class="step-dot w-10 h-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+                <div class="step-dot w-10 h-1.5 rounded-full bg-slate-300 transition-all duration-500"></div>
+            </div>
+        </header>
+
+        <!-- CONTENT AREA -->
+        <div class="flex-1 relative overflow-hidden flex flex-col bg-white/5">
+            
+            <!-- STEP 1: SETUP -->
+            <div id="step-1" class="step-container active">
+                <div class="p-6 pb-2 flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-extrabold text-white bg-[color:var(--theme-color)] px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">Bước 1/4</span>
+                        <h2 class="text-3xl font-black text-slate-800 leading-tight mt-1">Chọn Môn Học</h2>
+                    </div>
+                </div>
+
+                <div class="scroll-area p-6 pt-4">
+                    <div class="flex flex-col justify-center h-full">
+                        <div class="max-w-3xl mx-auto w-full space-y-6">
+                            <label class="text-sm font-bold text-slate-500 uppercase ml-1">Kích hoạt Logic Sư Phạm</label>
+                            
+                            <!-- Subject Select with Giant Icon -->
+                            <div class="relative group">
+                                <select id="selSubject" class="edu-input appearance-none pl-16 h-32 text-2xl font-bold bg-white/70 hover:bg-white cursor-pointer shadow-lg transition-all border-2 border-white/60">
+                                    <option value="general">🏫 Hoạt động chung</option>
+                                    <option value="math">📐 Toán Học (SGK)</option>
+                                    <option value="literature">📖 Ngữ Văn (SGK)</option>
+                                    <option value="english">🇬🇧 Tiếng Anh (SGK)</option>
+                                    <option value="history">📜 Lịch Sử (SGK)</option>
+                                    <option value="geography">🌍 Địa Lý (SGK)</option>
+                                    <option value="biology">🧬 Sinh Học (SGK)</option>
+                                    <option value="physics">⚡ Vật Lý (SGK)</option>
+                                    <option value="chemistry">🧪 Hóa Học (SGK)</option>
+                                </select>
+                                <div class="absolute left-6 top-1/2 -translate-y-1/2 text-[color:var(--theme-color)] text-6xl transition-transform duration-300 group-hover:scale-110 drop-shadow-sm">
+                                    <i class="ph-duotone ph-books"></i>
+                                </div>
+                                <i class="ph-bold ph-caret-down absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-2xl"></i>
+                            </div>
+                            
+                            <div class="p-5 bg-white/50 rounded-2xl border border-white/60 text-sm text-slate-600 leading-relaxed shadow-sm flex gap-4 items-start">
+                                <div class="w-10 h-10 rounded-full bg-[color:var(--theme-color)]/10 flex items-center justify-center shrink-0 text-[color:var(--theme-color)] text-xl">
+                                    <i class="ph-fill ph-info"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-slate-800 text-base">Pedagogical Architect V29:</strong>
+                                    <p class="mt-1">Hệ thống đã cập nhật thêm <strong>Môn Tiếng Anh (English)</strong> với logic Giao tiếp & Văn hóa. Giao diện sẽ tự động biến đổi màu sắc và biểu tượng theo từng môn học để tạo cảm hứng sáng tạo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: CONTENT -->
+            <div id="step-2" class="step-container">
+                <div class="p-6 pb-2 flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-extrabold text-white bg-[color:var(--theme-color)] px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">Bước 2/4</span>
+                        <h2 class="text-3xl font-black text-slate-800 leading-tight mt-1">Nội Dung</h2>
+                    </div>
+                    <button id="btnExample" class="text-xs bg-white border border-slate-200 px-4 py-2 rounded-full font-bold text-slate-600 shadow-sm hover:border-[color:var(--theme-color)] hover:text-[color:var(--theme-color)] transition active:scale-95 flex items-center gap-1.5">
+                        <i class="ph-bold ph-lightning"></i> Ví dụ mẫu
+                    </button>
+                </div>
+
+                <div class="scroll-area p-6 pt-4">
+                    <div class="flex flex-col h-full gap-6">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-2 block">Tên bài học / Chủ đề</label>
+                            <input type="text" id="inpTitle" class="edu-input text-xl font-bold bg-white/70 h-16 shadow-sm" placeholder="VD: Tích phân, Present Simple...">
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col min-h-[220px]">
+                            <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-2 block flex justify-between">
+                                <span>Chi tiết nội dung</span>
+                                <span class="text-[color:var(--theme-color)] font-extrabold flex items-center gap-1"><i class="ph-bold ph-magic-wand"></i> AI Full-Scan</span>
+                            </label>
+                            <div class="relative flex-1 group">
+                                <textarea id="inpContent" class="edu-input h-full w-full resize-none leading-relaxed bg-white/70 p-5 text-base shadow-inner" placeholder="Mẹo: Để trống ô này để AI tự động soạn bài giảng TOÀN DIỆN theo chuẩn SGK (Định nghĩa, Công thức, Ví dụ, Ứng dụng)..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: MATRIX & CONFIG -->
+            <div id="step-3" class="step-container">
+                <div class="p-6 pb-2">
+                    <span class="text-[10px] font-extrabold text-white bg-[color:var(--theme-color)] px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">Bước 3/4</span>
+                    <h2 class="text-3xl font-black text-slate-800 leading-tight mt-1">Ma Trận Sư Phạm</h2>
+                </div>
+
+                <div class="scroll-area p-6 pt-4">
+                    <div class="space-y-6">
+                        <!-- Curriculum Matrix -->
+                        <div class="bg-white/50 p-5 rounded-3xl border border-white/60 shadow-sm grid grid-cols-2 gap-5">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Khối Lớp</label>
+                                <select id="selGradeLevel" class="edu-input text-sm py-2 px-3 h-12 mt-1 cursor-pointer font-bold border-2">
+                                    <option value="primary">Tiểu học (1-5)</option>
+                                    <option value="secondary">THCS (6-9)</option>
+                                    <option value="highschool">THPT (10-12)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Bộ Sách</label>
+                                <select id="selBookSeries" class="edu-input text-sm py-2 px-3 h-12 mt-1 cursor-pointer font-bold border-2">
+                                    <option value="kntt">Kết Nối Tri Thức</option>
+                                    <option value="cd">Cánh Diều</option>
+                                    <option value="ctst">Chân Trời Sáng Tạo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Type & Style -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2 mb-1 block">Loại Học liệu</label>
+                                <select id="selType" class="edu-input font-semibold bg-white/70 cursor-pointer h-14 border-2">
+                                    <optgroup label="Sơ đồ & Tổng hợp">
+                                        <option value="infographic_detail">📊 Infographic Chi tiết</option>
+                                        <option value="mindmap_buzan">🧠 Sơ đồ Tư duy (Buzan)</option>
+                                        <option value="sketchnote">📝 Sketchnote Visual</option>
+                                    </optgroup>
+                                    <optgroup label="Minh họa SGK">
+                                        <option value="textbook_illustration">📖 Minh họa SGK</option>
+                                        <option value="flashcard">🎴 Flashcard (Tách nền)</option>
+                                        <option value="poster">🖼️ Poster Lớp học</option>
+                                    </optgroup>
+                                    <optgroup label="Khoa học">
+                                        <option value="diagram">⚙️ Sơ đồ Cấu tạo</option>
+                                        <option value="isometric">🧊 Mô hình 3D Cắt lớp</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2 mb-1 block">Phong cách</label>
+                                <select id="selStyle" class="edu-input font-medium bg-white/70 cursor-pointer h-14 border-2">
+                                    <option value="standard">✨ Hiện đại & Sáng sủa</option>
+                                    <option value="anime">🎎 Anime/Manga</option>
+                                    <option value="chibi">🧸 3D Cute (Pixar)</option>
+                                    <option value="traditional">🏮 Truyền thống Việt</option>
+                                    <option value="vintage">📜 Vintage (Lịch sử)</option>
+                                    <option value="blueprint">📐 Bản vẽ Kỹ thuật</option>
+                                    <option value="cyberpunk">neon Cyberpunk</option>
+                                    <option value="papercut">✂️ Cắt giấy</option>
+                                    <option value="clay">🎨 Claymation</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Ratio & Options -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2 mb-1 block">Khổ ảnh</label>
+                                <div class="grid grid-cols-4 gap-2">
+                                    <div><input type="radio" name="ratio" id="r_16_9" value="16:9" class="hidden selection-card" checked><label for="r_16_9" class="block py-3 text-center text-xs font-bold border border-white/60 bg-white/40 rounded-xl cursor-pointer transition-all hover:bg-white text-slate-600">16:9<br><span class="text-[9px] opacity-70 font-normal">Slide</span></label></div>
+                                    <div><input type="radio" name="ratio" id="r_9_16" value="9:16" class="hidden selection-card"><label for="r_9_16" class="block py-3 text-center text-xs font-bold border border-white/60 bg-white/40 rounded-xl cursor-pointer transition-all hover:bg-white text-slate-600">9:16<br><span class="text-[9px] opacity-70 font-normal">TikTok</span></label></div>
+                                    <div><input type="radio" name="ratio" id="r_4_3" value="4:3" class="hidden selection-card"><label for="r_4_3" class="block py-3 text-center text-xs font-bold border border-white/60 bg-white/40 rounded-xl cursor-pointer transition-all hover:bg-white text-slate-600">4:3<br><span class="text-[9px] opacity-70 font-normal">A4</span></label></div>
+                                    <div><input type="radio" name="ratio" id="r_1_1" value="1:1" class="hidden selection-card"><label for="r_1_1" class="block py-3 text-center text-xs font-bold border border-white/60 bg-white/40 rounded-xl cursor-pointer transition-all hover:bg-white text-slate-600">1:1<br><span class="text-[9px] opacity-70 font-normal">Vuông</span></label></div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 block">Tác giả</label>
+                                    <input type="text" id="inpAuthor" class="edu-input text-sm h-[3.5rem]" placeholder="Tên GV">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 block">Tùy chọn</label>
+                                    <div class="flex items-center gap-2 bg-white/40 px-3 rounded-xl border border-white/50 h-[3.5rem]">
+                                        <input type="checkbox" id="chkNoHumans" class="w-5 h-5 text-[color:var(--theme-color)] rounded border-slate-300 focus:ring-0 cursor-pointer">
+                                        <label for="chkNoHumans" class="text-xs font-bold text-slate-600 cursor-pointer select-none">No Human</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: RESULT -->
+            <div id="step-4" class="step-container">
+                <div class="p-6 pb-2 flex justify-between items-center">
+                    <h2 class="text-3xl font-black text-slate-800 flex items-center gap-3">
+                        <i class="ph-fill ph-sparkle text-3xl text-[color:var(--theme-color)] animate-pulse"></i> 
+                        Kết Quả
+                    </h2>
+                    <button id="btnRestart" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-white hover:text-[color:var(--theme-color)] shadow-sm transition transform hover:rotate-180 duration-500"><i class="ph-bold ph-arrow-counter-clockwise text-xl"></i></button>
+                </div>
+
+                <div class="scroll-area p-6 pt-3 flex flex-col h-full">
+                    <!-- Result Box -->
+                    <div class="compact-output flex-1 p-6 flex flex-col gap-4 shadow-2xl relative group border-t-8 border-[color:var(--theme-color)] rounded-2xl bg-[#0f172a] text-emerald-50 font-mono overflow-hidden">
+                        <div class="flex justify-between items-center opacity-50 text-[10px] uppercase tracking-widest border-b border-white/10 pb-2 mb-1">
+                            <span>Universal Prompt V29</span>
+                            <span class="text-emerald-400">Comprehensive</span>
+                        </div>
+                        <textarea id="outPrompt" class="w-full h-full bg-transparent text-sm md:text-base leading-relaxed focus:outline-none resize-none scroll-area font-medium text-emerald-100/90" readonly placeholder="Đang khởi tạo prompt toàn diện..."></textarea>
+                    </div>
+
+                    <button id="btnCopy" class="mt-5 w-full bg-white text-slate-800 font-extrabold text-xl py-5 rounded-2xl hover:bg-emerald-50 transition flex items-center justify-center gap-3 shadow-2xl active:scale-95 group border-2 border-slate-100 relative overflow-hidden pulse-soft">
+                        <i class="ph-bold ph-copy text-[color:var(--theme-color)] text-2xl group-hover:scale-110 transition-transform"></i> 
+                        <span class="tracking-wide">SAO CHÉP NGAY</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER / NAV -->
+        <footer class="flex-none p-5 bg-white/80 backdrop-blur-xl border-t border-white/40 z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+            <div class="flex flex-col w-full gap-2">
+                <div class="flex gap-4 w-full">
+                    <button id="btnBack" class="px-6 py-4 rounded-2xl font-bold text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 transition hidden active:scale-95 shadow-sm text-sm">Quay lại</button>
+                    <div class="flex-1"></div>
+                    <button id="btnNext" class="px-10 py-4 rounded-2xl font-bold text-white bg-slate-800 hover:bg-slate-700 shadow-xl hover:shadow-2xl transition flex items-center justify-center gap-2 group w-full md:w-auto active:scale-95 text-base">
+                        Tiếp theo <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    <button id="btnGenerate" class="flex-1 py-4 rounded-2xl font-bold text-white sparkle-btn shadow-xl flex items-center justify-center gap-2 hidden w-full md:w-auto text-base">
+                        <i class="ph-bold ph-magic-wand text-xl animate-bounce"></i> TẠO PROMPT
+                    </button>
+                </div>
+                <!-- Author Info added here inside footer container for better layout -->
+                <div class="text-center pt-2">
+                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity cursor-default">
+                        © Thầy Thái Minh Nguyên • Trường TH, THCS & THPT YERSIN ĐÀ LẠT
+                    </p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-8 left-1/2 transform -translate-x-1/2 -translate-y-24 transition-all duration-300 z-[100] pointer-events-none">
+        <div class="bg-emerald-600/90 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border border-emerald-400/50">
+            <i class="ph-fill ph-check-circle text-white text-xl"></i>
+            <span class="text-sm font-bold tracking-wide">Đã sao chép!</span>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIC APP (WIZARD) ---
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function updateUI() {
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            
+            const dots = document.querySelectorAll('.step-dot');
+            dots.forEach((dot, idx) => {
+                dot.style.backgroundColor = idx < currentStep ? 'var(--theme-color)' : '#cbd5e1';
+                dot.style.transform = idx === currentStep - 1 ? 'scale(1.3)' : 'scale(1)';
+            });
+
+            const btnBack = document.getElementById('btnBack');
+            const btnNext = document.getElementById('btnNext');
+            const btnGen = document.getElementById('btnGenerate');
+
+            btnBack.classList.toggle('hidden', currentStep === 1 || currentStep === 4);
+            
+            if (currentStep === 3) {
+                btnNext.classList.add('hidden');
+                btnGen.classList.remove('hidden');
+            } else if (currentStep === 4) {
+                btnNext.classList.add('hidden');
+                btnGen.classList.add('hidden');
+            } else {
+                btnNext.classList.remove('hidden');
+                btnGen.classList.add('hidden');
+            }
+        }
+
+        // --- THEME & PARTICLES ENGINE (UPDATED) ---
+        const ThemeEngine = {
+            themes: {
+                general: { id: 'general', color: '#059669', bg: '#ecfdf5', icon: 'ph-student', decor: ['ph-student', 'ph-books', 'ph-backpack'] },
+                math: { id: 'math', color: '#2563eb', bg: '#eff6ff', icon: 'ph-function', decor: ['ph-function', 'ph-pi', 'ph-calculator', 'ph-chart-bar', 'ph-infinity', 'ph-brackets-curly', 'ph-graph'] },
+                literature: { id: 'literature', color: '#db2777', bg: '#fdf2f8', icon: 'ph-feather', decor: ['ph-feather', 'ph-book-open', 'ph-scroll', 'ph-quotes', 'ph-pen-nib', 'ph-book-bookmark'] },
+                english: { id: 'english', color: '#dc2626', bg: '#fef2f2', icon: 'ph-translate', decor: ['ph-translate', 'ph-chat-circle-text', 'ph-globe', 'ph-text-aa', 'ph-microphone'] },
+                history: { id: 'history', color: '#d97706', bg: '#fffbeb', icon: 'ph-scroll', decor: ['ph-scroll', 'ph-hourglass', 'ph-columns', 'ph-sword', 'ph-crown', 'ph-flag-banner'] },
+                geography: { id: 'geography', color: '#0891b2', bg: '#ecfeff', icon: 'ph-globe-hemisphere-east', decor: ['ph-globe', 'ph-compass', 'ph-mountains', 'ph-sun', 'ph-map-trifold', 'ph-binoculars'] },
+                biology: { id: 'science', color: '#16a34a', bg: '#f0fdf4', icon: 'ph-plant', decor: ['ph-plant', 'ph-dna', 'ph-microscope', 'ph-leaf', 'ph-tree', 'ph-paw-print'] },
+                physics: { id: 'science', color: '#7c3aed', bg: '#f5f3ff', icon: 'ph-atom', decor: ['ph-atom', 'ph-lightning', 'ph-magnet', 'ph-lightbulb', 'ph-rocket', 'ph-gear'] },
+                chemistry: { id: 'science', color: '#ea580c', bg: '#fff7ed', icon: 'ph-flask', decor: ['ph-flask', 'ph-fire', 'ph-drop', 'ph-test-tube', 'ph-molecule', 'ph-eyedropper'] }
+            },
+            apply: (key) => {
+                const t = ThemeEngine.themes[key] || ThemeEngine.themes.general;
+                const root = document.documentElement;
+                root.style.setProperty('--theme-color', t.color);
+                root.style.setProperty('--theme-glow', t.color + '80'); 
+                root.style.setProperty('--theme-bg', t.bg);
+                document.body.className = `theme-${t.id}`;
+                document.getElementById('logo-icon').style.backgroundColor = t.color;
+                document.querySelector('#logo-icon i').className = `ph-bold ${t.icon}`;
+                ThemeEngine.spawnDecor(t.decor, t.color);
+            },
+            spawnDecor: (icons, color) => {
+                const con = document.getElementById('floating-container');
+                con.innerHTML = '';
+                for(let i=0; i<30; i++) { // Increased particle count
+                    const el = document.createElement('i');
+                    const iconClass = icons[Math.floor(Math.random()*icons.length)];
+                    el.className = `float-icon ph-fill ${iconClass}`;
+                    el.style.color = color;
+                    el.style.left = Math.random()*100 + '%';
+                    el.style.fontSize = (Math.random()*4 + 2) + 'rem'; // Larger icons
+                    el.style.opacity = Math.random() * 0.2;
+                    el.style.animationDuration = (Math.random()*20 + 20) + 's';
+                    el.style.animationDelay = -Math.random()*30 + 's';
+                    con.appendChild(el);
+                }
+            }
+        };
+
+        // --- EDU AI ENGINE V29 - OMNISCIENT ---
+        const EduAI = {
+            gradeMatrix: {
+                primary: "Grade: Primary (1-5). Style: Playful, colorful, simplified shapes, cartoon-like, engaging for children.",
+                secondary: "Grade: Secondary (6-9). Style: Realistic, educational, clear labeling, moderate detail.",
+                highschool: "Grade: High School (10-12). Style: Academic, highly detailed, technical blueprint, abstract concepts."
+            },
+            
+            bookSeries: {
+                kntt: "Book Series: 'Kết Nối Tri Thức'. Focus: Modern, practical applications.",
+                cd: "Book Series: 'Cánh Diều'. Focus: Logical progression, standard layout.",
+                ctst: "Book Series: 'Chân Trời Sáng Tạo'. Focus: Creative visuals, open exploration."
+            },
+
+            knowledgeBase: {
+                math: "Math (GDPT 2018). **FULL SPECTRUM COVERAGE:** Include ALL relevant formulas (basic to advanced), definition theorems, and properties. **GRADE 12 NOTE:** Include both theoretical calculus and real-world applications.",
+                literature: "Literature. **FULL CONTEXT:** Depict complete scene details: Weather, Architecture (Communal House, Banyan Tree), Costumes (Ao Dai, Tu Than).",
+                english: "English (GDPT 2018). **FOCUS:** Communicative approach. **Visuals:** Flashcards, Situational Dialogues (Shopping, School, Travel), Vocabulary Maps. Cultural Context: Mix of Western and Vietnamese settings.",
+                history: "History. **HISTORICAL ACCURACY:** Include correct military attire, weapons, flags, and architecture for the specific dynasty. NO ANARCHRONISMS.",
+                geography: "Geography. **COMPREHENSIVE MAP:** Show full terrain features, climate zones, and ALL islands (Paracel/Spratly).",
+                biology: "Biology. **DETAILED ANATOMY:** Show full internal structure, cross-sections, and labels for all parts.",
+                physics: "Physics. **COMPLETE SCHEMATIC:** Show all forces, circuit components, and energy flows.",
+                chemistry: "Chemistry. **FULL REACTION:** Show reactants, products, catalysts, and molecular changes."
+            },
+
+            negativePrompts: {
+                math: "distorted numbers, missing formulas, incorrect geometry, text gibberish",
+                literature: "anime face, chinese clothing, japanese temple, western castle",
+                english: "incorrect spelling, gibberish text, confusing layout",
+                history: "hanfu, kimono, samurai, knight, fantasy armor, anachronistic objects",
+                general: "low quality, blurry, text errors, distorted shapes, messy layout, over-saturated, incomplete information"
+            },
+
+            ratios: { "16:9": "--ar 16:9", "9:16": "--ar 9:16", "4:3": "--ar 4:3", "1:1": "--ar 1:1" },
+            
+            types: {
+                mindmap_buzan: { core: "Tony Buzan Mind Map", instr: "Central image. Curved organic branches. Keywords. Hierarchical structure. COMPREHENSIVE BRANCHES covering all sub-topics." },
+                infographic_detail: { core: "Vertical Infographic", instr: "Vertical layout. Sections. Icons & Charts. Data flow. Real-world examples. FULL DATA BREAKDOWN." },
+                sketchnote: { core: "Visual Sketchnote", instr: "Hand-drawn style. Doodles + Text. Visual hierarchy. SUMMARIZE ALL KEY POINTS." },
+                textbook_illustration: { core: "Textbook Illustration", instr: "Standard academic illustration. Clear focus. Educational. SHOW ALL DETAILS." },
+                flashcard: { core: "Flashcard", instr: "Isolated object. White background. High contrast. FOCUS ON KEY TERM." },
+                poster: { core: "Classroom Poster", instr: "Bold title. High visual impact. Inspirational. COMPREHENSIVE OVERVIEW." },
+                diagram: { core: "Scientific Diagram", instr: "Cross-section/Exploded view. Labeled parts. SHOW EVERY COMPONENT." },
+                isometric: { core: "3D Isometric Model", instr: "Miniature world. Cutaway view. High detail. SHOW INTERNAL STRUCTURE." }
+            },
+
+            build: (data) => {
+                const { title, content, type, style, subject, author, noHumans, ratio, grade, book } = data;
+                
+                const typeConfig = EduAI.types[type];
+                const gradeInfo = EduAI.gradeMatrix[grade];
+                const bookInfo = EduAI.bookSeries[book];
+                
+                let subjInfo = EduAI.knowledgeBase[subject] || "Standard Content";
+                let negativeInfo = EduAI.negativePrompts[subject] || EduAI.negativePrompts.general;
+                negativeInfo += ", " + EduAI.negativePrompts.general;
+
+                const arText = ratio;
+
+                const contentInstruction = content.trim() 
+                    ? `User Provided Content: "${content}"\n**Instruction:** Visualize this content completely. Do not omit any detail.`
+                    : `**MANDATORY ENCYCLOPEDIC EXPANSION:** 1. **Identify:** What is "${title}" in the Vietnam ${grade} ${subject} curriculum?
+                       2. **RETRIEVE ALL KNOWLEDGE:** List EVERY relevant formula, definition, theorem, case study, and exception found in the textbook. **DO NOT SUMMARIZE.** We need a complete visual reference.
+                       3. **VISUALIZE EVERYTHING:** Create a dense, information-rich composition that includes ALL the retrieved knowledge.`;
+
+                const footerText = author ? `Footer: "${author}"` : "";
+                const humanConstraint = noHumans ? "CRITICAL: NO humans." : "Depict Vietnamese students (uniforms/Ao Dai).";
+
+                return `**SYSTEM COMMAND: ACTIVATE EDUCATIONAL ILLUSTRATOR MODE (GDPT 2018 STANDARD)**
+
+**1. PEDAGOGICAL CONTEXT (COMPREHENSIVE):**
+- **Subject:** ${subject.toUpperCase()}
+- **Grade:** ${gradeInfo}
+- **Source Material:** ${bookInfo}
+- **Curriculum Scope:** ${subjInfo} (INCLUDE ALL DETAILS)
+
+**2. CONTENT GENERATION (ENCYCLOPEDIC):**
+${contentInstruction}
+
+**3. VISUALIZATION DIRECTIVES:**
+- **Layout:** ${typeConfig.core} (${typeConfig.instr})
+- **Style:** ${style}
+- **Universal Standards:** ${EduAI.universalStyle}
+- **Ratio:** ${arText}
+
+**4. NEGATIVE CONTROLS (STRICT):**
+- **Block:** ${negativeInfo}
+- **Constraint:** ${humanConstraint}
+${footerText ? "- **Branding:** discreetly include text '" + author + "'." : ""}
+
+**5. TYPOGRAPHY & OUTPUT:**
+- **Language:** Vietnamese (Tiếng Việt) / English (for English Subject).
+- **Rule:** Use readable Unicode-supported fonts. Ensure text is legible and correctly spelled.
+
+**ACTION:** Generate the image immediately based on this specification.`;
+            }
+        };
+
+        // --- DOM EVENTS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const els = {
+                subject: document.getElementById('selSubject'),
+                btnNext: document.getElementById('btnNext'),
+                btnBack: document.getElementById('btnBack'),
+                btnGen: document.getElementById('btnGenerate'),
+                btnRestart: document.getElementById('btnRestart'),
+                inpTitle: document.getElementById('inpTitle'),
+                inpContent: document.getElementById('inpContent'),
+                inpAuthor: document.getElementById('inpAuthor'),
+                selType: document.getElementById('selType'),
+                selStyle: document.getElementById('selStyle'),
+                selGrade: document.getElementById('selGradeLevel'),
+                selBook: document.getElementById('selBookSeries'),
+                chkNoHumans: document.getElementById('chkNoHumans'),
+                btnExample: document.getElementById('btnExample'),
+                btnCopy: document.getElementById('btnCopy'),
+                outPrompt: document.getElementById('outPrompt')
+            };
+
+            ThemeEngine.apply('general');
+            updateUI();
+
+            // Navigation
+            els.btnNext.addEventListener('click', () => {
+                if (currentStep === 2 && !els.inpTitle.value.trim()) {
+                    els.inpTitle.classList.add('ring-2', 'ring-red-400');
+                    setTimeout(() => els.inpTitle.classList.remove('ring-2', 'ring-red-400'), 500);
+                    els.inpTitle.focus();
+                    return;
+                }
+                currentStep++;
+                updateUI();
+            });
+
+            els.btnBack.addEventListener('click', () => { currentStep--; updateUI(); });
+            els.btnRestart.addEventListener('click', () => { currentStep = 1; els.outPrompt.value = ""; updateUI(); });
+            
+            // Theme Change
+            els.subject.addEventListener('change', (e) => ThemeEngine.apply(e.target.value));
+
+            // Example
+            els.btnExample.addEventListener('click', () => {
+                const sub = els.subject.value;
+                if (sub === 'english') {
+                    els.inpTitle.value = "Present Continuous Tense";
+                    els.inpContent.value = "";
+                    els.selType.value = "flashcard";
+                    els.selStyle.value = "cartoon";
+                } else {
+                    els.subject.value = "literature"; ThemeEngine.apply('literature');
+                    els.selGrade.value = "highschool"; 
+                    els.inpTitle.value = "Vợ chồng A Phủ (Tô Hoài)";
+                    els.inpContent.value = ""; 
+                    els.selType.value = "textbook_illustration";
+                    els.selStyle.value = "watercolor";
+                }
+                els.inpTitle.classList.add('bg-yellow-50');
+                setTimeout(()=>els.inpTitle.classList.remove('bg-yellow-50'), 500);
+            });
+
+            // Generate
+            els.btnGen.addEventListener('click', () => {
+                const oldText = els.btnGen.innerHTML;
+                els.btnGen.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> ĐANG TƯ DUY...';
+                els.btnGen.disabled = true;
+
+                setTimeout(() => {
+                    const data = {
+                        title: els.inpTitle.value,
+                        content: els.inpContent.value,
+                        author: els.inpAuthor.value,
+                        subject: els.subject.value,
+                        type: els.selType.value,
+                        style: els.selStyle.value,
+                        grade: els.selGrade.value,
+                        book: els.selBook.value,
+                        noHumans: els.chkNoHumans.checked,
+                        ratio: document.querySelector('input[name="ratio"]:checked').value
+                    };
+                    
+                    const result = EduAI.build(data);
+                    els.outPrompt.value = result;
+                    
+                    currentStep = 4;
+                    updateUI();
+                    els.btnGen.innerHTML = oldText;
+                    els.btnGen.disabled = false;
+                }, 800);
+            });
+
+            // Copy
+            els.btnCopy.addEventListener('click', () => {
+                if(!els.outPrompt.value) return;
+                navigator.clipboard.writeText(els.outPrompt.value).then(() => {
+                    const toast = document.getElementById('toast');
+                    toast.classList.remove('-translate-y-24');
+                    setTimeout(() => toast.classList.add('-translate-y-24'), 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
