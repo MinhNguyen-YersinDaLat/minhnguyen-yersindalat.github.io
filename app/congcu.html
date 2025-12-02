@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Trợ Lý Ảnh Hóa Giáo Dục - V30 Quick Action</title>
+    <title>Trợ Lý Ảnh Hóa Giáo Dục - V32 Worksheet Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
@@ -208,8 +208,8 @@
                                     <i class="ph-fill ph-info"></i>
                                 </div>
                                 <div>
-                                    <strong class="text-slate-800 text-base">Pedagogical Architect V29:</strong>
-                                    <p class="mt-1">Hệ thống đã cập nhật thêm <strong>Môn Tiếng Anh (English)</strong> với logic Giao tiếp & Văn hóa. Giao diện sẽ tự động biến đổi màu sắc và biểu tượng theo từng môn học để tạo cảm hứng sáng tạo.</p>
+                                    <strong class="text-slate-800 text-base">Pedagogical Architect V32:</strong>
+                                    <p class="mt-1">Hệ thống đã được cập nhật tính năng <strong>Phiếu Học Tập (Worksheet)</strong> và chế độ <strong>Truyện Tranh (Comic)</strong> để tạo bài tập điền khuyết sinh động, bám sát chuẩn kiến thức kỹ năng của Bộ Giáo dục.</p>
                                 </div>
                             </div>
                         </div>
@@ -290,6 +290,9 @@
                                         <option value="mindmap_buzan">🧠 Sơ đồ Tư duy (Buzan)</option>
                                         <option value="sketchnote">📝 Sketchnote Visual</option>
                                     </optgroup>
+                                    <optgroup label="Bài tập & Đánh giá (Mới)">
+                                        <option value="worksheet">📝 Phiếu Học Tập (Điền khuyết)</option>
+                                    </optgroup>
                                     <optgroup label="Minh họa SGK">
                                         <option value="textbook_illustration">📖 Minh họa SGK</option>
                                         <option value="flashcard">🎴 Flashcard (Tách nền)</option>
@@ -336,9 +339,15 @@
                                 </div>
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 block">Tùy chọn</label>
-                                    <div class="flex items-center gap-2 bg-white/40 px-3 rounded-xl border border-white/50 h-[3.5rem]">
-                                        <input type="checkbox" id="chkNoHumans" class="w-5 h-5 text-[color:var(--theme-color)] rounded border-slate-300 focus:ring-0 cursor-pointer">
-                                        <label for="chkNoHumans" class="text-xs font-bold text-slate-600 cursor-pointer select-none">No Human</label>
+                                    <div class="flex items-center gap-2 bg-white/40 px-3 rounded-xl border border-white/50 h-[3.5rem] flex-wrap">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="chkNoHumans" class="w-4 h-4 text-[color:var(--theme-color)] rounded border-slate-300 focus:ring-0 cursor-pointer">
+                                            <label for="chkNoHumans" class="text-[10px] font-bold text-slate-600 cursor-pointer select-none">No Human</label>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="chkComicMode" class="w-4 h-4 text-[color:var(--theme-color)] rounded border-slate-300 focus:ring-0 cursor-pointer">
+                                            <label for="chkComicMode" class="text-[10px] font-bold text-slate-600 cursor-pointer select-none text-[color:var(--theme-color)]">Truyện Tranh</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -361,8 +370,8 @@
                     <!-- Result Box -->
                     <div class="compact-output flex-1 p-6 flex flex-col gap-4 shadow-2xl relative group border-t-8 border-[color:var(--theme-color)] rounded-2xl bg-[#0f172a] text-emerald-50 font-mono overflow-hidden">
                         <div class="flex justify-between items-center opacity-50 text-[10px] uppercase tracking-widest border-b border-white/10 pb-2 mb-1">
-                            <span>Universal Prompt V29</span>
-                            <span class="text-emerald-400">Comprehensive</span>
+                            <span>Universal Prompt V32</span>
+                            <span class="text-emerald-400">Worksheet Enabled</span>
                         </div>
                         <textarea id="outPrompt" class="w-full h-full bg-transparent text-sm md:text-base leading-relaxed focus:outline-none resize-none scroll-area font-medium text-emerald-100/90" readonly placeholder="Đang khởi tạo prompt toàn diện..."></textarea>
                     </div>
@@ -444,6 +453,7 @@
             if (currentStep === 3) {
                 btnNext.classList.add('hidden');
                 btnGen.classList.remove('hidden');
+                nav.classList.remove('hidden');
             } else if (currentStep === 4) {
                 btnNext.classList.add('hidden');
                 btnGen.classList.add('hidden');
@@ -495,7 +505,7 @@
             }
         };
 
-        // --- EDU AI ENGINE V29 - OMNISCIENT ---
+        // --- EDU AI ENGINE V32 - WORKSHEET EDITION ---
         const EduAI = {
             gradeMatrix: {
                 primary: "Grade: Primary (1-5). Style: Playful, colorful, simplified shapes, cartoon-like, engaging for children.",
@@ -540,11 +550,13 @@
                 flashcard: { core: "Flashcard", instr: "Isolated object. White background. High contrast. FOCUS ON KEY TERM." },
                 poster: { core: "Classroom Poster", instr: "Bold title. High visual impact. Inspirational. COMPREHENSIVE OVERVIEW." },
                 diagram: { core: "Scientific Diagram", instr: "Cross-section/Exploded view. Labeled parts. SHOW EVERY COMPONENT." },
-                isometric: { core: "3D Isometric Model", instr: "Miniature world. Cutaway view. High detail. SHOW INTERNAL STRUCTURE." }
+                isometric: { core: "3D Isometric Model", instr: "Miniature world. Cutaway view. High detail. SHOW INTERNAL STRUCTURE." },
+                // NEW TYPE
+                worksheet: { core: "Educational Worksheet", instr: "Clean, structured layout. Include multiple fill-in-the-blank questions (using '_______'). Leave ample whitespace for writing. Clear headers for Name/Date/Class. High contrast black/white or minimal color." }
             },
 
             build: (data) => {
-                const { title, content, type, style, subject, author, noHumans, ratio, grade, book } = data;
+                const { title, content, type, style, subject, author, noHumans, ratio, grade, book, comicMode } = data;
                 
                 const typeConfig = EduAI.types[type];
                 const gradeInfo = EduAI.gradeMatrix[grade];
@@ -556,11 +568,25 @@
 
                 const arText = ratio;
 
+                // V32 LOGIC: WORKSHEET & COMIC MODE
+                let specialInstr = "";
+                if (type === 'worksheet') {
+                    specialInstr = `**WORKSHEET GENERATION MODE:**
+                    1. **Questions:** Automatically generate 3-5 fill-in-the-blank or short-answer questions relevant to "${title}" based on the SGK curriculum.
+                    2. **Layout:** Ensure clear separation between questions. Use dotted lines (.........) or boxes for answers.
+                    3. **Visuals:** Place relevant illustrations next to each question to aid understanding.`;
+                    
+                    if (comicMode) {
+                        specialInstr += `\n**COMIC STRIP STYLE:** Format the worksheet as a sequence of comic panels. Characters should 'ask' the questions via speech bubbles. The speech bubbles must contain the fill-in-the-blank text or space for the student to write.`;
+                    }
+                }
+
                 const contentInstruction = content.trim() 
                     ? `User Provided Content: "${content}"\n**Instruction:** Visualize this content completely. Do not omit any detail.`
-                    : `**MANDATORY ENCYCLOPEDIC EXPANSION:** 1. **Identify:** What is "${title}" in the Vietnam ${grade} ${subject} curriculum?
-                       2. **RETRIEVE ALL KNOWLEDGE:** List EVERY relevant formula, definition, theorem, case study, and exception found in the textbook. **DO NOT SUMMARIZE.** We need a complete visual reference.
-                       3. **VISUALIZE EVERYTHING:** Create a dense, information-rich composition that includes ALL the retrieved knowledge.`;
+                    : `**MANDATORY ENCYCLOPEDIC EXPANSION (MOET STANDARD):** 1. **Identify:** What is "${title}" in the Vietnam ${grade} ${subject} curriculum?
+                       2. **CHECK STANDARDS (Yêu cầu cần đạt):** Verify against the specific "Yêu cầu cần đạt" (Learning Outcomes) issued by the Vietnam Ministry of Education & Training (GDPT 2018) for this grade level. Content must demonstrate the required knowledge and competencies.
+                       3. **RETRIEVE KNOWLEDGE:** List EVERY relevant formula, definition, theorem, case study, and exception found in the textbook that satisfies these standards.
+                       4. **VISUALIZE EVERYTHING:** Create a dense, information-rich composition that includes ALL the retrieved knowledge.`;
 
                 const footerText = author ? `Footer: "${author}"` : "";
                 const humanConstraint = noHumans ? "CRITICAL: NO humans." : "Depict Vietnamese students (uniforms/Ao Dai).";
@@ -572,9 +598,11 @@
 - **Grade:** ${gradeInfo}
 - **Source Material:** ${bookInfo}
 - **Curriculum Scope:** ${subjInfo} (INCLUDE ALL DETAILS)
+- **Standard Compliance:** Strict adherence to "Yêu cầu cần đạt" (Learning Standards) of Vietnam MOET.
 
 **2. CONTENT GENERATION (ENCYCLOPEDIC):**
 ${contentInstruction}
+${specialInstr}
 
 **3. VISUALIZATION DIRECTIVES:**
 - **Layout:** ${typeConfig.core} (${typeConfig.instr})
@@ -611,6 +639,7 @@ ${footerText ? "- **Branding:** discreetly include text '" + author + "'." : ""}
                 selGrade: document.getElementById('selGradeLevel'),
                 selBook: document.getElementById('selBookSeries'),
                 chkNoHumans: document.getElementById('chkNoHumans'),
+                chkComicMode: document.getElementById('chkComicMode'),
                 btnExample: document.getElementById('btnExample'),
                 btnCopy: document.getElementById('btnCopy'),
                 btnOpenGPT: document.getElementById('btnOpenGPT'),
@@ -676,6 +705,7 @@ ${footerText ? "- **Branding:** discreetly include text '" + author + "'." : ""}
                         grade: els.selGrade.value,
                         book: els.selBook.value,
                         noHumans: els.chkNoHumans.checked,
+                        comicMode: els.chkComicMode.checked,
                         ratio: document.querySelector('input[name="ratio"]:checked').value
                     };
                     
