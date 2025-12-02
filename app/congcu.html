@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Trợ Lý Ảnh Hóa Giáo Dục - V29 Visual Mastery</title>
+    <title>Trợ Lý Ảnh Hóa Giáo Dục - V30 Quick Action</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
@@ -51,7 +51,7 @@
         }
         /* Sử: Họa tiết cổ điển/Trống đồng */
         body.theme-history .bg-pattern { 
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b45309' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); 
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b45309' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); 
             opacity: 0.15;
         }
         /* Địa: Đường đồng mức rõ ràng */
@@ -155,7 +155,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-black text-slate-800 leading-none tracking-tight">EDU <span class="text-[color:var(--theme-color)]">PROMPT</span></h1>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">V29 Visual Mastery</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Thầy Thái Minh Nguyên</p>
                 </div>
             </div>
             <!-- Progress Stepper -->
@@ -271,9 +271,11 @@
                             <div>
                                 <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Bộ Sách</label>
                                 <select id="selBookSeries" class="edu-input text-sm py-2 px-3 h-12 mt-1 cursor-pointer font-bold border-2">
-                                    <option value="kntt">Kết Nối Tri Thức</option>
-                                    <option value="cd">Cánh Diều</option>
-                                    <option value="ctst">Chân Trời Sáng Tạo</option>
+                                    <option value="kntt">Kết Nối Tri Thức / Global Success</option>
+                                    <option value="cd">Cánh Diều / Explore English</option>
+                                    <option value="ctst">Chân Trời Sáng Tạo / Friends Plus</option>
+                                    <option value="ilearn">i-Learn Smart World</option>
+                                    <option value="bright">Tiếng Anh Bright</option>
                                 </select>
                             </div>
                         </div>
@@ -365,10 +367,22 @@
                         <textarea id="outPrompt" class="w-full h-full bg-transparent text-sm md:text-base leading-relaxed focus:outline-none resize-none scroll-area font-medium text-emerald-100/90" readonly placeholder="Đang khởi tạo prompt toàn diện..."></textarea>
                     </div>
 
+                    <!-- Action Buttons (Copy & Open AI) -->
                     <button id="btnCopy" class="mt-5 w-full bg-white text-slate-800 font-extrabold text-xl py-5 rounded-2xl hover:bg-emerald-50 transition flex items-center justify-center gap-3 shadow-2xl active:scale-95 group border-2 border-slate-100 relative overflow-hidden pulse-soft">
                         <i class="ph-bold ph-copy text-[color:var(--theme-color)] text-2xl group-hover:scale-110 transition-transform"></i> 
                         <span class="tracking-wide">SAO CHÉP NGAY</span>
                     </button>
+
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                         <button id="btnOpenGPT" class="bg-white/50 backdrop-blur border border-white/60 text-slate-700 font-bold py-3 rounded-xl hover:bg-white transition flex items-center justify-center gap-2 shadow-sm active:scale-95 group">
+                            <i class="ph-fill ph-openai-logo text-xl text-slate-800 group-hover:scale-110 transition-transform"></i>
+                            <span>Mở ChatGPT</span>
+                        </button>
+                        <button id="btnOpenGemini" class="bg-white/50 backdrop-blur border border-white/60 text-slate-700 font-bold py-3 rounded-xl hover:bg-white transition flex items-center justify-center gap-2 shadow-sm active:scale-95 group">
+                            <i class="ph-fill ph-google-logo text-xl text-blue-600 group-hover:scale-110 transition-transform"></i>
+                            <span>Mở Gemini</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -490,9 +504,11 @@
             },
             
             bookSeries: {
-                kntt: "Book Series: 'Kết Nối Tri Thức'. Focus: Modern, practical applications.",
-                cd: "Book Series: 'Cánh Diều'. Focus: Logical progression, standard layout.",
-                ctst: "Book Series: 'Chân Trời Sáng Tạo'. Focus: Creative visuals, open exploration."
+                kntt: "Book Series: 'Kết Nối Tri Thức' (Global Success). Focus: Modern, practical applications.",
+                cd: "Book Series: 'Cánh Diều' (Explore English). Focus: Logical progression, standard layout.",
+                ctst: "Book Series: 'Chân Trời Sáng Tạo' (Friends Plus). Focus: Creative visuals, open exploration.",
+                ilearn: "Book Series: 'i-Learn Smart World'. Focus: Integrated skills, international standard.",
+                bright: "Book Series: 'Tiếng Anh Bright'. Focus: Communicative competence, exam preparation."
             },
 
             knowledgeBase: {
@@ -597,6 +613,8 @@ ${footerText ? "- **Branding:** discreetly include text '" + author + "'." : ""}
                 chkNoHumans: document.getElementById('chkNoHumans'),
                 btnExample: document.getElementById('btnExample'),
                 btnCopy: document.getElementById('btnCopy'),
+                btnOpenGPT: document.getElementById('btnOpenGPT'),
+                btnOpenGemini: document.getElementById('btnOpenGemini'),
                 outPrompt: document.getElementById('outPrompt')
             };
 
@@ -679,6 +697,15 @@ ${footerText ? "- **Branding:** discreetly include text '" + author + "'." : ""}
                     toast.classList.remove('-translate-y-24');
                     setTimeout(() => toast.classList.add('-translate-y-24'), 2000);
                 });
+            });
+
+            // Open AI Tools
+            els.btnOpenGPT.addEventListener('click', () => {
+                window.open('https://chatgpt.com/', '_blank');
+            });
+
+            els.btnOpenGemini.addEventListener('click', () => {
+                window.open('https://gemini.google.com/', '_blank');
             });
         });
     </script>
