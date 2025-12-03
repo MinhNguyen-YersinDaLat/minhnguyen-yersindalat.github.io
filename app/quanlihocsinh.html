@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Hạnh Kiểm Yersin - V10 (Desktop Platinum)</title>
+    <style>
+        :root {
+            /* MÀU CAM CHỦ ĐẠO YERSIN */
+            --primary: #e65100;
+            --primary-light: #ffe0b2;
+            --primary-gradient: linear-gradient(135deg, #ef6c00 0%, #e65100 100%);
+            --header-height: 64px;
+            --sidebar-width: 320px;
+            --border-color: #ddd;
+            --bg-gray: #f5f7fa;
+            --success: #2e7d32;
+            --danger: #c62828;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            background-color: var(--bg-gray); 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+
+        /* --- HEADER --- */
+        header { 
+            height: var(--header-height); 
+            background: var(--primary-gradient); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 24px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            z-index: 100; 
+        }
+        
+        .brand { display: flex; align-items: center; gap: 16px; }
+        .logo-placeholder { 
+            width: 40px; height: 40px; 
+            background: white; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; color: var(--primary); 
+            overflow: hidden;
+        }
+        .logo-placeholder img { width: 100%; height: 100%; object-fit: contain; }
+        
+        .app-title h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+        .app-title span { font-size: 13px; opacity: 0.9; }
+
+        .toolbar { display: flex; gap: 12px; }
+        
+        /* --- LAYOUT --- */
+        .container { display: flex; flex: 1; height: calc(100vh - var(--header-height)); }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: white; 
+            border-right: 1px solid var(--border-color); 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        .sidebar-tools { padding: 16px; border-bottom: 1px solid var(--border-color); background: #fff; }
+        .search-input { 
+            width: 100%; padding: 10px; 
+            border: 1px solid #ccc; border-radius: 6px; 
+            font-size: 14px; outline: none; 
+        }
+        .search-input:focus { border-color: var(--primary); }
+        
+        .student-list { flex: 1; overflow-y: auto; }
+        .student-item { 
+            padding: 12px 20px; 
+            border-bottom: 1px solid #f0f0f0; 
+            cursor: pointer; 
+            display: flex; align-items: center; justify-content: space-between; 
+            transition: all 0.2s; 
+        }
+        .student-item:hover { background-color: #fff8e1; }
+        .student-item.active { background-color: var(--primary-light); border-left: 4px solid var(--primary); padding-left: 16px; }
+        
+        .s-name { font-weight: 600; font-size: 14px; color: #333; }
+        .s-info { font-size: 12px; color: #666; }
+        .s-score { font-weight: 800; font-size: 14px; color: var(--primary); }
+
+        .sidebar-footer { padding: 12px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; background: #fafafa; }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+
+        /* INFO CARD */
+        .info-card { 
+            background: white; border-radius: 8px; padding: 20px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-left: 5px solid var(--primary); 
+        }
+        .info-block label { display: block; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+        .info-block .value { font-size: 20px; font-weight: 700; color: #333; }
+        .highlight { color: var(--primary) !important; }
+
+        /* DASHBOARD GRID */
+        .dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; min-height: 0; flex: 1; }
+        
+        .panel { 
+            background: white; border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            display: flex; flex-direction: column; 
+            overflow: hidden; 
+        }
+        .panel-header { 
+            padding: 15px 20px; 
+            background: #fafafa; 
+            border-bottom: 1px solid #eee; 
+            font-weight: 700; color: #444; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* TABS & BUTTONS */
+        .tabs { display: flex; padding: 10px 20px 0; gap: 5px; border-bottom: 1px solid #eee; }
+        .tab-btn { 
+            padding: 10px 20px; 
+            border: none; background: none; 
+            cursor: pointer; 
+            font-weight: 600; color: #666; 
+            border-bottom: 3px solid transparent; 
+        }
+        .tab-btn:hover { color: var(--primary); background: #fff8e1; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .rules-container { padding: 20px; overflow-y: auto; flex: 1; }
+        .rules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        
+        .rule-card { 
+            border: 1px solid #eee; border-radius: 8px; padding: 15px; 
+            cursor: pointer; background: white; transition: all 0.2s; 
+            display: flex; flex-direction: column; justify-content: space-between; min-height: 80px;
+        }
+        .rule-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-color: var(--primary-light); }
+        .rule-card:active { transform: scale(0.98); }
+        .rule-card.bonus { border-left: 4px solid var(--success); }
+        .rule-card.penalty { border-left: 4px solid var(--danger); }
+        
+        .r-content { font-size: 13px; font-weight: 500; color: #333; line-height: 1.4; }
+        .r-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
+        .r-score { font-weight: 800; font-size: 14px; }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+
+        /* MANUAL INPUT */
+        .manual-input { 
+            display: flex; gap: 10px; padding: 15px 20px; 
+            background: #fff8e1; border-bottom: 1px solid #ffe0b2; 
+        }
+
+        /* HISTORY TABLE */
+        .table-container { flex: 1; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 12px 15px; background: #f9f9f9; color: #666; font-weight: 600; position: sticky; top: 0; border-bottom: 2px solid #eee; }
+        td { padding: 10px 15px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+        tr:hover { background-color: #fafafa; }
+
+        /* COMMON UI */
+        .btn { 
+            padding: 8px 16px; border-radius: 6px; border: none; 
+            font-weight: 600; cursor: pointer; font-size: 13px; 
+            display: inline-flex; align-items: center; gap: 6px; 
+            transition: 0.2s; 
+        }
+        .btn-primary { background: white; color: var(--primary); }
+        .btn-primary:hover { background: #fff3e0; }
+        .btn-action { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(230,81,0,0.3); }
+        .btn-action:hover { background: #ef6c00; transform: translateY(-1px); }
+        .btn-danger { background: #ffebee; color: var(--danger); }
+        .btn-danger:hover { background: #ffcdd2; }
+        
+        select.form-control { padding: 8px; border-radius: 4px; border: none; background: rgba(255,255,255,0.2); color: white; font-weight: 600; }
+        select.form-control option { color: #333; }
+
+        /* MODAL */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); z-index: 200; 
+            display: none; align-items: center; justify-content: center; 
+        }
+        .modal { 
+            background: white; width: 450px; border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            padding: 24px; animation: slideIn 0.2s ease-out; 
+        }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal h2 { margin-top: 0; color: var(--primary); font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #555; }
+        .form-control-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .form-control-input:focus { border-color: var(--primary); outline: none; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">
+        <div class="logo-placeholder"><img src="logo.png" alt="Y" onerror="this.style.display='none';this.parentElement.innerText='Y'"></div>
+        <div class="app-title">
+            <h1>HẠNH KIỂM YERSIN</h1>
+            <span>Lớp 10H • Thầy Nguyên • V10 Platinum</span>
+        </div>
+    </div>
+    <div class="toolbar">
+        <select id="monthSelect" class="form-control">
+            <option value="9">Tháng 9</option>
+            <option value="10">Tháng 10</option>
+            <option value="11">Tháng 11</option>
+            <option value="12">Tháng 12</option>
+            <option value="1">Tháng 1</option>
+            <option value="2">Tháng 2</option>
+            <option value="3">Tháng 3</option>
+            <option value="4">Tháng 4</option>
+            <option value="5">Tháng 5</option>
+        </select>
+        <button class="btn btn-primary" onclick="app.exportExcel()">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.884 6.68a.5.5 0 1 0-.768.64L7.349 10l-2.233 2.68a.5.5 0 0 0 .768.64L8 10.781l2.116 2.54a.5.5 0 0 0 .768-.641L8.651 10l2.233-2.68a.5.5 0 0 0-.768-.64L8 9.219l-2.116-2.54z"/><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/></svg>
+            Xuất Excel
+        </button>
+    </div>
+</header>
+
+<div class="container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-tools">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Tìm tên học sinh..." onkeyup="app.renderStudentList()">
+            <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:13px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" id="selectAll" onchange="app.toggleSelectAll()"> Chọn tất cả
+                </label>
+                <div>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="app.resetData()">Reset</button>
+                    <button class="btn btn-action" style="padding:4px 10px;" onclick="app.openModal('modalStudent')">+ HS</button>
+                </div>
+            </div>
+        </div>
+        <div class="student-list" id="studentList">
+            <!-- Render JS -->
+        </div>
+        <div class="sidebar-footer">
+            Developed by <strong>Thầy Thái Minh Nguyên</strong><br>Trường Yersin Đà Lạt
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        
+        <!-- BATCH ALERT -->
+        <div id="batchAlert" style="background:#37474f; color:white; padding:15px; border-radius:8px; display:none; justify-content:space-between; align-items:center;">
+            <span>Đang chọn <strong id="batchCount" style="color:#ffcc80; font-size:1.2em;">0</strong> học sinh. Thao tác sẽ áp dụng cho toàn bộ nhóm.</span>
+            <button class="btn btn-primary" style="background:transparent; border:1px solid #aaa; color:white;" onclick="app.clearSelection()">Hủy chọn</button>
+        </div>
+
+        <!-- INFO CARD -->
+        <div class="info-card" id="infoCard">
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div class="info-block">
+                    <label>Ngày ghi nhận</label>
+                    <input type="date" id="datePicker" style="border:1px solid #ddd; padding:5px; border-radius:4px; font-weight:bold; color:#444;">
+                </div>
+                <div class="info-block" style="border-left:1px solid #eee; padding-left:20px;">
+                    <label>Học sinh</label>
+                    <div class="value" id="dispName">...</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:40px;">
+                <div class="info-block" style="text-align:right;">
+                    <label>Tổng điểm</label>
+                    <div class="value highlight" id="dispScore">0</div>
+                </div>
+                <div class="info-block" style="text-align:right;">
+                    <label>Xếp loại</label>
+                    <div class="value" id="dispRank">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div class="dashboard">
+            
+            <!-- LEFT: RULES -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>CẬP NHẬT HÀNH VI</span>
+                    <div style="font-size:12px; color:#c62828; display:flex; align-items:center; gap:5px;">
+                        <input type="checkbox" id="critCheck" onchange="app.toggleCrit()"> Vi phạm nặng
+                    </div>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="app.switchTab('all', this)">Tất cả</button>
+                    <button class="tab-btn" onclick="app.switchTab('learning', this)">Học tập</button>
+                    <button class="tab-btn" onclick="app.switchTab('discipline', this)">Nề nếp</button>
+                    <button class="tab-btn" onclick="app.switchTab('activity', this)">Hoạt động</button>
+                    <button class="tab-btn" onclick="app.switchTab('custom', this)">Tùy chỉnh</button>
+                </div>
+
+                <div class="manual-input">
+                    <input type="text" id="manText" class="form-control-input" placeholder="Nhập nội dung khác..." style="flex:1;">
+                    <input type="number" id="manScore" class="form-control-input" placeholder="Điểm" style="width:80px;">
+                    <button class="btn btn-action" onclick="app.addManualLog()">Lưu</button>
+                </div>
+
+                <div class="rules-container">
+                    <div class="rules-grid" id="rulesGrid">
+                        <!-- Rules JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: HISTORY -->
+            <div class="panel" id="historyPanel">
+                <div class="panel-header">
+                    <span>LỊCH SỬ & NHẬN XÉT</span>
+                    <button class="btn btn-danger" style="padding:2px 8px; font-size:11px;" onclick="app.deleteStudent()">Xóa HS</button>
+                </div>
+                
+                <div style="padding:15px; border-bottom:1px solid #eee; background:#fafafa;">
+                    <label style="font-size:11px; font-weight:700; color:#555;">NHẬN XÉT GVCN (AI Gợi ý):</label>
+                    <textarea id="remarkBox" rows="3" class="form-control-input" style="margin-top:5px; resize:vertical;" onblur="app.saveRemark()"></textarea>
+                    <div style="text-align:right; margin-top:5px;">
+                        <button class="btn btn-primary" style="background:#eee; color:#333; font-size:11px;" onclick="app.generateRemark(true)">✨ Tạo lại</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="logTable">
+                        <thead><tr><th>Ngày</th><th>Nội dung</th><th>Điểm</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- MODAL ADD RULE -->
+<div class="modal-overlay" id="modalRule">
+    <div class="modal">
+        <h2>Thêm Nút Mới</h2>
+        <div class="form-group">
+            <label>Tên hành vi</label>
+            <input type="text" id="newRText" class="form-control-input" placeholder="Ví dụ: Quên khăn quàng">
+        </div>
+        <div class="form-group">
+            <label>Điểm cộng/trừ</label>
+            <input type="number" id="newRScore" class="form-control-input" placeholder="VD: -0.5 hoặc 1">
+        </div>
+        <div class="form-group">
+            <label>Nhóm</label>
+            <select id="newRCat" class="form-control-input">
+                <option value="learning">Học tập</option>
+                <option value="discipline">Nề nếp</option>
+                <option value="activity">Hoạt động</option>
+                <option value="custom">Tùy chỉnh</option>
+            </select>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" onclick="app.closeModal('modalRule')">Hủy</button>
+            <button class="btn btn-action" onclick="app.saveNewRule()">Lưu & Dùng ngay</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ADD STUDENT -->
+<div class="modal-overlay" id="modalStudent">
+    <div class="modal">
+        <h2>Thêm Học Sinh Mới</h2>
+        <div class="form-group">
+            <label>Tên học sinh</label>
+            <input type="text" id="newStudentName" class="form-control-input" placeholder="Ví dụ: Nguyễn Văn A">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" onclick="app.closeModal('modalStudent')">Hủy</button>
+            <button class="btn btn-action" onclick="app.addStudent()">Thêm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- CONFIG ---
+const DEFAULT_RULES = [
+    {id:'h1', t:'Học tập tốt 1 tuần', s:0.5, c:'learning'},
+    {id:'h2', t:'Học tập tốt 4 tuần', s:2.0, c:'learning'},
+    {id:'h3', t:'Xung phong phát biểu', s:0.25, c:'learning'},
+    {id:'h4', t:'Thiếu bài/Soạn bài', s:-1.0, c:'learning', inc:true},
+    {id:'h5', t:'Thiếu dụng cụ học tập', s:-1.0, c:'learning', inc:true},
+    {id:'h6', t:'Mất trật tự/Ngủ', s:-0.25, c:'learning'},
+    {id:'h7', t:'Treo máy (Online)', s:-2.0, c:'learning'},
+    {id:'h8', t:'Gian lận thi cử', s:-4.0, c:'learning', sp:'cheat'},
+    {id:'n1', t:'Tác phong tốt 1 tuần', s:0.5, c:'discipline'},
+    {id:'n2', t:'Tác phong tốt 4 tuần', s:2.0, c:'discipline'},
+    {id:'n3', t:'Chuyên cần tốt 1 tuần', s:0.5, c:'discipline'},
+    {id:'n4', t:'Chuyên cần tốt 4 tuần', s:2.0, c:'discipline'},
+    {id:'n5', t:'Việc tốt', s:2.0, c:'discipline'},
+    {id:'n6', t:'Đi trễ', s:-1.0, c:'discipline'},
+    {id:'n7', t:'Vắng không phép', s:-2.0, c:'discipline'},
+    {id:'n8', t:'Lỗi Đ.Phục/Tóc/Giày', s:-0.25, c:'discipline'},
+    {id:'n9', t:'Dùng ĐT sai quy định', s:-2.0, c:'discipline'},
+    {id:'n10', t:'Nói tục/Chửi thề', s:-2.0, c:'discipline'},
+    {id:'n12', t:'Đánh nhau (Lỗi nặng)', s:-40.0, c:'discipline'},
+    {id:'a1', t:'Tham gia phong trào', s:2.0, c:'activity'},
+    {id:'a2', t:'Nòng cốt phong trào', s:4.0, c:'activity'},
+    {id:'a3', t:'Đoạt giải', s:5.0, c:'activity'},
+    {id:'a4', t:'Vắng tập trung', s:-2.0, c:'activity'}
+];
+
+const INIT_DATA = [
+    "Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Ân", "Nguyễn Lê Chí Dũng", "Nguyễn Minh Đức",
+    "Nguyễn Thanh Hằng", "Bùi Mạnh Hùng", "Nguyễn Phúc Lộc", "Nguyễn Trọng Nghĩa", "Nguyễn Trọng Nghĩa",
+    "Nguyễn Thiện Nhân", "Hồ Đức Nhật", "Nguyễn Bảo Thiên", "Nguyễn Thị Thu Thủy", "Trần Hà Uyên",
+    "Lê Hoàng Việt", "Hoàng Ngọc Hà Vy"
+].map((n, i) => ({ id: i+1, name: n, logs: [], remark: "", crit: false }));
+
+class App {
+    constructor() {
+        this.students = JSON.parse(localStorage.getItem('hk_v10_data')) || INIT_DATA;
+        this.customRules = JSON.parse(localStorage.getItem('hk_v10_rules')) || [];
+        this.selectedIds = new Set();
+        this.currentId = null;
+        this.tab = 'all';
+        
+        document.getElementById('datePicker').valueAsDate = new Date();
+        this.init();
+    }
+
+    init() {
+        this.renderStudentList();
+        this.renderRules();
+        if (this.students.length) this.selectStudent(this.students[0].id);
+    }
+
+    save() {
+        localStorage.setItem('hk_v10_data', JSON.stringify(this.students));
+        this.renderStudentList();
+        if (this.currentId) this.renderInfo();
+    }
+
+    saveRules() {
+        localStorage.setItem('hk_v10_rules', JSON.stringify(this.customRules));
+        this.renderRules();
+    }
+
+    // --- CORE LOGIC ---
+    calculate(s) {
+        let total = 80;
+        let cheats = 0;
+        s.logs.forEach(l => {
+            total += parseFloat(l.s);
+            if (l.sp === 'cheat') cheats++;
+        });
+
+        let rank = 'Đạt';
+        if (total >= 80) rank = 'Tốt';
+        else if (total >= 65) rank = 'Khá';
+        else if (total >= 50) rank = 'Đạt';
+        else rank = 'Chưa Đạt';
+
+        if (cheats >= 2 && (rank === 'Tốt' || rank === 'Khá')) rank = 'Đạt';
+        if (cheats >= 3) rank = 'Chưa Đạt';
+        if (s.crit || total < 50) rank = 'Chưa Đạt';
+
+        return { total: parseFloat(total.toFixed(2)), rank };
+    }
+
+    // --- ACTIONS ---
+    selectStudent(id) {
+        if (this.selectedIds.size) this.clearSelection();
+        this.currentId = id;
+        this.renderStudentList();
+        this.renderInfo();
+        
+        // Render rule counts specific to this student
+        this.renderRules(); 
+    }
+
+    toggleSelect(id) {
+        if (this.selectedIds.has(id)) this.selectedIds.delete(id);
+        else this.selectedIds.add(id);
+        
+        this.currentId = null;
+        this.renderStudentList();
+        this.renderInfo();
+    }
+
+    toggleSelectAll() {
+        if (document.getElementById('selectAll').checked) this.students.forEach(s => this.selectedIds.add(s.id));
+        else this.selectedIds.clear();
+        this.renderStudentList();
+        this.renderInfo();
+    }
+
+    clearSelection() {
+        this.selectedIds.clear();
+        document.getElementById('selectAll').checked = false;
+        if (this.students.length) this.selectStudent(this.students[0].id);
+    }
+
+    addLog(txt, score, ruleId = null, special = null, inc = false) {
+        const dateStr = document.getElementById('datePicker').value.split('-').reverse().slice(0, 2).join('/');
+        const targets = this.selectedIds.size ? this.students.filter(s => this.selectedIds.has(s.id)) : (this.currentId ? [this.students.find(s => s.id == this.currentId)] : []);
+
+        if (!targets.length) return alert("Chưa chọn học sinh!");
+
+        targets.forEach(s => {
+            let finalS = score;
+            let finalT = txt;
+
+            if (inc && score < 0) {
+                const count = s.logs.filter(l => l.rid === ruleId).length + 1;
+                finalS = score * count; // Incremental: -1, -2, -3...
+                finalT += ` (Lần ${count})`;
+            }
+
+            s.logs.push({ t: finalT, s: finalS, d: dateStr, rid: ruleId, sp: special });
+            s.remark = this.generateRemarkText(s);
+        });
+
+        this.save();
+        // Update current view immediately
+        if(this.currentId) {
+            document.getElementById('remarkBox').value = this.students.find(s => s.id == this.currentId).remark;
+            this.renderInfo();
+        }
+    }
+
+    addManualLog() {
+        const t = document.getElementById('manText').value.trim();
+        const s = parseFloat(document.getElementById('manScore').value);
+        if (!t || isNaN(s)) return alert("Vui lòng nhập đủ thông tin!");
+        this.addLog(t, s);
+        document.getElementById('manText').value = '';
+        document.getElementById('manScore').value = '';
+    }
+
+    removeLog(idx) {
+        const s = this.students.find(x => x.id == this.currentId);
+        s.logs.splice(idx, 1);
+        s.remark = this.generateRemarkText(s);
+        this.save();
+    }
+
+    // --- UI RENDERERS ---
+    renderStudentList() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const list = document.getElementById('studentList');
+        list.innerHTML = this.students.map((s, i) => {
+            if (!s.name.toLowerCase().includes(term)) return '';
+            const st = this.calculate(s);
+            const isActive = this.currentId == s.id;
+            const isChecked = this.selectedIds.has(s.id);
+            return `
+                <div class="student-item ${isActive ? 'active' : ''}" onclick="app.selectStudent(${s.id})">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); app.toggleSelect(${s.id})" style="transform:scale(1.2);">
+                        <div>
+                            <div class="s-name">${i + 1}. ${s.name}</div>
+                            <div class="s-info">${st.rank}</div>
+                        </div>
+                    </div>
+                    <span class="s-score" style="color:${st.rank === 'Tốt' ? 'var(--success)' : (st.rank === 'Chưa Đạt' ? 'var(--danger)' : 'var(--warning)')}">${st.total}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    renderInfo() {
+        // BATCH MODE
+        if (this.selectedIds.size > 0) {
+            document.getElementById('batchAlert').style.display = 'flex';
+            document.getElementById('batchCount').innerText = this.selectedIds.size;
+            document.getElementById('infoCard').style.opacity = '0.5';
+            document.getElementById('historyPanel').style.visibility = 'hidden';
+            return;
+        }
+
+        // SINGLE MODE
+        if (!this.currentId) return;
+        document.getElementById('batchAlert').style.display = 'none';
+        document.getElementById('infoCard').style.opacity = '1';
+        document.getElementById('historyPanel').style.visibility = 'visible';
+
+        const s = this.students.find(x => x.id == this.currentId);
+        const st = this.calculate(s);
+
+        document.getElementById('dispName').innerText = s.name;
+        document.getElementById('dispScore').innerText = st.total;
+        document.getElementById('dispRank').innerText = st.rank;
+        document.getElementById('critCheck').checked = s.crit;
+        
+        if (!s.remark) s.remark = this.generateRemarkText(s);
+        document.getElementById('remarkBox').value = s.remark;
+
+        const tbody = document.querySelector('#logTable tbody');
+        tbody.innerHTML = s.logs.slice().reverse().map((l, idx) => `
+            <tr>
+                <td>${l.d}</td>
+                <td>${l.t}</td>
+                <td style="font-weight:bold; color:${l.s > 0 ? 'green' : 'red'}">${l.s > 0 ? '+' : ''}${l.s}</td>
+                <td><button onclick="app.removeLog(${s.logs.length - 1 - idx})" style="border:none; bg:none; color:red; cursor:pointer;">×</button></td>
+            </tr>
+        `).join('');
+    }
+
+    renderRules() {
+        const allRules = [...DEFAULT_RULES, ...this.customRules];
+        const filtered = this.tab === 'all' ? allRules : allRules.filter(r => r.c === this.tab);
+        const grid = document.getElementById('rulesGrid');
+        
+        // Add Button
+        let html = `<div class="rule-card" style="border:2px dashed #ccc; align-items:center; justify-content:center; color:#888;" onclick="app.openModal('modalRule')">
+            <span style="font-size:24px;">+</span> Thêm
+        </div>`;
+
+        html += filtered.map(r => {
+            const isCustom = r.id.startsWith('cust_');
+            let badge = '';
+            // Show count if single student selected
+            if(this.currentId && !this.selectedIds.size && r.inc) {
+                const s = this.students.find(x => x.id == this.currentId);
+                const count = s.logs.filter(l => l.rid === r.id).length;
+                if(count > 0) badge = `<span style="font-size:10px; background:#333; color:white; padding:2px 6px; border-radius:10px;">Lần ${count+1}</span>`;
+            }
+
+            return `
+            <div class="rule-card ${r.s > 0 ? 'bonus' : 'penalty'}" onclick="app.addLog('${r.t}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})">
+                <div class="r-content">${r.t}</div>
+                <div class="r-footer">
+                    ${badge}
+                    ${isCustom ? `<span style="font-size:10px; color:#999;" onclick="event.stopPropagation(); app.deleteRule('${r.id}')">Xóa</span>` : '<span></span>'}
+                    <span class="r-score ${r.s > 0 ? 'text-success' : 'text-danger'}">${r.s > 0 ? '+' : ''}${r.s}</span>
+                </div>
+            </div>`;
+        }).join('');
+        
+        grid.innerHTML = html;
+        
+        // Active Tab
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        // Find button by onclick content is hard, rely on index is brittle. 
+        // Simple: Just let user click. 
+    }
+
+    switchTab(t, btn) {
+        this.tab = t;
+        this.renderRules();
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // --- MODALS ---
+    openModal(id) { 
+        document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none'); // Ensure others closed
+        document.getElementById(id).style.display = 'flex'; 
+    }
+    closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    saveNewRule() {
+        const t = document.getElementById('newRText').value.trim();
+        const s = parseFloat(document.getElementById('newRScore').value);
+        const c = document.getElementById('newRCat').value;
+        
+        if (!t || isNaN(s)) return alert("Vui lòng nhập đủ thông tin!");
+        
+        this.customRules.push({ id: 'cust_' + Date.now(), t, s, c });
+        this.saveRules();
+        this.closeModal('modalRule');
+        
+        // Switch to custom tab to see it
+        this.tab = 'custom';
+        this.renderRules();
+        // Update UI tabs manually
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-btn')[4].classList.add('active'); // 4 is custom
+    }
+
+    deleteRule(id) {
+        if(confirm("Xóa nút này?")) {
+            this.customRules = this.customRules.filter(r => r.id !== id);
+            this.saveRules();
+        }
+    }
+
+    // --- SMART REMARK ---
+    generateRemarkText(s) {
+        const stats = this.calculate(s);
+        let arr = [];
+        if (stats.rank === 'Tốt') arr.push("Ngoan, lễ phép, chấp hành tốt nội quy.");
+        else if (stats.rank === 'Khá') arr.push("Có ý thức rèn luyện, cần khắc phục lỗi nhỏ.");
+        else arr.push("Cần nghiêm túc chấn chỉnh nề nếp.");
+
+        const has = (k) => s.logs.some(l => l.t.toLowerCase().includes(k) && l.s < 0);
+        if (has('trễ')) arr.push("Cần đi học đúng giờ.");
+        if (has('vắng')) arr.push("Cần đi học đầy đủ.");
+        if (has('bài') || has('dụng cụ')) arr.push("Cần chuẩn bị bài kỹ hơn.");
+        if (has('phục') || has('tóc')) arr.push("Lưu ý tác phong.");
+        if (has('điện thoại')) arr.push("Tuân thủ quy định dùng ĐT.");
+        if (s.logs.some(l => l.s > 0)) arr.push("Tích cực tham gia phong trào.");
+        
+        return arr.join(" ");
+    }
+    
+    generateRemark(force) {
+        if(!this.currentId) return;
+        const s = this.students.find(x => x.id == this.currentId);
+        s.remark = this.generateRemarkText(s);
+        document.getElementById('remarkBox').value = s.remark;
+        this.save();
+    }
+    
+    saveRemark() {
+        if(!this.currentId) return;
+        this.students.find(x => x.id == this.currentId).remark = document.getElementById('remarkBox').value;
+        this.save();
+    }
+
+    // --- STUDENT MANAGEMENT ---
+    addStudent() { 
+        const n = document.getElementById('newStudentName').value.trim();
+        if (n) { 
+            this.students.push({ id: Date.now(), name: n, logs: [], remark: '', crit: false }); 
+            this.save(); 
+            this.closeModal('modalStudent');
+            document.getElementById('newStudentName').value = ''; // Reset input
+        } else {
+            alert("Vui lòng nhập tên!");
+        }
+    }
+    deleteStudent() { if (confirm("Xóa học sinh này?")) { this.students = this.students.filter(s => s.id != this.currentId); this.currentId = null; this.save(); if(this.students.length) this.selectStudent(this.students[0].id); } }
+    toggleCrit() { const s = this.students.find(x => x.id == this.currentId); s.crit = !s.crit; this.save(); this.renderInfo(); }
+    resetData() { if(confirm("Xóa toàn bộ dữ liệu?")) { localStorage.removeItem('hk_v10_data'); location.reload(); } }
+
+    // --- EXCEL EXPORT (XML SPREADSHEET 2003 - POWERFUL & COMPATIBLE) ---
+    exportExcel() {
+        const month = document.getElementById('monthSelect').value;
+        const className = "Lop10H";
+        const fileName = `HK_Yersin_${className}_Thang${month}.xls`;
+        
+        // Escape special XML characters
+        const escapeXml = (str) => {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        };
+        
+        let rows = '';
+        this.students.forEach((s, idx) => {
+            const stats = this.calculate(s);
+            
+            // Group text with Newline for Excel
+            const getGroupedText = (type) => {
+                const logs = s.logs.filter(l => type === 'bonus' ? l.s > 0 : l.s < 0);
+                let dict = {};
+                logs.forEach(l => {
+                    if(!dict[l.t]) dict[l.t] = {dates:[], score:0};
+                    dict[l.t].dates.push(l.d);
+                    dict[l.t].score += l.s;
+                });
+                return Object.keys(dict).map(k => {
+                    const g = dict[k];
+                    // &#10; is the XML entity for newline in Excel cell
+                    return `- ${k} [${g.dates.join(', ')}] (${Math.abs(g.score)})`;
+                }).join('&#10;');
+            };
+            
+            const bonus = s.logs.filter(l => l.s > 0).reduce((a, b) => a + b.s, 0);
+            const penalty = Math.abs(s.logs.filter(l => l.s < 0).reduce((a, b) => a + b.s, 0));
+
+            rows += `
+            <Row>
+                <Cell ss:StyleID="sCenter"><Data ss:Type="Number">${idx + 1}</Data></Cell>
+                <Cell><Data ss:Type="String">${escapeXml(s.name)}</Data></Cell>
+                <Cell ss:StyleID="sWrap"><Data ss:Type="String">${escapeXml(getGroupedText('bonus'))}</Data></Cell>
+                <Cell ss:StyleID="sCenter"><Data ss:Type="Number">${bonus || ''}</Data></Cell>
+                <Cell ss:StyleID="sWrap"><Data ss:Type="String">${escapeXml(getGroupedText('penalty'))}</Data></Cell>
+                <Cell ss:StyleID="sCenter"><Data ss:Type="Number">${penalty || ''}</Data></Cell>
+                <Cell ss:StyleID="sCenterBold"><Data ss:Type="Number">${stats.total}</Data></Cell>
+                <Cell ss:StyleID="sCenterBold"><Data ss:Type="String">${escapeXml(stats.rank)}</Data></Cell>
+                <Cell ss:StyleID="sWrap"><Data ss:Type="String">${escapeXml(s.remark || '')}</Data></Cell>
+            </Row>`;
+        });
+
+        const xmlTemplate = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:FontName="Times New Roman" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
+  </Style>
+  <Style ss:ID="sHeader">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Times New Roman" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/>
+   <Interior ss:Color="#D9D9D9" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="sCenter">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="sCenterBold">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Times New Roman" x:Family="Swiss" ss:Size="11" ss:Color="#000000" ss:Bold="1"/>
+  </Style>
+  <Style ss:ID="sWrap">
+   <Alignment ss:Vertical="Center" ss:WrapText="1"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="HanhKiem">
+  <Table ss:ExpandedColumnCount="9" x:FullColumns="1" x:FullRows="1" ss:DefaultRowHeight="15">
+   <Column ss:AutoFitWidth="0" ss:Width="30"/>
+   <Column ss:AutoFitWidth="0" ss:Width="150"/>
+   <Column ss:AutoFitWidth="0" ss:Width="250"/>
+   <Column ss:AutoFitWidth="0" ss:Width="50"/>
+   <Column ss:AutoFitWidth="0" ss:Width="250"/>
+   <Column ss:AutoFitWidth="0" ss:Width="50"/>
+   <Column ss:AutoFitWidth="0" ss:Width="50"/>
+   <Column ss:AutoFitWidth="0" ss:Width="80"/>
+   <Column ss:AutoFitWidth="0" ss:Width="200"/>
+   <Row ss:Height="25">
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">STT</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">HỌ VÀ TÊN HỌC SINH</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">BIỂU HIỆN TÍCH CỰC</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">ĐIỂM CỘNG</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">HÀNH VI CẦN CẢI THIỆN</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">ĐIỂM TRỪ</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">TỔNG ĐIỂM</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">XẾP LOẠI</Data></Cell>
+    <Cell ss:StyleID="sHeader"><Data ss:Type="String">NHẬN XÉT</Data></Cell>
+   </Row>
+   ${rows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+        const blob = new Blob([xmlTemplate], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+}
+
+const app = new App();
+</script>
+</body>
+</html>
