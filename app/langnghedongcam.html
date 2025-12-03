@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chiến Dịch Lắng Nghe Đồng Cảm</title>
+    <title>Chiến Dịch Lắng Nghe Đồng Cảm - Lớp 10H</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -31,209 +31,91 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- BACKGROUND EFFECTS --- */
+        /* --- BACKGROUND --- */
         .aurora-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -2;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
             background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fad0c4, #a18cd1);
             background-size: 400% 400%;
             animation: aurora 20s ease infinite;
-            opacity: 0.4;
+            opacity: 0.5;
         }
-        
-        .bokeh {
-            position: fixed;
-            width: 100%; height: 100%; top: 0; left: 0;
-            z-index: -1;
-            pointer-events: none;
-        }
-        
         .bokeh span {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
             animation: float-up infinite linear;
         }
 
-        @keyframes aurora {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes float-up { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
 
-        @keyframes float-up {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            50% { opacity: 0.6; }
-            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
-        }
-
-        /* --- COMPONENT ANIMATIONS --- */
+        /* --- ANIMATIONS --- */
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-medium { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-fast { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+        @keyframes heart-pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-50%, -150%) scale(0); opacity: 0; } }
+        @keyframes breathe-glow { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.03); filter: brightness(1.1); } }
+        @keyframes logo-breathe { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); } 50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(255,255,255,0.9)); } }
+        @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
+
+        /* --- ELEMENTAL PARTICLES --- */
+        @keyframes particle-float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(5px, -10px); } }
         
-        @keyframes heart-pop {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-            40% { transform: translate(-50%, -50%) scale(0.9); }
-            60% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-            100% { transform: translate(-50%, -150%) scale(0); opacity: 0; }
-        }
-
-        /* Border Flow Effect */
-        @keyframes border-flow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* --- ELEMENTAL EFFECTS --- */
-        
-        /* Breathing & Glowing Logo Effect */
-        @keyframes logo-breathe {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
-            50% { transform: scale(1.05); filter: drop-shadow(0 0 12px rgba(255,255,255,0.8)); }
-        }
-        .animate-logo-breathe {
-            animation: logo-breathe 3s ease-in-out infinite;
-        }
-
-        /* Breathing Effect for Cards */
-        @keyframes breathe-glow {
-            0%, 100% { transform: scale(1); filter: brightness(1); }
-            50% { transform: scale(1.02); filter: brightness(1.05); }
-        }
-        .animate-breathe {
-            animation: breathe-glow 4s ease-in-out infinite;
-        }
-
-        /* Level 3: Fire */
-        @keyframes fire-pulse {
-            0% { box-shadow: 0 0 10px #ff4500, 0 0 20px #ea580c, inset 0 0 5px #ff4500; border-color: #ff4500; }
-            50% { box-shadow: 0 0 25px #ff4500, 0 0 40px #ea580c, inset 0 0 15px #ff4500; border-color: #fb923c; }
-            100% { box-shadow: 0 0 10px #ff4500, 0 0 20px #ea580c, inset 0 0 5px #ff4500; border-color: #ff4500; }
-        }
-        
-        /* Level 4: Electric */
-        @keyframes electric-shock {
-            0%, 100% { box-shadow: 0 0 5px #06b6d4, 0 0 15px #22d3ee; border-color: #06b6d4; }
-            5% { box-shadow: 0 0 25px #fff, 0 0 50px #06b6d4; border-color: #fff; }
-            10% { box-shadow: 0 0 5px #06b6d4, 0 0 15px #22d3ee; border-color: #06b6d4; }
-            50% { box-shadow: 0 0 20px #06b6d4; }
-        }
-
-        /* Level 2: Orbit */
-        @keyframes orbit-cw {
-            0% { transform: rotate(0deg) translateX(55px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(55px) rotate(-360deg); }
-        }
-        @keyframes orbit-ccw {
-            0% { transform: rotate(360deg) translateX(55px) rotate(-360deg); }
-            100% { transform: rotate(0deg) translateX(55px) rotate(0deg); }
-        }
-
-        /* Shockwave for Avatar */
-        @keyframes shockwave {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(236, 72, 153, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
-        }
-
-        /* Text Effects */
-        @keyframes fire-text { 0%, 100% { text-shadow: 0 0 4px #ffeb3b, 0 -2px 4px #ff9800; } 50% { text-shadow: 0 0 10px #ffeb3b, 0 -5px 10px #ff4500; } }
-        @keyframes electric-text { 0%, 100% { opacity: 1; text-shadow: 0 0 5px #00bfff; } 50% { opacity: 0.8; text-shadow: 0 0 15px #00bfff; } }
-        @keyframes bounce-text { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-
-        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-        .animate-spin-reverse { animation: spin-reverse 10s linear infinite; }
-        .animate-shockwave { animation: shockwave 0.6s ease-out; }
+        /* Magic Borders */
+        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        @keyframes border-rotate { 0% { --angle: 0deg; } 100% { --angle: 360deg; } }
+        .magic-border-container { position: absolute; inset: -4px; border-radius: 50%; z-index: -1; overflow: hidden; }
+        .magic-border-layer { position: absolute; inset: -50%; width: 200%; height: 200%; background: conic-gradient(from var(--angle), transparent 20%, var(--border-color), transparent 80%); animation: border-rotate 3s linear infinite; }
+        .magic-border-layer.reverse { animation: border-rotate 5s linear infinite reverse; opacity: 0.7; }
 
         /* Shimmer Text */
-        .shimmer-text {
-            background: linear-gradient(to right, #ec4899 20%, #8b5cf6 40%, #ec4899 60%, #8b5cf6 80%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: border-flow 3s linear infinite;
-            font-weight: 900;
+        .shimmer-text { background: linear-gradient(to right, #ec4899 20%, #8b5cf6 40%, #ec4899 60%, #8b5cf6 80%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: border-flow 3s linear infinite; font-weight: 900; }
+        @keyframes border-flow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        /* Classes */
+        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+        .animate-spin-medium { animation: spin-medium 8s linear infinite; }
+        .animate-spin-reverse { animation: spin-reverse 10s linear infinite; }
+        .animate-breathe { animation: breathe-glow 3s ease-in-out infinite; }
+        .animate-logo { animation: logo-breathe 4s ease-in-out infinite; }
+        .animate-particle { animation: particle-float 3s ease-in-out infinite; }
+
+        /* Title Animation */
+        @keyframes title-flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .rainbow-title {
+            background: linear-gradient(to right, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444);
+            background-size: 300% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: title-flow 5s linear infinite; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+            line-height: 1.4; 
+            padding: 0.2em 0;
+            display: block;
         }
+
+        /* RING STYLES */
+        .ring-leaf { border: 2px dashed #4ade80; border-radius: 50%; }
+        .ring-water { border: 2px solid #60a5fa; border-radius: 50%; box-shadow: 0 0 15px #3b82f6; opacity: 0.7; }
+        .ring-sun { border: 2px solid #facc15; border-radius: 50%; box-shadow: 0 0 20px #f59e0b, inset 0 0 10px #f59e0b; }
         
-        .fire-text { color: #ff4500; animation: fire-text 2s infinite; }
-        .electric-text { color: #22d3ee; animation: electric-text 0.15s infinite; }
-        .bounce-text { display: inline-block; animation: bounce-text 1.5s ease-in-out infinite; }
-
-        /* Orbit Container */
-        .orbit-container {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 0; height: 0;
-            pointer-events: none;
-        }
-        .orbit-item {
-            position: absolute;
-            top: -10px; left: -10px;
-            width: 20px; height: 20px;
-            display: flex; justify-content: center; align-items: center;
-        }
-
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; }
-        
-        /* ULTIMATE MAGICAL BORDER (Rainbow) */
-        .magic-border-container {
-            position: absolute;
-            inset: -4px;
-            border-radius: 1.8rem;
-            z-index: -1;
-            overflow: hidden;
-        }
-        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-        @keyframes border-rotate { 0% { --angle: 0deg; } 100% { --angle: 360deg; } }
-        
-        .magic-border-layer {
-            position: absolute;
-            inset: -50%; width: 200%; height: 200%;
-            background: conic-gradient(from var(--angle), transparent 20%, var(--border-color), transparent 80%);
-            animation: border-rotate 4s linear infinite;
-        }
-        .magic-border-layer.reverse {
-            animation: border-rotate 6s linear infinite reverse;
-            opacity: 0.7;
-        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- 1. SETUP & DATA ---
-        // DANH SÁCH LỚP 10H CHUẨN XÁC
+        // --- 1. CONFIGURATION ---
         const CLASS_10H_STUDENTS = [
-            "Bùi Hoàng Gia An",
-            "Yoo Minh Anh",
-            "Vũ Nguyễn Hồng Ân",
-            "Nguyễn Lê Chí Dũng",
-            "Nguyễn Minh Đức",
-            "Nguyễn Thanh Hằng",
-            "Bùi Mạnh Hùng",
-            "Nguyễn Phúc Lộc",
-            "Nguyễn Trọng Nghĩa",
-            "Nguyễn Trọng Nghĩa", // Bạn thứ 2 cùng tên
-            "Nguyễn Thiện Nhân",
-            "Hồ Đức Nhật",
-            "Nguyễn Bảo Thiên",
-            "Nguyễn Thị Thu Thủy",
-            "Trần Hà Uyên",
-            "Lê Hoàng Việt",
-            "Hoàng Ngọc Hà Vy"
+            "Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Ân", "Nguyễn Lê Chí Dũng",
+            "Nguyễn Minh Đức", "Nguyễn Thanh Hằng", "Bùi Mạnh Hùng", "Nguyễn Phúc Lộc",
+            "Nguyễn Trọng Nghĩa", "Nguyễn Trọng Nghĩa", "Nguyễn Thiện Nhân", "Hồ Đức Nhật",
+            "Nguyễn Bảo Thiên", "Nguyễn Thị Thu Thủy", "Trần Hà Uyên", "Lê Hoàng Việt", "Hoàng Ngọc Hà Vy"
         ];
         
         const ANIMAL_AVATARS = ['🦁','🐰','🦊','🐼','🐨','🦄','🐯','🐸','🐷','🐵','🐣','🐧','🦉','🦋','🐞'];
-        
-        // Vibrant colors for hearts
         const HEART_COLORS = ['#ec4899', '#ef4444', '#f59e0b', '#8b5cf6', '#3b82f6', '#10b981'];
 
         // --- 2. ICONS ---
@@ -242,102 +124,35 @@
             return <i data-lucide={name} width={size} height={size} className={className} style={style}></i>;
         };
 
-        // --- 3. BACKGROUND PARTICLES ---
+        // --- 3. BACKGROUND & EFFECTS ---
         const BokehBackground = () => (
             <div className="bokeh">
-                {[...Array(15)].map((_, i) => (
+                {[...Array(20)].map((_, i) => (
                     <span key={i} style={{
                         left: Math.random() * 100 + '%',
-                        width: Math.random() * 50 + 20 + 'px',
-                        height: Math.random() * 50 + 20 + 'px',
+                        width: Math.random() * 40 + 10 + 'px',
+                        height: Math.random() * 40 + 10 + 'px',
                         animationDuration: Math.random() * 10 + 10 + 's',
-                        animationDelay: Math.random() * 5 + 's'
+                        animationDelay: Math.random() * 5 + 's',
+                        background: `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.2})`
                     }}></span>
                 ))}
             </div>
         );
 
-        // --- 4. LOGIC & EFFECTS (5-TIER SYSTEM) ---
-        const getRankInfo = (hearts) => {
-            if (hearts >= 50) return {
-                id: 'legend', name: 'HUYỀN THOẠI',
-                borderClass: 'bg-gradient-to-r from-yellow-400 via-pink-500 to-indigo-500',
-                bgClass: 'bg-white',
-                badge: 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg shadow-purple-500/50',
-                shadow: 'shadow-purple-200',
-                effect: 'rainbow',
-                textColor: 'shimmer-text',
-                breathe: true
-            };
-            if (hearts >= 40) return {
-                id: 'master', name: 'SỨ GIẢ',
-                borderClass: 'bg-cyan-600',
-                bgClass: 'bg-[#0f172a]', // Dark bg for contrast
-                badge: 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/50',
-                shadow: 'shadow-cyan-200',
-                effect: 'electric',
-                textColor: 'electric-text',
-                breathe: true
-            };
-            if (hearts >= 30) return {
-                id: 'warrior', name: 'CHIẾN BINH',
-                borderClass: 'bg-orange-600',
-                bgClass: 'bg-white',
-                badge: 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/50',
-                shadow: 'shadow-orange-200',
-                effect: 'fire',
-                textColor: 'fire-text',
-                breathe: true
-            };
-            if (hearts >= 20) return {
-                id: 'friend', name: 'BẠN HỮU',
-                borderClass: 'bg-gradient-to-tr from-pink-300 to-purple-300',
-                bgClass: 'bg-white',
-                badge: 'bg-pink-400 text-white shadow-md',
-                shadow: 'shadow-pink-100',
-                effect: 'hearts',
-                textColor: 'bounce-text text-pink-500',
-                breathe: true
-            };
-            if (hearts >= 10) return {
-                id: 'apprentice', name: 'TẬP SỰ',
-                borderClass: 'bg-emerald-200',
-                bgClass: 'bg-white',
-                badge: 'bg-emerald-500 text-white',
-                shadow: 'shadow-emerald-100',
-                effect: 'glow',
-                textColor: 'text-emerald-600 font-bold',
-                breathe: true
-            };
-            return {
-                id: 'rookie', name: 'MẦM NON',
-                borderClass: 'bg-gray-200',
-                bgClass: 'bg-white',
-                badge: 'bg-gray-200 text-gray-500',
-                shadow: 'shadow-sm',
-                effect: 'none',
-                textColor: 'text-gray-500',
-                breathe: false
-            };
-        };
-
-        // --- 5. VISUAL COMPONENTS ---
-
         const HeartFountain = () => {
             return (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-ping" style={{animationDuration: '0.5s'}}>
-                       <Icon name="heart" size={60} className="fill-pink-500 text-pink-500 opacity-50" />
-                    </div>
-                    {[...Array(12)].map((_, i) => {
-                        const angle = (Math.random() * 360) * (Math.PI / 180);
-                        const distance = 60 + Math.random() * 60;
-                        const tx = Math.cos(angle) * distance;
-                        const ty = Math.sin(angle) * distance - 60;
+                    <div className="absolute animate-ping opacity-75"><Icon name="heart" size={80} className="fill-pink-500 text-pink-500 opacity-50" /></div>
+                    {[...Array(15)].map((_, i) => {
                         const color = HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)];
                         return (
-                            <div key={i} className="absolute top-0 left-0" style={{'--tx': `${tx}px`, '--ty': `${ty}px`, animation: `heart-pop ${0.6 + Math.random() * 0.4}s ease-out forwards`}}>
-                                <Icon name="heart" size={14 + Math.random() * 10} className="fill-current drop-shadow-md" style={{ color: color }} />
+                            <div key={i} className="absolute top-0 left-0" style={{
+                                '--tx': `${Math.cos((Math.random()*360)*(Math.PI/180)) * (80+Math.random()*60)}px`,
+                                '--ty': `${Math.sin((Math.random()*360)*(Math.PI/180)) * (80+Math.random()*60) - 60}px`,
+                                animation: `heart-pop ${0.6 + Math.random() * 0.4}s ease-out forwards`
+                            }}>
+                                <Icon name={i%2===0?"heart":"star"} size={16 + Math.random() * 12} className="fill-current drop-shadow-lg" style={{ color: color }} />
                             </div>
                         )
                     })}
@@ -347,18 +162,137 @@
 
         const FairyDust = () => (
             <div className="absolute inset-0 z-20 pointer-events-none rounded-full overflow-hidden">
-                {[...Array(5)].map((_, i) => (
-                    <div key={i} className="avatar-sparkle" style={{ width: Math.random() * 3 + 2 + 'px', height: Math.random() * 3 + 2 + 'px', top: Math.random() * 100 + '%', left: Math.random() * 100 + '%', animationDelay: Math.random() * 2 + 's' }} />
+                {[...Array(8)].map((_, i) => (
+                    <div key={i} className="absolute bg-white rounded-full shadow-[0_0_5px_white]" 
+                         style={{ width: Math.random()*3+2+'px', height: Math.random()*3+2+'px', top: Math.random()*100+'%', left: Math.random()*100+'%', animation: 'pulse 1.5s infinite', animationDelay: Math.random()+'s' }} />
                 ))}
             </div>
         );
 
-        // 5.1 Student Card
+        // --- 4. LOGIC & RANK SYSTEM (6 LEVELS) ---
+        const getRankInfo = (hearts) => {
+            // Cấp 6: Đại Sứ Đồng Cảm (50+) - Galaxy
+            if (hearts >= 50) return {
+                id: 'ambassador', name: 'ĐẠI SỨ ĐỒNG CẢM',
+                bgClass: 'bg-white', badge: 'bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 text-white shadow-lg shadow-purple-400/50',
+                shadow: 'shadow-purple-300', effect: 'galaxy', textColor: 'shimmer-text', breathe: true
+            };
+            // Cấp 5: Quả Yêu Thương (40-49) - Sun
+            if (hearts >= 40) return {
+                id: 'fruit', name: 'QUẢ YÊU THƯƠNG',
+                bgClass: 'bg-white', badge: 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-md shadow-orange-400/50',
+                shadow: 'shadow-orange-200', effect: 'sun', textColor: 'text-orange-600', breathe: true
+            };
+            // Cấp 4: Hoa Kết Nối (30-39) - Flower
+            if (hearts >= 30) return {
+                id: 'flower', name: 'HOA KẾT NỐI',
+                bgClass: 'bg-white', badge: 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-400/50',
+                shadow: 'shadow-pink-200', effect: 'flower', textColor: 'text-pink-600', breathe: true
+            };
+            // Cấp 3: Lá Sẻ Chia (20-29) - Water
+            if (hearts >= 20) return {
+                id: 'leaf', name: 'LÁ SẺ CHIA',
+                bgClass: 'bg-white', badge: 'bg-cyan-500 text-white shadow-sm shadow-cyan-300/50',
+                shadow: 'shadow-cyan-100', effect: 'water', textColor: 'text-cyan-600', breathe: true
+            };
+            // Cấp 2: Chồi Thấu Hiểu (10-19) - Leaf
+            if (hearts >= 10) return {
+                id: 'bud', name: 'CHỒI THẤU HIỂU',
+                bgClass: 'bg-white', badge: 'bg-emerald-500 text-white shadow-sm shadow-emerald-300/50',
+                shadow: 'shadow-emerald-100', effect: 'leaf', textColor: 'text-emerald-600', breathe: true
+            };
+            // Cấp 1: Mầm Lắng Nghe (0-9)
+            return {
+                id: 'seed', name: 'MẦM LẮNG NGHE',
+                bgClass: 'bg-white', badge: 'bg-gray-200 text-gray-500',
+                shadow: 'shadow-sm', effect: 'none', textColor: 'text-gray-500', breathe: false
+            };
+        };
+
+        // --- 5. AVATAR RINGS (MASSIVE ICONS) ---
+        const AvatarRing = ({ type }) => {
+            if (type === 'none') return null;
+            // Large container for orbiting icons
+            const containerClass = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] pointer-events-none flex items-center justify-center";
+
+            // Helper to generate orbiting icons
+            const renderOrbits = (count, icon, colorClass, duration = '10s', reverse = false) => (
+                <div className={`w-full h-full absolute ${reverse ? 'animate-spin-reverse' : 'animate-spin-slow'}`} style={{animationDuration: duration}}>
+                    {[...Array(count)].map((_, i) => (
+                        <div key={i} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" 
+                             style={{ transform: `rotate(${i * (360/count)}deg) translate(70px) rotate(-${i * (360/count)}deg)` }}>
+                             {/* Increase size 3x -> size ~36-48 */}
+                             <Icon name={icon} size={36} className={colorClass + " drop-shadow-md"} />
+                        </div>
+                    ))}
+                </div>
+            );
+
+            if (type === 'leaf') return (
+                <div className={containerClass}>
+                    <div className="w-full h-full ring-leaf opacity-80 animate-pulse-ring border-emerald-400"></div>
+                    {renderOrbits(8, 'leaf', 'text-emerald-500 fill-emerald-200', '15s')}
+                </div>
+            );
+            
+            if (type === 'water') return (
+                <div className={containerClass}>
+                    <div className="w-full h-full ring-water animate-pulse-ring"></div>
+                    <div className="absolute w-[90%] h-[90%] border border-cyan-300 rounded-full opacity-50 animate-spin-reverse"></div>
+                    {renderOrbits(8, 'droplet', 'text-cyan-500 fill-cyan-200', '12s')}
+                </div>
+            );
+
+            if (type === 'flower') return (
+                <div className={containerClass}>
+                     {renderOrbits(10, 'flower', 'text-pink-500 fill-pink-200', '20s')}
+                     {/* Inner ring of hearts */}
+                     <div className="w-[80%] h-[80%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin-reverse">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" 
+                                 style={{ transform: `rotate(${i * 60}deg) translate(50px) rotate(-${i * 60}deg)` }}>
+                                 <Icon name="heart" size={24} className="fill-rose-400 text-rose-500"/>
+                            </div>
+                        ))}
+                     </div>
+                     <div className="w-full h-full border-2 dotted border-pink-300 rounded-full opacity-60 animate-pulse"></div>
+                </div>
+            );
+
+            if (type === 'sun') return (
+                <div className={containerClass}>
+                    <div className="w-full h-full ring-sun opacity-80 animate-pulse-ring"></div>
+                    {renderOrbits(10, 'sun', 'text-orange-500 fill-yellow-300', '15s')}
+                    <div className="absolute w-[120%] h-[120%] border border-orange-300 rounded-full opacity-50 animate-spin-slow"></div>
+                </div>
+            );
+
+            if (type === 'galaxy') return (
+                <div className={containerClass}>
+                     <div className="magic-border-container"><div className="magic-border-layer" style={{'--border-color': '#d8b4fe'}}></div><div className="magic-border-layer reverse" style={{'--border-color': '#fcd34d'}}></div></div>
+                     {/* Stardust */}
+                     <FairyDust />
+                     {renderOrbits(12, 'star', 'text-yellow-400 fill-yellow-100', '25s')}
+                     {/* Inner sparkles */}
+                     <div className="w-[80%] h-[80%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin-reverse" style={{animationDuration:'15s'}}>
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" 
+                                 style={{ transform: `rotate(${i * 45}deg) translate(55px) rotate(-${i * 45}deg)` }}>
+                                 <Icon name="sparkles" size={28} className="text-purple-400"/>
+                            </div>
+                        ))}
+                     </div>
+                </div>
+            );
+            
+            return null;
+        };
+
+        // --- 6. COMPONENTS ---
         const StudentCard = ({ student, onAddHeart, onUpdateStudent, onDeleteStudent }) => {
             const [isEditing, setIsEditing] = React.useState(false);
             const [editHearts, setEditHearts] = React.useState(student.hearts || 0);
             const [bursts, setBursts] = React.useState([]);
-            const [isShockwave, setIsShockwave] = React.useState(false);
             
             const hearts = student.hearts || 0;
             const rank = getRankInfo(hearts);
@@ -367,8 +301,6 @@
 
             const handleClick = () => {
                 if (isEditing) return;
-                setIsShockwave(true);
-                setTimeout(() => setIsShockwave(false), 600);
                 const id = Date.now();
                 setBursts(prev => [...prev, id]);
                 setTimeout(() => setBursts(prev => prev.filter(b => b !== id)), 1000);
@@ -384,268 +316,132 @@
                 }
             };
 
-            // Remove uploaded avatar
-            const handleRemoveAvatar = (e) => {
-                e.stopPropagation(); // Prevent card click
-                if (confirm("Bạn có chắc chắn muốn xóa ảnh đại diện này?")) {
-                    onUpdateStudent(student.id, { avatarUrl: null });
-                }
-            };
-
-            // Delete student from class
-            const handleDeleteStudent = (e) => {
-                e.stopPropagation();
-                onDeleteStudent(student.id);
-            };
-
-            // Dynamic styles
-            const getEffectStyles = () => {
-                switch(rank.effect) {
-                    case 'fire':
-                        return { animation: 'fire-pulse 1.5s infinite alternate', borderColor: '#f97316' };
-                    case 'electric':
-                        return { animation: 'electric-shock 2s infinite', borderColor: '#22d3ee' };
-                    case 'rainbow':
-                        return { borderColor: 'white' };
-                    case 'glow':
-                        return { boxShadow: '0 0 15px rgba(52, 211, 153, 0.6)', borderColor: '#6ee7b7' };
-                    default:
-                        return { borderColor: 'white' };
-                }
-            };
+            const handleRemoveAvatar = (e) => { e.stopPropagation(); if (confirm("Xóa ảnh đại diện?")) onUpdateStudent(student.id, { avatarUrl: null }); };
 
             return (
-                <div 
-                    className={`relative group w-full cursor-pointer select-none transition-all duration-300 ${rank.breathe ? 'animate-breathe' : 'hover:-translate-y-1'}`} 
-                    onClick={handleClick}
-                >
-                    {/* UPDATED: Dynamic Height to accommodate long names */}
-                    <div className="min-h-[260px] md:min-h-[300px] h-full relative rounded-[1.5rem] p-[3px] overflow-hidden flex flex-col" style={rank.effect === 'fire' ? {padding: '4px'} : {}}> 
+                <div className={`relative group w-full cursor-pointer select-none transition-all duration-300 ${rank.breathe ? 'animate-breathe' : 'hover:-translate-y-1'}`} onClick={handleClick}>
+                    <div className="min-h-[280px] md:min-h-[320px] h-full relative rounded-[1.8rem] p-[4px] overflow-hidden flex flex-col shadow-lg transition-shadow hover:shadow-2xl"> 
                         
-                        {/* LAYER 1: BORDER EFFECTS */}
-                        {rank.effect === 'rainbow' && (
-                            <div className="magic-border-container">
-                                <div className="magic-border-layer" style={{'--border-color': '#ec4899'}}></div>
-                                <div className="magic-border-layer reverse" style={{'--border-color': '#facc15'}}></div>
-                            </div>
-                        )}
-                        {rank.effect === 'fire' && <div className="absolute inset-0 bg-gradient-to-t from-red-600 via-orange-500 to-yellow-400 opacity-80 animate-pulse rounded-[1.5rem]"></div>}
-                        {rank.effect === 'electric' && <div className="absolute inset-0 bg-cyan-900 rounded-[1.5rem]"></div>}
-                        {['rainbow', 'fire', 'electric'].indexOf(rank.effect) === -1 && <div className={`absolute inset-0 ${rank.borderClass}`}></div>}
-
-                        {/* LAYER 2: CARD BODY */}
-                        <div className={`relative h-full w-full rounded-[1.3rem] flex flex-col items-center p-3 md:p-4 z-10 ${rank.bgClass} shadow-xl overflow-hidden`} style={rank.effect === 'electric' ? {background: '#0f172a'} : {}}>
-                            
-                            {/* Inner Overlay Effects */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
-                            {rank.effect === 'fire' && <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-orange-500/20 to-transparent animate-pulse"></div>}
-                            
-                            {/* Heart Bursts */}
+                        {/* Background Layer */}
+                        <div className={`absolute inset-0 ${rank.effect === 'galaxy' ? 'bg-gradient-to-tr from-purple-100 to-pink-100' : (rank.effect === 'sun' ? 'bg-gradient-to-tr from-yellow-50 to-orange-50' : 'bg-white')} rounded-[1.8rem]`}></div>
+                        {rank.effect === 'none' && <div className="absolute inset-0 border-2 border-gray-200 rounded-[1.8rem]"></div>}
+                        
+                        {/* Card Body */}
+                        <div className={`relative h-full w-full rounded-[1.5rem] flex flex-col items-center p-3 md:p-5 z-10 ${rank.bgClass} overflow-hidden`}>
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-transparent pointer-events-none"></div>
                             {bursts.map(id => <HeartFountain key={id} />)}
 
-                            {/* HEADER */}
-                            <div className="w-full flex justify-between items-center z-20 mb-2">
-                                <span className={`text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${rank.badge} ${rank.breathe ? 'animate-pulse' : ''}`}>{rank.name}</span>
+                            {/* Header: Rank & Tools */}
+                            <div className="w-full flex justify-between items-center z-20 mb-3">
+                                <span className={`text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${rank.badge}`}>{rank.name}</span>
                                 <div className="flex gap-1">
-                                    <button onClick={handleDeleteStudent} className="text-gray-400 hover:text-red-600 bg-white/50 hover:bg-white p-1.5 rounded-full transition-colors backdrop-blur-sm" title="Xóa học sinh">
-                                        <Icon name="trash-2" size={14} />
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); setIsEditing(!isEditing); }} className="text-gray-400 hover:text-pink-600 bg-white/50 hover:bg-white p-1.5 rounded-full transition-colors backdrop-blur-sm" title="Chỉnh sửa">
-                                        <Icon name="edit-2" size={14} />
-                                    </button>
+                                    <button onClick={(e)=>{e.stopPropagation(); onDeleteStudent(student.id)}} className="text-gray-400 hover:text-red-600 bg-white/60 p-1.5 rounded-full transition-colors"><Icon name="trash-2" size={14} /></button>
+                                    <button onClick={(e)=>{e.stopPropagation(); setIsEditing(!isEditing)}} className="text-gray-400 hover:text-blue-600 bg-white/60 p-1.5 rounded-full transition-colors"><Icon name="edit-2" size={14} /></button>
                                 </div>
                             </div>
 
-                            {/* CENTER: AVATAR & SPECIAL EFFECTS */}
-                            <div className="relative z-10 mb-2 mt-auto group-hover:scale-105 transition-transform duration-300">
-                                <div className={`absolute inset-0 rounded-full border-2 border-pink-400 opacity-0 ${isShockwave ? 'animate-shockwave' : ''}`}></div>
-                                
-                                {rank.effect === 'hearts' && (
-                                    <div className="orbit-container">
-                                        <div className="orbit-item" style={{animation: 'orbit-cw 3s linear infinite'}}><Icon name="heart" size={12} className="fill-pink-500 text-pink-500"/></div>
-                                        <div className="orbit-item" style={{animation: 'orbit-ccw 4s linear infinite'}}><Icon name="heart" size={10} className="fill-purple-500 text-purple-500"/></div>
-                                    </div>
-                                )}
-
-                                {/* Main Avatar Circle */}
-                                <div 
-                                    className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-white shadow-2xl flex items-center justify-center text-5xl md:text-7xl relative overflow-hidden border-[4px] ring-2 ring-gray-100 group/avatar`}
-                                    style={getEffectStyles()}
-                                >
-                                    {rank.effect === 'electric' && <div className="absolute inset-0 bg-cyan-900/50 pointer-events-none"></div>}
-                                    {rank.effect === 'fire' && <div className="absolute inset-0 bg-orange-500/20 pointer-events-none"></div>}
-                                    {rank.effect === 'rainbow' && <FairyDust />}
-                                    
-                                    {/* DELETE BUTTON ON AVATAR HOVER */}
-                                    {!isEditing && student.avatarUrl && (
-                                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300">
-                                            <button 
-                                                onClick={handleRemoveAvatar}
-                                                className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 hover:scale-110 transition-transform shadow-lg"
-                                                title="Xóa ảnh về mặc định"
-                                            >
-                                                <Icon name="x" size={20} />
-                                            </button>
-                                        </div>
-                                    )}
-
+                            {/* Avatar & Magic Rings */}
+                            <div className="relative z-10 mb-3 mt-auto group-hover:scale-105 transition-transform duration-300">
+                                <AvatarRing type={rank.effect} />
+                                <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-white shadow-xl flex items-center justify-center text-5xl md:text-7xl relative z-10 overflow-hidden border-[3px] border-white ring-1 ring-gray-100 group/avatar`}>
                                     {isEditing ? (
-                                        <div className="flex flex-col items-center justify-center w-full h-full bg-gray-50 p-1 relative" onClick={e => e.stopPropagation()}>
-                                            <label className="cursor-pointer flex flex-col items-center text-gray-500 hover:text-pink-500">
-                                                <Icon name="image-plus" size={24} />
-                                                <span className="text-[8px] font-bold mt-1">ĐỔI ẢNH</span>
-                                                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                                            </label>
-                                        </div>
+                                        <label className="cursor-pointer flex flex-col items-center text-gray-500 hover:text-pink-500 p-2 text-center">
+                                            <Icon name="image-plus" size={20} />
+                                            <span className="text-[8px] font-bold mt-1">ĐỔI</span>
+                                            <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                                        </label>
                                     ) : (
-                                        student.avatarUrl ? <img src={student.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <span className="relative z-10 drop-shadow-md transform transition-transform group-hover:scale-110">{student.avatar || '🦁'}</span>
+                                        <>
+                                            {student.avatarUrl ? <img src={student.avatarUrl} className="w-full h-full object-cover" /> : <span className="drop-shadow-md">{student.avatar || '🦁'}</span>}
+                                            {student.avatarUrl && !isEditing && (
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <button onClick={handleRemoveAvatar} className="text-white bg-red-500 rounded-full p-1 shadow-lg hover:scale-110 transition-transform"><Icon name="x" size={20}/></button>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
-
-                                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md border border-pink-100 flex items-center gap-1.5 min-w-[3.5rem] justify-center z-30 transform group-hover:-translate-y-1 transition-transform">
-                                    <Icon name="heart" size={14} className="fill-pink-500 text-pink-500 animate-pulse" />
-                                    <span className="font-black text-gray-800 text-sm md:text-base">{hearts}</span>
+                                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md border-2 border-pink-100 flex items-center gap-2 min-w-[3.5rem] justify-center z-30">
+                                    <Icon name="heart" size={14} className="fill-pink-500 text-pink-500 animate-bounce" />
+                                    <span className="font-black text-gray-800 text-base md:text-lg">{hearts}</span>
                                 </div>
                             </div>
 
-                            {/* FOOTER: Name & Actions */}
+                            {/* Footer Name & Button */}
                             <div className="mt-auto w-full text-center z-20" onClick={e => isEditing && e.stopPropagation()}>
-                                {isEditing ? (
-                                    <div className="bg-white/95 p-2 rounded-xl border border-pink-300 shadow-xl animate-fade-in absolute bottom-2 left-2 right-2 z-50">
-                                        <input type="number" value={editHearts} onChange={(e) => setEditHearts(e.target.value)} className="w-full bg-pink-50 border border-pink-200 rounded px-2 py-1 text-base font-bold text-center text-pink-600 focus:outline-none mb-2" />
-                                        <div className="flex gap-2">
-                                            <button onClick={(e) => { e.stopPropagation(); onUpdateStudent(student.id, { hearts: parseInt(editHearts) }); setIsEditing(false); }} className="flex-1 bg-pink-500 text-white text-[10px] font-bold py-1.5 rounded-lg hover:bg-pink-600">Lưu</button>
-                                            <button onClick={() => setIsEditing(false)} className="flex-1 bg-gray-100 text-gray-500 text-[10px] font-bold py-1.5 rounded-lg hover:bg-gray-200">Hủy</button>
-                                        </div>
+                                 {isEditing ? (
+                                    <div className="bg-white p-2 rounded-lg shadow border border-pink-200">
+                                        <input type="number" value={editHearts} onChange={(e) => setEditHearts(e.target.value)} className="w-full border rounded px-2 py-1 text-center font-bold mb-2" />
+                                        <button onClick={(e) => { e.stopPropagation(); onUpdateStudent(student.id, { hearts: parseInt(editHearts) }); setIsEditing(false); }} className="w-full bg-pink-500 text-white text-xs py-1 rounded">Lưu</button>
                                     </div>
                                 ) : (
-                                    <>
-                                        {/* UPDATED: Name with word-break and leading-tight to allow wrapping */}
-                                        <h3 className={`text-sm md:text-lg font-black text-center px-1 mb-1 leading-tight break-words ${rank.textColor || 'text-gray-800'}`}>
-                                            {student.name}
-                                        </h3>
-                                        <p className={`text-[10px] ${rank.effect === 'electric' ? 'text-cyan-400' : 'text-gray-400'} mb-3 font-bold tracking-wide uppercase opacity-90`}>{hearts === 0 ? 'Sẵn sàng' : 'Đồng cảm'}</p>
-                                        <button className={`w-full py-2.5 rounded-xl font-bold text-[10px] md:text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 ${rank.effect === 'rainbow' ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : (rank.effect === 'electric' ? 'bg-cyan-500 text-white shadow-cyan-500/50' : (rank.effect === 'fire' ? 'bg-orange-600 text-white shadow-orange-500/50' : 'bg-white border-2 border-pink-100 text-pink-500 hover:bg-pink-50'))}`}>
-                                            <Icon name="heart" size={14} className={['rainbow','electric','fire'].includes(rank.effect) ? 'fill-white' : 'fill-pink-500'} /> TẶNG TIM
-                                        </button>
-                                    </>
+                                    <h3 className={`text-base md:text-lg font-black text-center px-1 leading-tight break-words ${rank.textColor || 'text-gray-700'}`}>{student.name}</h3>
                                 )}
                             </div>
+                            
+                            {!isEditing && (
+                                <button className="mt-3 w-full py-2.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-600 font-bold text-[10px] md:text-xs flex items-center justify-center gap-1 transition-colors z-20">
+                                    <Icon name="heart" size={14} className="fill-current"/> TẶNG TIM
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // 5.2 Speaker Stick
         const SpeakerStick = ({ students }) => {
-            const [chosenOne, setChosenOne] = React.useState(null);
-            const [isSpinning, setIsSpinning] = React.useState(false);
-            const [displayStudents, setDisplayStudents] = React.useState([]);
-
-            React.useEffect(() => setDisplayStudents(students), [students]);
-
-            const handleSpin = () => {
-                if (students.length === 0) return;
-                setIsSpinning(true);
-                setChosenOne(null);
-                
-                let count = 0;
-                const interval = setInterval(() => {
-                    const shuffled = [...students].sort(() => 0.5 - Math.random());
-                    setDisplayStudents(shuffled);
-                    count++;
-                    if (count >= 25) {
-                        clearInterval(interval);
-                        const winner = students[Math.floor(Math.random() * students.length)];
-                        setChosenOne(winner);
-                        setIsSpinning(false);
-                    }
-                }, 100);
+            const [chosen, setChosen] = React.useState(null);
+            const [spinning, setSpinning] = React.useState(false);
+            const [list, setList] = React.useState(students);
+            React.useEffect(() => { if(!spinning) setList(students) }, [students, spinning]);
+            const spin = () => {
+                if(!students.length) return; setSpinning(true); setChosen(null); let c=0;
+                const i = setInterval(() => { setList([...students].sort(()=>0.5-Math.random())); c++; if(c>20) { clearInterval(i); setChosen(students[Math.floor(Math.random()*students.length)]); setSpinning(false); } }, 100);
             };
-
-            const reset = () => { setChosenOne(null); setDisplayStudents(students); }
-
+            const reset = () => { setChosen(null); setDisplayStudents(students); }
             return (
-                <div className="relative flex flex-col items-center justify-center min-h-[60vh] md:min-h-[70vh] p-2 md:p-4">
-                    {chosenOne && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4" onClick={reset}>
-                            <div className="relative bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl flex flex-col items-center animate-zoom-in border-8 border-yellow-300 w-full max-w-sm text-center">
-                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-7xl animate-bounce">👑</div>
-                                <div className="w-48 h-48 rounded-full border-8 border-pink-500 shadow-2xl overflow-hidden mb-6 flex items-center justify-center text-8xl bg-pink-50">
-                                    {chosenOne.avatarUrl ? <img src={chosenOne.avatarUrl} className="w-full h-full object-cover"/> : (chosenOne.avatar || '🦁')}
-                                </div>
-                                <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 mb-2 break-words leading-tight">{chosenOne.name}</h2>
-                                <p className="text-xl text-gray-500 font-bold mb-8">Người Được Chọn!</p>
-                                <button onClick={reset} className="px-10 py-3 bg-gray-100 hover:bg-gray-200 rounded-full font-bold text-gray-600">Quay Lại</button>
+                <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
+                    {chosen && <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={()=>setChosen(null)}>
+                        <div className="bg-white p-8 rounded-[2rem] shadow-2xl flex flex-col items-center animate-zoom-in border-8 border-yellow-400 text-center max-w-md w-full">
+                            <div className="text-6xl mb-4">👑</div>
+                            <div className="w-40 h-40 rounded-full border-4 border-pink-500 overflow-hidden mb-4 flex items-center justify-center text-7xl bg-pink-50">
+                                {chosen.avatarUrl ? <img src={chosen.avatarUrl} className="w-full h-full object-cover"/> : (chosen.avatar||'🦁')}
                             </div>
+                            <h2 className="text-2xl font-black text-pink-600 mb-2">{chosen.name}</h2><p className="font-bold text-gray-500">Người Được Chọn!</p><button onClick={()=>setChosen(null)} className="px-10 py-3 bg-gray-100 hover:bg-gray-200 rounded-full font-bold text-gray-600 mt-4">Quay Lại</button>
                         </div>
-                    )}
-
-                    <div className="w-full max-w-5xl">
-                        <h2 className="text-2xl md:text-4xl font-black text-center text-gray-800 mb-8 flex items-center justify-center gap-3">
-                            <div className="bg-white p-2 rounded-2xl shadow-md border border-pink-100"><Icon name="mic" className="text-pink-600" size={28} /></div> 
-                            VÒNG QUAY NGẪU NHIÊN
-                        </h2>
-                        
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 mb-10">
-                            {displayStudents.map((s) => (
-                                <div key={s.id} className="flex flex-col items-center justify-center p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-pink-50 transform transition-all duration-300 hover:scale-105">
-                                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl overflow-hidden mb-2 shadow-sm border border-gray-100">
-                                        {s.avatarUrl ? <img src={s.avatarUrl} className="w-full h-full object-cover"/> : (s.avatar || '🦁')}
-                                    </div>
-                                    <span className="text-[9px] font-bold text-center text-gray-600 line-clamp-1 w-full uppercase">{s.name}</span>
+                    </div>}
+                    <h2 className="text-3xl font-black text-gray-800 mb-6 flex items-center gap-2"><Icon name="mic" className="text-pink-600"/> VÒNG QUAY NGẪU NHIÊN</h2>
+                    
+                    {/* UPDATED GRID AND CARD SIZE HERE */}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mb-8 w-full max-w-6xl">
+                        {list.map(s => (
+                            <div key={s.id} className="flex flex-col items-center p-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md border border-pink-50 hover:scale-105 transition-transform">
+                                <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center text-5xl overflow-hidden mb-2 shadow-inner border-2 border-white">
+                                    {s.avatarUrl ? <img src={s.avatarUrl} className="w-full h-full object-cover"/> : (s.avatar||'🦁')}
                                 </div>
-                            ))}
-                        </div>
-
-                        <div className="flex justify-center">
-                            <button 
-                                onClick={handleSpin} 
-                                disabled={isSpinning || !students.length} 
-                                className={`
-                                    relative px-12 py-5 rounded-full font-black text-xl text-white shadow-xl transition-all transform hover:shadow-2xl
-                                    ${isSpinning 
-                                        ? 'bg-gray-400 scale-95 cursor-not-allowed' 
-                                        : 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-[length:200%_auto] hover:bg-right hover:scale-105 active:scale-95 animate-gradient'}
-                                `}
-                                style={{backgroundSize:'200% auto'}}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Icon name={isSpinning ? "loader-2" : "sparkles"} className={isSpinning ? "animate-spin" : ""} size={24} />
-                                    {isSpinning ? "ĐANG QUAY..." : "QUAY NGAY"}
-                                </div>
-                            </button>
-                        </div>
+                                <span className="text-sm font-bold text-gray-700 text-center leading-tight">{s.name}</span>
+                            </div>
+                        ))}
                     </div>
+
+                    <button onClick={spin} disabled={spinning||!students.length} className="px-14 py-5 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black text-2xl rounded-full shadow-xl hover:scale-105 transition-transform flex items-center gap-3"><Icon name={spinning?"loader":"sparkles"} className={spinning?"animate-spin":""}/> {spinning?"ĐANG QUAY...":"QUAY NGAY"}</button>
                 </div>
             );
         };
 
-        // 5.3 Leaderboard
         const Leaderboard = ({ students, className }) => {
             const sorted = [...students].sort((a,b) => (b.hearts||0) - (a.hearts||0));
             return (
-                <div className="pb-24 md:pb-0 max-w-4xl mx-auto">
-                    <div className="text-center mb-8 md:mb-12">
-                        <h2 className="text-2xl md:text-4xl font-black text-gray-800 flex items-center justify-center gap-3">
-                            <Icon name="trophy" className="text-yellow-500 fill-yellow-500" size={32} /> BẢNG VÀNG {className}
-                        </h2>
-                    </div>
-                    <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white overflow-hidden">
+                <div className="pb-24 max-w-4xl mx-auto">
+                    <div className="text-center mb-8"><h2 className="text-3xl font-black text-gray-800 flex items-center justify-center gap-3"><Icon name="trophy" className="text-yellow-500"/> BẢNG VÀNG {className}</h2></div>
+                    <div className="bg-white/90 backdrop-blur rounded-[2rem] shadow-xl border border-white overflow-hidden">
                         {sorted.map((s, i) => (
-                            <div key={s.id} className={`flex items-center p-4 md:p-6 border-b border-gray-100/50 hover:bg-pink-50/50 transition-colors ${i < 3 ? 'bg-gradient-to-r from-yellow-50/50 to-transparent' : ''}`}>
-                                <div className={`w-8 md:w-12 text-center font-black text-lg md:text-2xl ${i<3 ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                    {i < 3 ? <Icon name="crown" size={24} className={i===0 ? "fill-yellow-500 text-yellow-600" : "text-yellow-400"} /> : `#${i+1}`}
-                                </div>
-                                <div className="w-12 h-12 md:w-16 md:h-16 bg-white border-2 border-white shadow-md rounded-full flex items-center justify-center mx-4 text-xl md:text-3xl overflow-hidden shrink-0">
-                                     {s.avatarUrl ? <img src={s.avatarUrl} className="w-full h-full object-cover"/> : (s.avatar || '🦁')}
-                                </div>
-                                <span className="flex-1 font-bold text-base md:text-xl text-slate-700 truncate mr-2">{s.name}</span>
-                                <div className="flex items-center gap-1 md:gap-2 px-4 py-1.5 md:px-5 md:py-2 bg-white rounded-full shadow-sm border border-pink-100">
-                                    <Icon name="heart" size={16} className="fill-pink-500 text-pink-500" />
-                                    <span className="font-black text-pink-600 text-base md:text-lg">{s.hearts||0}</span>
-                                </div>
+                            <div key={s.id} className={`flex items-center p-4 border-b border-gray-100 ${i<3?'bg-yellow-50/50':''}`}>
+                                <div className={`w-10 text-center font-black text-xl ${i<3?'text-yellow-500':'text-gray-400'}`}>{i<3?<Icon name="crown" size={24}/>:`#${i+1}`}</div>
+                                <div className="w-12 h-12 bg-white border border-gray-200 rounded-full flex items-center justify-center mx-4 text-2xl overflow-hidden shrink-0">{s.avatarUrl?<img src={s.avatarUrl} className="w-full h-full object-cover"/>:(s.avatar||'🦁')}</div>
+                                <span className="flex-1 font-bold text-base text-gray-700 truncate">{s.name}</span>
+                                <div className="flex items-center gap-1 px-3 py-1 bg-white rounded-full shadow-sm"><Icon name="heart" size={14} className="fill-pink-500 text-pink-500"/><span className="font-bold text-pink-600">{s.hearts||0}</span></div>
                             </div>
                         ))}
                     </div>
@@ -653,104 +449,26 @@
             );
         };
 
-        // 5.4 StoryWall
-        const StoryWall = ({ stories, students, onAddStory, onUpdateStory, onDeleteStory }) => {
-            const [txt, setTxt] = React.useState('');
-            const [selectedAuthor, setSelectedAuthor] = React.useState('anonymous');
-            const [editingId, setEditingId] = React.useState(null);
-            const [editTxt, setEditTxt] = React.useState('');
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                if(txt.trim()) {
-                    onAddStory(txt, selectedAuthor);
-                    setTxt('');
-                    setSelectedAuthor('anonymous');
-                }
-            };
-
-            const startEdit = (story) => {
-                setEditingId(story.id);
-                setEditTxt(story.content);
-            };
-
-            const saveEdit = (id) => {
-                if(editTxt.trim()) {
-                    onUpdateStory(id, editTxt);
-                    setEditingId(null);
-                }
-            };
+        const StoryWall = ({ stories, students, onAdd, onUpdate, onDelete }) => {
+            const [txt, setTxt] = React.useState(''); const [author, setAuthor] = React.useState('anonymous'); const [editId, setEditId] = React.useState(null); const [editTxt, setEditTxt] = React.useState('');
+            const submit = (e) => { e.preventDefault(); if(txt.trim()){ onAdd(txt, author); setTxt(''); setAuthor('anonymous'); }};
+            const save = (id) => { if(editTxt.trim()){ onUpdate(id, editTxt); setEditId(null); }};
 
             return (
-                <div className="h-full flex flex-col pb-24 md:pb-0 max-w-4xl mx-auto">
-                    <h2 className="text-2xl md:text-4xl font-black text-gray-800 mb-6 md:mb-8 flex items-center justify-center gap-3"><Icon name="book-open" className="text-blue-500" size={32}/> NHẬT KÝ ĐỒNG CẢM</h2>
-                    
-                    <form onSubmit={handleSubmit} className="mb-6 md:mb-8 relative group bg-white/90 p-4 rounded-[2rem] shadow-lg">
-                        <div className="mb-3 flex gap-2">
-                            <select 
-                                value={selectedAuthor} 
-                                onChange={(e) => setSelectedAuthor(e.target.value)}
-                                className="p-2 rounded-xl border border-gray-300 text-sm font-bold focus:outline-none focus:border-pink-400"
-                            >
-                                <option value="anonymous">🕵️ Ẩn danh</option>
-                                {students.map(s => <option key={s.id} value={s.id}>👤 {s.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="relative">
-                            <textarea 
-                                value={txt} 
-                                onChange={e=>setTxt(e.target.value)} 
-                                className="w-full p-4 pr-16 rounded-xl border-2 border-transparent bg-gray-50 focus:bg-white focus:border-pink-300 focus:outline-none h-32 transition-all resize-none text-base text-gray-700 placeholder-gray-400" 
-                                placeholder="Chia sẻ câu chuyện hôm nay..." 
-                            />
-                            <button className="absolute bottom-3 right-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3 rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95">
-                                <Icon name="send" size={20}/>
-                            </button>
-                        </div>
+                <div className="h-full pb-24 max-w-4xl mx-auto">
+                    <h2 className="text-3xl font-black text-gray-800 mb-6 flex items-center justify-center gap-3"><Icon name="book-open" className="text-blue-500"/> NHẬT KÝ ĐỒNG CẢM</h2>
+                    <form onSubmit={submit} className="mb-8 bg-white/90 p-5 rounded-[2rem] shadow-lg">
+                        <div className="mb-3"><select value={author} onChange={e=>setAuthor(e.target.value)} className="p-2 rounded-xl border text-sm font-bold"><option value="anonymous">🕵️ Ẩn danh</option>{students.map(s=><option key={s.id} value={s.id}>👤 {s.name}</option>)}</select></div>
+                        <div className="relative"><textarea value={txt} onChange={e=>setTxt(e.target.value)} className="w-full p-4 pr-16 rounded-xl border-2 border-transparent bg-gray-50 focus:bg-white focus:border-pink-300 focus:outline-none h-32 resize-none text-base placeholder-gray-400" placeholder="Chia sẻ câu chuyện..." /><button className="absolute bottom-3 right-3 bg-blue-500 text-white p-3 rounded-full shadow hover:scale-110 transition-transform"><Icon name="send" size={20}/></button></div>
                     </form>
-
-                    <div className="flex-1 overflow-y-auto space-y-4 md:space-y-6 pr-1">
+                    <div className="flex-1 space-y-4">
                         {stories.map(s => (
-                            <div key={s.id} className="bg-white/90 p-6 md:p-8 rounded-[2rem] shadow-lg border border-white hover:shadow-xl transition-shadow relative overflow-hidden group">
-                                <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-blue-400 to-purple-400"></div>
-                                
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-blue-50 border border-blue-100">
-                                            {s.authorAvatar ? <img src={s.authorAvatar} className="w-full h-full object-cover" /> : <span className="text-xl">{s.authorId === 'anonymous' ? '🕵️' : '👤'}</span>}
-                                        </div>
-                                        <div>
-                                            <span className="text-sm font-bold text-gray-700 block">{s.authorName || 'Ẩn danh'}</span>
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Thành viên lớp</span>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Edit/Delete Actions */}
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => startEdit(s)} className="text-gray-400 hover:text-blue-500"><Icon name="edit-2" size={14}/></button>
-                                        <button onClick={() => onDeleteStory(s.id)} className="text-gray-400 hover:text-red-500"><Icon name="trash-2" size={14}/></button>
-                                    </div>
+                            <div key={s.id} className="bg-white/90 p-6 rounded-[2rem] shadow border border-white group relative">
+                                <div className="flex justify-between mb-2">
+                                    <div className="flex items-center gap-2"><span className="text-2xl">{s.authorAvatar ? <img src={s.authorAvatar} className="w-8 h-8 rounded-full object-cover"/> : (s.authorId==='anonymous'?'🕵️':'👤')}</span><span className="font-bold text-sm text-gray-700">{s.authorName||'Ẩn danh'}</span></div>
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={()=>{setEditId(s.id);setEditTxt(s.content)}} className="text-blue-400"><Icon name="edit-2" size={14}/></button><button onClick={()=>onDelete(s.id)} className="text-red-400"><Icon name="trash-2" size={14}/></button></div>
                                 </div>
-
-                                {editingId === s.id ? (
-                                    <div className="mt-2">
-                                        <textarea 
-                                            value={editTxt} 
-                                            onChange={(e) => setEditTxt(e.target.value)}
-                                            className="w-full p-2 border rounded-lg text-gray-700 focus:outline-none focus:border-pink-300"
-                                            rows="3"
-                                        />
-                                        <div className="flex gap-2 mt-2 justify-end">
-                                            <button onClick={() => setEditingId(null)} className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1">Hủy</button>
-                                            <button onClick={() => saveEdit(s.id)} className="text-xs bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600">Lưu</button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-700 text-base md:text-xl leading-relaxed italic">"{s.content}"</p>
-                                )}
-                                
-                                {/* UPDATED: Hidden date */}
-                                {/* <span className="text-[10px] md:text-xs text-gray-300 mt-4 block text-right font-bold">{s.createdAt}</span> */}
+                                {editId===s.id ? (<div className="mt-2"><textarea value={editTxt} onChange={e=>setEditTxt(e.target.value)} className="w-full p-2 border rounded" rows="3"/><div className="flex justify-end gap-2 mt-2"><button onClick={()=>setEditId(null)} className="text-xs text-gray-500">Hủy</button><button onClick={()=>save(s.id)} className="text-xs bg-blue-500 text-white px-3 py-1 rounded">Lưu</button></div></div>) : (<p className="text-gray-700 text-lg italic">"{s.content}"</p>)}
                             </div>
                         ))}
                     </div>
@@ -758,7 +476,7 @@
             );
         };
 
-        // --- 6. APP ROOT ---
+        // --- ROOT APP ---
         const App = () => {
             const [activeTab, setActiveTab] = React.useState('tracker');
             const [className, setClassName] = React.useState('Lớp 10H');
@@ -778,119 +496,75 @@
             React.useEffect(() => { localStorage.setItem('class10h_students', JSON.stringify(students)); }, [students]);
             React.useEffect(() => { localStorage.setItem('class10h_stories', JSON.stringify(stories)); }, [stories]);
 
-            const changeClassName = () => { const newName = prompt("Nhập tên lớp mới:", className); if (newName && newName.trim()) setClassName(newName); };
+            const changeClassName = () => { const n = prompt("Tên lớp:", className); if(n) setClassName(n); };
             const addHeart = (id) => setStudents(prev => prev.map(s => s.id === id ? { ...s, hearts: (s.hearts || 0) + 1 } : s));
-            const updateStudent = (id, newData) => setStudents(prev => prev.map(s => s.id === id ? { ...s, ...newData } : s));
-            const addStudent = (name) => { if (!name) return; setStudents(prev => [...prev, { id: Date.now().toString(), name, hearts: 0, avatar: ANIMAL_AVATARS[Math.floor(Math.random()*ANIMAL_AVATARS.length)], createdAt: new Date().toISOString() }]); };
-            const importClass = () => { if (students.length > 0 && !confirm("Ghi đè danh sách hiện tại bằng danh sách mẫu?")) return; setStudents(prev => [...prev, ...CLASS_10H_STUDENTS.map(name => ({ id: Date.now()+Math.random(), name, hearts: 0, avatar: ANIMAL_AVATARS[Math.floor(Math.random()*ANIMAL_AVATARS.length)], createdAt: new Date().toISOString() }))]); };
-            const resetAllHearts = () => { if(confirm("Reset toàn bộ tim về 0?")) setStudents(prev => prev.map(s => ({ ...s, hearts: 0 }))); };
+            const updateStudent = (id, d) => setStudents(prev => prev.map(s => s.id === id ? { ...s, ...d } : s));
+            const deleteStudent = (id) => { if(confirm("Xóa học sinh này?")) setStudents(prev => prev.filter(s => s.id !== id)); };
+            const addStudent = (name) => { if(!name) return; setStudents(prev=>[...prev, {id:Date.now().toString(), name, hearts:0, avatar: ANIMAL_AVATARS[Math.floor(Math.random()*ANIMAL_AVATARS.length)], createdAt: new Date().toISOString()}]); };
+            const importClass = () => { if(students.length>0 && !confirm("Ghi đè danh sách?")) return; setStudents(prev=>[...prev, ...CLASS_10H_STUDENTS.map(n=>({id:Date.now()+Math.random(), name:n, hearts:0, avatar: ANIMAL_AVATARS[Math.floor(Math.random()*ANIMAL_AVATARS.length)], createdAt: new Date().toISOString()}))]); };
+            const resetAllHearts = () => { if(confirm("Reset điểm về 0?")) setStudents(prev=>prev.map(s=>({...s, hearts:0}))); };
             
-            const deleteStudent = (id) => {
-                if (confirm("Bạn có chắc chắn muốn xóa học sinh này khỏi lớp?")) {
-                    setStudents(prev => prev.filter(s => s.id !== id));
-                }
+            const addStory = (c, aid) => {
+                let aname = "Ẩn danh", aavt = null;
+                if(aid !== 'anonymous') { const s = students.find(i=>i.id===aid); if(s) { aname=s.name; aavt=s.avatarUrl||s.avatar; } }
+                setStories(prev=>[{id:Date.now().toString(), content:c, authorId:aid, authorName:aname, authorAvatar:aavt, createdAt: new Date().toLocaleString('vi-VN')}, ...prev]);
             };
-
-            // Story Logic Updated
-            const addStory = (content, authorId) => {
-                let authorName = "Ẩn danh";
-                let authorAvatar = null;
-                if (authorId !== 'anonymous') {
-                    const student = students.find(s => s.id === authorId);
-                    if (student) {
-                        authorName = student.name;
-                        authorAvatar = student.avatarUrl || student.avatar;
-                    }
-                }
-                const newStory = {
-                    id: Date.now().toString(),
-                    content,
-                    authorId,
-                    authorName,
-                    authorAvatar,
-                    createdAt: new Date().toLocaleString('vi-VN')
-                };
-                setStories(prev => [newStory, ...prev]);
-            };
-
-            const updateStory = (id, newContent) => {
-                setStories(prev => prev.map(s => s.id === id ? { ...s, content: newContent } : s));
-            };
-
-            const deleteStory = (id) => {
-                if(confirm("Bạn có chắc muốn xóa tâm sự này?")) {
-                    setStories(prev => prev.filter(s => s.id !== id));
-                }
-            };
+            const updateStory = (id, c) => setStories(prev=>prev.map(s=>s.id===id?{...s, content:c}:s));
+            const deleteStory = (id) => { if(confirm("Xóa nhật ký?")) setStories(prev=>prev.filter(s=>s.id!==id)); };
 
             return (
-                <div className="min-h-screen relative flex flex-col md:flex-row p-2 md:p-6 gap-4 max-w-[1600px] mx-auto">
+                <div className="min-h-screen flex flex-col md:flex-row p-2 md:p-6 gap-4 max-w-[1600px] mx-auto relative">
                     <div className="aurora-bg"></div>
                     <BokehBackground />
 
-                    {/* MOBILE HEADER FOR LOGOS */}
-                    <div className="md:hidden w-full flex flex-col items-center justify-center gap-1 pt-4 pb-2 z-50">
-                        <img src="logo.png" alt="Trường" className="h-20 w-auto object-contain drop-shadow-md animate-logo-breathe" />
-                        <img src="lim.png" alt="LIM" className="h-5 w-auto object-contain drop-shadow-md animate-logo-breathe" />
+                    {/* Mobile Header */}
+                    <div className="md:hidden w-full flex flex-col items-center justify-center gap-2 pt-4 pb-2 z-50">
+                        <img src="logo.png" alt="Trường" className="h-28 w-auto object-contain drop-shadow-md animate-logo" />
+                        <img src="lim.png" alt="LIM" className="h-4 w-auto object-contain drop-shadow-md animate-logo mt-1" />
                     </div>
 
-                    {/* SIDEBAR (Desktop Only) */}
+                    {/* Sidebar Desktop */}
                     <div className="hidden md:flex flex-col w-72 bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-6 shadow-2xl h-[88vh] sticky top-6 border border-white/50">
-                        {/* LOGOS CONTAINER */}
-                        <div className="mb-8 flex flex-col items-center justify-center gap-2">
-                             <img src="logo.png" alt="Logo Trường" className="h-24 w-auto object-contain drop-shadow-lg animate-logo-breathe"/>
-                             <img src="lim.png" alt="Logo LIM" className="h-6 w-auto object-contain drop-shadow-lg animate-logo-breathe"/>
+                        <div className="mb-4 flex flex-col items-center justify-center gap-2">
+                             <img src="logo.png" alt="Trường" className="h-24 w-auto object-contain drop-shadow-lg animate-logo"/>
+                             <img src="lim.png" alt="LIM" className="h-4 w-auto object-contain drop-shadow-lg animate-logo"/>
                         </div>
-
-                        <div className="flex items-center gap-3 mb-6 px-2">
-                             <div className="bg-gradient-to-br from-pink-500 to-purple-600 p-3 rounded-2xl text-white shadow-xl shadow-pink-500/20"><Icon name="heart" className="fill-white" size={24} /></div>
-                             <div><h1 className="font-black text-gray-800 text-lg leading-tight tracking-tight">CHIẾN DỊCH<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">ĐỒNG CẢM</span></h1></div>
+                        <div className="flex flex-col items-center gap-2 mb-4 px-2 text-center">
+                             <h1 className="font-black text-lg leading-tight tracking-tight animate-logo rainbow-title flex flex-col gap-1">
+                                <span>CHIẾN DỊCH</span>
+                                <span>LẮNG NGHE ĐỒNG CẢM</span>
+                             </h1>
+                             <div onClick={changeClassName} className="mt-2 bg-white/80 px-3 py-1 rounded-full border border-pink-200 shadow-sm cursor-pointer hover:scale-105 transition-transform">
+                                <span className="text-xs font-bold text-pink-600 uppercase tracking-wider">{className} <Icon name="edit-3" size={10} className="inline"/></span>
+                             </div>
                         </div>
-                        <div className="flex flex-col gap-3 flex-1">
-                            {[
-                                {id:'tracker', l:'Đấu Trường Tim', i:'heart'}, 
-                                {id:'stick', l:'Cây Gậy Nói', i:'mic'},
-                                {id:'stories', l:'Nhật Ký Lớp', i:'book-open'}, 
-                                {id:'ranking', l:'Bảng Vàng', i:'trophy'}
-                            ].map(t => (
-                                <button key={t.id} onClick={()=>setActiveTab(t.id)} className={`flex items-center gap-4 px-5 py-4 rounded-[1.2rem] font-bold text-base transition-all duration-300 group ${activeTab===t.id ? 'bg-white text-pink-600 shadow-xl scale-105' : 'text-gray-500 hover:bg-white/50 hover:text-pink-500'}`}>
+                        <div className="flex flex-col gap-2 flex-1">
+                            {[{id:'tracker',l:'Đấu Trường Tim',i:'heart'},{id:'stick',l:'Cây Gậy Nói',i:'mic'},{id:'stories',l:'Nhật Ký Lớp',i:'book-open'},{id:'ranking',l:'Bảng Vàng',i:'trophy'}].map(t => (
+                                <button key={t.id} onClick={()=>setActiveTab(t.id)} className={`flex items-center gap-4 px-5 py-3 rounded-[1.2rem] font-bold text-base transition-all duration-300 group ${activeTab===t.id ? 'bg-white text-pink-600 shadow-xl scale-105' : 'text-gray-500 hover:bg-white/50 hover:text-pink-500'}`}>
                                     <Icon name={t.i} size={20} className={`transition-colors ${activeTab===t.id ? 'fill-pink-200' : 'group-hover:text-pink-400'}`}/> {t.l}
                                 </button>
                             ))}
                         </div>
                         <div className="mt-auto pt-4 border-t border-gray-200/50 text-center">
-                            <p className="text-sm font-black text-gray-600 uppercase tracking-widest cursor-pointer hover:text-pink-600 transition-colors mb-1" onClick={changeClassName} title="Nhấn để đổi tên lớp">
-                                {className} <Icon name="edit-3" size={12} className="inline ml-1 mb-1"/>
-                            </p>
-                            <p className="text-[10px] text-gray-400 font-handwriting mt-1">Developed by Thầy Thái Minh Nguyên</p>
+                            <p className="text-[10px] text-gray-400 font-handwriting mt-1">Designed by Thầy Thái Minh Nguyên</p>
                         </div>
                     </div>
 
-                    {/* CONTENT AREA */}
-                    <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[1.5rem] md:rounded-[3rem] p-3 md:p-8 shadow-sm border border-white/40 min-h-[85vh] relative overflow-hidden mt-1 md:mt-0 mb-16 md:mb-0">
-                        {/* Desktop Right Logo Removed to clean up, now in sidebar */}
-                        {/* <img src="lim.png" alt="Logo LIM" className="hidden md:block absolute top-6 right-6 w-36 object-contain drop-shadow-lg z-20 hover:scale-110 transition-transform duration-300"/> */}
+                    {/* Content */}
+                    <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[1.5rem] md:rounded-[3rem] p-3 md:p-8 shadow-sm border border-white/40 min-h-[85vh] relative overflow-hidden mb-20 md:mb-0">
+                        <img src="lim.png" alt="Logo LIM" className="hidden md:block absolute top-6 right-6 w-24 object-contain drop-shadow-lg z-20 hover:scale-110 transition-transform duration-300 opacity-80"/>
 
                         {activeTab === 'tracker' && (
                             <div className="space-y-4 md:space-y-6">
-                                <div className="flex flex-col md:flex-row justify-between items-center bg-white/60 p-4 rounded-[1.2rem] md:rounded-[2rem] border border-white shadow-sm gap-3">
-                                    <h2 
-                                        className="text-lg md:text-2xl font-black flex items-center gap-2 cursor-pointer transition-all hover:scale-105
-                                        text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" 
-                                        onClick={changeClassName}
-                                    >
-                                        <div className="p-1.5 bg-yellow-100 rounded-full"><Icon name="sparkles" className="text-yellow-600 fill-yellow-600" size={18} /></div> 
-                                        DANH SÁCH {className.toUpperCase()}
+                                <div className="flex flex-col md:flex-row justify-between items-center bg-white/60 p-4 rounded-[1.5rem] border border-white shadow-sm gap-3">
+                                    <h2 className="text-lg md:text-2xl font-black flex items-center gap-2 cursor-pointer transition-all hover:scale-105 text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 uppercase text-center md:text-left" onClick={changeClassName}>
+                                        <div className="p-1.5 bg-yellow-100 rounded-full hidden md:block"><Icon name="sparkles" className="text-yellow-600 fill-yellow-600" size={18} /></div> 
+                                        DANH SÁCH HỌC SINH {className.toUpperCase()}
                                     </h2>
                                     <div className="flex gap-2 w-full md:w-auto">
-                                        {students.length === 0 ? (
-                                            <button onClick={importClass} className="flex-1 md:flex-none bg-green-500 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 text-xs md:text-sm"><Icon name="download" size={16}/> Nhập Lớp Mẫu</button>
-                                        ) : (
-                                            <>
-                                                <button onClick={resetAllHearts} className="flex-1 md:flex-none bg-red-50 text-red-500 border border-red-100 px-3 py-2 rounded-xl font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-xs"><Icon name="rotate-ccw" size={14} /> Reset</button>
-                                                <button onClick={()=>addStudent(prompt("Tên học sinh:"))} className="flex-1 md:flex-none bg-white border-2 border-pink-100 text-pink-500 px-4 py-2 rounded-xl font-bold hover:bg-pink-50 transition-colors flex items-center justify-center gap-2 text-xs"><Icon name="plus" size={14} /> Thêm</button>
-                                            </>
-                                        )}
+                                        {students.length===0 ? <button onClick={importClass} className="flex-1 md:flex-none bg-green-500 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:scale-105 flex items-center justify-center gap-2 text-xs"><Icon name="download" size={16}/> Nhập Lớp Mẫu</button> : 
+                                        <><button onClick={resetAllHearts} className="flex-1 md:flex-none bg-red-50 text-red-500 border border-red-100 px-3 py-2 rounded-xl font-bold hover:bg-red-100 flex items-center justify-center gap-2 text-xs"><Icon name="rotate-ccw" size={14}/> Reset</button>
+                                        <button onClick={()=>addStudent(prompt("Tên:"))} className="flex-1 md:flex-none bg-white border-2 border-pink-100 text-pink-500 px-4 py-2 rounded-xl font-bold hover:bg-pink-50 flex items-center justify-center gap-2 text-xs"><Icon name="plus" size={14}/> Thêm</button></>}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
@@ -900,16 +574,12 @@
                         )}
                         {activeTab === 'stick' && <SpeakerStick students={students} />}
                         {activeTab === 'ranking' && <Leaderboard students={students} className={className} />}
-                        {activeTab === 'stories' && <StoryWall stories={stories} students={students} onAddStory={addStory} onUpdateStory={updateStory} onDeleteStory={deleteStory} />}
-                        
-                        <div className="md:hidden text-center mt-6 pb-2 opacity-50">
-                            <p className="text-[10px] font-handwriting text-gray-500">Designed by Thầy Thái Minh Nguyên</p>
-                        </div>
+                        {activeTab === 'stories' && <StoryWall stories={stories} students={students} onAdd={addStory} onUpdate={updateStory} onDelete={deleteStory} />}
                     </div>
 
-                    {/* MOBILE NAV (Bottom Bar) */}
+                    {/* Mobile Nav */}
                     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-pink-100 p-2 pb-4 flex justify-around z-50 rounded-t-[1.2rem] shadow-[0_-5px_30px_rgba(0,0,0,0.1)]">
-                        {[{id:'tracker', i:'heart', l:'Tim'}, {id:'stick', i:'mic', l:'Gậy'}, {id:'stories', i:'book-open', l:'Nhật Ký'}, {id:'ranking', i:'trophy', l:'BXH'}].map(t => (
+                        {[{id:'tracker',i:'heart',l:'Tim'},{id:'stick',i:'mic',l:'Gậy'},{id:'stories',i:'book-open',l:'Nhật Ký'},{id:'ranking',i:'trophy',l:'BXH'}].map(t => (
                             <button key={t.id} onClick={()=>setActiveTab(t.id)} className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all w-16 ${activeTab===t.id ? 'text-pink-600 bg-pink-50' : 'text-gray-400'}`}>
                                 <Icon name={t.i} size={20} className={activeTab===t.id?'fill-pink-200':''} /> <span className="text-[9px] font-bold">{t.l}</span>
                             </button>
