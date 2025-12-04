@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hạnh Kiểm Yersin - V31 Mobile Revolution</title>
+    <title>Hạnh Kiểm Yersin - V31.4 Mobile Accordion</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,43 +47,31 @@
     <style>
         /* Base styles */
         body { background-color: #f8fafc; overflow: hidden; height: 100vh; width: 100vw; }
-        
-        /* Custom Scrollbar */
-        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #f97316; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f97316; }
         
         /* Transitions */
         .trans-fast { transition: all 0.2s ease; }
-        
-        /* Sidebar Animation - Mobile Optimized */
-        .sidebar-base { 
-            position: fixed; top: 0; bottom: 0; left: 0; z-index: 50;
-            width: 280px; background-color: white;
-            transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 5px 0 25px rgba(0,0,0,0.15);
-        }
-        /* On Desktop: Static and Visible */
-        @media (min-width: 1024px) {
-            .sidebar-base { position: relative; transform: none; box-shadow: none; z-index: 1; height: 100%; }
-        }
-        /* Mobile Open State */
-        .sidebar-open { transform: translateX(0) !important; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Mobile Sidebar Backdrop */
-        .sidebar-backdrop {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); 
-            z-index: 40; backdrop-filter: blur(2px);
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
+        /* Sidebar State */
+        .sidebar-expanded { width: 280px; }
+        .sidebar-collapsed { width: 0; overflow: hidden; }
+        @media (max-width: 1024px) { .sidebar-expanded { position: absolute; z-index: 40; height: 100%; box-shadow: 5px 0 15px rgba(0,0,0,0.1); } }
 
-        /* Tutorial System */
+        /* Tutorial System Optimized */
         .tutorial-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99990; transition: opacity 0.3s; backdrop-filter: blur(3px); }
         .tutorial-highlight { position: relative; z-index: 99991 !important; background-color: white; border-radius: 12px; box-shadow: 0 0 0 4px #f97316, 0 0 50px rgba(255, 255, 255, 0.2) !important; transition: none !important; transform: none !important; }
         .tutorial-card { position: fixed; z-index: 99999; width: 320px; left: 50%; bottom: 40px; transform: translateX(-50%); transition: all 0.3s ease; }
         
+        /* Layout Frames */
+        .frame-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .frame-header { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; flex-shrink: 0; }
+        .frame-body { flex: 1; overflow-y: auto; padding: 12px; }
+
         /* Mobile Tabs */
         .mobile-tab-active { color: #f97316; border-bottom: 2px solid #f97316; background-color: #fff7ed; }
         .mobile-tab-inactive { color: #64748b; border-bottom: 2px solid transparent; }
@@ -92,8 +80,15 @@
         .glass-input { background: rgba(255,255,255,0.8); border: 1px solid #e2e8f0; backdrop-filter: blur(4px); }
         .glass-input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); outline: none; }
 
-        /* Sticky Headers */
-        .rule-group-title { position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 10px 0 6px 0; border-bottom: 2px solid #f1f5f9; margin-bottom: 8px; }
+        /* Sticky Headers (Desktop) - Removed for Accordion Style or kept for desktop only */
+        @media (min-width: 1024px) {
+            .rule-group-title { position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 8px 0; border-bottom: 2px solid #f1f5f9; margin-bottom: 8px; }
+        }
+        
+        /* Accordion Styles */
+        .accordion-content { transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden; }
+        .accordion-arrow { transition: transform 0.3s ease; }
+        .accordion-open .accordion-arrow { transform: rotate(180deg); }
         
         /* Rule Card Fixes */
         .rule-card { cursor: pointer; user-select: none; }
@@ -105,14 +100,18 @@
         .student-delete-btn { opacity: 0; transition: opacity 0.2s; }
         .student-item:hover .student-delete-btn { opacity: 1; }
         @media (max-width: 1024px) { .student-delete-btn { opacity: 1; } }
+        
+        /* Category Tabs Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="text-slate-800 h-screen w-screen flex flex-col bg-[#f8fafc]">
+<body class="text-slate-800 h-screen w-screen flex flex-col">
 
     <!-- START SCREEN -->
-    <div id="startScreen" class="fixed inset-0 z-[100] bg-gradient-to-br from-slate-900 via-dark-800 to-primary-600 flex flex-col items-center justify-center text-white p-6 transition-transform duration-500 ease-in-out">
+    <div id="startScreen" class="fixed inset-0 z-[50] bg-gradient-to-br from-slate-900 via-gray-800 to-primary-700 flex flex-col items-center justify-center text-white p-6 transition-transform duration-500 ease-in-out">
         <div class="mb-8 relative slide-up" style="animation-delay: 0.1s;">
-            <div class="w-24 h-24 bg-white rounded-3xl p-4 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 cursor-pointer" onclick="if(confirm('Reset toàn bộ dữ liệu?')) { localStorage.clear(); location.reload(); }">
+            <div class="w-24 h-24 bg-white rounded-3xl p-4 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 cursor-pointer">
                 <img src="logo.png" alt="YERSIN" class="w-full h-full object-contain" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjY4YjFmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNX0yIDEybDEwIDUgMTAtNXoiLz48L3N2Zz4='">
             </div>
         </div>
@@ -122,7 +121,7 @@
                 <span>Thầy Thái Minh Nguyên</span><span class="w-1 h-1 bg-white rounded-full"></span><span>Yersin Đà Lạt</span>
             </div>
         </div>
-        <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md slide-up relative z-10" style="animation-delay: 0.3s;" id="startActions">
+        <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md slide-up relative z-10" id="startActions">
             <button onclick="app.startApp()" class="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> BẮT ĐẦU
             </button>
@@ -137,175 +136,161 @@
     </div>
 
     <!-- MAIN APP -->
-    <div id="appContainer" class="flex-1 flex overflow-hidden opacity-0 transition-opacity duration-500 h-full">
+    <div id="appContainer" class="flex-1 flex flex-col h-full w-full overflow-hidden opacity-0 transition-opacity duration-500">
         
-        <!-- MOBILE SIDEBAR BACKDROP -->
-        <div id="sidebarBackdrop" onclick="app.toggleSidebar()" class="sidebar-backdrop lg:hidden"></div>
-
-        <!-- LEFT SIDEBAR -->
-        <aside id="sidebar" class="sidebar-base flex flex-col border-r border-slate-200">
-            <div class="h-16 flex items-center px-5 border-b border-slate-100 shrink-0 gap-3">
-                <div class="w-8 h-8 rounded-lg bg-slate-100 p-1 flex items-center justify-center"><img src="logo.png" class="w-full h-full object-contain" onerror="this.style.display='none'"></div>
-                <div><h2 class="font-bold text-sm text-slate-800">DANH SÁCH LỚP</h2><p class="text-[10px] text-slate-400 font-semibold" id="studentCount">0 Học sinh</p></div>
-                <button onclick="app.toggleSidebar()" class="lg:hidden ml-auto text-slate-400 p-2 rounded-lg hover:bg-slate-100"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            </div>
-            
-            <!-- SIDEBAR TOOLS -->
-            <div class="p-4 space-y-3 shrink-0 bg-slate-50/50">
-                <button onclick="app.openModal('modalBulk')" class="w-full bg-white border border-slate-200 hover:border-emerald-400 hover:text-emerald-600 text-slate-500 text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm group">
-                    <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Nhập Danh Sách (Excel)
-                </button>
-                <div class="relative"><input type="text" id="searchInput" onkeyup="app.renderStudentList()" placeholder="Tìm tên..." class="w-full glass-input rounded-xl py-2.5 pl-9 pr-4 text-sm font-medium"><svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
-                <div class="flex gap-2">
-                    <button onclick="app.toggleSelectAll()" id="btnSelectAll" class="w-full bg-white border border-slate-200 text-slate-600 hover:border-primary-400 hover:text-primary-600 text-xs font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"><div class="w-3 h-3 border-2 border-current rounded-sm"></div> Tất cả</button>
-                    <button onclick="app.sortStudents()" class="bg-white border border-slate-200 hover:border-primary-500 hover:text-primary-600 text-slate-500 px-2.5 rounded-lg transition-all" title="Sắp xếp A-Z"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg></button>
-                    <button onclick="app.openModal('modalStudent')" class="px-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 shadow-md transition-transform active:scale-95 font-bold" title="Thêm 1 học sinh">+</button>
-                </div>
-            </div>
-            
-            <div id="studentList" class="flex-1 overflow-y-auto p-2 space-y-1 custom-scroll"></div>
-            <div class="p-3 border-t border-slate-100 bg-slate-50 shrink-0">
-                <button onclick="app.resetData()" class="w-full py-2 text-[10px] font-bold text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Reset Dữ Liệu
-                </button>
-            </div>
-        </aside>
-
-        <!-- RIGHT CONTENT -->
-        <main class="flex-1 flex flex-col h-full bg-slate-50 relative overflow-hidden w-full">
-            <!-- HEADER -->
-            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20 shadow-sm">
-                <div class="flex items-center gap-3 lg:gap-4">
-                    <button onclick="app.toggleSidebar()" class="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-                    
-                    <div class="flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
-                        <div class="w-9 h-9 bg-gradient-to-tr from-primary-600 to-orange-400 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-md">Y</div>
-                        <div class="flex flex-col justify-center">
-                            <h1 class="font-extrabold text-xs lg:text-sm text-slate-800 uppercase tracking-tight leading-tight hidden sm:block">HẠNH KIỂM</h1>
-                            <p class="text-[10px] font-semibold text-slate-500 hidden sm:block">Yersin Đà Lạt</p>
-                        </div>
-                    </div>
-
-                    <div class="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
-
-                    <!-- Date Picker -->
-                    <div class="flex items-center gap-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-primary-200 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                        <span class="text-lg hidden sm:inline">📅</span>
-                        <input type="date" id="datePicker" class="bg-transparent border-none p-0 text-xs lg:text-sm font-bold text-slate-700 cursor-pointer focus:ring-0 w-24 lg:w-28">
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        <span class="hidden sm:inline">Xuất Excel</span>
-                    </button>
-                    <select id="monthSelect" class="w-0 h-0 opacity-0 absolute"><option value="9">9</option><option value="5">5</option></select>
-                </div>
-            </header>
-
-            <!-- WORKSPACE -->
-            <div class="flex-1 overflow-y-auto p-3 lg:p-6 scroll-smooth pb-20 lg:pb-6" id="workspace">
+        <!-- HEADER -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button onclick="app.toggleSidebar()" class="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
                 
-                <!-- HERO BAR -->
-                <div class="bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 flex flex-wrap items-center justify-between gap-4 mb-4 relative overflow-hidden group" id="heroCard">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/40 via-orange-50/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+                <div class="flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 p-1 flex items-center justify-center overflow-hidden border border-slate-200">
+                        <img src="logo.png" class="w-full h-full object-contain" onerror="this.style.display='none'">
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight">ỨNG DỤNG THEO DÕI HÀNH VI HỌC SINH</h1>
+                        <p class="text-[10px] font-semibold text-slate-500">Thầy Thái Minh Nguyên • Yersin Đà Lạt</p>
+                    </div>
+                </div>
+
+                <div class="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+
+                <div class="flex items-center gap-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-primary-200 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                    <span class="text-lg">📅</span>
+                    <input type="date" id="datePicker" class="bg-transparent border-none p-0 text-sm font-bold text-slate-700 cursor-pointer focus:ring-0 w-28">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span class="hidden sm:inline">Xuất Excel</span>
+                </button>
+                <select id="monthSelect" class="w-0 h-0 opacity-0 absolute"><option value="9">9</option><option value="5">5</option></select>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 flex overflow-hidden p-3 gap-3 bg-slate-100" id="workspace">
+            
+            <!-- LEFT: STUDENT LIST -->
+            <aside class="w-[280px] frame-container hidden lg:flex flex-col shrink-0" id="sidebar">
+                <div class="frame-header flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-bold text-xs text-slate-500 uppercase tracking-wider">Danh sách lớp</h2>
+                        <span class="text-[10px] font-bold bg-slate-200 px-2 py-0.5 rounded text-slate-600" id="studentCount">0</span>
+                    </div>
                     
-                    <div class="flex items-center gap-4 relative z-10">
+                    <div class="flex gap-2">
+                        <button onclick="app.openModal('modalBulk')" class="flex-1 bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 text-slate-500 text-[10px] font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-1" title="Nhập danh sách từ Excel">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Nhập Excel
+                        </button>
+                        <button onclick="app.sortStudents()" class="bg-white border border-slate-200 hover:border-primary-500 hover:text-primary-600 text-slate-500 px-2.5 rounded-lg transition-all" title="Sắp xếp A-Z"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg></button>
+                        <button onclick="app.openModal('modalStudent')" class="bg-slate-800 text-white px-3 rounded-lg hover:bg-slate-700 shadow-sm transition-transform active:scale-95 font-bold text-sm" title="Thêm học sinh lẻ">+</button>
+                    </div>
+
+                    <div class="relative">
+                        <input type="text" id="searchInput" onkeyup="app.renderStudentList()" placeholder="Tìm kiếm..." class="w-full bg-white border border-slate-200 rounded-lg py-2 pl-8 pr-3 text-xs font-medium focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                        <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <button onclick="app.toggleSelectAll()" id="btnSelectAll" class="w-full bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-700 text-[10px] font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"><div class="w-2.5 h-2.5 border-2 border-current rounded-sm"></div> Chọn tất cả</button>
+                </div>
+                <div id="studentList" class="frame-body custom-scroll space-y-1"></div>
+                <div class="p-2 border-t border-slate-100 bg-slate-50 shrink-0">
+                    <button onclick="app.resetData()" class="w-full py-1.5 text-[10px] font-bold text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">Reset Dữ Liệu</button>
+                </div>
+            </aside>
+
+            <!-- RIGHT: WORKSPACE -->
+            <main class="flex-1 flex flex-col gap-3 overflow-hidden min-w-0">
+                
+                <!-- TOP: HERO CARD -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-hidden" id="heroCard">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+                    
+                    <div class="flex items-center gap-5 relative z-10">
                         <div class="relative">
-                            <div class="w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
+                            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
                             <button onclick="app.deleteStudent()" class="absolute -top-2 -right-2 w-6 h-6 bg-white text-red-500 border border-red-100 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-opacity" title="Xóa">×</button>
                         </div>
                         <div>
-                            <h2 class="text-lg lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight line-clamp-1" id="heroName">Chọn học sinh</h2>
+                            <h2 class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight" id="heroName">Vui lòng chọn học sinh</h2>
                             <div class="flex items-center gap-2 mt-1">
-                                <span class="px-3 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] lg:text-[11px] font-bold border border-slate-200 transition-colors" id="heroRank">---</span>
+                                <span class="px-3 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold border border-slate-200 transition-colors" id="heroRank">---</span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="relative z-10 text-right">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
-                        <div class="text-4xl lg:text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
+                        <div class="text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
                     </div>
                 </div>
 
-                <!-- MOBILE TABS NAVIGATION -->
+                <!-- MOBILE TABS -->
                 <div class="flex lg:hidden border-b border-slate-200 mb-4 gap-4 sticky top-0 bg-[#f8fafc] z-20 pt-1">
-                    <button onclick="app.switchMobileTab('rules')" id="tabMobileRules" class="flex-1 pb-2 text-sm font-bold text-center mobile-tab-active transition-colors">CHẤM ĐIỂM</button>
+                    <button onclick="app.switchMobileTab('positive')" id="tabMobilePos" class="flex-1 pb-2 text-sm font-bold text-center mobile-tab-active text-emerald-600 transition-colors border-b-2 border-emerald-500">ĐIỂM CỘNG</button>
+                    <button onclick="app.switchMobileTab('negative')" id="tabMobileNeg" class="flex-1 pb-2 text-sm font-bold text-center mobile-tab-inactive text-slate-400 hover:text-slate-600 transition-colors">ĐIỂM TRỪ</button>
                     <button onclick="app.switchMobileTab('history')" id="tabMobileHistory" class="flex-1 pb-2 text-sm font-bold text-center mobile-tab-inactive text-slate-400 hover:text-slate-600 transition-colors">NHẬT KÝ</button>
                 </div>
 
-                <!-- 2. SPLIT VIEW -->
-                <div class="flex flex-col lg:grid lg:grid-cols-3 gap-4 h-auto lg:h-[calc(100%-120px)] min-h-[500px]">
+                <!-- BOTTOM: SPLIT VIEW -->
+                <div class="flex-1 flex gap-3 overflow-hidden min-h-0">
                     
-                    <!-- RULES (2/3) -->
-                    <div class="lg:col-span-2 flex flex-col h-full min-h-0" id="rulesSection">
-                        <div class="flex gap-2 mb-3 shrink-0 bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
-                            <div class="flex-1 relative">
-                                <input type="text" id="ruleSearchInput" onkeyup="app.renderRules()" placeholder="Lọc hành vi..." class="w-full glass-input rounded-lg px-3 py-2 pl-8 text-xs font-medium">
-                                <span class="absolute left-2.5 top-2 text-slate-400 text-xs">⚡</span>
+                    <!-- RULES CONTAINER -->
+                    <div class="flex-[2] frame-container" id="rulesSection">
+                        <div class="frame-header flex justify-between items-center flex-wrap gap-2">
+                            <div class="flex gap-2 items-center w-full lg:w-auto">
+                                <div class="relative flex-1 lg:w-48">
+                                    <input type="text" id="ruleSearchInput" onkeyup="app.renderRules()" placeholder="Lọc hành vi..." class="w-full bg-white border border-slate-200 rounded-lg py-1.5 pl-7 pr-2 text-xs font-medium focus:ring-1 focus:ring-primary-500">
+                                    <span class="absolute left-2 top-1.5 text-slate-400 text-xs">⚡</span>
+                                </div>
+                                <label class="flex items-center gap-1.5 cursor-pointer bg-red-50 px-2 py-1.5 rounded border border-red-100 hover:bg-red-100 transition-colors">
+                                    <input type="checkbox" id="critCheck" onchange="app.toggleCrit()" class="w-3 h-3 text-red-500 rounded border-red-200 focus:ring-red-500">
+                                    <span class="text-[10px] font-bold text-red-600">Hạ bậc</span>
+                                </label>
+                                <button onclick="app.openAddRule()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-slate-700 shadow-sm whitespace-nowrap">+ Thêm</button>
                             </div>
-                            <button onclick="app.openAddRule()" class="bg-slate-800 text-white px-3 rounded-lg flex items-center justify-center hover:bg-slate-700 shadow-sm active:scale-95 transition-transform font-bold text-[10px] whitespace-nowrap">+ Thêm</button>
                         </div>
-
-                        <div class="flex-1 overflow-y-auto pr-1 pb-10 custom-scroll">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="rulesContainer">
-                                <!-- POSITIVE -->
-                                <div class="flex flex-col gap-2">
-                                    <div class="sticky top-0 bg-[#f8fafc]/95 backdrop-blur z-10 py-2 border-b border-emerald-100 mb-1 flex items-center justify-between">
-                                        <h3 class="text-xs font-extrabold text-emerald-600 uppercase tracking-wider flex items-center gap-2 pl-1">
-                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Điểm Cộng
-                                        </h3>
-                                    </div>
-                                    <div id="rulesGridPos" class="grid grid-cols-1 gap-2"></div>
-                                </div>
-                                <!-- NEGATIVE -->
-                                <div class="flex flex-col gap-2">
-                                    <div class="sticky top-0 bg-[#f8fafc]/95 backdrop-blur z-10 py-2 border-b border-red-100 mb-1 flex items-center justify-between">
-                                        <h3 class="text-xs font-extrabold text-red-600 uppercase tracking-wider flex items-center gap-2 pl-1">
-                                            <span class="w-2 h-2 rounded-full bg-red-500"></span> Điểm Trừ
-                                        </h3>
-                                        <label class="flex items-center gap-1 cursor-pointer bg-red-50 px-2 py-0.5 rounded border border-red-100 hover:bg-red-100 transition-colors">
-                                            <input type="checkbox" id="critCheck" onchange="app.toggleCrit()" class="w-3 h-3 text-red-500 rounded focus:ring-red-500 border-red-200">
-                                            <span class="text-[9px] font-bold text-red-600">Hạ bậc</span>
-                                        </label>
-                                    </div>
-                                    <div id="rulesGridNeg" class="grid grid-cols-1 gap-2"></div>
-                                </div>
-                            </div>
+                        
+                        <div class="frame-body custom-scroll grid grid-cols-1 md:grid-cols-2 gap-4" id="rulesContainer">
+                             <!-- POSITIVE COL -->
+                             <div id="rulesWrapperPos" class="flex flex-col gap-2">
+                                 <div class="rule-group-title text-emerald-600 text-[11px] font-extrabold uppercase border-b border-emerald-100 pb-1">Điểm Cộng</div>
+                                 <div id="rulesGridPos" class="flex flex-col gap-2"></div>
+                             </div>
+                             <!-- NEGATIVE COL -->
+                             <div id="rulesWrapperNeg" class="flex flex-col gap-2">
+                                 <div class="rule-group-title text-red-600 text-[11px] font-extrabold uppercase border-b border-red-100 pb-1">Điểm Trừ</div>
+                                 <div id="rulesGridNeg" class="flex flex-col gap-2"></div>
+                             </div>
                         </div>
                     </div>
 
-                    <!-- HISTORY (1/3) - HIDDEN ON MOBILE INITIALLY -->
-                    <div class="hidden lg:flex flex-col h-full min-h-0 space-y-3" id="historySection">
-                        <div class="bg-white rounded-xl p-3 border border-slate-100 shadow-sm shrink-0">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">AI Nhận Xét</span>
-                                <button onclick="app.generateRemark(true)" class="text-[9px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded hover:bg-primary-100 transition-colors">Tạo lại</button>
-                            </div>
-                            <textarea id="remarkBox" onblur="app.saveRemark()" rows="3" class="w-full bg-slate-50 border-0 rounded-lg p-2 text-xs text-slate-600 resize-none focus:ring-1 focus:ring-primary-500" placeholder="..."></textarea>
-                        </div>
-                        <div class="bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col flex-1 overflow-hidden min-h-[300px]">
-                            <div class="p-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
-                                <h3 class="text-xs font-bold text-slate-500 uppercase">Nhật ký</h3>
-                                <span class="text-[9px] font-semibold bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-400">Gần nhất</span>
-                            </div>
-                            <div class="flex-1 overflow-y-auto p-0 custom-scroll" id="historyContainer">
-                                <table class="w-full text-left border-collapse" id="logTable">
-                                    <tbody class="divide-y divide-slate-50"></tbody>
-                                </table>
-                                <div id="emptyHistory" class="h-full flex flex-col items-center justify-center text-slate-300 gap-2 p-6">
-                                    <span class="text-xl grayscale opacity-50">📝</span><span class="text-[10px]">Trống</span>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- HISTORY CONTAINER -->
+                    <div class="flex-1 frame-container min-w-[300px] flex flex-col" id="historySection">
+                         <div class="frame-header flex justify-between items-center">
+                             <span class="text-[11px] font-bold text-slate-500 uppercase">NHẬT KÝ</span>
+                             <button onclick="app.generateRemark(true)" class="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded hover:bg-primary-100">✨ AI Viết</button>
+                         </div>
+                         
+                         <div class="p-3 border-b border-slate-100 bg-white shrink-0">
+                             <textarea id="remarkBox" onblur="app.saveRemark()" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-600 resize-none focus:ring-1 focus:ring-primary-500 focus:bg-white" placeholder="Nhận xét..."></textarea>
+                         </div>
+
+                         <div class="frame-body custom-scroll p-0" id="historyContainer">
+                             <table class="w-full text-left border-collapse" id="logTable">
+                                 <tbody class="divide-y divide-slate-50"></tbody>
+                             </table>
+                             <div id="emptyHistory" class="h-full flex flex-col items-center justify-center text-slate-300 gap-2 py-10">
+                                 <span class="text-xl grayscale opacity-50">📝</span><span class="text-[10px]">Trống</span>
+                             </div>
+                         </div>
                     </div>
 
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <!-- TUTORIAL OVERLAY -->
@@ -351,8 +336,8 @@ const INIT_DATA = ["Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Â
 class App {
     constructor() {
         try { 
-            this.students = JSON.parse(localStorage.getItem('hk_v31_mobile_data')) || [];
-            const storedRules = localStorage.getItem('hk_v31_mobile_rules');
+            this.students = JSON.parse(localStorage.getItem('hk_v31_mobile_acc_data')) || [];
+            const storedRules = localStorage.getItem('hk_v31_mobile_acc_rules');
             this.rules = storedRules ? JSON.parse(storedRules) : JSON.parse(JSON.stringify(RULES));
         } catch (e) {
             this.students = [];
@@ -362,7 +347,36 @@ class App {
         this.currentId = null;
         this.editingRuleId = null;
         this.isOnboarding = false;
-        this.mobileTab = 'rules'; // 'rules' or 'history'
+        this.mobileTab = 'positive'; 
+        this.tab = 'all';
+        this.expandedGroups = {
+            pos: {learning: false, discipline: false, activity: false, custom: false},
+            neg: {learning: false, discipline: false, activity: false, custom: false}
+        };
+        // Desktop default expanded
+        if(window.innerWidth >= 1024) {
+             this.expandAllGroups();
+        }
+    }
+
+    expandAllGroups() {
+        for(let type in this.expandedGroups) {
+            for(let cat in this.expandedGroups[type]) {
+                this.expandedGroups[type][cat] = true;
+            }
+        }
+    }
+
+    toggleGroup(id) {
+        const el = document.getElementById(id);
+        const icon = document.getElementById('icon_' + id);
+        if(el.classList.contains('hidden')) {
+            el.classList.remove('hidden');
+            el.parentElement.classList.add('accordion-open');
+        } else {
+            el.classList.add('hidden');
+            el.parentElement.classList.remove('accordion-open');
+        }
     }
 
     startApp() {
@@ -380,9 +394,7 @@ class App {
         this.renderStudentList(); 
         this.renderRules();
         if(this.students.length > 0 && !this.currentId) this.selectStudent(this.students[0].id);
-        
-        // Handle mobile Tab default state
-        this.switchMobileTab('rules');
+        this.switchMobileTab('positive');
     }
     
     setToday() {
@@ -399,34 +411,36 @@ class App {
     // --- MOBILE TABS LOGIC ---
     switchMobileTab(tabName) {
         this.mobileTab = tabName;
-        const rulesSec = document.getElementById('rulesSection');
-        const histSec = document.getElementById('historySection');
-        const btnRules = document.getElementById('tabMobileRules');
+        const rulesSection = document.getElementById('rulesSection');
+        const historySection = document.getElementById('historySection');
+        const rulesGridPos = document.getElementById('rulesWrapperPos');
+        const rulesGridNeg = document.getElementById('rulesWrapperNeg');
+        const btnPos = document.getElementById('tabMobilePos');
+        const btnNeg = document.getElementById('tabMobileNeg');
         const btnHist = document.getElementById('tabMobileHistory');
+        const setBtnInactive = (btn) => { btn.className = "flex-1 pb-2 text-sm font-bold text-center mobile-tab-inactive text-slate-400 hover:text-slate-600 transition-colors"; };
+        const setBtnActive = (btn, color) => { btn.className = `flex-1 pb-2 text-sm font-bold text-center mobile-tab-active text-${color}-600 border-b-2 border-${color}-500 bg-${color}-50`; };
         
-        // Reset classes
-        btnRules.className = "flex-1 pb-2 text-sm font-bold text-center transition-colors " + (tabName === 'rules' ? "mobile-tab-active" : "mobile-tab-inactive text-slate-400 hover:text-slate-600");
-        btnHist.className = "flex-1 pb-2 text-sm font-bold text-center transition-colors " + (tabName === 'history' ? "mobile-tab-active" : "mobile-tab-inactive text-slate-400 hover:text-slate-600");
-
-        // On desktop (lg), both are flex. On mobile, we toggle hidden.
         if(window.innerWidth < 1024) {
-            if (tabName === 'rules') {
-                rulesSec.classList.remove('hidden');
-                rulesSec.classList.add('flex');
-                histSec.classList.add('hidden');
-                histSec.classList.remove('flex');
+            setBtnInactive(btnPos); setBtnInactive(btnNeg); setBtnInactive(btnHist);
+            if (tabName === 'history') {
+                setBtnActive(btnHist, 'slate'); 
+                rulesSection.classList.add('hidden'); rulesSection.classList.remove('flex');
+                historySection.classList.remove('hidden'); historySection.classList.add('flex');
             } else {
-                rulesSec.classList.add('hidden');
-                rulesSec.classList.remove('flex');
-                histSec.classList.remove('hidden');
-                histSec.classList.add('flex');
+                rulesSection.classList.remove('hidden'); rulesSection.classList.add('flex');
+                historySection.classList.add('hidden'); historySection.classList.remove('flex');
+                if (tabName === 'positive') {
+                    setBtnActive(btnPos, 'emerald');
+                    rulesGridPos.classList.remove('hidden'); rulesGridNeg.classList.add('hidden');
+                } else if (tabName === 'negative') {
+                    setBtnActive(btnNeg, 'red');
+                    rulesGridPos.classList.add('hidden'); rulesGridNeg.classList.remove('hidden');
+                }
             }
         } else {
-            // Reset to desktop view
-            rulesSec.classList.remove('hidden');
-            rulesSec.classList.add('flex');
-            histSec.classList.remove('hidden');
-            histSec.classList.add('flex');
+            rulesSection.classList.remove('hidden'); historySection.classList.remove('hidden');
+            rulesGridPos.classList.remove('hidden'); rulesGridNeg.classList.remove('hidden');
         }
     }
 
@@ -434,34 +448,19 @@ class App {
     resetTutorialState() {
         this.tutorialStep = 0;
         this.isOnboarding = false;
-        document.querySelectorAll('.tutorial-highlight').forEach(e => {
-            e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = '';
-        });
+        document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
         document.getElementById('tutorialBackdrop').classList.add('hidden');
         document.getElementById('tutorialCard').classList.add('hidden');
     }
 
     runTutorial() {
         if (window.innerWidth < 1024) { document.getElementById('mobileWarning').classList.remove('hidden'); return; }
-        
-        if (this.students && this.students.length > 0) {
-            if(!confirm("Hướng dẫn sẽ XÓA TOÀN BỘ dữ liệu hiện tại để thiết lập mới. Bạn có chắc chắn?")) return;
-        }
-        
-        this.resetTutorialState(); 
-        localStorage.removeItem('hk_v31_mobile_data');
-        this.students = [];
-        
-        document.getElementById('startScreen').classList.add('-translate-y-full');
-        document.getElementById('appContainer').classList.remove('opacity-0');
-        
-        this.renderStudentList();
-        this.renderRules();
-        this.setToday();
-        
+        if (this.students && this.students.length > 0) { if(!confirm("Hướng dẫn sẽ XÓA TOÀN BỘ dữ liệu hiện tại để thiết lập mới. Bạn có chắc chắn?")) return; }
+        this.resetTutorialState(); localStorage.removeItem('hk_v31_mobile_acc_data'); this.students = [];
+        document.getElementById('startScreen').classList.add('-translate-y-full'); document.getElementById('appContainer').classList.remove('opacity-0');
+        this.renderStudentList(); this.renderRules(); this.setToday();
         this.isOnboarding = true;
         document.getElementById('tutorialBackdrop').classList.remove('hidden');
-        
         this.tutorialSteps = [
             { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
             { id: 'sidebar', title: 'Bước 2: Quản Lý Lớp', desc: 'Danh sách học sinh hiển thị ở đây.' },
@@ -470,59 +469,38 @@ class App {
             { id: 'historySection', title: 'Bước 5: Nhật Ký', desc: 'Lịch sử ghi nhận nằm ở đây. Bạn có thể dùng AI để tạo nhận xét tự động.' },
             { id: 'btnExport', title: 'Bước 6: Báo Cáo', desc: 'Cuối tháng, bấm vào đây để xuất file Excel.' }
         ];
-        
         this.openModal('modalBulk');
-        
         const card = document.getElementById('tutorialCard');
-        card.classList.remove('hidden');
-        setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); }, 50);
-        
+        card.classList.remove('hidden'); setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); }, 50);
         this.updateTutorialUI();
     }
 
     updateTutorialUI() {
         const step = this.tutorialSteps[this.tutorialStep];
-        
-        document.querySelectorAll('.tutorial-highlight').forEach(e => {
-            e.classList.remove('tutorial-highlight'); 
-            e.style.transform = ''; e.style.zIndex = '';
-        });
-
+        document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
         let el = document.getElementById(step.id);
-        if (step.id === 'modalBulk') {
-             el = document.querySelector('#modalBulk > div');
-             document.getElementById('modalBulk').style.zIndex = '99995'; 
-        }
-
+        if (step.id === 'modalBulk') { el = document.querySelector('#modalBulk > div'); document.getElementById('modalBulk').style.zIndex = '99995'; }
         if(el) {
             if(step.id === 'heroCard') { el.style.transform = 'none'; el.classList.remove('group'); }
             el.classList.add('tutorial-highlight');
         }
-
         document.getElementById('stepNum').innerText = this.tutorialStep + 1;
         document.getElementById('stepTitle').innerText = step.title;
         document.getElementById('stepDesc').innerText = step.desc;
-        
         const btnNext = document.getElementById('btnNext');
-        if (step.action === 'import') {
-            btnNext.style.display = 'none'; 
-        } else {
+        if (step.action === 'import') { btnNext.style.display = 'none'; } else {
             btnNext.style.display = 'block';
             btnNext.innerText = (this.tutorialStep === this.tutorialSteps.length - 1) ? 'Hoàn tất' : 'Tiếp theo';
             btnNext.onclick = () => this.nextTutorialStep();
         }
-
         const box = document.getElementById('tutorialCard');
         if(window.innerWidth > 768) {
             const rect = el ? el.getBoundingClientRect() : {top: window.innerHeight/2, left: window.innerWidth/2, width:0, height:0};
             let top, left;
-
             if (step.pos === 'center' || !el) {
-                box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%, -50%)';
-                box.style.position = 'fixed';
+                box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%, -50%)'; box.style.position = 'fixed';
             } else if (step.pos === 'bottom-force') {
-                top = rect.bottom + 30; 
-                left = rect.left + (rect.width / 2) - 160;
+                top = rect.bottom + 30; left = rect.left + (rect.width / 2) - 160;
                 if(left < 20) left = 20; if(left + 320 > window.innerWidth) left = window.innerWidth - 340;
                 if(top > window.innerHeight - 200) top = rect.top - 250;
                 box.style.position = 'fixed'; box.style.top = `${top}px`; box.style.left = `${left}px`; box.style.transform = 'none';
@@ -535,47 +513,79 @@ class App {
         }
     }
 
-    nextTutorialStep() {
-        this.tutorialStep++;
-        if (this.tutorialStep >= this.tutorialSteps.length) {
-            this.endTutorial();
-        } else {
-            this.updateTutorialUI();
-        }
-    }
+    nextTutorialStep() { this.tutorialStep++; if (this.tutorialStep >= this.tutorialSteps.length) { this.endTutorial(); } else { this.updateTutorialUI(); } }
 
     endTutorial() {
         this.resetTutorialState();
-        document.getElementById('heroCard').style.transform = '';
-        document.getElementById('heroCard').classList.add('group');
+        document.getElementById('heroCard').style.transform = ''; document.getElementById('heroCard').classList.add('group');
         alert("Chúc mừng! Bạn đã sẵn sàng sử dụng.");
     }
 
-    // --- CORE FUNCTIONS ---
     processBulkImport(){ 
         const t=document.getElementById('bulkText').value.trim(); 
         if(t){ 
             this.students = t.split('\n').filter(x=>x.trim()).map((n,i)=>({id:Date.now()+i, name:n.trim(), logs:[], remark:"", crit:false})); 
-            
-            // Auto-sort
             this.sortStudentsLogic();
-            
             this.closeModal('modalBulk'); 
-            
-            if (this.isOnboarding) {
-                this.renderStudentList();
-                if(this.students.length > 0) this.selectStudent(this.students[0].id);
-                setTimeout(() => { this.nextTutorialStep(); }, 300);
-            } else {
-                this.showMainUI();
-            }
+            if (this.isOnboarding) { this.renderStudentList(); if(this.students.length > 0) this.selectStudent(this.students[0].id); setTimeout(() => { this.nextTutorialStep(); }, 300); } else { this.showMainUI(); }
         } 
     }
 
+    // --- RENDER RULES (ACCORDION) ---
+    renderRules() {
+        const filterText = document.getElementById('ruleSearchInput').value.toLowerCase();
+        const allRules = this.rules.filter(r => r.t.toLowerCase().includes(filterText));
+        
+        const renderGroup = (rules, type) => {
+            const grouped = rules.reduce((acc, r) => { (acc[r.c] = acc[r.c] || []).push(r); return acc; }, {});
+            
+            return Object.keys(CATEGORIES).map(catKey => {
+                if(!grouped[catKey]) return '';
+                
+                const groupId = `group_${type}_${catKey}`;
+                // Default expand on desktop or if filter text is active
+                const isExpanded = window.innerWidth >= 1024 || filterText.length > 0;
+                const hiddenClass = isExpanded ? '' : 'hidden';
+                const arrowClass = isExpanded ? 'rotate-180' : '';
+                const openClass = isExpanded ? 'accordion-open' : '';
+                
+                // Colors based on type
+                const headerColor = type === 'pos' ? 'text-emerald-600' : 'text-red-600';
+                
+                return `
+                <div class="mb-3 break-inside-avoid bg-white rounded-xl border border-slate-100 overflow-hidden ${openClass}">
+                    <button onclick="app.toggleGroup('${groupId}')" class="w-full flex justify-between items-center p-3 bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <span class="text-xs font-extrabold uppercase tracking-widest ${headerColor}">${CATEGORIES[catKey]}</span>
+                        <span id="icon_${groupId}" class="text-slate-400 text-xs transition-transform transform ${arrowClass} accordion-arrow">▼</span>
+                    </button>
+                    <div id="${groupId}" class="${hiddenClass} p-3 bg-white accordion-content">
+                        <div class="grid grid-cols-1 gap-2">
+                            ${grouped[catKey].map(r => {
+                                let countBadge = '';
+                                if(this.currentId && !this.selectedIds.size && r.inc) {
+                                    const s = this.students.find(x => x.id == this.currentId);
+                                    const count = s ? s.logs.filter(l => l.rid === r.id).length : 0;
+                                    if(count > 0) countBadge = `<span class="absolute top-2 right-2 text-[9px] font-bold bg-slate-800 text-white px-1.5 rounded-full z-10 shadow-sm">x${count+1}</span>`;
+                                }
+                                const isBonus = r.s > 0;
+                                const deleteBtn = r.id.startsWith('c') ? `<button onclick="event.stopPropagation(); app.deleteRule('${r.id}')" class="absolute -top-1 -left-1 w-5 h-5 bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white rounded-full flex items-center justify-center text-[10px] shadow-sm z-20 transition-colors">×</button>` : '';
+                                return `<div onclick="app.addLog('${r.t}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${countBadge} ${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-xs font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${r.t}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        document.getElementById('rulesGridPos').innerHTML = renderGroup(allRules.filter(r => r.s > 0), 'pos');
+        document.getElementById('rulesGridNeg').innerHTML = renderGroup(allRules.filter(r => r.s <= 0), 'neg');
+    }
+
+    // --- CORE LOGIC ---
     deleteRule(id) { if(confirm("Xóa thẻ hành vi này?")) { this.rules = this.rules.filter(r => r.id !== id); this.saveRules(); } }
     editRule(id) { const r = this.rules.find(x => x.id === id); if(!r) return; this.editingRuleId = id; document.getElementById('modalRuleTitle').innerText = "Sửa Hành Vi"; document.getElementById('newRText').value = r.t; document.getElementById('newRScore').value = r.s; document.getElementById('newRCat').value = r.c; document.getElementById('newRInc').checked = r.inc || false; this.openModal('modalRule'); }
-    save() { try { localStorage.setItem('hk_v31_mobile_data', JSON.stringify(this.students)); } catch (e) {} this.renderStudentList(); if (this.currentId) this.renderInfo(); }
-    saveRules() { try { localStorage.setItem('hk_v31_mobile_rules', JSON.stringify(this.rules)); } catch (e) {} this.renderRules(); }
+    save() { try { localStorage.setItem('hk_v31_mobile_acc_data', JSON.stringify(this.students)); } catch (e) {} this.renderStudentList(); if (this.currentId) this.renderInfo(); }
+    saveRules() { try { localStorage.setItem('hk_v31_mobile_acc_rules', JSON.stringify(this.rules)); } catch (e) {} this.renderRules(); }
     calculate(s) {
         if(!s) return {total:0, rank:'-'};
         let total = 80, cheats = 0;
@@ -585,36 +595,8 @@ class App {
         if (cheats >= 2 && ['Tốt','Khá'].includes(rank)) rank = 'Đạt'; if (cheats >= 3) rank = 'Chưa Đạt'; if (s.crit || total < 50) rank = 'Chưa Đạt';
         return { total: Math.round(total * 100) / 100, rank };
     }
-    toggleSidebar() { 
-        const sb = document.getElementById('sidebar'); 
-        const bd = document.getElementById('sidebarBackdrop'); 
-        if (sb.classList.contains('-translate-x-full')) { 
-            sb.classList.remove('-translate-x-full'); 
-            sb.classList.add('sidebar-open');
-            bd.classList.remove('hidden'); 
-            setTimeout(()=>bd.classList.add('active'),10);
-        } else { 
-            sb.classList.add('-translate-x-full'); 
-            sb.classList.remove('sidebar-open');
-            bd.classList.remove('active'); 
-            setTimeout(()=>bd.classList.add('hidden'),300);
-        } 
-    }
-    selectStudent(id) { 
-        if (this.selectedIds.size) this.clearSelection(); 
-        this.currentId = id; 
-        this.renderStudentList(); 
-        this.renderInfo(); 
-        this.renderRules(); 
-        
-        // Close sidebar on mobile when selecting
-        if(window.innerWidth < 1024) { 
-            const sb = document.getElementById('sidebar');
-            if (!sb.classList.contains('-translate-x-full')) {
-                 this.toggleSidebar();
-            }
-        } 
-    }
+    toggleSidebar() { const sb = document.getElementById('sidebar'); const bd = document.getElementById('sidebarBackdrop'); if (sb.classList.contains('-translate-x-full')) { sb.classList.remove('-translate-x-full'); sb.classList.add('sidebar-open'); bd.classList.remove('hidden'); setTimeout(()=>bd.classList.add('active'),10); } else { sb.classList.add('-translate-x-full'); sb.classList.remove('sidebar-open'); bd.classList.remove('active'); setTimeout(()=>bd.classList.add('hidden'),300); } }
+    selectStudent(id) { if (this.selectedIds.size) this.clearSelection(); this.currentId = id; this.renderStudentList(); this.renderInfo(); this.renderRules(); if(window.innerWidth < 1024) { const sb = document.getElementById('sidebar'); if (!sb.classList.contains('-translate-x-full')) { this.toggleSidebar(); } } }
     toggleSelect(id) { if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id); this.currentId = null; this.renderStudentList(); this.renderInfo(); }
     toggleSelectAll() { const isAll = this.selectedIds.size === this.students.length; if(isAll) this.selectedIds.clear(); else this.students.forEach(s=>this.selectedIds.add(s.id)); this.renderStudentList(); this.renderInfo(); }
     clearSelection() { this.selectedIds.clear(); if(this.students.length) this.selectStudent(this.students[0].id); }
@@ -624,11 +606,7 @@ class App {
         if (!targets.length) return alert("Chưa chọn học sinh!");
         targets.forEach(s => {
             let finalS = score, finalT = txt;
-            if (inc) { 
-                const count = s.logs.filter(l => l.rid === ruleId).length + 1;
-                finalT += ` (Lần ${count})`; 
-                if (score < 0) finalS = score * count; 
-            }
+            if (inc) { const count = s.logs.filter(l => l.rid === ruleId).length + 1; finalT += ` (Lần ${count})`; if (score < 0) finalS = score * count; }
             s.logs.push({ t: finalT, s: finalS, d: dateStr, rid: ruleId, sp: sp });
             s.remark = this.generateRemarkText(s);
         });
@@ -650,13 +628,9 @@ class App {
         }).join('');
         document.getElementById('studentCount').innerText = `${this.students.length} Học sinh`;
     }
-
     renderInfo() {
-        // SAFETY CHECK
-        let s = this.currentId ? this.students.find(x => x.id == this.currentId) : null;
-        if(!s && this.students.length > 0) { this.selectStudent(this.students[0].id); return; } else if (!s) return;
-
-        const st = this.calculate(s);
+        if(!this.currentId) return;
+        const s = this.students.find(x => x.id == this.currentId); const st = this.calculate(s);
         const nameParts = s.name.split(' '); const initials = nameParts.slice(-2).map(n=>n[0]).join('');
         document.getElementById('heroName').innerText = s.name;
         const heroScore = document.getElementById('heroScore'); heroScore.innerText = st.total;
@@ -673,30 +647,6 @@ class App {
         }
         document.getElementById('remarkBox').value = s.remark || this.generateRemarkText(s);
     }
-
-    renderRules() {
-        const filterText = document.getElementById('ruleSearchInput').value.toLowerCase();
-        const allRules = this.rules.filter(r => r.t.toLowerCase().includes(filterText));
-        const renderGroup = (rules) => {
-            const grouped = rules.reduce((acc, r) => { (acc[r.c] = acc[r.c] || []).push(r); return acc; }, {});
-            return Object.keys(CATEGORIES).map(catKey => {
-                if(!grouped[catKey]) return '';
-                return `<div class="mb-4 break-inside-avoid"><div class="rule-group-title text-[10px] font-bold text-slate-400 uppercase tracking-widest">${CATEGORIES[catKey]}</div><div class="grid grid-cols-1 gap-2">${grouped[catKey].map(r => {
-                            let countBadge = '';
-                            if(this.currentId && !this.selectedIds.size && r.inc) {
-                                const s = this.students.find(x => x.id == this.currentId);
-                                if(s) { const count = s.logs.filter(l => l.rid === r.id).length; if(count > 0) countBadge = `<span class="absolute top-2 right-2 text-[9px] font-bold bg-slate-800 text-white px-1.5 rounded-full z-10 shadow-sm">x${count+1}</span>`; }
-                            }
-                            const isBonus = r.s > 0;
-                            const deleteBtn = r.id.startsWith('c') ? `<button onclick="event.stopPropagation(); app.deleteRule('${r.id}')" class="absolute -top-1 -left-1 w-5 h-5 bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white rounded-full flex items-center justify-center text-[10px] shadow-sm z-20 transition-colors">×</button>` : '';
-                            return `<div onclick="app.addLog('${r.t}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${countBadge} ${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-xs font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${r.t}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
-                        }).join('')}</div></div>`;
-            }).join('');
-        };
-        document.getElementById('rulesGridPos').innerHTML = renderGroup(allRules.filter(r => r.s > 0));
-        document.getElementById('rulesGridNeg').innerHTML = renderGroup(allRules.filter(r => r.s <= 0));
-    }
-
     openAddRule() { this.editingRuleId = null; document.getElementById('modalRuleTitle').innerText = "Thêm Hành Vi"; document.getElementById('newRText').value = ''; document.getElementById('newRScore').value = ''; document.getElementById('newRCat').value = 'learning'; document.getElementById('newRInc').checked = false; this.openModal('modalRule'); }
     openModal(id){ 
         if(id === 'modalBulk') {
@@ -710,14 +660,33 @@ class App {
     }
     closeModal(id){ document.getElementById(id).classList.remove('flex'); document.getElementById(id).classList.add('hidden'); }
     loadDefaultClass(){ document.getElementById('bulkText').value = INIT_DATA.join('\n'); }
-    addStudent(){ const n=document.getElementById('newStudentName').value.trim(); if(n){ this.students.push({id:Date.now(), name:n, logs:[], remark:"", crit:false}); this.sortStudentsLogic(); this.closeModal('modalStudent'); } }
+    addStudent(){ 
+        const n=document.getElementById('newStudentName').value.trim(); 
+        if(n){ 
+            this.students.push({id:Date.now(), name:n, logs:[], remark:"", crit:false}); 
+            this.sortStudentsLogic();
+            this.closeModal('modalStudent'); 
+        } 
+    }
     sortStudents() { this.sortStudentsLogic(); }
     sortStudentsLogic() { this.students.sort((a, b) => { const nameA = a.name.split(' ').pop(); const nameB = b.name.split(' ').pop(); return nameA.localeCompare(nameB, 'vi'); }); this.save(); }
-    saveNewRule(){ const t=document.getElementById('newRText').value; const s=parseFloat(document.getElementById('newRScore').value); const c=document.getElementById('newRCat').value; const inc = document.getElementById('newRInc').checked; if(t && !isNaN(s)){ if(this.editingRuleId) { const idx = this.rules.findIndex(r => r.id === this.editingRuleId); if(idx !== -1) { this.rules[idx] = { id: this.editingRuleId, t, s, c, inc }; } } else { this.rules.push({id:'c'+Date.now(), t, s, c, inc}); } this.saveRules(); this.closeModal('modalRule'); } }
+    saveNewRule(){ 
+        const t=document.getElementById('newRText').value; 
+        const s=parseFloat(document.getElementById('newRScore').value); 
+        const c=document.getElementById('newRCat').value; 
+        const inc = document.getElementById('newRInc').checked;
+        if(t && !isNaN(s)){ 
+            if(this.editingRuleId) {
+                const idx = this.rules.findIndex(r => r.id === this.editingRuleId);
+                if(idx !== -1) { this.rules[idx] = { id: this.editingRuleId, t, s, c, inc }; }
+            } else { this.rules.push({id:'c'+Date.now(), t, s, c, inc}); }
+            this.saveRules(); this.closeModal('modalRule'); 
+        } 
+    }
     generateRemarkText(s) { const st=this.calculate(s); let a=[]; if(st.rank=='Tốt') a.push("Ngoan, tốt."); else if(st.rank=='Khá') a.push("Có ý thức, còn lỗi nhỏ."); else a.push("Cần chấn chỉnh."); const h=(k)=>s.logs.some(l=>l.t.toLowerCase().includes(k)&&l.s<0); if(h('trễ')) a.push("Hay đi trễ."); if(h('vắng')) a.push("Hay vắng."); if(h('bài')||h('dụng cụ')) a.push("Thiếu bài/dụng cụ."); if(h('điện thoại')) a.push("Dùng ĐT sai."); return a.join(' '); }
     generateRemark(f){ if(this.currentId){ const s=this.students.find(x=>x.id==this.currentId); s.remark=this.generateRemarkText(s); document.getElementById('remarkBox').value=s.remark; this.save(); } }
     saveRemark(){ if(this.currentId){ this.students.find(x=>x.id==this.currentId).remark=document.getElementById('remarkBox').value; this.save(); } }
-    resetData(){ if(confirm("Xóa hết dữ liệu? (Bao gồm cả danh sách HS)")){ localStorage.removeItem('hk_v31_mobile_data'); localStorage.removeItem('hk_v31_mobile_rules'); location.reload(); } }
+    resetData(){ if(confirm("Xóa hết dữ liệu? (Bao gồm cả danh sách HS)")){ localStorage.removeItem('hk_v31_mobile_acc_data'); localStorage.removeItem('hk_v31_mobile_acc_rules'); location.reload(); } }
     deleteStudentById(id) { if (confirm("Xóa học sinh này?")) { this.students = this.students.filter(s => s.id != id); if (this.currentId == id) this.currentId = null; this.save(); if (this.students.length) this.selectStudent(this.students[0].id); else { this.renderStudentList(); this.renderInfo(); } } }
     deleteStudent(){ if(this.currentId) this.deleteStudentById(this.currentId); }
     toggleCrit(){ if(this.currentId){ const s=this.students.find(x=>x.id==this.currentId); s.crit=!s.crit; this.save(); this.renderInfo(); } }
