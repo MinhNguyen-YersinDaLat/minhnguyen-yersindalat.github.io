@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hạnh Kiểm Yersin - V33 Mobile Perfected</title>
+    <title>Hạnh Kiểm Yersin - V33 Performance Fix</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,10 +14,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
-    <!-- FIREBASE LIBRARIES -->
+    <!-- FIREBASE INTEGRATION START -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <!-- FIREBASE INTEGRATION END -->
 
     <script>
         tailwind.config = {
@@ -36,6 +37,8 @@
                     animation: {
                         'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
                         'fade-in-up': 'fadeInUp 0.3s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'breath': 'breath 3s ease-in-out infinite', // Hiệu ứng thở nhẹ mới
                     },
                     keyframes: {
                         shake: {
@@ -47,6 +50,10 @@
                         fadeInUp: {
                             '0%': { opacity: '0', transform: 'translateY(10px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        breath: {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+                            '50%': { transform: 'scale(1.05)', opacity: '0.95' }
                         }
                     }
                 }
@@ -87,8 +94,40 @@
         .sidebar-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 40; backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
 
-        /* Tutorial */
-        .tutorial-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99990; transition: opacity 0.3s; backdrop-filter: blur(3px); }
+        /* --- TUTORIAL & OVERLAY FIXES START --- */
+        /* Fix overlay blocking clicks: mặc định backdrop vô hiệu thao tác, chỉ bật khi có class .show */
+        .tutorial-backdrop { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.85); 
+            z-index: 99990; 
+            transition: opacity 0.25s ease; 
+            opacity: 0; 
+            pointer-events: none; /* CHÍNH: ngăn chặn chặn click khi không hiển thị */
+            backdrop-filter: blur(3px);
+        }
+        .tutorial-backdrop.show { 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+        
+        /* Tương tự cho modal backdrop nếu cần */
+        #modalBulk, #modalRule, #mobileWarning, #modalStudent { 
+            pointer-events: none;   /* mặc định: không chặn */
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+        
+        /* Khi Modal có class flex (được bật bởi JS), ta bật pointer-events và opacity */
+        #modalBulk.flex, #modalRule.flex, #mobileWarning.flex, #modalStudent.flex { 
+            pointer-events: auto;
+            opacity: 1;
+        }
+        
+        /* Bảo đảm overlay-gradient không chặn */
+        .pointer-safe { pointer-events: none; }
+        /* --- TUTORIAL & OVERLAY FIXES END --- */
+
         .tutorial-highlight { position: relative; z-index: 99991 !important; background-color: white; border-radius: 12px; box-shadow: 0 0 0 4px #f97316, 0 0 50px rgba(255, 255, 255, 0.2) !important; transition: none !important; transform: none !important; }
         .tutorial-card { position: fixed; z-index: 99999; width: 320px; left: 50%; bottom: 40px; transform: translateX(-50%); transition: all 0.3s ease; }
         
@@ -117,6 +156,13 @@
         .toast { pointer-events: auto; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; items-center; gap: 10px; font-size: 13px; font-weight: 600; color: #334155; border-left: 4px solid #3b82f6; animation: fade-in-up 0.3s ease-out forwards; max-width: 300px; }
         .toast.success { border-left-color: #10b981; }
         .toast.error { border-left-color: #ef4444; }
+        .toast.warning { border-left-color: #f59e0b; }
+        
+        /* Status Indicator */
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .status-dot.online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .status-dot.syncing { background-color: #eab308; animation: pulse-slow 1s infinite; }
+        .status-dot.offline { background-color: #ef4444; }
     </style>
 </head>
 <body class="text-slate-800 h-screen w-screen flex flex-col">
@@ -165,47 +211,54 @@
         <!-- MOBILE SIDEBAR BACKDROP -->
         <div id="sidebarBackdrop" onclick="app.toggleSidebar()" class="sidebar-backdrop lg:hidden"></div>
 
-        <!-- HEADER -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
-            <div class="flex items-center gap-4">
+        <!-- HEADER (Responsive) -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 md:px-4 shrink-0 z-20 shadow-sm">
+            <div class="flex items-center gap-2 md:gap-4">
                 <button onclick="app.toggleSidebar()" class="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
                 
-                <div class="flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
+                <!-- BRANDING (Hidden on Mobile) -->
+                <div class="hidden lg:flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
                     <div class="w-10 h-10 rounded-lg bg-slate-100 p-1 flex items-center justify-center overflow-hidden border border-slate-200">
                         <img src="logo.png" class="w-full h-full object-contain" onerror="this.style.display='none'">
                     </div>
                     <div class="flex flex-col justify-center">
-                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight hidden sm:block">ỨNG DỤNG THEO DÕI HÀNH VI HỌC SINH</h1>
-                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight sm:hidden">HẠNH KIỂM</h1>
-                        <p class="text-[10px] font-semibold text-slate-500 hidden sm:block">Thầy Thái Minh Nguyên • Yersin Đà Lạt</p>
+                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight">ỨNG DỤNG THEO DÕI HÀNH VI HỌC SINH</h1>
+                        <div class="flex items-center gap-2">
+                            <p class="text-[10px] font-semibold text-slate-500">Thầy Thái Minh Nguyên • Yersin Đà Lạt</p>
+                            <div id="connectionStatus" class="status-dot offline" title="Trạng thái kết nối" onclick="app.checkConnection()"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+                <div class="h-8 w-px bg-slate-200 mx-2 hidden lg:block"></div>
 
+                <!-- DATE PICKER -->
                 <div class="flex items-center gap-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-primary-200 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
                     <span class="text-lg">📅</span>
                     <input type="date" id="datePicker" class="bg-transparent border-none p-0 text-sm font-bold text-slate-700 cursor-pointer focus:ring-0 w-28">
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <!-- HEADER LOGIN/LOGOUT BUTTON -->
-                <button id="btnLogin" onclick="app.googleSignIn()" class="hidden md:block bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-xl transition-all whitespace-nowrap">
-                    Đăng nhập
+            <!-- ACTIONS (Mobile Optimized) -->
+            <div class="flex items-center gap-2 md:gap-3">
+                <!-- LOGIN BUTTON -->
+                <button id="btnLogin" onclick="app.googleSignIn()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-xl transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="hidden md:inline">Đăng nhập</span>
+                    <svg class="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                 </button>
 
-                <!-- MANUAL SAVE BUTTON -->
-                <button onclick="app.manualSave()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform">
+                <!-- SAVE BUTTON -->
+                <button onclick="app.manualSync()" id="btnManualSave" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 md:px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-all">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    <span class="hidden sm:inline" id="saveBtnText">Lưu</span>
+                    <span class="hidden md:inline" id="saveBtnText">Lưu Dữ Liệu</span>
                 </button>
 
-                <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
+                <!-- EXPORT BUTTON -->
+                <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3 md:px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    <span class="hidden sm:inline">Xuất Excel</span>
+                    <span class="hidden md:inline">Xuất Excel</span>
                 </button>
                 <select id="monthSelect" class="w-0 h-0 opacity-0 absolute"><option value="9">9</option><option value="5">5</option></select>
             </div>
@@ -247,26 +300,31 @@
             <!-- RIGHT: WORKSPACE -->
             <main class="flex-1 flex flex-col gap-3 overflow-hidden min-w-0">
                 
-                <!-- TOP: HERO CARD -->
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-hidden" id="heroCard">
+                <!-- TOP: HERO CARD (UPDATED) -->
+                <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-hidden" id="heroCard">
                     <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
                     
-                    <div class="flex items-center gap-5 relative z-10">
+                    <!-- LEFT: AVATAR & NAME -->
+                    <div class="flex items-center gap-4 relative z-10">
                         <div class="relative">
-                            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
                             <button onclick="app.deleteStudent()" class="absolute -top-2 -right-2 w-6 h-6 bg-white text-red-500 border border-red-100 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-opacity" title="Xóa">×</button>
                         </div>
                         <div>
-                            <h2 class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight" id="heroName">Vui lòng chọn học sinh</h2>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="px-3 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold border border-slate-200 transition-colors" id="heroRank">---</span>
-                            </div>
+                            <h2 class="text-lg md:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight" id="heroName">Vui lòng chọn học sinh</h2>
+                            <div class="text-[10px] md:text-xs text-slate-400 font-bold mt-1">THPT Yersin Đà Lạt</div>
                         </div>
                     </div>
                     
+                    <!-- CENTER: RANK (NEW DESIGN) -->
+                    <div class="flex-1 flex justify-center relative z-10 order-last md:order-none w-full md:w-auto">
+                        <div id="heroRank" class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-300 to-slate-400 animate-breath tracking-widest drop-shadow-sm transform transition-all">---</div>
+                    </div>
+                    
+                    <!-- RIGHT: SCORE -->
                     <div class="relative z-10 text-right">
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
-                        <div class="text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
+                        <div class="text-4xl md:text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
                     </div>
                 </div>
 
@@ -364,7 +422,15 @@
     <div id="mobileWarning" class="fixed inset-0 z-[9000] bg-slate-900/90 backdrop-blur-sm hidden flex items-center justify-center p-6 text-center"><div class="bg-white rounded-3xl p-8 max-w-sm shadow-2xl animate-bounce-in"><div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div><h3 class="text-xl font-bold text-slate-800 mb-2">Trải nghiệm tốt nhất trên PC</h3><p class="text-sm text-slate-600 mb-6">Tính năng hướng dẫn chỉ hỗ trợ trên màn hình lớn.</p><button onclick="document.getElementById('mobileWarning').classList.add('hidden')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-700">Đã hiểu</button></div></div>
 
 <script>
-const firebaseConfig = {
+/**
+ * SENIOR DEVELOPER OPTIMIZATION NOTES:
+ * 1. FIX: Removed automatic Realtime Sync on every click to prevent lag when logged in.
+ * 2. NEW: Implemented "Lazy Sync" + Manual Save priority.
+ * 3. NEW: Added "Unsaved Changes" visual indicator.
+ */
+
+// --- CONFIG & CONSTANTS ---
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
   authDomain: "hanhkiem-d853b.firebaseapp.com",
   databaseURL: "https://hanhkiem-d853b-default-rtdb.firebaseio.com",
@@ -375,7 +441,7 @@ const firebaseConfig = {
   measurementId: "G-M1Z8X4FX8L"
 };
 
-const RULES = [
+const DEFAULT_RULES = [
     {id:'h1', t:'Học tốt 1 tuần', s:0.5, c:'learning', inc:true}, {id:'h2', t:'Học tốt 4 tuần', s:2.0, c:'learning', inc:true}, {id:'h3', t:'Phát biểu', s:0.25, c:'learning', inc:true},
     {id:'h4', t:'Thiếu bài', s:-1.0, c:'learning', inc:true}, {id:'h5', t:'Thiếu dụng cụ', s:-1.0, c:'learning', inc:true}, {id:'h6', t:'Mất trật tự', s:-0.25, c:'learning', inc:true},
     {id:'h7', t:'Treo máy', s:-2.0, c:'learning', inc:true}, {id:'h8', t:'Gian lận', s:-4.0, c:'learning', sp:'cheat'},
@@ -388,16 +454,44 @@ const RULES = [
 const CATEGORIES = {learning: 'Học tập', discipline: 'Nề nếp', activity: 'Hoạt động', custom: 'Tùy chỉnh'};
 const INIT_DATA = ["Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Ân", "Nguyễn Lê Chí Dũng", "Nguyễn Minh Đức", "Nguyễn Thanh Hằng", "Bùi Mạnh Hùng", "Nguyễn Phúc Lộc", "Nguyễn Trọng Nghĩa", "Nguyễn Trọng Nghĩa", "Nguyễn Thiện Nhân", "Hồ Đức Nhật", "Nguyễn Bảo Thiên", "Nguyễn Thị Thu Thủy", "Trần Hà Uyên", "Lê Hoàng Việt", "Hoàng Ngọc Hà Vy"];
 
+// --- HELPER FUNCTIONS ---
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return unsafe;
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func.apply(this, args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 class App {
     constructor() {
+        // Local State
         try { 
-            this.students = JSON.parse(localStorage.getItem('hk_v33_final_data')) || [];
-            const storedRules = localStorage.getItem('hk_v33_final_rules');
-            this.rules = storedRules ? JSON.parse(storedRules) : JSON.parse(JSON.stringify(RULES));
+            const s = JSON.parse(localStorage.getItem('hk_v33_final_data'));
+            this.students = Array.isArray(s) ? s : [];
+            
+            const r = JSON.parse(localStorage.getItem('hk_v33_final_rules'));
+            this.rules = Array.isArray(r) ? r : JSON.parse(JSON.stringify(DEFAULT_RULES));
         } catch (e) {
+            console.warn("Local storage corrupted or empty, resetting.");
             this.students = [];
-            this.rules = JSON.parse(JSON.stringify(RULES));
+            this.rules = JSON.parse(JSON.stringify(DEFAULT_RULES));
         }
+        
         this.selectedIds = new Set(); 
         this.currentId = null;
         this.editingRuleId = null;
@@ -405,81 +499,193 @@ class App {
         this.tutorialStep = 0; 
         this.mobileTab = 'positive'; 
         this.groupStates = {}; 
+        
+        // SYNC STATUS FLAG
+        this.hasUnsavedChanges = false;
+        
+        // Debounced Save Methods
+        this.saveDebounced = debounce(() => {
+            this.saveToLocalStorageOnly();
+            this.renderStudentList(); 
+        }, 500);
+        
+        // FIXED: Very long debounce for auto-sync (30 seconds) to act as a safety net only
+        this.lazySyncDebounced = debounce(() => {
+            if (this.hasUnsavedChanges && this.user) {
+                this.manualSync(true); // Silent sync
+            }
+        }, 30000);
+
+        // Firebase Integration
         this.user = null;
         this.dbRef = null;
+        this.unsubscribe = null;
         this.initFirebase();
+        
+        // Warn before leaving if unsaved
+        window.addEventListener('beforeunload', (e) => {
+            if (this.hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
     }
 
     initFirebase() {
         try {
-            if (typeof firebase === 'undefined') return;
-            firebase.initializeApp(firebaseConfig);
+            if (typeof firebase === 'undefined') {
+                console.error("Firebase library not loaded");
+                return;
+            }
+            if (!firebase.apps.length) {
+                firebase.initializeApp(FIREBASE_CONFIG);
+            }
             this.auth = firebase.auth();
             this.db = firebase.database();
+            
             this.auth.onAuthStateChanged(user => {
                 this.user = user;
                 this.updateAuthUI();
                 if (user) {
-                    this.showToast(`Xin chào, ${user.displayName}!`, 'success');
+                    this.showToast(`Xin chào, ${escapeHtml(user.displayName)}!`, 'success');
                     this.setupRealtimeListener();
                 } else {
                     if (this.dbRef) this.dbRef.off();
                     this.dbRef = null;
+                    this.updateConnectionStatus('offline');
                 }
             });
         } catch (e) { console.error("Firebase Init Error:", e); }
     }
 
+    updateConnectionStatus(status, errorMsg = "") {
+        const dot = document.getElementById('connectionStatus');
+        if (!dot) return;
+        dot.className = `status-dot ${status}`;
+        if (status === 'offline' || status === 'error') {
+            dot.title = errorMsg || "Mất kết nối / Lỗi quyền truy cập";
+            if (errorMsg.includes("PERMISSION_DENIED")) {
+                 this.showToast("Lỗi quyền truy cập! Hãy kiểm tra Rules trên Firebase.", "error");
+            }
+        } else if (status === 'syncing') {
+            dot.title = "Đang đồng bộ...";
+        } else {
+            dot.title = "Đã kết nối";
+        }
+    }
+
+    updateSaveStatus(isDirty) {
+        this.hasUnsavedChanges = isDirty;
+        const btn = document.getElementById('btnManualSave');
+        const txt = document.getElementById('saveBtnText');
+        if (!btn || !txt) return;
+
+        if (isDirty) {
+            btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+            btn.classList.add('bg-orange-500', 'hover:bg-orange-600', 'animate-pulse');
+            txt.innerHTML = "Lưu ngay (*)";
+        } else {
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            btn.classList.remove('bg-orange-500', 'hover:bg-orange-600', 'animate-pulse');
+            txt.innerHTML = "Đã đồng bộ";
+        }
+    }
+
     setupRealtimeListener() {
         if (!this.user) return;
         const uid = this.user.uid;
+        
+        if (this.dbRef) {
+            this.dbRef.off();
+        }
+
         this.dbRef = this.db.ref(`users/${uid}/state`);
+
         this.dbRef.once('value').then(snapshot => {
             const val = snapshot.val();
             if (val) {
-                console.log("Cloud data found. Syncing...");
+                console.log("Cloud data found. Syncing to local...");
                 this.applyState(val);
+                this.updateConnectionStatus('online');
                 this.showToast("Đã tải dữ liệu từ đám mây", "success");
             } else {
-                console.log("Cloud empty. Pushing local...");
-                this.syncToFirebase();
+                console.log("Cloud empty. Pushing local data...");
+                this.manualSync(true); // Initial push
             }
-            this.dbRef.on('value', (snap) => {
-                const data = snap.val();
-                if (data) this.applyState(data);
-            });
+            
+            // NOTE: We do NOT set up .on('value') listener for continuous sync 
+            // to avoid overwriting local changes while user is working.
+            // We assume Single-User per Account mode to prevent conflicts.
+            
+        }).catch(error => {
+                console.error("Sync Error:", error);
+                this.updateConnectionStatus('offline', error.message);
         });
     }
 
+    collectState() {
+        return {
+            students: this.students || [],
+            rules: this.rules || [],
+            isOnboarding: this.isOnboarding || false,
+            tutorialStep: this.tutorialStep || 0,
+            currentId: this.currentId || null,
+            selectedIds: Array.from(this.selectedIds || []),
+            mobileTab: this.mobileTab || 'positive',
+            groupStates: this.groupStates || {},
+            lastUpdated: firebase.database.ServerValue.TIMESTAMP
+        };
+    }
+
     applyState(data) {
-        // Fix: Accept empty array if data.students is undefined (means user cleared it)
-        this.students = data.students || [];
-        this.rules = data.rules || JSON.parse(JSON.stringify(RULES));
-        this.isOnboarding = data.isOnboarding || false;
+        if (!data) return;
+        
+        const toArray = (obj) => {
+            if (!obj) return [];
+            if (Array.isArray(obj)) return obj;
+            return Object.values(obj); 
+        };
+
+        this.students = toArray(data.students).filter(s => s && s.id && s.name);
+        this.rules = toArray(data.rules);
+        if (this.rules.length === 0) this.rules = JSON.parse(JSON.stringify(DEFAULT_RULES));
+
+        this.isOnboarding = !!data.isOnboarding;
         this.tutorialStep = data.tutorialStep || 0;
-        this.saveToLocalStorageOnly();
+        this.currentId = data.currentId || null;
+        this.selectedIds = new Set(data.selectedIds || []);
+        this.mobileTab = data.mobileTab || 'positive';
+        this.groupStates = data.groupStates || {};
+        
+        this.saveToLocalStorageOnly(false); // Don't mark as dirty when loading from cloud
         this.refreshUI();
     }
 
-    syncToFirebase() {
-        if (!this.user) return Promise.resolve();
-        const state = {
-            students: this.students,
-            rules: this.rules,
-            isOnboarding: this.isOnboarding,
-            tutorialStep: this.tutorialStep,
-            lastUpdated: firebase.database.ServerValue.TIMESTAMP
-        };
-        return this.db.ref(`users/${this.user.uid}/state`).set(state);
+    checkConnection() {
+        if (this.user) {
+            this.showToast("Đang thử kết nối lại...", "info");
+            this.setupRealtimeListener();
+        } else {
+            this.showToast("Bạn chưa đăng nhập.", "error");
+        }
     }
 
     refreshUI() {
         this.renderStudentList();
         this.renderRules();
-        if (this.currentId) this.renderInfo();
+        
+        if (this.mobileTab) this.switchMobileTab(this.mobileTab);
+        
+        if (this.currentId) {
+             const exists = this.students.find(s => s.id == this.currentId);
+             if(exists) this.renderInfo();
+             else this.currentId = null; 
+        }
+        
+        const startScreen = document.getElementById('startScreen');
+        const appContainer = document.getElementById('appContainer');
+
         if (this.isOnboarding) {
-            const startScreen = document.getElementById('startScreen');
-            const appContainer = document.getElementById('appContainer');
             if (!startScreen.classList.contains('-translate-y-full')) {
                 startScreen.classList.add('-translate-y-full');
                 appContainer.classList.remove('opacity-0');
@@ -488,11 +694,10 @@ class App {
             document.getElementById('tutorialCard').classList.remove('hidden');
             this.updateTutorialUI();
         } else {
-             // If finished onboarding but on start screen (e.g. first load on new device), show main app
-             const startScreen = document.getElementById('startScreen');
-             if (!startScreen.classList.contains('-translate-y-full') && this.students.length > 0) {
-                 this.showMainUI();
-             }
+             // AUTO JUMP REMOVED: Stay on start screen to allow tutorial access
+             // if (!startScreen.classList.contains('-translate-y-full') && this.students.length > 0) {
+             //    this.showMainUI();
+             // }
         }
     }
 
@@ -501,18 +706,32 @@ class App {
         const btnStart = document.getElementById('btnStartLogin');
         
         if (this.user) {
-            btnHeader.innerHTML = `${this.user.displayName} <span class="ml-1 text-red-300">(Thoát)</span>`;
+            // Updated for Mobile Header: Icon only on small screens handled by HTML
             btnHeader.onclick = () => this.firebaseSignOut();
+            btnHeader.innerHTML = `
+                <span class="hidden md:inline">${escapeHtml(this.user.displayName)}</span>
+                <svg class="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            `;
             btnHeader.classList.remove('hidden');
 
             if (btnStart) {
-                btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${this.user.displayName}</span>`;
+                btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${escapeHtml(this.user.displayName)}</span>`;
                 btnStart.onclick = null; 
-                // Start button will just be status, let user click Start App
             }
         } else {
-            btnHeader.innerHTML = `Đăng nhập`;
             btnHeader.onclick = () => this.googleSignIn();
+            btnHeader.innerHTML = `
+                <span class="hidden md:inline">Đăng nhập</span>
+                <svg class="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+            `;
+            
+            if (btnStart) {
+                btnStart.innerHTML = `
+               <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
+               <span class="text-sm md:text-base font-extrabold tracking-tight">Đăng nhập Google</span>`;
+                btnStart.onclick = () => this.googleSignIn();
+                btnStart.classList.replace('bg-slate-100', 'bg-white');
+            }
         }
     }
 
@@ -529,46 +748,69 @@ class App {
         }
     }
 
+    // --- DATA HANDLING ---
+    
     save() { 
-        this.saveToLocalStorageOnly();
-        this.syncToFirebase(); 
-        this.renderStudentList(); 
+        this.saveDebounced();
+        // REMOVED explicit sync here to prevent lag. 
+        // We now rely on Manual Sync or Lazy Background Sync.
         if (this.currentId) this.renderInfo(); 
     }
 
-    manualSave() {
+    manualSync(silent = false) {
+        this.saveToLocalStorageOnly(false); // Update local first without dirty flag
+        
+        if (!this.user) {
+            if(!silent) this.showToast("Đã lưu vào máy (Chưa đăng nhập Google)", "warning");
+            return;
+        }
+
         const btnText = document.getElementById('saveBtnText');
-        if(btnText) btnText.innerText = "Đang lưu...";
-        this.syncToFirebase()
+        if(btnText && !silent) btnText.innerText = "Đang tải lên...";
+        
+        this.updateConnectionStatus('syncing');
+        const state = this.collectState();
+        
+        this.db.ref(`users/${this.user.uid}/state`).set(state)
             .then(() => {
-                this.showToast("Đã lưu dữ liệu lên đám mây", "success");
-                if(btnText) btnText.innerText = "Lưu";
+                this.updateConnectionStatus('online');
+                this.updateSaveStatus(false); // Reset dirty flag
+                if(btnText && !silent) btnText.innerText = "Lưu Dữ Liệu";
+                if(!silent) this.showToast("Đã đồng bộ lên Google!", "success");
             })
             .catch((err) => {
-                this.showToast("Lỗi lưu trữ! Kiểm tra mạng/quyền.", "error");
-                if(btnText) btnText.innerText = "Lỗi!";
+                this.updateConnectionStatus('offline', err.message);
+                if(btnText && !silent) btnText.innerText = "Lỗi!";
+                if(!silent) this.showToast("Lỗi đồng bộ: " + err.message, "error");
             });
     }
+    
+    // Alias for old button call
+    manualSave() { this.manualSync(); }
 
     saveRules() { 
         this.saveToLocalStorageOnly();
-        this.syncToFirebase(); 
         this.renderRules(); 
     }
 
-    saveToLocalStorageOnly() {
+    saveToLocalStorageOnly(markDirty = true) {
         try { 
             localStorage.setItem('hk_v33_final_data', JSON.stringify(this.students)); 
             localStorage.setItem('hk_v33_final_rules', JSON.stringify(this.rules));
-        } catch (e) {}
+            if(markDirty) {
+                this.updateSaveStatus(true);
+                this.lazySyncDebounced(); // Trigger safety net timer (30s)
+            }
+        } catch (e) {
+            console.error("Local Storage Error", e);
+        }
     }
 
-    // TOAST NOTIFICATION SYSTEM
     showToast(msg, type = 'info') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        toast.innerText = msg;
+        toast.innerText = msg; // Text content safe against XSS
         container.appendChild(toast);
         setTimeout(() => {
             toast.style.opacity = '0';
@@ -600,13 +842,15 @@ class App {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         const picker = document.getElementById('datePicker');
-        if(picker) picker.value = `${yyyy}-${mm}-${dd}`;
+        if(picker && !picker.value) picker.value = `${yyyy}-${mm}-${dd}`;
     }
     
     goHome() { document.getElementById('startScreen').classList.remove('-translate-y-full'); }
 
     switchMobileTab(tabName) {
         this.mobileTab = tabName;
+        // No sync here, just UI switch
+        
         const rulesSection = document.getElementById('rulesSection');
         const historySection = document.getElementById('historySection');
         const rulesGridPos = document.getElementById('rulesWrapperPos');
@@ -614,6 +858,7 @@ class App {
         const btnPos = document.getElementById('tabMobilePos');
         const btnNeg = document.getElementById('tabMobileNeg');
         const btnHist = document.getElementById('tabMobileHistory');
+        
         const setBtnInactive = (btn) => { btn.className = "flex-1 pb-2 text-sm font-bold text-center mobile-tab-inactive text-slate-400 hover:text-slate-600 transition-colors"; };
         const setBtnActive = (btn, color) => { btn.className = `flex-1 pb-2 text-sm font-bold text-center mobile-tab-active text-${color}-600 border-b-2 border-${color}-500 bg-${color}-50`; };
         
@@ -643,10 +888,16 @@ class App {
     resetTutorialState() {
         this.tutorialStep = 0;
         this.isOnboarding = false;
-        this.syncToFirebase();
+        // No sync here
         document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
-        document.getElementById('tutorialBackdrop').classList.add('hidden');
-        document.getElementById('tutorialCard').classList.add('hidden');
+        
+        const bd = document.getElementById('tutorialBackdrop');
+        const card = document.getElementById('tutorialCard');
+        
+        // --- JS FIX FOR TUTORIAL HIDING ---
+        bd.classList.remove('show');
+        card.classList.add('hidden'); // card hidden immediately is fine
+        setTimeout(() => bd.classList.add('hidden'), 300); // Wait for opacity transition
     }
 
     runTutorial() {
@@ -665,9 +916,14 @@ class App {
         this.setToday();
         
         this.isOnboarding = true;
-        this.syncToFirebase();
         
-        document.getElementById('tutorialBackdrop').classList.remove('hidden');
+        const bd = document.getElementById('tutorialBackdrop');
+        bd.classList.remove('hidden');
+        
+        // --- JS FIX FOR TUTORIAL SHOWING ---
+        // Small timeout to allow 'hidden' (display:none) removal to register before opacity transition
+        setTimeout(() => bd.classList.add('show'), 10);
+        
         this.tutorialSteps = [
             { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
             { id: 'sidebar', title: 'Bước 2: Quản Lý Lớp', desc: 'Danh sách học sinh hiển thị ở đây.' },
@@ -683,17 +939,6 @@ class App {
     }
 
     updateTutorialUI() {
-        if (!this.tutorialSteps) {
-             this.tutorialSteps = [
-                { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
-                { id: 'sidebar', title: 'Bước 2: Quản Lý Lớp', desc: 'Danh sách học sinh hiển thị ở đây.' },
-                { id: 'rulesSection', title: 'Bước 3: Chấm Điểm', desc: 'Chọn các thẻ hành vi. Cột trái là Điểm Cộng, cột phải là Điểm Trừ.' },
-                { id: 'heroCard', title: 'Bước 4: Thông Tin', desc: 'Xem nhanh tổng điểm, xếp loại và trạng thái của học sinh đang chọn.', pos: 'bottom-force' }, 
-                { id: 'historySection', title: 'Bước 5: Nhật Ký', desc: 'Lịch sử ghi nhận nằm ở đây. Bạn có thể dùng AI để tạo nhận xét tự động.' },
-                { id: 'btnExport', title: 'Bước 6: Báo Cáo', desc: 'Cuối tháng, bấm vào đây để xuất file Excel.' }
-            ];
-        }
-
         const step = this.tutorialSteps[this.tutorialStep];
         document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
         let el = document.getElementById(step.id);
@@ -733,7 +978,6 @@ class App {
 
     nextTutorialStep() { 
         this.tutorialStep++; 
-        this.syncToFirebase(); 
         if (this.tutorialStep >= this.tutorialSteps.length) { 
             this.endTutorial(); 
         } else { 
@@ -762,8 +1006,7 @@ class App {
                     crit: false
                 })); 
                 
-                // Save immediately
-                this.save(); 
+                this.saveToLocalStorageOnly(); // Bypass debounce for initial import
                 this.closeModal('modalBulk'); 
                 
                 if (this.isOnboarding) { 
@@ -791,6 +1034,7 @@ class App {
         } else {
             this.groupStates[key] = !this.groupStates[key];
         }
+        // No sync here, visual state
         this.renderRules();
     }
 
@@ -800,6 +1044,8 @@ class App {
         const isMobile = window.innerWidth < 1024;
         const isSearching = filterText.length > 0;
         
+        const escapeQuote = (str) => str ? str.replace(/'/g, "\\'") : '';
+
         const renderGroup = (rules, type) => {
             const grouped = rules.reduce((acc, r) => { (acc[r.c] = acc[r.c] || []).push(r); return acc; }, {});
             
@@ -819,6 +1065,14 @@ class App {
                     isOpen = !isMobile; 
                 }
 
+                // REMOVED "countBadge" logic completely to fix lag and remove "x2, x3" indicators
+                const itemsHtml = grouped[catKey].map(r => {
+                    const isBonus = r.s > 0;
+                    const deleteBtn = r.id.startsWith('c') ? `<button onclick="event.stopPropagation(); app.deleteRule('${r.id}')" class="absolute -top-1 -left-1 w-5 h-5 bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white rounded-full flex items-center justify-center text-[10px] shadow-sm z-20 transition-colors">×</button>` : '';
+                    
+                    return `<div onclick="app.addLog('${escapeQuote(r.t)}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-sm font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${escapeHtml(r.t)}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
+                }).join('');
+
                 return `
                 <div class="mb-3 break-inside-avoid bg-white rounded-xl border border-slate-100 overflow-hidden accordion-open">
                     <div onclick="app.toggleGroup('${groupKey}')" class="w-full flex justify-between items-center p-2 bg-slate-50 cursor-pointer select-none group/header hover:bg-slate-100 transition-colors">
@@ -829,17 +1083,7 @@ class App {
                     </div>
                     <div class="p-2 bg-white ${isOpen ? '' : 'hidden'}">
                         <div class="grid grid-cols-1 gap-2">
-                            ${grouped[catKey].map(r => {
-                                let countBadge = '';
-                                if(this.currentId && !this.selectedIds.size && r.inc) {
-                                    const s = this.students.find(x => x.id == this.currentId);
-                                    const count = s ? s.logs.filter(l => l.rid === r.id).length : 0;
-                                    if(count > 0) countBadge = `<span class="absolute top-2 right-2 text-[9px] font-bold bg-slate-800 text-white px-1.5 rounded-full z-10 shadow-sm">x${count+1}</span>`;
-                                }
-                                const isBonus = r.s > 0;
-                                const deleteBtn = r.id.startsWith('c') ? `<button onclick="event.stopPropagation(); app.deleteRule('${r.id}')" class="absolute -top-1 -left-1 w-5 h-5 bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white rounded-full flex items-center justify-center text-[10px] shadow-sm z-20 transition-colors">×</button>` : '';
-                                return `<div onclick="app.addLog('${r.t}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${countBadge} ${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-sm font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${r.t}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
-                            }).join('')}
+                            ${itemsHtml}
                         </div>
                     </div>
                 </div>`;
@@ -851,70 +1095,169 @@ class App {
     }
 
     deleteRule(id) { if(confirm("Xóa thẻ hành vi này?")) { this.rules = this.rules.filter(r => r.id !== id); this.saveRules(); } }
-    editRule(id) { const r = this.rules.find(x => x.id === id); if(!r) return; this.editingRuleId = id; document.getElementById('modalRuleTitle').innerText = "Sửa Hành Vi"; document.getElementById('newRText').value = r.t; document.getElementById('newRScore').value = r.s; document.getElementById('newRCat').value = r.c; document.getElementById('newRInc').checked = r.inc || false; this.openModal('modalRule'); }
+    
+    editRule(id) { 
+        const r = this.rules.find(x => x.id === id); 
+        if(!r) return; 
+        this.editingRuleId = id; 
+        document.getElementById('modalRuleTitle').innerText = "Sửa Hành Vi"; 
+        document.getElementById('newRText').value = r.t; 
+        document.getElementById('newRScore').value = r.s; 
+        document.getElementById('newRCat').value = r.c; 
+        document.getElementById('newRInc').checked = r.inc || false; 
+        this.openModal('modalRule'); 
+    }
     
     calculate(s) {
         if(!s) return {total:0, rank:'-'};
         let total = 80, cheats = 0;
-        s.logs.forEach(l => { total += parseFloat(l.s); if (l.sp === 'cheat') cheats++; });
+        if (s.logs) {
+            s.logs.forEach(l => { total += parseFloat(l.s); if (l.sp === 'cheat') cheats++; });
+        }
         let rank = 'Đạt';
         if (total >= 80) rank = 'Tốt'; else if (total >= 65) rank = 'Khá'; else if (total >= 50) rank = 'Đạt'; else rank = 'Chưa Đạt';
         if (cheats >= 2 && ['Tốt','Khá'].includes(rank)) rank = 'Đạt'; if (cheats >= 3) rank = 'Chưa Đạt'; if (s.crit || total < 50) rank = 'Chưa Đạt';
         return { total: Math.round(total * 100) / 100, rank };
     }
+
     toggleSidebar() { const sb = document.getElementById('sidebar'); const bd = document.getElementById('sidebarBackdrop'); if (sb.classList.contains('-translate-x-full')) { sb.classList.remove('-translate-x-full'); sb.classList.add('sidebar-open'); bd.classList.remove('hidden'); setTimeout(()=>bd.classList.add('active'),10); } else { sb.classList.add('-translate-x-full'); sb.classList.remove('sidebar-open'); bd.classList.remove('active'); setTimeout(()=>bd.classList.add('hidden'),300); } }
-    selectStudent(id) { if (this.selectedIds.size) this.clearSelection(); this.currentId = id; this.renderStudentList(); this.renderInfo(); this.renderRules(); if(window.innerWidth < 1024) { const sb = document.getElementById('sidebar'); if (!sb.classList.contains('-translate-x-full')) { this.toggleSidebar(); } } }
-    toggleSelect(id) { if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id); this.currentId = null; this.renderStudentList(); this.renderInfo(); }
-    toggleSelectAll() { const isAll = this.selectedIds.size === this.students.length; if(isAll) this.selectedIds.clear(); else this.students.forEach(s=>this.selectedIds.add(s.id)); this.renderStudentList(); this.renderInfo(); }
+    
+    selectStudent(id) { 
+        if (this.selectedIds.size) this.clearSelection(); 
+        this.currentId = id; 
+        // No sync here
+        this.renderStudentList(); 
+        this.renderInfo(); 
+        this.renderRules(); 
+        if(window.innerWidth < 1024) { const sb = document.getElementById('sidebar'); if (!sb.classList.contains('-translate-x-full')) { this.toggleSidebar(); } } 
+    }
+
+    toggleSelect(id) { 
+        if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id); 
+        this.currentId = null; 
+        // No sync here
+        this.renderStudentList(); 
+        this.renderInfo(); 
+    }
+
+    toggleSelectAll() { 
+        const isAll = this.selectedIds.size === this.students.length; 
+        if(isAll) this.selectedIds.clear(); else this.students.forEach(s=>this.selectedIds.add(s.id)); 
+        // No sync here
+        this.renderStudentList(); 
+        this.renderInfo(); 
+    }
+
     clearSelection() { this.selectedIds.clear(); if(this.students.length) this.selectStudent(this.students[0].id); }
+
     addLog(txt, score, ruleId=null, sp=null, inc=false) {
-        const dateStr = document.getElementById('datePicker').value.split('-').reverse().slice(0, 2).join('/');
+        const datePicker = document.getElementById('datePicker');
+        let dateStr = "";
+        if (datePicker && datePicker.value) {
+             dateStr = datePicker.value.split('-').reverse().slice(0, 2).join('/');
+        } else {
+             const now = new Date();
+             dateStr = `${now.getDate()}/${now.getMonth() + 1}`;
+        }
+
         const targets = this.selectedIds.size ? this.students.filter(s => this.selectedIds.has(s.id)) : (this.currentId ? [this.students.find(s => s.id == this.currentId)] : []);
         if (!targets.length) return alert("Chưa chọn học sinh!");
+        
         targets.forEach(s => {
+            if (!s.logs) s.logs = [];
             let finalS = score, finalT = txt;
-            if (inc) { const count = s.logs.filter(l => l.rid === ruleId).length + 1; finalT += ` (Lần ${count})`; if (score < 0) finalS = score * count; }
+            if (inc) { 
+                const count = s.logs.filter(l => l.rid === ruleId).length + 1; 
+                finalT += ` (Lần ${count})`; 
+                if (score < 0) finalS = score * count; 
+            }
             s.logs.push({ t: finalT, s: finalS, d: dateStr, rid: ruleId, sp: sp });
             s.remark = this.generateRemarkText(s);
         });
-        this.save();
+        
+        // IMMEDIATE UPDATE for UI (Right Side)
+        this.renderInfo();
+        
+        // DEBOUNCED UPDATE for List (Left Side) & Storage
+        this.saveDebounced();
+        // NO SYNC HERE to prevent lag
     }
+
     removeLog(idx) { const s = this.students.find(x => x.id == this.currentId); if (!s) return; s.logs.splice(idx, 1); s.remark = this.generateRemarkText(s); this.save(); }
-    addManualLog() { const t = document.getElementById('manText').value.trim(); const s = parseFloat(document.getElementById('manScore').value); if(!t || isNaN(s)) return; this.addLog(t, s); document.getElementById('manText').value=''; document.getElementById('manScore').value=''; }
     
     renderStudentList() {
         const term = document.getElementById('searchInput').value.toLowerCase();
-        document.getElementById('studentList').innerHTML = this.students.map((s, i) => {
+        // Safe check for this.students
+        if (!this.students) return;
+
+        const html = this.students.map((s, i) => {
             if (!s.name.toLowerCase().includes(term)) return '';
             const st = this.calculate(s);
             const active = this.currentId == s.id; const checked = this.selectedIds.has(s.id);
-            const initials = s.name.split(' ').slice(-2).map(n=>n[0]).join('');
             let rankColor = 'bg-gray-100 text-gray-600';
             if(st.rank === 'Tốt') rankColor = 'bg-emerald-100 text-emerald-700'; else if(st.rank === 'Khá') rankColor = 'bg-yellow-100 text-yellow-700'; else if(st.rank === 'Chưa Đạt') rankColor = 'bg-red-100 text-red-700'; else if(st.rank === 'Đạt') rankColor = 'bg-orange-100 text-orange-700';
-            return `<div onclick="app.selectStudent(${s.id})" class="student-item flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${active ? 'bg-white border-primary-300 shadow-md transform scale-105 z-10' : 'bg-transparent border-transparent hover:bg-slate-50'}"><div onclick="event.stopPropagation(); app.toggleSelect(${s.id})" class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-bold text-xs transition-colors ${checked ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-400'}">${checked ? '✓' : (i+1)}</div><div class="flex-1 min-w-0"><div class="flex justify-between items-center"><span class="text-[15px] font-bold truncate ${active?'text-slate-900':'text-slate-600'}">${s.name}</span><button onclick="event.stopPropagation(); app.deleteStudentById(${s.id})" class="student-delete-btn ml-2 text-slate-300 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div><div class="flex justify-between items-center mt-1"><span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${rankColor}">${st.rank}</span><span class="text-[10px] font-black ${st.total<50?'text-red-500':'text-primary-600'}">${st.total}</span></div></div></div>`;
+            
+            // SECURITY FIX: Escape Name
+            const safeName = escapeHtml(s.name);
+
+            return `<div onclick="app.selectStudent(${s.id})" class="student-item flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${active ? 'bg-white border-primary-300 shadow-md transform scale-105 z-10' : 'bg-transparent border-transparent hover:bg-slate-50'}"><div onclick="event.stopPropagation(); app.toggleSelect(${s.id})" class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-bold text-xs transition-colors ${checked ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-400'}">${checked ? '✓' : (i+1)}</div><div class="flex-1 min-w-0"><div class="flex justify-between items-center"><span class="text-[15px] font-bold truncate ${active?'text-slate-900':'text-slate-600'}">${safeName}</span><button onclick="event.stopPropagation(); app.deleteStudentById(${s.id})" class="student-delete-btn ml-2 text-slate-300 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div><div class="flex justify-between items-center mt-1"><span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${rankColor}">${st.rank}</span><span class="text-[10px] font-black ${st.total<50?'text-red-500':'text-primary-600'}">${st.total}</span></div></div></div>`;
         }).join('');
+        document.getElementById('studentList').innerHTML = html;
         document.getElementById('studentCount').innerText = `${this.students.length} Học sinh`;
     }
+
     renderInfo() {
         if(!this.currentId) return;
-        const s = this.students.find(x => x.id == this.currentId); const st = this.calculate(s);
+        const s = this.students.find(x => x.id == this.currentId); 
+        if (!s) return;
+
+        const st = this.calculate(s);
         const nameParts = s.name.split(' '); const initials = nameParts.slice(-2).map(n=>n[0]).join('');
         document.getElementById('heroName').innerText = s.name;
         const heroScore = document.getElementById('heroScore'); heroScore.innerText = st.total;
-        let colorClass = 'text-slate-800'; let bgClass = 'bg-slate-100 text-slate-500 border-slate-200';
-        if (st.total >= 80) { colorClass = 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400'; bgClass = 'bg-emerald-50 text-emerald-600 border-emerald-200'; } else if (st.total < 50) { colorClass = 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600'; bgClass = 'bg-red-50 text-red-600 border-red-200'; }
-        heroScore.className = `text-6xl lg:text-7xl font-black transition-all duration-300 transform scale-100 ${colorClass}`;
-        document.getElementById('heroRank').innerText = st.rank; document.getElementById('heroRank').className = `px-4 py-1.5 rounded-full text-sm font-bold border transition-colors shadow-sm ${bgClass}`;
-        document.getElementById('heroAvatar').innerText = initials; document.getElementById('critCheck').checked = s.crit;
+        
+        // COLOR LOGIC for RANK & SCORE
+        let colorClass = 'text-slate-800'; 
+        let rankGradient = 'from-slate-300 to-slate-400';
+        
+        if (st.total >= 80) { 
+            colorClass = 'text-emerald-500'; 
+            rankGradient = 'from-emerald-400 to-teal-500';
+        } else if (st.total >= 65) {
+            colorClass = 'text-yellow-500';
+            rankGradient = 'from-yellow-400 to-orange-500';
+        } else if (st.total >= 50) {
+            colorClass = 'text-orange-500';
+            rankGradient = 'from-orange-400 to-red-400';
+        } else { 
+            colorClass = 'text-red-500'; 
+            rankGradient = 'from-red-500 to-pink-600';
+        }
+        
+        // Update Score
+        heroScore.className = `text-4xl md:text-5xl font-black transition-all duration-300 ${colorClass}`;
+        
+        // Update Rank (Center Big)
+        const heroRank = document.getElementById('heroRank');
+        heroRank.innerText = st.rank; 
+        heroRank.className = `text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br ${rankGradient} animate-breath tracking-widest drop-shadow-sm transform transition-all`;
+        
+        document.getElementById('heroAvatar').innerText = initials; 
+        document.getElementById('critCheck').checked = s.crit;
+        
         const tbody = document.querySelector('#logTable tbody');
-        if(s.logs.length===0){ tbody.innerHTML=''; document.getElementById('emptyHistory').classList.remove('hidden'); } else {
+        if(!s.logs || s.logs.length===0){ 
+            tbody.innerHTML=''; document.getElementById('emptyHistory').classList.remove('hidden'); 
+        } else {
             document.getElementById('emptyHistory').classList.add('hidden');
             tbody.innerHTML = s.logs.slice().reverse().map((l, idx) => `
-                <tr class="group hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"><td class="py-3 pl-2 w-14 text-[11px] text-slate-400 font-medium align-top pt-4">${l.d}</td><td class="py-3 pr-2 align-top"><p class="text-xs font-bold text-slate-700 leading-snug">${l.t}</p></td><td class="py-3 w-12 text-right align-top"><span class="inline-block px-2 py-0.5 rounded text-[10px] font-black ${l.s>0?'bg-emerald-50 text-emerald-600':'bg-red-50 text-red-600'}">${l.s>0?'+':''}${l.s}</span></td><td class="py-3 w-8 text-center align-top"><button onclick="app.removeLog(${s.logs.length-1-idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">×</button></td></tr>`).join('');
+                <tr class="group hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"><td class="py-3 pl-2 w-14 text-[11px] text-slate-400 font-medium align-top pt-4">${l.d}</td><td class="py-3 pr-2 align-top"><p class="text-xs font-bold text-slate-700 leading-snug">${escapeHtml(l.t)}</p></td><td class="py-3 w-12 text-right align-top"><span class="inline-block px-2 py-0.5 rounded text-[10px] font-black ${l.s>0?'bg-emerald-50 text-emerald-600':'bg-red-50 text-red-600'}">${l.s>0?'+':''}${l.s}</span></td><td class="py-3 w-8 text-center align-top"><button onclick="app.removeLog(${s.logs.length-1-idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">×</button></td></tr>`).join('');
         }
         document.getElementById('remarkBox').value = s.remark || this.generateRemarkText(s);
     }
+
     openAddRule() { this.editingRuleId = null; document.getElementById('modalRuleTitle').innerText = "Thêm Hành Vi"; document.getElementById('newRText').value = ''; document.getElementById('newRScore').value = ''; document.getElementById('newRCat').value = 'learning'; document.getElementById('newRInc').checked = false; this.openModal('modalRule'); }
+    
     openModal(id){ 
         if(id === 'modalBulk') {
             const cancelBtn = document.querySelector('#modalBulk button:nth-child(2)');
@@ -923,10 +1266,21 @@ class App {
                  if(app.isOnboarding) { app.resetTutorialState(); document.getElementById('appContainer').classList.add('opacity-0'); document.getElementById('startScreen').classList.remove('-translate-y-full'); app.isOnboarding = false; }
              };
         }
-        document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); 
+        // --- JS FIX FOR MODAL SHOWING ---
+        const el = document.getElementById(id);
+        el.classList.remove('hidden');
+        // Small delay to allow flex/block to register before opacity transition (if any)
+        setTimeout(() => el.classList.add('flex'), 10); 
     }
-    closeModal(id){ document.getElementById(id).classList.remove('flex'); document.getElementById(id).classList.add('hidden'); }
+    
+    closeModal(id){ 
+        // --- JS FIX FOR MODAL HIDING ---
+        const el = document.getElementById(id);
+        el.classList.remove('flex');
+        setTimeout(() => el.classList.add('hidden'), 200); 
+    }
     loadDefaultClass(){ document.getElementById('bulkText').value = INIT_DATA.join('\n'); }
+    
     addStudent(){ 
         const n=document.getElementById('newStudentName').value.trim(); 
         if(n){ 
@@ -935,7 +1289,9 @@ class App {
             this.closeModal('modalStudent'); 
         } 
     }
+    
     sortStudents() { this.sortStudentsLogic(); }
+    
     sortStudentsLogic() { 
         this.students.sort((a, b) => { 
             const getName = (fullName) => {
@@ -948,6 +1304,7 @@ class App {
         }); 
         this.save(); 
     }
+    
     saveNewRule(){ 
         const t=document.getElementById('newRText').value; 
         const s=parseFloat(document.getElementById('newRScore').value); 
@@ -961,12 +1318,12 @@ class App {
             this.saveRules(); this.closeModal('modalRule'); 
         } 
     }
+
     generateRemarkText(s) {
         const st = this.calculate(s);
-        const logs = s.logs;
+        const logs = s.logs || [];
         let remarks = [];
 
-        // Rank based intro
         if (st.rank === 'Tốt') {
             remarks.push("Em là một học sinh gương mẫu, có ý thức kỷ luật rất tốt.");
             remarks.push("Luôn chấp hành nghiêm túc nội quy và nỗ lực trong học tập.");
@@ -978,13 +1335,11 @@ class App {
             remarks.push("Cần nghiêm túc kiểm điểm bản thân và thay đổi thái độ học tập, rèn luyện ngay.");
         }
 
-        // Specific Positive Feedback
         if (logs.some(l => l.t.includes('Học tốt') && l.s > 0)) remarks.push("Rất đáng khen ngợi về tinh thần học tập chăm chỉ.");
         if (logs.some(l => l.t.includes('Phát biểu') && l.s > 0)) remarks.push("Tích cực xây dựng bài, tư duy nhạy bén.");
         if (logs.some(l => l.t.includes('Phong trào') && l.s > 0)) remarks.push("Năng nổ, nhiệt tình trong các hoạt động phong trào của lớp.");
         if (logs.some(l => l.t.includes('Việc tốt') && l.s > 0)) remarks.push("Có lòng tốt, hay giúp đỡ thầy cô và bạn bè.");
 
-        // Constructive Feedback (Negative)
         const badHabits = [];
         if (logs.some(l => l.t.toLowerCase().includes('trễ'))) badHabits.push("đi học đúng giờ");
         if (logs.some(l => l.t.toLowerCase().includes('vắng'))) badHabits.push("tham gia đầy đủ các buổi học");
@@ -998,19 +1353,23 @@ class App {
             remarks.push(`Cần lưu ý: ${reminders}.`);
         }
         
-        // Closing encouragement
         if (st.total < 65) remarks.push("Mong em nỗ lực hơn nữa trong thời gian tới!");
 
         return remarks.join(" ");
     }
+
     generateRemark(f){ if(this.currentId){ const s=this.students.find(x=>x.id==this.currentId); s.remark=this.generateRemarkText(s); document.getElementById('remarkBox').value=s.remark; this.save(); } }
+    
     saveRemark(){ if(this.currentId){ this.students.find(x=>x.id==this.currentId).remark=document.getElementById('remarkBox').value; this.save(); } }
-    resetData(){ if(confirm("Xóa hết dữ liệu? (Bao gồm cả danh sách HS)")){ localStorage.removeItem('hk_v33_mobile_acc_data'); localStorage.removeItem('hk_v33_mobile_acc_rules'); location.reload(); } }
+    
+    resetData(){ if(confirm("Xóa hết dữ liệu? (Bao gồm cả danh sách HS)")){ localStorage.removeItem('hk_v33_final_data'); localStorage.removeItem('hk_v33_final_rules'); location.reload(); } }
+    
     deleteStudentById(id) { if (confirm("Xóa học sinh này?")) { this.students = this.students.filter(s => s.id != id); if (this.currentId == id) this.currentId = null; this.save(); if (this.students.length) this.selectStudent(this.students[0].id); else { this.renderStudentList(); this.renderInfo(); } } }
+    
     deleteStudent(){ if(this.currentId) this.deleteStudentById(this.currentId); }
+    
     toggleCrit(){ if(this.currentId){ const s=this.students.find(x=>x.id==this.currentId); s.crit=!s.crit; this.save(); this.renderInfo(); } }
     
-    // Updated exportExcel function with FULL STYLING
     exportExcel() { 
         const m = document.getElementById('monthSelect').value; 
         const headers = ["STT", "HỌ VÀ TÊN HỌC SINH", "BIỂU HIỆN TÍCH CỰC", "ĐIỂM CỘNG", "HÀNH VI CẦN CẢI THIỆN", "ĐIỂM TRỪ", "TỔNG ĐIỂM", "XẾP LOẠI", "NHẬN XÉT"];
@@ -1019,7 +1378,6 @@ class App {
         this.students.forEach((s, i) => { 
             const st = this.calculate(s); 
             
-            // Helper to format date: 10/11 -> (ngày 10 tháng 11)
             const fmtDate = (dateStr) => {
                 if (!dateStr) return "";
                 const parts = dateStr.split('/');
@@ -1027,17 +1385,16 @@ class App {
                 return ` (${dateStr})`;
             };
 
-            // Format content similar to CSV structure
-            const positiveLogs = s.logs.filter(l => l.s > 0)
+            const positiveLogs = (s.logs || []).filter(l => l.s > 0)
                 .map(l => `- ${l.t}${fmtDate(l.d)} (+${l.s})`)
                 .join('\n');
                 
-            const negativeLogs = s.logs.filter(l => l.s < 0)
+            const negativeLogs = (s.logs || []).filter(l => l.s < 0)
                 .map(l => `- ${l.t}${fmtDate(l.d)} (${l.s})`)
                 .join('\n');
             
-            const bonusTotal = s.logs.filter(l => l.s > 0).reduce((a, c) => a + c.s, 0);
-            const penaltyTotal = Math.abs(s.logs.filter(l => l.s < 0).reduce((a, c) => a + c.s, 0)); 
+            const bonusTotal = (s.logs || []).filter(l => l.s > 0).reduce((a, c) => a + c.s, 0);
+            const penaltyTotal = Math.abs((s.logs || []).filter(l => l.s < 0).reduce((a, c) => a + c.s, 0)); 
             
             d.push([
                 i + 1, 
@@ -1055,7 +1412,6 @@ class App {
         const wb = XLSX.utils.book_new(); 
         const ws = XLSX.utils.aoa_to_sheet(d); 
         
-        // 1. Set Column Widths (Approximation)
         ws['!cols'] = [
             {wch: 5},  // STT
             {wch: 25}, // Name
@@ -1068,15 +1424,12 @@ class App {
             {wch: 30}  // Remark
         ]; 
         
-        // 2. Apply Styles to All Cells
-        // Get range of sheet
         const range = XLSX.utils.decode_range(ws['!ref']);
         for (let R = range.s.r; R <= range.e.r; ++R) {
             for (let C = range.s.c; C <= range.e.c; ++C) {
                 const cellRef = XLSX.utils.encode_cell({r: R, c: C});
                 if (!ws[cellRef]) continue;
                 
-                // Base Style Object
                 const style = {
                     font: { name: "Times New Roman", sz: 12 },
                     border: {
@@ -1088,22 +1441,16 @@ class App {
                     alignment: { vertical: "center", wrapText: true }
                 };
 
-                // Header Specific Styling (Row 0)
                 if (R === 0) {
                     style.font.bold = true;
-                    style.fill = { fgColor: { rgb: "D9D9D9" } }; // Light Grey Background
+                    style.fill = { fgColor: { rgb: "D9D9D9" } };
                     style.alignment.horizontal = "center";
                 } 
-                // Data Specific Styling
                 else {
-                    // Center align specific columns (STT, Scores, Rank)
-                    // Indices: 0(STT), 3(Bonus), 5(Penalty), 6(Total), 7(Rank)
                     if ([0, 3, 5, 6, 7].includes(C)) {
                         style.alignment.horizontal = "center";
                     }
                 }
-                
-                // Apply style
                 ws[cellRef].s = style;
             }
         }
@@ -1112,6 +1459,7 @@ class App {
         XLSX.writeFile(wb, `HK_Yersin_Thang${m}.xlsx`); 
     }
 }
+
 document.addEventListener('DOMContentLoaded', () => { window.app = new App(); });
 </script>
 </body>
