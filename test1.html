@@ -12,13 +12,13 @@
     
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Thư viện Excel hỗ trợ định dạng Style -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
-    <!-- FIREBASE LIBRARIES (Compat version) -->
+    <!-- FIREBASE INTEGRATION START -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <!-- FIREBASE INTEGRATION END -->
 
     <script>
         tailwind.config = {
@@ -151,7 +151,7 @@
         </div>
         <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md slide-up relative z-10" id="startActions">
             <!-- GOOGLE LOGIN BUTTON (START SCREEN) -->
-            <button id="btnStartLogin" onclick="app.firebaseSignIn()" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+            <button id="btnStartLogin" onclick="app.googleSignIn()" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
                Đăng nhập Google
             </button>
@@ -201,7 +201,7 @@
 
             <div class="flex items-center gap-3">
                 <!-- HEADER LOGIN/LOGOUT BUTTON -->
-                <button id="btnLogin" onclick="app.firebaseSignIn()" class="hidden md:block bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-xl transition-all whitespace-nowrap">
+                <button id="btnLogin" onclick="app.googleSignIn()" class="hidden md:block bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-xl transition-all whitespace-nowrap">
                     Đăng nhập
                 </button>
 
@@ -367,6 +367,7 @@
 
 <script>
 // --- FIREBASE CONFIGURATION ---
+// FIREBASE INTEGRATION START
 const firebaseConfig = {
   apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
   authDomain: "hanhkiem-d853b.firebaseapp.com",
@@ -377,6 +378,7 @@ const firebaseConfig = {
   appId: "1:208584372826:web:6e55373d25ca0ffeb59e63",
   measurementId: "G-M1Z8X4FX8L"
 };
+// FIREBASE INTEGRATION END
 
 const RULES = [
     {id:'h1', t:'Học tốt 1 tuần', s:0.5, c:'learning', inc:true}, {id:'h2', t:'Học tốt 4 tuần', s:2.0, c:'learning', inc:true}, {id:'h3', t:'Phát biểu', s:0.25, c:'learning', inc:true},
@@ -393,6 +395,7 @@ const INIT_DATA = ["Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Â
 
 class App {
     constructor() {
+        // Init local state defaults
         try { 
             this.students = JSON.parse(localStorage.getItem('hk_v33_final_data')) || [];
             const storedRules = localStorage.getItem('hk_v33_final_rules');
@@ -405,17 +408,19 @@ class App {
         this.currentId = null;
         this.editingRuleId = null;
         this.isOnboarding = false;
+        this.tutorialStep = 0; // Added explicit tracking for sync
         this.mobileTab = 'positive'; 
         // Track accordion states
         this.groupStates = {}; 
         
-        // ADDED FOR FIREBASE: Init
+        // FIREBASE INTEGRATION START
         this.user = null;
         this.dbRef = null;
         this.initFirebase();
+        // FIREBASE INTEGRATION END
     }
 
-    // ADDED FOR FIREBASE: Main Init Logic
+    // FIREBASE INTEGRATION START
     initFirebase() {
         try {
             firebase.initializeApp(firebaseConfig);
@@ -429,142 +434,146 @@ class App {
                 if (user) {
                     this.setupRealtimeListener();
                 } else {
-                    if (this.dbRef) this.dbRef.off(); // Detach listener
+                    if (this.dbRef) this.dbRef.off();
                     this.dbRef = null;
                 }
             });
         } catch (e) { console.error("Firebase Init Error:", e); }
     }
 
-    // ADDED FOR FIREBASE: Sync Logic (The Heart)
     setupRealtimeListener() {
         if (!this.user) return;
         const uid = this.user.uid;
-        this.dbRef = this.db.ref(`users/${uid}`);
+        this.dbRef = this.db.ref(`users/${uid}/state`); // Point to /state object
 
-        this.dbRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            
-            // 1. Dữ liệu từ Firebase có -> Load về Local (ghi đè)
-            // Đây là logic quan trọng để khi đăng nhập ở thiết bị mới, dữ liệu cũ sẽ hiện ra
-            if (data) {
-                console.log("Syncing from DB...");
-                if (data.students) this.students = data.students;
-                if (data.rules) this.rules = data.rules;
-                
-                // Đồng thời lưu vào LocalStorage luôn
-                this.saveToLocalStorageOnly();
-                // Cập nhật giao diện
-                this.refreshUI();
-            } 
-            // 2. Trường hợp Firebase chưa có gì (lần đầu dùng trên acc này)
-            // nhưng LocalStorage đang có dữ liệu (vừa nhập xong ở màn hình start)
-            // -> Đẩy Local lên Firebase
-            else {
-                if (this.students && this.students.length > 0) {
-                    console.log("First time sync: Pushing Local to DB...");
-                    this.firebasePushLocal();
-                }
+        // Load data ONCE first to determine merge strategy
+        this.dbRef.once('value').then(snapshot => {
+            const val = snapshot.val();
+            if (val) {
+                // Cloud has data -> Overwrite Local
+                console.log("Cloud data found. Syncing to local...");
+                this.applyState(val);
+            } else {
+                // Cloud is empty -> Push Local
+                console.log("Cloud empty. Pushing local data...");
+                this.syncToFirebase();
             }
+
+            // Start Realtime Listener AFTER initial load logic
+            this.dbRef.on('value', (snap) => {
+                const data = snap.val();
+                if (data) this.applyState(data);
+            });
         });
     }
 
-    // ADDED FOR FIREBASE: Helper to update UI after sync
+    applyState(data) {
+        if (data.students) this.students = data.students || [];
+        if (data.rules) this.rules = data.rules || [];
+        // Sync tutorial progress
+        this.isOnboarding = data.isOnboarding || false;
+        this.tutorialStep = data.tutorialStep || 0;
+        
+        // Save to local storage for offline fallback next time
+        this.saveToLocalStorageOnly();
+        this.refreshUI();
+    }
+
+    syncToFirebase() {
+        if (!this.user) return;
+        const state = {
+            students: this.students || [],
+            rules: this.rules || [],
+            isOnboarding: this.isOnboarding || false,
+            tutorialStep: this.tutorialStep || 0,
+            lastUpdated: firebase.database.ServerValue.TIMESTAMP
+        };
+        this.db.ref(`users/${this.user.uid}/state`).set(state).catch(e => console.error("Sync failed:", e));
+    }
+
     refreshUI() {
         this.renderStudentList();
         this.renderRules();
         if (this.currentId) this.renderInfo();
-        // Nếu đang ở màn hình start mà có dữ liệu -> vào app luôn
-        if (document.getElementById('startScreen') && !document.getElementById('startScreen').classList.contains('-translate-y-full') && this.students.length > 0) {
-             this.showMainUI();
+        
+        // Handle tutorial UI state based on synced data
+        if (this.isOnboarding) {
+            // Restore tutorial view if active
+            const startScreen = document.getElementById('startScreen');
+            const appContainer = document.getElementById('appContainer');
+            const tutBackdrop = document.getElementById('tutorialBackdrop');
+            const tutCard = document.getElementById('tutorialCard');
+
+            if (!startScreen.classList.contains('-translate-y-full')) {
+                startScreen.classList.add('-translate-y-full');
+                appContainer.classList.remove('opacity-0');
+            }
+            
+            tutBackdrop.classList.remove('hidden');
+            tutCard.classList.remove('hidden');
+            tutCard.classList.remove('scale-95', 'opacity-0');
+            this.updateTutorialUI();
         }
     }
 
-    // ADDED FOR FIREBASE: UI Updates
     updateAuthUI() {
         const btnHeader = document.getElementById('btnLogin');
         const btnStart = document.getElementById('btnStartLogin');
         
         if (this.user) {
-            // Header Button (Always visible inside)
+            // Header Button
             btnHeader.innerHTML = `${this.user.displayName || this.user.email} <span class="ml-1 text-red-300">(Thoát)</span>`;
             btnHeader.onclick = () => this.firebaseSignOut();
-            btnHeader.classList.remove('hidden'); // Ensure visible if hidden
+            btnHeader.classList.remove('hidden');
 
-            // Start Screen Button (If still on start screen)
+            // Start Screen Button
             if (btnStart) {
                 btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${this.user.displayName || 'Bạn'}</span> <span class="text-xs ml-1">(Thoát)</span>`;
                 btnStart.onclick = () => this.firebaseSignOut();
-                btnStart.classList.replace('bg-white', 'bg-slate-100'); // Slight style change
+                btnStart.classList.replace('bg-white', 'bg-slate-100');
             }
         } else {
             // Header Button
             btnHeader.innerHTML = `Đăng nhập`;
-            btnHeader.onclick = () => this.firebaseSignIn();
+            btnHeader.onclick = () => this.googleSignIn();
             
             // Start Screen Button
             if (btnStart) {
                 btnStart.innerHTML = `
                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
                Đăng nhập Google`;
-                btnStart.onclick = () => this.firebaseSignIn();
+                btnStart.onclick = () => this.googleSignIn();
                 btnStart.classList.replace('bg-slate-100', 'bg-white');
             }
         }
     }
 
-    // ADDED FOR FIREBASE: Auth Actions
-    firebaseSignIn() {
-        if (!this.auth) {
-            alert("Lỗi cấu hình Firebase!");
-            return;
-        }
+    googleSignIn() {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        this.auth.signInWithPopup(provider)
-            .catch(error => {
-                alert("Lỗi đăng nhập: " + error.message);
-                console.error(error);
-            });
+        this.auth.signInWithPopup(provider).catch(e => alert("Lỗi: " + e.message));
     }
 
     firebaseSignOut() {
         if(confirm("Đăng xuất?")) {
-            this.auth.signOut().then(() => {
-                location.reload(); 
-            });
+            this.auth.signOut().then(() => { location.reload(); });
         }
     }
+    // FIREBASE INTEGRATION END
 
-    // ADDED FOR FIREBASE: Push Local -> DB
-    firebasePushLocal() {
-        if (!this.user) return;
-        this.db.ref(`users/${this.user.uid}`).set({
-            students: this.students,
-            rules: this.rules
-        }).catch(e => console.error("Push Error", e));
-    }
-
-    // ADDED FOR FIREBASE: Save Override
     save() { 
         this.saveToLocalStorageOnly();
-        // If logged in, push to DB
-        if (this.user) {
-            this.db.ref(`users/${this.user.uid}/students`).set(this.students).catch(e => console.log("Offline mode"));
-        }
+        this.syncToFirebase(); // Sync state whenever save called
         this.renderStudentList(); 
         if (this.currentId) this.renderInfo(); 
     }
 
     saveRules() { 
         this.saveToLocalStorageOnly();
-        if (this.user) {
-            this.db.ref(`users/${this.user.uid}/rules`).set(this.rules).catch(e => console.log("Offline mode"));
-        }
+        this.syncToFirebase(); // Sync state
         this.renderRules(); 
     }
 
-    // Helper to keep code clean
     saveToLocalStorageOnly() {
         try { 
             localStorage.setItem('hk_v33_final_data', JSON.stringify(this.students)); 
@@ -641,6 +650,8 @@ class App {
     resetTutorialState() {
         this.tutorialStep = 0;
         this.isOnboarding = false;
+        // Sync reset state
+        this.syncToFirebase();
         document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
         document.getElementById('tutorialBackdrop').classList.add('hidden');
         document.getElementById('tutorialCard').classList.add('hidden');
@@ -649,10 +660,24 @@ class App {
     runTutorial() {
         if (window.innerWidth < 1024) { document.getElementById('mobileWarning').classList.remove('hidden'); return; }
         if (this.students && this.students.length > 0) { if(!confirm("Hướng dẫn sẽ XÓA TOÀN BỘ dữ liệu hiện tại để thiết lập mới. Bạn có chắc chắn?")) return; }
-        this.resetTutorialState(); localStorage.removeItem('hk_v33_mobile_acc_data'); this.students = [];
-        document.getElementById('startScreen').classList.add('-translate-y-full'); document.getElementById('appContainer').classList.remove('opacity-0');
-        this.renderStudentList(); this.renderRules(); this.setToday();
+        
+        // Reset local logic
+        this.tutorialStep = 0;
+        this.isOnboarding = false;
+        localStorage.removeItem('hk_v33_mobile_acc_data'); 
+        this.students = [];
+        
+        // Setup UI
+        document.getElementById('startScreen').classList.add('-translate-y-full'); 
+        document.getElementById('appContainer').classList.remove('opacity-0');
+        this.renderStudentList(); 
+        this.renderRules(); 
+        this.setToday();
+        
+        // Start flow
         this.isOnboarding = true;
+        this.syncToFirebase(); // Sync initial state
+        
         document.getElementById('tutorialBackdrop').classList.remove('hidden');
         this.tutorialSteps = [
             { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
@@ -669,6 +694,18 @@ class App {
     }
 
     updateTutorialUI() {
+        // Ensure steps exists if reloaded from state without calling runTutorial
+        if (!this.tutorialSteps) {
+             this.tutorialSteps = [
+                { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
+                { id: 'sidebar', title: 'Bước 2: Quản Lý Lớp', desc: 'Danh sách học sinh hiển thị ở đây.' },
+                { id: 'rulesSection', title: 'Bước 3: Chấm Điểm', desc: 'Chọn các thẻ hành vi. Cột trái là Điểm Cộng, cột phải là Điểm Trừ.' },
+                { id: 'heroCard', title: 'Bước 4: Thông Tin', desc: 'Xem nhanh tổng điểm, xếp loại và trạng thái của học sinh đang chọn.', pos: 'bottom-force' }, 
+                { id: 'historySection', title: 'Bước 5: Nhật Ký', desc: 'Lịch sử ghi nhận nằm ở đây. Bạn có thể dùng AI để tạo nhận xét tự động.' },
+                { id: 'btnExport', title: 'Bước 6: Báo Cáo', desc: 'Cuối tháng, bấm vào đây để xuất file Excel.' }
+            ];
+        }
+
         const step = this.tutorialSteps[this.tutorialStep];
         document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
         let el = document.getElementById(step.id);
@@ -706,7 +743,15 @@ class App {
         }
     }
 
-    nextTutorialStep() { this.tutorialStep++; if (this.tutorialStep >= this.tutorialSteps.length) { this.endTutorial(); } else { this.updateTutorialUI(); } }
+    nextTutorialStep() { 
+        this.tutorialStep++; 
+        this.syncToFirebase(); // Sync progress
+        if (this.tutorialStep >= this.tutorialSteps.length) { 
+            this.endTutorial(); 
+        } else { 
+            this.updateTutorialUI(); 
+        } 
+    }
 
     endTutorial() {
         this.resetTutorialState();
@@ -718,10 +763,15 @@ class App {
         const t=document.getElementById('bulkText').value.trim(); 
         if(t){ 
             this.students = t.split('\n').filter(x=>x.trim()).map((n,i)=>({id:Date.now()+i, name:n.trim(), logs:[], remark:"", crit:false})); 
-            // Removed default sorting to keep input order
-            this.save(); 
+            this.sortStudentsLogic(); // Saves internally
             this.closeModal('modalBulk'); 
-            if (this.isOnboarding) { this.renderStudentList(); if(this.students.length > 0) this.selectStudent(this.students[0].id); setTimeout(() => { this.nextTutorialStep(); }, 300); } else { this.showMainUI(); }
+            if (this.isOnboarding) { 
+                this.renderStudentList(); 
+                if(this.students.length > 0) this.selectStudent(this.students[0].id); 
+                setTimeout(() => { this.nextTutorialStep(); }, 300); 
+            } else { 
+                this.showMainUI(); 
+            }
         } 
     }
     
