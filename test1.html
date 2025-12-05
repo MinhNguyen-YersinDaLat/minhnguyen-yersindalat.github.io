@@ -208,6 +208,14 @@
                     Đăng nhập
                 </button>
 
+                <!-- MANUAL SAVE BUTTON -->
+                <button onclick="app.manualSave()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    <span class="hidden sm:inline" id="saveBtnText">Lưu Dữ Liệu</span>
+                </button>
+
                 <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     <span class="hidden sm:inline">Xuất Excel</span>
@@ -411,7 +419,7 @@ class App {
         this.currentId = null;
         this.editingRuleId = null;
         this.isOnboarding = false;
-        this.tutorialStep = 0; // Added explicit tracking for sync
+        this.tutorialStep = 0; 
         this.mobileTab = 'positive'; 
         // Track accordion states
         this.groupStates = {}; 
@@ -466,10 +474,10 @@ class App {
     setupRealtimeListener() {
         if (!this.user) return;
         const uid = this.user.uid;
-        this.dbRef = this.db.ref(`users/${uid}/state`); // Point to /state object
+        const stateRef = this.db.ref(`users/${uid}/state`); // Point to /state object
 
         // Load data ONCE first to determine merge strategy
-        this.dbRef.once('value').then(snapshot => {
+        stateRef.once('value').then(snapshot => {
             const val = snapshot.val();
             if (val) {
                 // Cloud has data -> Overwrite Local
@@ -487,22 +495,41 @@ class App {
             }
 
             // Start Realtime Listener AFTER initial load logic
-            this.dbRef.on('value', (snap) => {
+            stateRef.on('value', (snap) => {
                 const data = snap.val();
                 if (data) {
                     this.applyState(data);
                     this.updateConnectionStatus('online');
                 }
             });
+        }).catch(error => {
+                console.error("Sync Error:", error);
+                this.updateConnectionStatus('offline', error.message);
         });
     }
 
+    // NEW: Collect 100% State
+    collectState() {
+        return {
+            students: this.students || [],
+            rules: this.rules || [],
+            isOnboarding: this.isOnboarding || false,
+            tutorialStep: this.tutorialStep || 0,
+            currentId: this.currentId || null,
+            selectedIds: Array.from(this.selectedIds || []), // Serialize Set to Array
+            mobileTab: this.mobileTab || 'positive',
+            groupStates: this.groupStates || {},
+            lastUpdated: firebase.database.ServerValue.TIMESTAMP
+        };
+    }
+
+    // NEW: Apply 100% State
     applyState(data) {
         // Fix: Ensure students/rules are arrays (Firebase converts empty arrays to null or objects)
         const toArray = (obj) => {
             if (!obj) return [];
             if (Array.isArray(obj)) return obj;
-            return Object.values(obj); // FIX: Object to array conversion
+            return Object.values(obj); 
         };
 
         this.students = toArray(data.students);
@@ -514,22 +541,29 @@ class App {
 
         this.isOnboarding = data.isOnboarding || false;
         this.tutorialStep = data.tutorialStep || 0;
+        this.currentId = data.currentId || null;
+        this.selectedIds = new Set(data.selectedIds || []); // Deserialize to Set
+        this.mobileTab = data.mobileTab || 'positive';
+        this.groupStates = data.groupStates || {};
         
         // Save to local storage for offline fallback next time
         this.saveToLocalStorageOnly();
         this.refreshUI();
     }
 
+    checkConnection() {
+        if (this.user) {
+            this.showToast("Đang thử kết nối lại...", "info");
+            this.setupRealtimeListener();
+        } else {
+            this.showToast("Bạn chưa đăng nhập.", "error");
+        }
+    }
+
     syncToFirebase() {
-        if (!this.user) return Promise.resolve(); // Return promise even if not logged in
+        if (!this.user) return Promise.resolve();
         this.updateConnectionStatus('syncing');
-        const state = {
-            students: this.students,
-            rules: this.rules,
-            isOnboarding: this.isOnboarding,
-            tutorialStep: this.tutorialStep,
-            lastUpdated: firebase.database.ServerValue.TIMESTAMP
-        };
+        const state = this.collectState(); // Use new collect function
         return this.db.ref(`users/${this.user.uid}/state`).set(state)
             .then(() => this.updateConnectionStatus('online'))
             .catch(e => this.updateConnectionStatus('offline', "Lỗi lưu: " + e.message));
@@ -538,12 +572,16 @@ class App {
     refreshUI() {
         this.renderStudentList();
         this.renderRules();
+        
+        // Correctly restore tabs and accordion state
+        if (this.mobileTab) this.switchMobileTab(this.mobileTab);
+        
         if (this.currentId) {
-             // Robust check: ensure currentId exists in list
              const exists = this.students.find(s => s.id == this.currentId);
              if(exists) this.renderInfo();
-             else this.currentId = null; // Reset if student deleted
+             else this.currentId = null; 
         }
+        
         if (this.isOnboarding) {
             const startScreen = document.getElementById('startScreen');
             const appContainer = document.getElementById('appContainer');
@@ -555,7 +593,6 @@ class App {
             document.getElementById('tutorialCard').classList.remove('hidden');
             this.updateTutorialUI();
         } else {
-             // If finished onboarding but on start screen (e.g. first load on new device), show main app
              const startScreen = document.getElementById('startScreen');
              if (!startScreen.classList.contains('-translate-y-full') && this.students.length > 0) {
                  this.showMainUI();
@@ -577,7 +614,6 @@ class App {
             if (btnStart) {
                 btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${this.user.displayName}</span>`;
                 btnStart.onclick = null; 
-                // Start button will just be status, let user click Start App
             }
         } else {
             // Header Button
@@ -694,6 +730,8 @@ class App {
 
     switchMobileTab(tabName) {
         this.mobileTab = tabName;
+        this.syncToFirebase(); // Save state on tab switch
+        
         const rulesSection = document.getElementById('rulesSection');
         const historySection = document.getElementById('historySection');
         const rulesGridPos = document.getElementById('rulesWrapperPos');
@@ -878,6 +916,7 @@ class App {
         } else {
             this.groupStates[key] = !this.groupStates[key];
         }
+        this.syncToFirebase(); // Sync state
         this.renderRules();
     }
 
@@ -956,9 +995,29 @@ class App {
         return { total: Math.round(total * 100) / 100, rank };
     }
     toggleSidebar() { const sb = document.getElementById('sidebar'); const bd = document.getElementById('sidebarBackdrop'); if (sb.classList.contains('-translate-x-full')) { sb.classList.remove('-translate-x-full'); sb.classList.add('sidebar-open'); bd.classList.remove('hidden'); setTimeout(()=>bd.classList.add('active'),10); } else { sb.classList.add('-translate-x-full'); sb.classList.remove('sidebar-open'); bd.classList.remove('active'); setTimeout(()=>bd.classList.add('hidden'),300); } }
-    selectStudent(id) { if (this.selectedIds.size) this.clearSelection(); this.currentId = id; this.renderStudentList(); this.renderInfo(); this.renderRules(); if(window.innerWidth < 1024) { const sb = document.getElementById('sidebar'); if (!sb.classList.contains('-translate-x-full')) { this.toggleSidebar(); } } }
-    toggleSelect(id) { if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id); this.currentId = null; this.renderStudentList(); this.renderInfo(); }
-    toggleSelectAll() { const isAll = this.selectedIds.size === this.students.length; if(isAll) this.selectedIds.clear(); else this.students.forEach(s=>this.selectedIds.add(s.id)); this.renderStudentList(); this.renderInfo(); }
+    selectStudent(id) { 
+        if (this.selectedIds.size) this.clearSelection(); 
+        this.currentId = id; 
+        this.syncToFirebase(); // Save selected student state
+        this.renderStudentList(); 
+        this.renderInfo(); 
+        this.renderRules(); 
+        if(window.innerWidth < 1024) { const sb = document.getElementById('sidebar'); if (!sb.classList.contains('-translate-x-full')) { this.toggleSidebar(); } } 
+    }
+    toggleSelect(id) { 
+        if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id); 
+        this.currentId = null; 
+        this.syncToFirebase(); // Save selected IDs state
+        this.renderStudentList(); 
+        this.renderInfo(); 
+    }
+    toggleSelectAll() { 
+        const isAll = this.selectedIds.size === this.students.length; 
+        if(isAll) this.selectedIds.clear(); else this.students.forEach(s=>this.selectedIds.add(s.id)); 
+        this.syncToFirebase(); // Save select all state
+        this.renderStudentList(); 
+        this.renderInfo(); 
+    }
     clearSelection() { this.selectedIds.clear(); if(this.students.length) this.selectStudent(this.students[0].id); }
     addLog(txt, score, ruleId=null, sp=null, inc=false) {
         const dateStr = document.getElementById('datePicker').value.split('-').reverse().slice(0, 2).join('/');
