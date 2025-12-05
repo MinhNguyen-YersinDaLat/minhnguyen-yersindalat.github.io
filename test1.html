@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hạnh Kiểm Yersin - V33 Mobile Perfected</title>
+    <title>Hạnh Kiểm Yersin - V33 Final Sync</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -431,7 +431,7 @@ class App {
                 this.user = user;
                 this.updateAuthUI();
                 if (user) {
-                    this.updateConnectionStatus('syncing');
+                    this.showToast(`Xin chào, ${user.displayName}!`, 'success');
                     this.setupRealtimeListener();
                 } else {
                     if (this.dbRef) this.dbRef.off();
@@ -626,6 +626,7 @@ class App {
         } catch (e) {}
     }
 
+    // TOAST NOTIFICATION SYSTEM
     showToast(msg, type = 'info') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
