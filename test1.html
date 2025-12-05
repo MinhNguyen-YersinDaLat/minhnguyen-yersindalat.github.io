@@ -208,14 +208,6 @@
                     Đăng nhập
                 </button>
 
-                <!-- MANUAL SAVE BUTTON -->
-                <button onclick="app.manualSave()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                    </svg>
-                    <span class="hidden sm:inline" id="saveBtnText">Lưu</span>
-                </button>
-
                 <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     <span class="hidden sm:inline">Xuất Excel</span>
@@ -377,7 +369,8 @@
     <div id="mobileWarning" class="fixed inset-0 z-[9000] bg-slate-900/90 backdrop-blur-sm hidden flex items-center justify-center p-6 text-center"><div class="bg-white rounded-3xl p-8 max-w-sm shadow-2xl animate-bounce-in"><div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div><h3 class="text-xl font-bold text-slate-800 mb-2">Trải nghiệm tốt nhất trên PC</h3><p class="text-sm text-slate-600 mb-6">Tính năng hướng dẫn chỉ hỗ trợ trên màn hình lớn.</p><button onclick="document.getElementById('mobileWarning').classList.add('hidden')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-700">Đã hiểu</button></div></div>
 
 <script>
-// FIREBASE CONFIGURATION START
+// --- FIREBASE CONFIGURATION ---
+// FIREBASE INTEGRATION START
 const firebaseConfig = {
   apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
   authDomain: "hanhkiem-d853b.firebaseapp.com",
@@ -473,48 +466,35 @@ class App {
     setupRealtimeListener() {
         if (!this.user) return;
         const uid = this.user.uid;
-        const stateRef = this.db.ref(`users/${uid}/state`);
+        this.dbRef = this.db.ref(`users/${uid}/state`); // Point to /state object
 
-        stateRef.once('value')
-            .then(snapshot => {
-                const val = snapshot.val();
-                if (val) {
-                    // Cloud has data -> Force overwrite Local
-                    console.log("Cloud data found. Syncing to local...");
-                    this.applyState(val);
-                    this.updateConnectionStatus('online');
-                    this.showToast("Đã tải dữ liệu từ đám mây", "success");
-                } else {
-                    // Cloud is empty -> Push Local
-                    console.log("Cloud empty. Pushing local data...");
-                    this.syncToFirebase().then(() => {
+        // Load data ONCE first to determine merge strategy
+        this.dbRef.once('value').then(snapshot => {
+            const val = snapshot.val();
+            if (val) {
+                // Cloud has data -> Overwrite Local
+                console.log("Cloud data found. Syncing to local...");
+                this.applyState(val);
+                this.updateConnectionStatus('online');
+                this.showToast("Đã tải dữ liệu từ đám mây", "success");
+            } else {
+                // Cloud is empty -> Push Local
+                console.log("Cloud empty. Pushing local data...");
+                this.syncToFirebase().then(() => {
                          this.updateConnectionStatus('online');
                          this.showToast("Đã khởi tạo dữ liệu đám mây", "success");
                     });
+            }
+
+            // Start Realtime Listener AFTER initial load logic
+            this.dbRef.on('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    this.applyState(data);
+                    this.updateConnectionStatus('online');
                 }
-
-                // Listen for future changes
-                stateRef.on('value', (snap) => {
-                    const data = snap.val();
-                    if (data) {
-                        this.applyState(data);
-                        this.updateConnectionStatus('online');
-                    }
-                });
-            })
-            .catch(error => {
-                console.error("Sync Error:", error);
-                this.updateConnectionStatus('offline', error.message);
             });
-    }
-
-    checkConnection() {
-        if (this.user) {
-            this.showToast("Đang thử kết nối lại...", "info");
-            this.setupRealtimeListener();
-        } else {
-            this.showToast("Bạn chưa đăng nhập.", "error");
-        }
+        });
     }
 
     applyState(data) {
@@ -522,7 +502,7 @@ class App {
         const toArray = (obj) => {
             if (!obj) return [];
             if (Array.isArray(obj)) return obj;
-            return Object.values(obj);
+            return Object.values(obj); // FIX: Object to array conversion
         };
 
         this.students = toArray(data.students);
@@ -534,12 +514,14 @@ class App {
 
         this.isOnboarding = data.isOnboarding || false;
         this.tutorialStep = data.tutorialStep || 0;
+        
+        // Save to local storage for offline fallback next time
         this.saveToLocalStorageOnly();
         this.refreshUI();
     }
 
     syncToFirebase() {
-        if (!this.user) return Promise.resolve();
+        if (!this.user) return Promise.resolve(); // Return promise even if not logged in
         this.updateConnectionStatus('syncing');
         const state = {
             students: this.students,
@@ -550,7 +532,7 @@ class App {
         };
         return this.db.ref(`users/${this.user.uid}/state`).set(state)
             .then(() => this.updateConnectionStatus('online'))
-            .catch(e => this.updateConnectionStatus('offline', e.message));
+            .catch(e => this.updateConnectionStatus('offline', "Lỗi lưu: " + e.message));
     }
 
     refreshUI() {
@@ -635,7 +617,6 @@ class App {
     }
 
     manualSave() {
-        // Logic: Check if user is logged in
         this.saveToLocalStorageOnly();
         
         if (!this.user) {
