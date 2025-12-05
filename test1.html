@@ -241,7 +241,7 @@
                 </button>
 
                 <!-- MANUAL SAVE BUTTON -->
-                <button onclick="app.manualSave()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform">
+                <button onclick="app.manualSync()" id="btnManualSave" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-all">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
@@ -411,8 +411,9 @@
 <script>
 /**
  * SENIOR DEVELOPER OPTIMIZATION NOTES:
- * 1. REMOVED "x2, x3" LOGIC: This was causing extreme lag and visual clutter.
- * 2. OPTIMIZED UI UPDATES: Log adds update UI immediately, list updates are debounced.
+ * 1. FIX: Removed automatic Realtime Sync on every click to prevent lag when logged in.
+ * 2. NEW: Implemented "Lazy Sync" + Manual Save priority.
+ * 3. NEW: Added "Unsaved Changes" visual indicator.
  */
 
 // --- CONFIG & CONSTANTS ---
@@ -486,19 +487,35 @@ class App {
         this.mobileTab = 'positive'; 
         this.groupStates = {}; 
         
-        // Debounced Save Methods - KEY LAG FIX
+        // SYNC STATUS FLAG
+        this.hasUnsavedChanges = false;
+        
+        // Debounced Save Methods
         this.saveDebounced = debounce(() => {
             this.saveToLocalStorageOnly();
-            this.renderStudentList(); // Wait for user to stop clicking before re-rendering list
+            this.renderStudentList(); 
         }, 500);
         
-        this.syncDebounced = debounce(() => this.syncToFirebase(), 1000);
+        // FIXED: Very long debounce for auto-sync (30 seconds) to act as a safety net only
+        this.lazySyncDebounced = debounce(() => {
+            if (this.hasUnsavedChanges && this.user) {
+                this.manualSync(true); // Silent sync
+            }
+        }, 30000);
 
         // Firebase Integration
         this.user = null;
         this.dbRef = null;
         this.unsubscribe = null;
         this.initFirebase();
+        
+        // Warn before leaving if unsaved
+        window.addEventListener('beforeunload', (e) => {
+            if (this.hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
     }
 
     initFirebase() {
@@ -540,7 +557,24 @@ class App {
         } else if (status === 'syncing') {
             dot.title = "Đang đồng bộ...";
         } else {
-            dot.title = "Đã kết nối và đồng bộ";
+            dot.title = "Đã kết nối";
+        }
+    }
+
+    updateSaveStatus(isDirty) {
+        this.hasUnsavedChanges = isDirty;
+        const btn = document.getElementById('btnManualSave');
+        const txt = document.getElementById('saveBtnText');
+        if (!btn || !txt) return;
+
+        if (isDirty) {
+            btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+            btn.classList.add('bg-orange-500', 'hover:bg-orange-600', 'animate-pulse');
+            txt.innerHTML = "Lưu ngay (*)";
+        } else {
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            btn.classList.remove('bg-orange-500', 'hover:bg-orange-600', 'animate-pulse');
+            txt.innerHTML = "Đã đồng bộ";
         }
     }
 
@@ -563,19 +597,13 @@ class App {
                 this.showToast("Đã tải dữ liệu từ đám mây", "success");
             } else {
                 console.log("Cloud empty. Pushing local data...");
-                this.syncToFirebase().then(() => {
-                         this.updateConnectionStatus('online');
-                         this.showToast("Đã khởi tạo dữ liệu đám mây", "success");
-                    });
+                this.manualSync(true); // Initial push
             }
-
-            this.dbRef.on('value', (snap) => {
-                const data = snap.val();
-                if (data) {
-                    this.applyState(data);
-                    this.updateConnectionStatus('online');
-                }
-            });
+            
+            // NOTE: We do NOT set up .on('value') listener for continuous sync 
+            // to avoid overwriting local changes while user is working.
+            // We assume Single-User per Account mode to prevent conflicts.
+            
         }).catch(error => {
                 console.error("Sync Error:", error);
                 this.updateConnectionStatus('offline', error.message);
@@ -616,7 +644,7 @@ class App {
         this.mobileTab = data.mobileTab || 'positive';
         this.groupStates = data.groupStates || {};
         
-        this.saveToLocalStorageOnly();
+        this.saveToLocalStorageOnly(false); // Don't mark as dirty when loading from cloud
         this.refreshUI();
     }
 
@@ -627,15 +655,6 @@ class App {
         } else {
             this.showToast("Bạn chưa đăng nhập.", "error");
         }
-    }
-
-    syncToFirebase() {
-        if (!this.user) return Promise.resolve();
-        this.updateConnectionStatus('syncing');
-        const state = this.collectState();
-        return this.db.ref(`users/${this.user.uid}/state`).set(state)
-            .then(() => this.updateConnectionStatus('online'))
-            .catch(e => this.updateConnectionStatus('offline', "Lỗi lưu: " + e.message));
     }
 
     refreshUI() {
@@ -712,42 +731,55 @@ class App {
     
     save() { 
         this.saveDebounced();
-        this.syncDebounced();
-        // REMOVED synchronous renderStudentList() to prevent UI freeze
+        // REMOVED explicit sync here to prevent lag. 
+        // We now rely on Manual Sync or Lazy Background Sync.
         if (this.currentId) this.renderInfo(); 
     }
 
-    manualSave() {
-        this.saveToLocalStorageOnly();
+    manualSync(silent = false) {
+        this.saveToLocalStorageOnly(false); // Update local first without dirty flag
         
         if (!this.user) {
-            this.showToast("Đã lưu vào máy (Chưa đăng nhập Google)", "warning");
+            if(!silent) this.showToast("Đã lưu vào máy (Chưa đăng nhập Google)", "warning");
             return;
         }
 
         const btnText = document.getElementById('saveBtnText');
-        if(btnText) btnText.innerText = "Đang đồng bộ...";
+        if(btnText && !silent) btnText.innerText = "Đang tải lên...";
         
-        this.syncToFirebase()
+        this.updateConnectionStatus('syncing');
+        const state = this.collectState();
+        
+        this.db.ref(`users/${this.user.uid}/state`).set(state)
             .then(() => {
-                this.showToast("Đã đồng bộ thành công lên Google!", "success");
-                if(btnText) btnText.innerText = "Lưu Dữ Liệu";
+                this.updateConnectionStatus('online');
+                this.updateSaveStatus(false); // Reset dirty flag
+                if(btnText && !silent) btnText.innerText = "Lưu Dữ Liệu";
+                if(!silent) this.showToast("Đã đồng bộ lên Google!", "success");
             })
             .catch((err) => {
-                if(btnText) btnText.innerText = "Lỗi!";
+                this.updateConnectionStatus('offline', err.message);
+                if(btnText && !silent) btnText.innerText = "Lỗi!";
+                if(!silent) this.showToast("Lỗi đồng bộ: " + err.message, "error");
             });
     }
+    
+    // Alias for old button call
+    manualSave() { this.manualSync(); }
 
     saveRules() { 
         this.saveToLocalStorageOnly();
-        this.syncDebounced();
         this.renderRules(); 
     }
 
-    saveToLocalStorageOnly() {
+    saveToLocalStorageOnly(markDirty = true) {
         try { 
             localStorage.setItem('hk_v33_final_data', JSON.stringify(this.students)); 
             localStorage.setItem('hk_v33_final_rules', JSON.stringify(this.rules));
+            if(markDirty) {
+                this.updateSaveStatus(true);
+                this.lazySyncDebounced(); // Trigger safety net timer (30s)
+            }
         } catch (e) {
             console.error("Local Storage Error", e);
         }
@@ -796,7 +828,7 @@ class App {
 
     switchMobileTab(tabName) {
         this.mobileTab = tabName;
-        this.syncDebounced();
+        // No sync here, just UI switch
         
         const rulesSection = document.getElementById('rulesSection');
         const historySection = document.getElementById('historySection');
@@ -835,7 +867,7 @@ class App {
     resetTutorialState() {
         this.tutorialStep = 0;
         this.isOnboarding = false;
-        this.syncDebounced();
+        // No sync here
         document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
         
         const bd = document.getElementById('tutorialBackdrop');
@@ -863,7 +895,6 @@ class App {
         this.setToday();
         
         this.isOnboarding = true;
-        this.syncDebounced();
         
         const bd = document.getElementById('tutorialBackdrop');
         bd.classList.remove('hidden');
@@ -926,7 +957,6 @@ class App {
 
     nextTutorialStep() { 
         this.tutorialStep++; 
-        this.syncDebounced(); 
         if (this.tutorialStep >= this.tutorialSteps.length) { 
             this.endTutorial(); 
         } else { 
@@ -956,7 +986,6 @@ class App {
                 })); 
                 
                 this.saveToLocalStorageOnly(); // Bypass debounce for initial import
-                this.syncToFirebase();
                 this.closeModal('modalBulk'); 
                 
                 if (this.isOnboarding) { 
@@ -984,7 +1013,7 @@ class App {
         } else {
             this.groupStates[key] = !this.groupStates[key];
         }
-        this.syncDebounced();
+        // No sync here, visual state
         this.renderRules();
     }
 
@@ -1075,7 +1104,7 @@ class App {
     selectStudent(id) { 
         if (this.selectedIds.size) this.clearSelection(); 
         this.currentId = id; 
-        this.syncDebounced();
+        // No sync here
         this.renderStudentList(); 
         this.renderInfo(); 
         this.renderRules(); 
@@ -1085,7 +1114,7 @@ class App {
     toggleSelect(id) { 
         if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id); 
         this.currentId = null; 
-        this.syncDebounced();
+        // No sync here
         this.renderStudentList(); 
         this.renderInfo(); 
     }
@@ -1093,7 +1122,7 @@ class App {
     toggleSelectAll() { 
         const isAll = this.selectedIds.size === this.students.length; 
         if(isAll) this.selectedIds.clear(); else this.students.forEach(s=>this.selectedIds.add(s.id)); 
-        this.syncDebounced();
+        // No sync here
         this.renderStudentList(); 
         this.renderInfo(); 
     }
@@ -1130,7 +1159,7 @@ class App {
         
         // DEBOUNCED UPDATE for List (Left Side) & Storage
         this.saveDebounced();
-        this.syncDebounced();
+        // NO SYNC HERE to prevent lag
     }
 
     removeLog(idx) { const s = this.students.find(x => x.id == this.currentId); if (!s) return; s.logs.splice(idx, 1); s.remark = this.generateRemarkText(s); this.save(); }
