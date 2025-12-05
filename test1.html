@@ -118,6 +118,7 @@
         .toast { pointer-events: auto; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; items-center; gap: 10px; font-size: 13px; font-weight: 600; color: #334155; border-left: 4px solid #3b82f6; animation: fade-in-up 0.3s ease-out forwards; max-width: 300px; }
         .toast.success { border-left-color: #10b981; }
         .toast.error { border-left-color: #ef4444; }
+        .toast.warning { border-left-color: #f59e0b; }
         
         /* Status Indicator */
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -459,21 +460,17 @@ class App {
     setupRealtimeListener() {
         if (!this.user) return;
         const uid = this.user.uid;
-        
-        // Only point to the new structure to be safe and clear
         const stateRef = this.db.ref(`users/${uid}/state`);
 
         stateRef.once('value')
             .then(snapshot => {
                 const val = snapshot.val();
                 if (val) {
-                    // Cloud has data -> Force overwrite Local
                     console.log("Cloud data found. Syncing to local...");
                     this.applyState(val);
                     this.updateConnectionStatus('online');
                     this.showToast("Đã tải dữ liệu từ đám mây", "success");
                 } else {
-                    // Cloud is empty -> Push Local
                     console.log("Cloud empty. Pushing local data...");
                     this.syncToFirebase().then(() => {
                          this.updateConnectionStatus('online');
@@ -481,10 +478,8 @@ class App {
                     });
                 }
 
-                // Listen for future changes
                 stateRef.on('value', (snap) => {
                     const data = snap.val();
-                    // Fix: If data is null (user cleared DB), treat as empty array not ignore
                     if (data) {
                         this.applyState(data);
                         this.updateConnectionStatus('online');
@@ -507,8 +502,17 @@ class App {
     }
 
     applyState(data) {
-        this.students = data.students || [];
-        this.rules = data.rules || JSON.parse(JSON.stringify(RULES));
+        // Fix: Ensure students/rules are arrays (Firebase converts empty arrays to null or objects)
+        const toArray = (obj) => {
+            if (!obj) return [];
+            if (Array.isArray(obj)) return obj;
+            return Object.values(obj);
+        };
+
+        this.students = toArray(data.students);
+        this.rules = toArray(data.rules);
+        if (this.rules.length === 0) this.rules = JSON.parse(JSON.stringify(RULES));
+
         this.isOnboarding = data.isOnboarding || false;
         this.tutorialStep = data.tutorialStep || 0;
         this.saveToLocalStorageOnly();
@@ -533,7 +537,12 @@ class App {
     refreshUI() {
         this.renderStudentList();
         this.renderRules();
-        if (this.currentId) this.renderInfo();
+        if (this.currentId) {
+             // Robust check: ensure currentId exists in list
+             const exists = this.students.find(s => s.id == this.currentId);
+             if(exists) this.renderInfo();
+             else this.currentId = null; // Reset if student deleted
+        }
         if (this.isOnboarding) {
             const startScreen = document.getElementById('startScreen');
             const appContainer = document.getElementById('appContainer');
@@ -600,15 +609,23 @@ class App {
     }
 
     manualSave() {
+        // Logic: Check if user is logged in
+        this.saveToLocalStorageOnly();
+        
+        if (!this.user) {
+            this.showToast("Đã lưu vào máy (Chưa đăng nhập Google)", "warning");
+            return;
+        }
+
         const btnText = document.getElementById('saveBtnText');
-        if(btnText) btnText.innerText = "Đang lưu...";
+        if(btnText) btnText.innerText = "Đang đồng bộ...";
         this.syncToFirebase()
             .then(() => {
-                this.showToast("Đã lưu dữ liệu lên đám mây", "success");
-                if(btnText) btnText.innerText = "Lưu";
+                this.showToast("Đã đồng bộ thành công lên Google!", "success");
+                if(btnText) btnText.innerText = "Lưu Dữ Liệu";
             })
             .catch((err) => {
-                this.showToast("Lỗi lưu trữ! Kiểm tra mạng/quyền.", "error");
+                this.showToast("Lỗi đồng bộ: " + err.message, "error");
                 if(btnText) btnText.innerText = "Lỗi!";
             });
     }
@@ -626,7 +643,6 @@ class App {
         } catch (e) {}
     }
 
-    // TOAST NOTIFICATION SYSTEM
     showToast(msg, type = 'info') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
@@ -863,6 +879,9 @@ class App {
         const isMobile = window.innerWidth < 1024;
         const isSearching = filterText.length > 0;
         
+        // Helper to escape single quotes in JS strings
+        const escapeQuote = (str) => str ? str.replace(/'/g, "\\'") : '';
+
         const renderGroup = (rules, type) => {
             const grouped = rules.reduce((acc, r) => { (acc[r.c] = acc[r.c] || []).push(r); return acc; }, {});
             
@@ -896,12 +915,15 @@ class App {
                                 let countBadge = '';
                                 if(this.currentId && !this.selectedIds.size && r.inc) {
                                     const s = this.students.find(x => x.id == this.currentId);
-                                    const count = s ? s.logs.filter(l => l.rid === r.id).length : 0;
-                                    if(count > 0) countBadge = `<span class="absolute top-2 right-2 text-[9px] font-bold bg-slate-800 text-white px-1.5 rounded-full z-10 shadow-sm">x${count+1}</span>`;
+                                    if (s) {
+                                        const count = s.logs.filter(l => l.rid === r.id).length;
+                                        if(count > 0) countBadge = `<span class="absolute top-2 right-2 text-[9px] font-bold bg-slate-800 text-white px-1.5 rounded-full z-10 shadow-sm">x${count+1}</span>`;
+                                    }
                                 }
                                 const isBonus = r.s > 0;
                                 const deleteBtn = r.id.startsWith('c') ? `<button onclick="event.stopPropagation(); app.deleteRule('${r.id}')" class="absolute -top-1 -left-1 w-5 h-5 bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white rounded-full flex items-center justify-center text-[10px] shadow-sm z-20 transition-colors">×</button>` : '';
-                                return `<div onclick="app.addLog('${r.t}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${countBadge} ${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-sm font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${r.t}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
+                                // Use escaped title
+                                return `<div onclick="app.addLog('${escapeQuote(r.t)}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${countBadge} ${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-sm font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${r.t}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
                             }).join('')}
                         </div>
                     </div>
