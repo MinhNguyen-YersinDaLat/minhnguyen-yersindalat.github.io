@@ -445,19 +445,24 @@ class App {
         this.dbRef.on('value', (snapshot) => {
             const data = snapshot.val();
             
+            // 1. Dữ liệu từ Firebase có -> Load về Local (ghi đè)
+            // Đây là logic quan trọng để khi đăng nhập ở thiết bị mới, dữ liệu cũ sẽ hiện ra
             if (data) {
-                // Case 1: DB has data -> Sync to Local
                 console.log("Syncing from DB...");
                 if (data.students) this.students = data.students;
                 if (data.rules) this.rules = data.rules;
                 
+                // Đồng thời lưu vào LocalStorage luôn
                 this.saveToLocalStorageOnly();
+                // Cập nhật giao diện
                 this.refreshUI();
-            } else {
-                // Case 2: DB is empty -> Push Local to DB
-                // We only do this ONCE to avoid loops, or check if local has data
+            } 
+            // 2. Trường hợp Firebase chưa có gì (lần đầu dùng trên acc này)
+            // nhưng LocalStorage đang có dữ liệu (vừa nhập xong ở màn hình start)
+            // -> Đẩy Local lên Firebase
+            else {
                 if (this.students && this.students.length > 0) {
-                    console.log("Pushing Local to DB...");
+                    console.log("First time sync: Pushing Local to DB...");
                     this.firebasePushLocal();
                 }
             }
@@ -469,6 +474,10 @@ class App {
         this.renderStudentList();
         this.renderRules();
         if (this.currentId) this.renderInfo();
+        // Nếu đang ở màn hình start mà có dữ liệu -> vào app luôn
+        if (document.getElementById('startScreen') && !document.getElementById('startScreen').classList.contains('-translate-y-full') && this.students.length > 0) {
+             this.showMainUI();
+        }
     }
 
     // ADDED FOR FIREBASE: UI Updates
