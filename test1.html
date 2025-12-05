@@ -13,6 +13,9 @@
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    
+    <!-- Lucide Icons (New for Avatar Rings) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- FIREBASE INTEGRATION START -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -38,7 +41,9 @@
                         'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
                         'fade-in-up': 'fadeInUp 0.3s ease-out forwards',
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'breath': 'breath 3s ease-in-out infinite', // Hiệu ứng thở nhẹ mới
+                        'breath': 'breath 3s ease-in-out infinite',
+                        'spin-slow': 'spin-slow 12s linear infinite',
+                        'spin-reverse': 'spin-reverse 15s linear infinite',
                     },
                     keyframes: {
                         shake: {
@@ -53,8 +58,10 @@
                         },
                         breath: {
                             '0%, 100%': { transform: 'scale(1)', opacity: '1' },
-                            '50%': { transform: 'scale(1.05)', opacity: '0.95' }
-                        }
+                            '50%': { transform: 'scale(1.02)', opacity: '0.95' }
+                        },
+                        'spin-slow': { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } },
+                        'spin-reverse': { from: { transform: 'rotate(360deg)' }, to: { transform: 'rotate(0deg)' } }
                     }
                 }
             }
@@ -95,36 +102,13 @@
         .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
 
         /* --- TUTORIAL & OVERLAY FIXES START --- */
-        /* Fix overlay blocking clicks: mặc định backdrop vô hiệu thao tác, chỉ bật khi có class .show */
         .tutorial-backdrop { 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0,0,0,0.85); 
-            z-index: 99990; 
-            transition: opacity 0.25s ease; 
-            opacity: 0; 
-            pointer-events: none; /* CHÍNH: ngăn chặn chặn click khi không hiển thị */
-            backdrop-filter: blur(3px);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99990; 
+            transition: opacity 0.25s ease; opacity: 0; pointer-events: none; backdrop-filter: blur(3px);
         }
-        .tutorial-backdrop.show { 
-            opacity: 1; 
-            pointer-events: auto; 
-        }
-        
-        /* Tương tự cho modal backdrop nếu cần */
-        #modalBulk, #modalRule, #mobileWarning, #modalStudent { 
-            pointer-events: none;   /* mặc định: không chặn */
-            opacity: 0;
-            transition: opacity 0.18s ease;
-        }
-        
-        /* Khi Modal có class flex (được bật bởi JS), ta bật pointer-events và opacity */
-        #modalBulk.flex, #modalRule.flex, #mobileWarning.flex, #modalStudent.flex { 
-            pointer-events: auto;
-            opacity: 1;
-        }
-        
-        /* Bảo đảm overlay-gradient không chặn */
+        .tutorial-backdrop.show { opacity: 1; pointer-events: auto; }
+        #modalBulk, #modalRule, #mobileWarning, #modalStudent { pointer-events: none; opacity: 0; transition: opacity 0.18s ease; }
+        #modalBulk.flex, #modalRule.flex, #mobileWarning.flex, #modalStudent.flex { pointer-events: auto; opacity: 1; }
         .pointer-safe { pointer-events: none; }
         /* --- TUTORIAL & OVERLAY FIXES END --- */
 
@@ -163,6 +147,22 @@
         .status-dot.online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .status-dot.syncing { background-color: #eab308; animation: pulse-slow 1s infinite; }
         .status-dot.offline { background-color: #ef4444; }
+
+        /* --- MAGIC AVATAR STYLES --- */
+        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        @keyframes border-rotate { 0% { --angle: 0deg; } 100% { --angle: 360deg; } }
+        .magic-border-container { position: absolute; inset: -4px; border-radius: 50%; z-index: -1; overflow: hidden; }
+        .magic-border-layer { position: absolute; inset: -50%; width: 200%; height: 200%; background: conic-gradient(from var(--angle), transparent 20%, var(--border-color), transparent 80%); animation: border-rotate 3s linear infinite; }
+        .magic-border-layer.reverse { animation: border-rotate 5s linear infinite reverse; opacity: 0.7; }
+        
+        .ring-leaf { border: 2px dashed #4ade80; border-radius: 50%; }
+        .ring-water { border: 2px solid #60a5fa; border-radius: 50%; box-shadow: 0 0 15px #3b82f6; opacity: 0.7; }
+        .ring-sun { border: 2px solid #facc15; border-radius: 50%; box-shadow: 0 0 20px #f59e0b, inset 0 0 10px #f59e0b; }
+        
+        .shimmer-text { background: linear-gradient(to right, #ec4899 20%, #8b5cf6 40%, #ec4899 60%, #8b5cf6 80%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: border-flow 3s linear infinite; }
+        @keyframes border-flow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        
+        .rainbow-title { background: linear-gradient(to right, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444); background-size: 300% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: border-flow 5s linear infinite; filter: drop-shadow(0 0 2px rgba(255,255,255,0.5)); }
     </style>
 </head>
 <body class="text-slate-800 h-screen w-screen flex flex-col">
@@ -300,32 +300,9 @@
             <!-- RIGHT: WORKSPACE -->
             <main class="flex-1 flex flex-col gap-3 overflow-hidden min-w-0">
                 
-                <!-- TOP: HERO CARD (UPDATED) -->
-                <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-hidden" id="heroCard">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
-                    
-                    <!-- LEFT: AVATAR & NAME -->
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div class="relative">
-                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
-                            <button onclick="app.deleteStudent()" class="absolute -top-2 -right-2 w-6 h-6 bg-white text-red-500 border border-red-100 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-opacity" title="Xóa">×</button>
-                        </div>
-                        <div>
-                            <h2 class="text-lg md:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight" id="heroName">Vui lòng chọn học sinh</h2>
-                            <div class="text-[10px] md:text-xs text-slate-400 font-bold mt-1">THPT Yersin Đà Lạt</div>
-                        </div>
-                    </div>
-                    
-                    <!-- CENTER: RANK (NEW DESIGN) -->
-                    <div class="flex-1 flex justify-center relative z-10 order-last md:order-none w-full md:w-auto">
-                        <div id="heroRank" class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-300 to-slate-400 animate-breath tracking-widest drop-shadow-sm transform transition-all">---</div>
-                    </div>
-                    
-                    <!-- RIGHT: SCORE -->
-                    <div class="relative z-10 text-right">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
-                        <div class="text-4xl md:text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
-                    </div>
+                <!-- NEW MAGICAL HERO CARD -->
+                <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-visible" id="heroCard">
+                    <!-- Placeholder, will be replaced by renderInfo -->
                 </div>
 
                 <!-- MOBILE TABS -->
@@ -427,6 +404,7 @@
  * 1. FIX: Removed automatic Realtime Sync on every click to prevent lag when logged in.
  * 2. NEW: Implemented "Lazy Sync" + Manual Save priority.
  * 3. NEW: Added "Unsaved Changes" visual indicator.
+ * 4. UI OVERHAUL: Implemented "Magical Avatar Rings" with Cute Animal Avatars & Standard Rank Names.
  */
 
 // --- CONFIG & CONSTANTS ---
@@ -453,6 +431,7 @@ const DEFAULT_RULES = [
 ];
 const CATEGORIES = {learning: 'Học tập', discipline: 'Nề nếp', activity: 'Hoạt động', custom: 'Tùy chỉnh'};
 const INIT_DATA = ["Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Ân", "Nguyễn Lê Chí Dũng", "Nguyễn Minh Đức", "Nguyễn Thanh Hằng", "Bùi Mạnh Hùng", "Nguyễn Phúc Lộc", "Nguyễn Trọng Nghĩa", "Nguyễn Trọng Nghĩa", "Nguyễn Thiện Nhân", "Hồ Đức Nhật", "Nguyễn Bảo Thiên", "Nguyễn Thị Thu Thủy", "Trần Hà Uyên", "Lê Hoàng Việt", "Hoàng Ngọc Hà Vy"];
+const ANIMAL_AVATARS = ['🦁','🐰','🦊','🐼','🐨','🦄','🐯','🐸','🐷','🐵','🐣','🐧','🦉','🦋','🐞'];
 
 // --- HELPER FUNCTIONS ---
 function escapeHtml(unsafe) {
@@ -1003,7 +982,9 @@ class App {
                     name: n.trim(), 
                     logs: [], 
                     remark: "", 
-                    crit: false
+                    crit: false,
+                    // AUTO ASSIGN CUTE AVATAR
+                    avatar: ANIMAL_AVATARS[Math.floor(Math.random() * ANIMAL_AVATARS.length)]
                 })); 
                 
                 this.saveToLocalStorageOnly(); // Bypass debounce for initial import
@@ -1206,44 +1187,150 @@ class App {
         document.getElementById('studentCount').innerText = `${this.students.length} Học sinh`;
     }
 
+    // --- NEW HELPER FUNCTIONS FOR AVATAR RINGS ---
+    renderAvatarRing(type) {
+        if (type === 'none') return '';
+        
+        const containerClass = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] pointer-events-none flex items-center justify-center";
+        
+        // Helper to generate orbit HTML strings
+        const renderOrbits = (count, iconName, colorClass, duration = '10s', reverse = false) => {
+            const anim = reverse ? 'animate-spin-reverse' : 'animate-spin-slow';
+            let icons = '';
+            for(let i=0; i<count; i++) {
+                icons += `<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="transform: rotate(${i * (360/count)}deg) translate(65px) rotate(-${i * (360/count)}deg)">
+                    <i data-lucide="${iconName}" width="28" height="28" class="${colorClass} drop-shadow-md"></i>
+                </div>`;
+            }
+            return `<div class="w-full h-full absolute ${anim}" style="animation-duration: ${duration}">${icons}</div>`;
+        };
+
+        if (type === 'leaf') {
+            return `
+                <div class="${containerClass}">
+                    <div class="w-full h-full ring-leaf opacity-80 border-emerald-400"></div>
+                    ${renderOrbits(6, 'leaf', 'text-emerald-500 fill-emerald-200', '15s')}
+                </div>`;
+        }
+        if (type === 'water') {
+            return `
+                <div class="${containerClass}">
+                    <div class="w-full h-full ring-water"></div>
+                    <div class="absolute w-[90%] h-[90%] border border-cyan-300 rounded-full opacity-50 animate-spin-reverse"></div>
+                    ${renderOrbits(6, 'droplet', 'text-cyan-500 fill-cyan-200', '12s')}
+                </div>`;
+        }
+        if (type === 'flower') {
+            return `
+                <div class="${containerClass}">
+                    ${renderOrbits(8, 'flower', 'text-pink-500 fill-pink-200', '20s')}
+                    <div class="w-full h-full border-2 dotted border-pink-300 rounded-full opacity-60 animate-pulse"></div>
+                </div>`;
+        }
+        if (type === 'sun') {
+            return `
+                <div class="${containerClass}">
+                    <div class="w-full h-full ring-sun opacity-80"></div>
+                    ${renderOrbits(8, 'sun', 'text-orange-500 fill-yellow-300', '15s')}
+                    <div class="absolute w-[120%] h-[120%] border border-orange-300 rounded-full opacity-50 animate-spin-slow"></div>
+                </div>`;
+        }
+        if (type === 'galaxy') {
+            return `
+                <div class="${containerClass}">
+                    <div class="magic-border-container"><div class="magic-border-layer" style="--border-color: #d8b4fe"></div><div class="magic-border-layer reverse" style="--border-color: #fcd34d"></div></div>
+                    ${renderOrbits(10, 'star', 'text-yellow-400 fill-yellow-100', '25s')}
+                </div>`;
+        }
+        return '';
+    }
+
+    getVisualRank(total) {
+        // Updated to use Standard Names (TỐT, KHÁ, ĐẠT, CHƯA ĐẠT) based on Circular
+        // But keeping the Magical Visual Effects mapping
+        if (total >= 80) return { 
+            name: 'TỐT', 
+            effect: 'galaxy', // Visual: Galaxy
+            bg: 'bg-gradient-to-tr from-purple-100 to-pink-100', 
+            text: 'shimmer-text', 
+            badge: 'bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 text-white' 
+        };
+        if (total >= 65) return { 
+            name: 'KHÁ', 
+            effect: 'sun', // Visual: Sun
+            bg: 'bg-gradient-to-tr from-yellow-50 to-orange-50', 
+            text: 'text-orange-600', 
+            badge: 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white' 
+        };
+        if (total >= 50) return { 
+            name: 'ĐẠT', 
+            effect: 'water', // Visual: Water
+            bg: 'bg-white', 
+            text: 'text-cyan-600', 
+            badge: 'bg-cyan-500 text-white' 
+        };
+        // < 50
+        return { 
+            name: 'CHƯA ĐẠT', 
+            effect: 'leaf', // Visual: Leaf (Simple)
+            bg: 'bg-white', 
+            text: 'text-gray-500', 
+            badge: 'bg-gray-200 text-gray-500' 
+        };
+    }
+
     renderInfo() {
         if(!this.currentId) return;
         const s = this.students.find(x => x.id == this.currentId); 
         if (!s) return;
 
         const st = this.calculate(s);
-        const nameParts = s.name.split(' '); const initials = nameParts.slice(-2).map(n=>n[0]).join('');
-        document.getElementById('heroName').innerText = s.name;
-        const heroScore = document.getElementById('heroScore'); heroScore.innerText = st.total;
+        const nameParts = s.name.split(' '); 
+        const initials = nameParts.slice(-2).map(n=>n[0]).join('');
         
-        // COLOR LOGIC for RANK & SCORE
-        let colorClass = 'text-slate-800'; 
-        let rankGradient = 'from-slate-300 to-slate-400';
+        // Use Animal Avatar if available, else initials
+        const avatarDisplay = s.avatar || initials;
         
-        if (st.total >= 80) { 
-            colorClass = 'text-emerald-500'; 
-            rankGradient = 'from-emerald-400 to-teal-500';
-        } else if (st.total >= 65) {
-            colorClass = 'text-yellow-500';
-            rankGradient = 'from-yellow-400 to-orange-500';
-        } else if (st.total >= 50) {
-            colorClass = 'text-orange-500';
-            rankGradient = 'from-orange-400 to-red-400';
-        } else { 
-            colorClass = 'text-red-500'; 
-            rankGradient = 'from-red-500 to-pink-600';
-        }
+        // --- NEW VISUAL LOGIC ---
+        const visual = this.getVisualRank(st.total);
         
-        // Update Score
-        heroScore.className = `text-4xl md:text-5xl font-black transition-all duration-300 ${colorClass}`;
+        // Construct HTML String for Hero Card
+        const html = `
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+            
+            <!-- LEFT: AVATAR & RINGS -->
+            <div class="flex items-center gap-6 relative z-10 w-full md:w-auto">
+                <div class="relative group cursor-pointer animate-breath">
+                    ${this.renderAvatarRing(visual.effect)}
+                    <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white shadow-xl flex items-center justify-center text-3xl md:text-5xl relative z-10 overflow-hidden border-[3px] border-white ring-1 ring-gray-100 font-black text-slate-300">
+                        ${avatarDisplay}
+                    </div>
+                    <!-- Delete Button (Hidden) -->
+                    <button onclick="app.deleteStudent()" class="absolute -top-2 -right-2 w-6 h-6 bg-white text-red-500 border border-red-100 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-opacity z-20" title="Xóa">×</button>
+                </div>
+                
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[12px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm ${visual.badge}">${visual.name}</span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-tight">${s.name}</h2>
+                    <div class="text-[10px] md:text-xs text-slate-400 font-bold mt-0.5">THPT Yersin Đà Lạt</div>
+                </div>
+            </div>
+            
+            <!-- RIGHT: SCORE (GIANT) -->
+            <div class="relative z-10 flex flex-col items-end justify-center ml-auto">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-[-5px]">TỔNG ĐIỂM</span>
+                <div class="text-5xl md:text-7xl font-black ${visual.text} transition-all duration-300 drop-shadow-sm">${st.total}</div>
+                <div class="text-xs font-bold text-slate-400 mt-1">Chuẩn: 80</div>
+            </div>
+        `;
         
-        // Update Rank (Center Big)
-        const heroRank = document.getElementById('heroRank');
-        heroRank.innerText = st.rank; 
-        heroRank.className = `text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br ${rankGradient} animate-breath tracking-widest drop-shadow-sm transform transition-all`;
-        
-        document.getElementById('heroAvatar').innerText = initials; 
+        document.getElementById('heroCard').innerHTML = html;
         document.getElementById('critCheck').checked = s.crit;
+        
+        // Initialize Icons
+        if(window.lucide) window.lucide.createIcons();
         
         const tbody = document.querySelector('#logTable tbody');
         if(!s.logs || s.logs.length===0){ 
@@ -1254,6 +1341,23 @@ class App {
                 <tr class="group hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"><td class="py-3 pl-2 w-14 text-[11px] text-slate-400 font-medium align-top pt-4">${l.d}</td><td class="py-3 pr-2 align-top"><p class="text-xs font-bold text-slate-700 leading-snug">${escapeHtml(l.t)}</p></td><td class="py-3 w-12 text-right align-top"><span class="inline-block px-2 py-0.5 rounded text-[10px] font-black ${l.s>0?'bg-emerald-50 text-emerald-600':'bg-red-50 text-red-600'}">${l.s>0?'+':''}${l.s}</span></td><td class="py-3 w-8 text-center align-top"><button onclick="app.removeLog(${s.logs.length-1-idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">×</button></td></tr>`).join('');
         }
         document.getElementById('remarkBox').value = s.remark || this.generateRemarkText(s);
+    }
+
+    addStudent(){ 
+        const n=document.getElementById('newStudentName').value.trim(); 
+        if(n){ 
+            this.students.push({
+                id:Date.now(), 
+                name:n, 
+                logs:[], 
+                remark:"", 
+                crit:false,
+                // Assign random animal avatar
+                avatar: ANIMAL_AVATARS[Math.floor(Math.random() * ANIMAL_AVATARS.length)]
+            }); 
+            this.sortStudentsLogic();
+            this.closeModal('modalStudent'); 
+        } 
     }
 
     openAddRule() { this.editingRuleId = null; document.getElementById('modalRuleTitle').innerText = "Thêm Hành Vi"; document.getElementById('newRText').value = ''; document.getElementById('newRScore').value = ''; document.getElementById('newRCat').value = 'learning'; document.getElementById('newRInc').checked = false; this.openModal('modalRule'); }
@@ -1281,14 +1385,7 @@ class App {
     }
     loadDefaultClass(){ document.getElementById('bulkText').value = INIT_DATA.join('\n'); }
     
-    addStudent(){ 
-        const n=document.getElementById('newStudentName').value.trim(); 
-        if(n){ 
-            this.students.push({id:Date.now(), name:n, logs:[], remark:"", crit:false}); 
-            this.sortStudentsLogic();
-            this.closeModal('modalStudent'); 
-        } 
-    }
+    
     
     sortStudents() { this.sortStudentsLogic(); }
     
