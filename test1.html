@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="vi" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hạnh Kiểm Yersin - V33 Mobile Perfected</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thay đổi thư viện Excel sang loại hỗ trợ định dạng Style -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <!-- ADDED FOR FIREBASE: Firebase Compat CDNs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'] },
+                    colors: {
+                        primary: { 50:'#fff7ed', 100:'#ffedd5', 500:'#f97316', 600:'#ea580c', 700:'#c2410c' },
+                        dark: { 800: '#1e293b', 900: '#0f172a' }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(249, 115, 22, 0.4)',
+                        'card-hover': '0 10px 40px -10px rgba(0,0,0,0.1)',
+                        'tutorial': '0 30px 60px -12px rgba(0,0,0,0.9)'
+                    },
+                    animation: {
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                    },
+                    keyframes: {
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base styles */
+        body { background-color: #f8fafc; overflow: hidden; height: 100vh; width: 100vw; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f97316; }
+        
+        /* Transitions */
+        .trans-fast { transition: all 0.2s ease; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Sidebar State & Animation */
+        .sidebar-base { 
+            width: 280px; 
+            background-color: white; 
+            border-right: 1px solid #e2e8f0;
+            display: flex; 
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
+        }
+        
+        /* Desktop: Always visible */
+        @media (min-width: 1024px) {
+            .sidebar-base { position: relative; transform: none; height: 100%; box-shadow: none; }
+        }
+        
+        /* Mobile: Hidden by default (off-canvas) */
+        @media (max-width: 1023px) {
+            .sidebar-base { 
+                position: fixed; top: 0; bottom: 0; left: 0; 
+                transform: translateX(-100%); 
+                box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+            }
+            .sidebar-open { transform: translateX(0) !important; }
+        }
+
+        /* Sidebar Backdrop */
+        .sidebar-backdrop {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+            z-index: 40; backdrop-filter: blur(2px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
+
+        /* Tutorial System Optimized */
+        .tutorial-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99990; transition: opacity 0.3s; backdrop-filter: blur(3px); }
+        .tutorial-highlight { position: relative; z-index: 99991 !important; background-color: white; border-radius: 12px; box-shadow: 0 0 0 4px #f97316, 0 0 50px rgba(255, 255, 255, 0.2) !important; transition: none !important; transform: none !important; }
+        .tutorial-card { position: fixed; z-index: 99999; width: 320px; left: 50%; bottom: 40px; transform: translateX(-50%); transition: all 0.3s ease; }
+        
+        /* Layout Frames */
+        .frame-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .frame-header { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; flex-shrink: 0; }
+        .frame-body { flex: 1; overflow-y: auto; padding: 12px; }
+
+        /* Mobile Tabs */
+        .mobile-tab-active { color: #f97316; border-bottom: 2px solid #f97316; background-color: #fff7ed; }
+        .mobile-tab-inactive { color: #64748b; border-bottom: 2px solid transparent; }
+
+        /* Custom Inputs */
+        .glass-input { background: rgba(255,255,255,0.8); border: 1px solid #e2e8f0; backdrop-filter: blur(4px); }
+        .glass-input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); outline: none; }
+
+        /* Sticky Headers */
+        .rule-group-title { position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 8px 0; border-bottom: 2px solid #f1f5f9; margin-bottom: 8px; }
+        
+        /* Rule Card Fixes */
+        .rule-card { cursor: pointer; user-select: none; }
+        .rule-card:active { transform: scale(0.97); }
+        .action-btn { cursor: pointer; transition: all 0.2s; opacity: 0; }
+        .rule-card:hover .action-btn { opacity: 1; }
+        @media (hover: none) { .action-btn { opacity: 1; } } 
+        
+        .student-delete-btn { opacity: 0; transition: opacity 0.2s; }
+        .student-item:hover .student-delete-btn { opacity: 1; }
+        @media (max-width: 1024px) { .student-delete-btn { opacity: 1; } }
+        
+        /* Category Tabs Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen w-screen flex flex-col">
+
+    <!-- START SCREEN -->
+    <div id="startScreen" class="fixed inset-0 z-[50] bg-gradient-to-br from-slate-900 via-gray-800 to-primary-700 flex flex-col items-center justify-center text-white p-6 transition-transform duration-500 ease-in-out">
+        <div class="mb-8 relative slide-up" style="animation-delay: 0.1s;">
+            <div class="w-24 h-24 bg-white rounded-3xl p-4 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 cursor-pointer">
+                <img src="logo.png" alt="YERSIN" class="w-full h-full object-contain" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjY4YjFmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNX0yIDEybDEwIDUgMTAtNXoiLz48L3N2Zz4='">
+            </div>
+        </div>
+        <div class="text-center space-y-3 mb-10 slide-up relative z-10" style="animation-delay: 0.2s;">
+            <h1 class="text-3xl md:text-5xl font-black tracking-tight uppercase leading-tight">Ứng Dụng Theo Dõi<br><span class="text-primary-400">Hành Vi Học Sinh</span></h1>
+            <div class="flex items-center justify-center gap-2 text-primary-100 text-sm font-medium bg-white/10 py-1 px-4 rounded-full backdrop-blur-sm mx-auto w-fit">
+                <span>Thầy Thái Minh Nguyên</span><span class="w-1 h-1 bg-white rounded-full"></span><span>Yersin Đà Lạt</span>
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md slide-up relative z-10" id="startActions">
+            <!-- ADDED FOR FIREBASE: Google Login Button on Start Screen -->
+            <button id="btnStartLogin" onclick="app.firebaseSignIn()" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+               <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
+               Đăng nhập Google
+            </button>
+
+            <button onclick="app.startApp()" class="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> BẮT ĐẦU
+            </button>
+            <button onclick="app.openModal('modalBulk')" class="flex-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-400/30 text-emerald-100 font-bold py-4 rounded-2xl backdrop-blur-md transition-all flex items-center justify-center gap-2 group">
+                <svg class="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                NHẬP DS
+            </button>
+        </div>
+        <button onclick="app.runTutorial()" class="mt-8 text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-2 transition-colors slide-up z-10">
+            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Hướng dẫn sử dụng
+        </button>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="appContainer" class="flex-1 flex flex-col h-full w-full overflow-hidden opacity-0 transition-opacity duration-500">
+        
+        <!-- MOBILE SIDEBAR BACKDROP -->
+        <div id="sidebarBackdrop" onclick="app.toggleSidebar()" class="sidebar-backdrop lg:hidden"></div>
+
+        <!-- HEADER -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button onclick="app.toggleSidebar()" class="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+                
+                <div class="flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 p-1 flex items-center justify-center overflow-hidden border border-slate-200">
+                        <img src="logo.png" class="w-full h-full object-contain" onerror="this.style.display='none'">
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight hidden sm:block">ỨNG DỤNG THEO DÕI HÀNH VI HỌC SINH</h1>
+                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight sm:hidden">HẠNH KIỂM</h1>
+                        <p class="text-[10px] font-semibold text-slate-500 hidden sm:block">Thầy Thái Minh Nguyên • Yersin Đà Lạt</p>
+                    </div>
+                </div>
+
+                <div class="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+
+                <div class="flex items-center gap-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-primary-200 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                    <span class="text-lg">📅</span>
+                    <input type="date" id="datePicker" class="bg-transparent border-none p-0 text-sm font-bold text-slate-700 cursor-pointer focus:ring-0 w-28">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- ADDED FOR FIREBASE: Login/Logout Button in Header (Now mostly for Logout) -->
+                <button id="btnLogin" onclick="app.firebaseSignIn()" class="hidden md:block bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-xl transition-all whitespace-nowrap">
+                    Đăng nhập
+                </button>
+
+                <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span class="hidden sm:inline">Xuất Excel</span>
+                </button>
+                <select id="monthSelect" class="w-0 h-0 opacity-0 absolute"><option value="9">9</option><option value="5">5</option></select>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <div class="flex-1 flex overflow-hidden p-3 gap-3 bg-slate-100 relative" id="workspace">
+            
+            <!-- LEFT: STUDENT LIST -->
+            <aside id="sidebar" class="sidebar-base shrink-0 frame-container">
+                <div class="frame-header flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-bold text-sm text-slate-500 uppercase tracking-wider">Danh sách lớp</h2>
+                        <span class="text-[11px] font-bold bg-slate-200 px-2 py-0.5 rounded text-slate-600" id="studentCount">0</span>
+                        <!-- Mobile Close Button -->
+                        <button onclick="app.toggleSidebar()" class="lg:hidden text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="app.openModal('modalBulk')" class="flex-1 bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 text-slate-500 text-[11px] font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-1" title="Nhập danh sách từ Excel">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Nhập Excel
+                        </button>
+                        <button onclick="app.sortStudents()" class="bg-white border border-slate-200 hover:border-primary-500 hover:text-primary-600 text-slate-500 px-2.5 rounded-lg transition-all" title="Sắp xếp A-Z"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg></button>
+                        <button onclick="app.openModal('modalStudent')" class="bg-slate-800 text-white px-3 rounded-lg hover:bg-slate-700 shadow-sm transition-transform active:scale-95 font-bold text-sm" title="Thêm học sinh lẻ">+</button>
+                    </div>
+
+                    <div class="relative">
+                        <input type="text" id="searchInput" onkeyup="app.renderStudentList()" placeholder="Tìm kiếm..." class="w-full bg-white border border-slate-200 rounded-lg py-2 pl-8 pr-3 text-sm font-medium focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                        <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <button onclick="app.toggleSelectAll()" id="btnSelectAll" class="w-full bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-700 text-[11px] font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"><div class="w-2.5 h-2.5 border-2 border-current rounded-sm"></div> Chọn tất cả</button>
+                </div>
+                <div id="studentList" class="frame-body custom-scroll space-y-1"></div>
+                <div class="p-2 border-t border-slate-100 bg-slate-50 shrink-0">
+                    <button onclick="app.resetData()" class="w-full py-1.5 text-[11px] font-bold text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">Reset Dữ Liệu</button>
+                </div>
+            </aside>
+
+            <!-- RIGHT: WORKSPACE -->
+            <main class="flex-1 flex flex-col gap-3 overflow-hidden min-w-0">
+                
+                <!-- TOP: HERO CARD -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-hidden" id="heroCard">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+                    
+                    <div class="flex items-center gap-5 relative z-10">
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
+                            <button onclick="app.deleteStudent()" class="absolute -top-2 -right-2 w-6 h-6 bg-white text-red-500 border border-red-100 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-opacity" title="Xóa">×</button>
+                        </div>
+                        <div>
+                            <h2 class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight" id="heroName">Vui lòng chọn học sinh</h2>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-3 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold border border-slate-200 transition-colors" id="heroRank">---</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="relative z-10 text-right">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
+                        <div class="text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
+                    </div>
+                </div>
+
+                <!-- MOBILE TABS -->
+                <div class="flex lg:hidden border-b border-slate-200 mb-4 gap-4 sticky top-0 bg-[#f8fafc] z-20 pt-1">
+                    <button onclick="app.switchMobileTab('positive')" id="tabMobilePos" class="flex-1 pb-2 text-sm font-bold text-center mobile-tab-active text-emerald-600 transition-colors border-b-2 border-emerald-500">ĐIỂM CỘNG</button>
+                    <button onclick="app.switchMobileTab('negative')" id="tabMobileNeg" class="flex-1 pb-2 text-sm font-bold text-center mobile-tab-inactive text-slate-400 hover:text-slate-600 transition-colors">ĐIỂM TRỪ</button>
+                    <button onclick="app.switchMobileTab('history')" id="tabMobileHistory" class="flex-1 pb-2 text-sm font-bold text-center mobile-tab-inactive text-slate-400 hover:text-slate-600 transition-colors">NHẬT KÝ</button>
+                </div>
+
+                <!-- BOTTOM: SPLIT VIEW -->
+                <div class="flex-1 flex gap-3 overflow-hidden min-h-0">
+                    
+                    <!-- RULES CONTAINER -->
+                    <div class="flex-[2] frame-container" id="rulesSection">
+                        <div class="frame-header flex justify-between items-center flex-wrap gap-2">
+                            <!-- REMOVED TABS, KEPT TOOLS ONLY -->
+                            <div class="flex gap-2 items-center w-full">
+                                <div class="relative flex-1">
+                                    <input type="text" id="ruleSearchInput" onkeyup="app.renderRules()" placeholder="Lọc nhanh hành vi..." class="w-full bg-white border border-slate-200 rounded-lg py-1.5 pl-7 pr-2 text-sm font-medium focus:ring-1 focus:ring-primary-500">
+                                    <span class="absolute left-2 top-2 text-slate-400 text-xs">⚡</span>
+                                </div>
+                                <label class="flex items-center gap-1.5 cursor-pointer bg-red-50 px-2 py-1.5 rounded border border-red-100 hover:bg-red-100 transition-colors flex-shrink-0">
+                                    <input type="checkbox" id="critCheck" onchange="app.toggleCrit()" class="w-3 h-3 text-red-500 rounded border-red-200 focus:ring-red-500">
+                                    <span class="text-[11px] font-bold text-red-600">Hạ bậc</span>
+                                </label>
+                                <button onclick="app.openAddRule()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold hover:bg-slate-700 shadow-sm whitespace-nowrap flex-shrink-0">+ Thêm</button>
+                            </div>
+                        </div>
+                        
+                        <div class="frame-body custom-scroll grid grid-cols-1 md:grid-cols-2 gap-4" id="rulesContainer">
+                             <!-- POSITIVE COL -->
+                             <div id="rulesWrapperPos" class="flex flex-col gap-2">
+                                 <div class="rule-group-title text-emerald-600 text-[12px] font-extrabold uppercase border-b border-emerald-100 pb-1">Điểm Cộng</div>
+                                 <div id="rulesGridPos" class="grid grid-cols-1 gap-2"></div>
+                             </div>
+                             <!-- NEGATIVE COL -->
+                             <div id="rulesWrapperNeg" class="flex flex-col gap-2">
+                                 <div class="rule-group-title text-red-600 text-[12px] font-extrabold uppercase border-b border-red-100 pb-1">Điểm Trừ</div>
+                                 <div id="rulesGridNeg" class="grid grid-cols-1 gap-2"></div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <!-- HISTORY CONTAINER -->
+                    <div class="flex-1 frame-container min-w-[300px] flex flex-col" id="historySection">
+                         <div class="frame-header flex justify-between items-center">
+                             <span class="text-[12px] font-bold text-slate-500 uppercase">NHẬT KÝ</span>
+                             <button onclick="app.generateRemark(true)" class="text-[11px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded hover:bg-primary-100">✨ AI Viết</button>
+                         </div>
+                         
+                         <div class="p-3 border-b border-slate-100 bg-white shrink-0">
+                             <textarea id="remarkBox" onblur="app.saveRemark()" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-600 resize-none focus:ring-1 focus:ring-primary-500 focus:bg-white" placeholder="Nhận xét..."></textarea>
+                         </div>
+
+                         <div class="frame-body custom-scroll p-0" id="historyContainer">
+                             <table class="w-full text-left border-collapse" id="logTable">
+                                 <tbody class="divide-y divide-slate-50"></tbody>
+                             </table>
+                             <div id="emptyHistory" class="h-full flex flex-col items-center justify-center text-slate-300 gap-2 py-10">
+                                 <span class="text-xl grayscale opacity-50">📝</span><span class="text-[10px]">Trống</span>
+                             </div>
+                         </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- TUTORIAL OVERLAY -->
+    <div id="tutorialBackdrop" class="tutorial-backdrop hidden"></div>
+    <div id="tutorialCard" class="tutorial-card bg-white p-6 rounded-2xl shadow-tutorial hidden flex flex-col gap-3 transform transition-all duration-300 scale-95 opacity-0">
+        <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-orange-600 text-white flex items-center justify-center font-bold text-sm shadow-md" id="stepNum">1</span>
+            <h3 class="font-bold text-lg text-slate-800" id="stepTitle">Tiêu đề</h3>
+        </div>
+        <p class="text-sm text-slate-600 leading-relaxed font-medium" id="stepDesc">Nội dung...</p>
+        <div class="flex justify-end pt-2 border-t border-slate-100">
+            <button id="btnNext" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-700 shadow-lg transform active:scale-95 transition-all">Tiếp theo</button>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="modalBulk" class="fixed inset-0 z-[10045] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 animate-bounce-in relative z-[260]">
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Nhập Danh Sách Nhanh</h3>
+            <textarea id="bulkText" rows="10" class="w-full bg-slate-50 border-0 rounded-xl p-4 text-sm font-mono focus:ring-2 focus:ring-primary-500 mb-4" placeholder="Dán danh sách tên học sinh vào đây...&#10;Nguyễn Văn A&#10;Trần Thị B"></textarea>
+            <div class="flex justify-end gap-3"><button onclick="app.loadDefaultClass()" class="text-slate-500 text-sm font-bold px-3 hover:bg-slate-50 rounded-lg">Mẫu 10H</button><button id="btnCancelImport" class="text-slate-500 font-bold px-4 hover:bg-slate-50 rounded-xl" onclick="app.closeModal('modalBulk')">Hủy</button><button onclick="app.processBulkImport()" class="bg-primary-600 text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-primary-700">Xác nhận</button></div>
+        </div>
+    </div>
+    
+    <!-- REMOVED modalAuth, REPLACED with Google Sign In Button on Start Screen -->
+
+    <div id="modalRule" class="fixed inset-0 z-[8000] bg-slate-900/60 hidden flex items-center justify-center p-4"><div class="bg-white rounded-3xl p-6 w-full max-w-sm space-y-3 shadow-2xl"><h3 class="font-bold text-lg" id="modalRuleTitle">Thêm Hành Vi</h3><input id="newRText" class="w-full glass-input p-3 rounded-xl text-sm" placeholder="Tên hành vi"><input id="newRScore" type="number" class="w-full glass-input p-3 rounded-xl text-sm" placeholder="Điểm (+/-)"><select id="newRCat" class="w-full glass-input p-3 rounded-xl text-sm"><option value="learning">Học tập</option><option value="discipline">Nề nếp</option><option value="activity">Hoạt động</option><option value="custom">Khác</option></select><label class="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer"><input type="checkbox" id="newRInc" class="rounded text-primary-500 focus:ring-primary-500">Vi phạm lặp lại (Nhân hệ số cho điểm trừ)</label><div class="flex gap-2 pt-2"><button onclick="app.closeModal('modalRule')" class="flex-1 py-2 text-slate-500 font-bold rounded-lg border hover:bg-slate-50">Hủy</button><button onclick="app.saveNewRule()" class="flex-1 bg-primary-600 text-white py-2 rounded-lg font-bold shadow-lg hover:bg-primary-700">Lưu</button></div></div></div>
+    <div id="modalStudent" class="fixed inset-0 z-[8000] bg-slate-900/60 hidden flex items-center justify-center p-4"><div class="bg-white rounded-3xl p-6 w-full max-w-sm space-y-3 shadow-2xl"><h3 class="font-bold text-lg">Thêm Học Sinh</h3><input id="newStudentName" class="w-full glass-input p-3 rounded-xl text-sm" placeholder="Họ và Tên"><div class="flex gap-2 pt-2"><button onclick="app.closeModal('modalStudent')" class="flex-1 py-2 text-slate-500 font-bold rounded-lg border hover:bg-slate-50">Hủy</button><button onclick="app.addStudent()" class="flex-1 bg-primary-600 text-white py-2 rounded-lg font-bold shadow-lg hover:bg-primary-700">Lưu</button></div></div></div>
+    <div id="mobileWarning" class="fixed inset-0 z-[9000] bg-slate-900/90 backdrop-blur-sm hidden flex items-center justify-center p-6 text-center"><div class="bg-white rounded-3xl p-8 max-w-sm shadow-2xl animate-bounce-in"><div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div><h3 class="text-xl font-bold text-slate-800 mb-2">Trải nghiệm tốt nhất trên PC</h3><p class="text-sm text-slate-600 mb-6">Tính năng hướng dẫn chỉ hỗ trợ trên màn hình lớn.</p><button onclick="document.getElementById('mobileWarning').classList.add('hidden')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-700">Đã hiểu</button></div></div>
+
+<script>
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: "...", // Thay bằng API Key của bạn
+  authDomain: "...",
+  databaseURL: "...", // Bắt buộc
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};
+
+const RULES = [
+    {id:'h1', t:'Học tốt 1 tuần', s:0.5, c:'learning', inc:true}, {id:'h2', t:'Học tốt 4 tuần', s:2.0, c:'learning', inc:true}, {id:'h3', t:'Phát biểu', s:0.25, c:'learning', inc:true},
+    {id:'h4', t:'Thiếu bài', s:-1.0, c:'learning', inc:true}, {id:'h5', t:'Thiếu dụng cụ', s:-1.0, c:'learning', inc:true}, {id:'h6', t:'Mất trật tự', s:-0.25, c:'learning', inc:true},
+    {id:'h7', t:'Treo máy', s:-2.0, c:'learning', inc:true}, {id:'h8', t:'Gian lận', s:-4.0, c:'learning', sp:'cheat'},
+    {id:'n1', t:'Tác phong tốt', s:0.5, c:'discipline', inc:true}, {id:'n2', t:'Tác phong tháng', s:2.0, c:'discipline', inc:true}, {id:'n3', t:'Chuyên cần tốt', s:0.5, c:'discipline', inc:true},
+    {id:'n4', t:'Chuyên cần tháng', s:2.0, c:'discipline', inc:true}, {id:'n5', t:'Việc tốt', s:2.0, c:'discipline', inc:true},
+    {id:'n6', t:'Đi trễ', s:-1.0, c:'discipline', inc:true}, {id:'n7', t:'Vắng K.Phép', s:-2.0, c:'discipline', inc:true}, {id:'n8', t:'Lỗi Đ.Phục/Tóc', s:-0.25, c:'discipline', inc:true},
+    {id:'n9', t:'Dùng ĐT sai', s:-2.0, c:'discipline', inc:true}, {id:'n10', t:'Nói tục', s:-2.0, c:'discipline', inc:true}, {id:'n12', t:'Đánh nhau', s:-40.0, c:'discipline'},
+    {id:'a1', t:'Tham gia PT', s:2.0, c:'activity', inc:true}, {id:'a2', t:'Nòng cốt PT', s:4.0, c:'activity', inc:true}, {id:'a3', t:'Đoạt giải', s:5.0, c:'activity', inc:true}, {id:'a4', t:'Vắng tập trung', s:-2.0, c:'activity', inc:true}
+];
+const CATEGORIES = {learning: 'Học tập', discipline: 'Nề nếp', activity: 'Hoạt động', custom: 'Tùy chỉnh'};
+const INIT_DATA = ["Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Ân", "Nguyễn Lê Chí Dũng", "Nguyễn Minh Đức", "Nguyễn Thanh Hằng", "Bùi Mạnh Hùng", "Nguyễn Phúc Lộc", "Nguyễn Trọng Nghĩa", "Nguyễn Trọng Nghĩa", "Nguyễn Thiện Nhân", "Hồ Đức Nhật", "Nguyễn Bảo Thiên", "Nguyễn Thị Thu Thủy", "Trần Hà Uyên", "Lê Hoàng Việt", "Hoàng Ngọc Hà Vy"];
+
+class App {
+    constructor() {
+        try { 
+            this.students = JSON.parse(localStorage.getItem('hk_v33_final_data')) || [];
+            const storedRules = localStorage.getItem('hk_v33_final_rules');
+            this.rules = storedRules ? JSON.parse(storedRules) : JSON.parse(JSON.stringify(RULES));
+        } catch (e) {
+            this.students = [];
+            this.rules = JSON.parse(JSON.stringify(RULES));
+        }
+        this.selectedIds = new Set(); 
+        this.currentId = null;
+        this.editingRuleId = null;
+        this.isOnboarding = false;
+        this.mobileTab = 'positive'; 
+        // Track accordion states
+        this.groupStates = {}; 
+        
+        // ADDED FOR FIREBASE: Init
+        this.user = null;
+        this.dbRef = null;
+        this.initFirebase();
+    }
+
+    // ADDED FOR FIREBASE: Main Init Logic
+    initFirebase() {
+        try {
+            if (firebaseConfig.apiKey === "...") return; // Check if config is valid
+            firebase.initializeApp(firebaseConfig);
+            this.auth = firebase.auth();
+            this.db = firebase.database();
+            
+            // Auth State Listener
+            this.auth.onAuthStateChanged(user => {
+                this.user = user;
+                this.updateAuthUI();
+                if (user) {
+                    this.setupRealtimeListener();
+                } else {
+                    if (this.dbRef) this.dbRef.off(); // Detach listener
+                    this.dbRef = null;
+                }
+            });
+        } catch (e) { console.error("Firebase Init Error:", e); }
+    }
+
+    // ADDED FOR FIREBASE: Sync Logic (The Heart)
+    async setupRealtimeListener() {
+        if (!this.user) return;
+        const uid = this.user.uid;
+        this.dbRef = this.db.ref(`users/${uid}`);
+
+        // 1. Initial Load & Merge Strategy
+        try {
+            const snapshot = await this.dbRef.get();
+            const val = snapshot.val();
+            
+            if (val) {
+                // DB has data -> Overwrite Local (DB is truth)
+                if (val.students) this.students = val.students;
+                if (val.rules) this.rules = val.rules;
+                this.saveToLocalStorageOnly(); // Sync local
+                this.refreshUI();
+            } else {
+                // DB empty -> Push Local to DB (Migration)
+                this.firebasePushLocal();
+            }
+        } catch (e) { console.error("Sync Error:", e); }
+
+        // 2. Realtime Listener
+        this.dbRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                if (data.students) this.students = data.students;
+                if (data.rules) this.rules = data.rules;
+                
+                // Save to local purely for offline fallback next time
+                this.saveToLocalStorageOnly();
+                this.refreshUI();
+            }
+        });
+    }
+
+    // ADDED FOR FIREBASE: Helper to update UI after sync
+    refreshUI() {
+        this.renderStudentList();
+        this.renderRules();
+        if (this.currentId) this.renderInfo();
+    }
+
+    // ADDED FOR FIREBASE: UI Updates
+    updateAuthUI() {
+        const btnHeader = document.getElementById('btnLogin');
+        const btnStart = document.getElementById('btnStartLogin');
+        
+        if (this.user) {
+            // Header Button (Always visible inside)
+            btnHeader.innerHTML = `${this.user.displayName || this.user.email} <span class="ml-1 text-red-300">(Thoát)</span>`;
+            btnHeader.onclick = () => this.firebaseSignOut();
+            btnHeader.classList.remove('hidden'); // Ensure visible if hidden
+
+            // Start Screen Button (If still on start screen)
+            if (btnStart) {
+                btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${this.user.displayName || 'Bạn'}</span> <span class="text-xs ml-1">(Thoát)</span>`;
+                // If clicked while logged in on start screen, maybe logout or just do nothing? 
+                // Let's make it logout to switch account easily
+                btnStart.onclick = () => this.firebaseSignOut();
+                btnStart.classList.replace('bg-white', 'bg-slate-100'); // Slight style change
+            }
+        } else {
+            // Header Button
+            btnHeader.innerHTML = `Đăng nhập`;
+            btnHeader.onclick = () => this.firebaseSignIn();
+            
+            // Start Screen Button
+            if (btnStart) {
+                btnStart.innerHTML = `
+               <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
+               Đăng nhập Google`;
+                btnStart.onclick = () => this.firebaseSignIn();
+                btnStart.classList.replace('bg-slate-100', 'bg-white');
+            }
+        }
+    }
+
+    // ADDED FOR FIREBASE: Auth Actions
+    firebaseSignIn() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        this.auth.signInWithPopup(provider)
+            .catch(error => {
+                alert("Lỗi đăng nhập: " + error.message);
+                console.error(error);
+            });
+    }
+
+    firebaseSignOut() {
+        if(confirm("Đăng xuất?")) {
+            this.auth.signOut().then(() => {
+                // Optional: Go back to start screen or just clear user state
+                // location.reload(); // Simple way to reset state
+            });
+        }
+    }
+
+    // ADDED FOR FIREBASE: Push Local -> DB
+    firebasePushLocal() {
+        if (!this.user) return;
+        this.db.ref(`users/${this.user.uid}`).set({
+            students: this.students,
+            rules: this.rules
+        }).catch(e => console.error("Push Error", e));
+    }
+
+    // ADDED FOR FIREBASE: Save Override
+    save() { 
+        this.saveToLocalStorageOnly();
+        // If logged in, push to DB
+        if (this.user) {
+            this.db.ref(`users/${this.user.uid}/students`).set(this.students).catch(e => console.log("Offline mode"));
+        }
+        this.renderStudentList(); 
+        if (this.currentId) this.renderInfo(); 
+    }
+
+    saveRules() { 
+        this.saveToLocalStorageOnly();
+        if (this.user) {
+            this.db.ref(`users/${this.user.uid}/rules`).set(this.rules).catch(e => console.log("Offline mode"));
+        }
+        this.renderRules(); 
+    }
+
+    // Helper to keep code clean
+    saveToLocalStorageOnly() {
+        try { 
+            localStorage.setItem('hk_v33_final_data', JSON.stringify(this.students)); 
+            localStorage.setItem('hk_v33_final_rules', JSON.stringify(this.rules));
+        } catch (e) {}
+    }
+
+    startApp() {
+        if (!this.students || this.students.length === 0) {
+            this.runTutorial();
+        } else {
+            this.showMainUI();
+        }
+    }
+
+    showMainUI() {
+        document.getElementById('startScreen').classList.add('-translate-y-full');
+        document.getElementById('appContainer').classList.remove('opacity-0');
+        this.setToday();
+        this.renderStudentList(); 
+        this.renderRules();
+        if(this.students.length > 0 && !this.currentId) this.selectStudent(this.students[0].id);
+        this.switchMobileTab('positive');
+    }
+    
+    setToday() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const picker = document.getElementById('datePicker');
+        if(picker) picker.value = `${yyyy}-${mm}-${dd}`;
+    }
+    
+    goHome() { document.getElementById('startScreen').classList.remove('-translate-y-full'); }
+
+    // --- MOBILE TABS LOGIC ---
+    switchMobileTab(tabName) {
+        this.mobileTab = tabName;
+        const rulesSection = document.getElementById('rulesSection');
+        const historySection = document.getElementById('historySection');
+        const rulesGridPos = document.getElementById('rulesWrapperPos');
+        const rulesGridNeg = document.getElementById('rulesWrapperNeg');
+        const btnPos = document.getElementById('tabMobilePos');
+        const btnNeg = document.getElementById('tabMobileNeg');
+        const btnHist = document.getElementById('tabMobileHistory');
+        const setBtnInactive = (btn) => { btn.className = "flex-1 pb-2 text-sm font-bold text-center mobile-tab-inactive text-slate-400 hover:text-slate-600 transition-colors"; };
+        const setBtnActive = (btn, color) => { btn.className = `flex-1 pb-2 text-sm font-bold text-center mobile-tab-active text-${color}-600 border-b-2 border-${color}-500 bg-${color}-50`; };
+        
+        if(window.innerWidth < 1024) {
+            setBtnInactive(btnPos); setBtnInactive(btnNeg); setBtnInactive(btnHist);
+            if (tabName === 'history') {
+                setBtnActive(btnHist, 'slate'); 
+                rulesSection.classList.add('hidden'); rulesSection.classList.remove('flex');
+                historySection.classList.remove('hidden'); historySection.classList.add('flex');
+            } else {
+                rulesSection.classList.remove('hidden'); rulesSection.classList.add('flex');
+                historySection.classList.add('hidden'); historySection.classList.remove('flex');
+                if (tabName === 'positive') {
+                    setBtnActive(btnPos, 'emerald');
+                    rulesGridPos.classList.remove('hidden'); rulesGridNeg.classList.add('hidden');
+                } else if (tabName === 'negative') {
+                    setBtnActive(btnNeg, 'red');
+                    rulesGridPos.classList.add('hidden'); rulesGridNeg.classList.remove('hidden');
+                }
+            }
+        } else {
+            rulesSection.classList.remove('hidden'); historySection.classList.remove('hidden');
+            rulesGridPos.classList.remove('hidden'); rulesGridNeg.classList.remove('hidden');
+        }
+    }
+
+    // --- TUTORIAL LOGIC ---
+    resetTutorialState() {
+        this.tutorialStep = 0;
+        this.isOnboarding = false;
+        document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
+        document.getElementById('tutorialBackdrop').classList.add('hidden');
+        document.getElementById('tutorialCard').classList.add('hidden');
+    }
+
+    runTutorial() {
+        if (window.innerWidth < 1024) { document.getElementById('mobileWarning').classList.remove('hidden'); return; }
+        if (this.students && this.students.length > 0) { if(!confirm("Hướng dẫn sẽ XÓA TOÀN BỘ dữ liệu hiện tại để thiết lập mới. Bạn có chắc chắn?")) return; }
+        this.resetTutorialState(); localStorage.removeItem('hk_v33_mobile_acc_data'); this.students = [];
+        document.getElementById('startScreen').classList.add('-translate-y-full'); document.getElementById('appContainer').classList.remove('opacity-0');
+        this.renderStudentList(); this.renderRules(); this.setToday();
+        this.isOnboarding = true;
+        document.getElementById('tutorialBackdrop').classList.remove('hidden');
+        this.tutorialSteps = [
+            { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
+            { id: 'sidebar', title: 'Bước 2: Quản Lý Lớp', desc: 'Danh sách học sinh hiển thị ở đây.' },
+            { id: 'rulesSection', title: 'Bước 3: Chấm Điểm', desc: 'Chọn các thẻ hành vi. Cột trái là Điểm Cộng, cột phải là Điểm Trừ.' },
+            { id: 'heroCard', title: 'Bước 4: Thông Tin', desc: 'Xem nhanh tổng điểm, xếp loại và trạng thái của học sinh đang chọn.', pos: 'bottom-force' }, 
+            { id: 'historySection', title: 'Bước 5: Nhật Ký', desc: 'Lịch sử ghi nhận nằm ở đây. Bạn có thể dùng AI để tạo nhận xét tự động.' },
+            { id: 'btnExport', title: 'Bước 6: Báo Cáo', desc: 'Cuối tháng, bấm vào đây để xuất file Excel.' }
+        ];
+        this.openModal('modalBulk');
+        const card = document.getElementById('tutorialCard');
+        card.classList.remove('hidden'); setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); }, 50);
+        this.updateTutorialUI();
+    }
+
+    updateTutorialUI() {
+        const step = this.tutorialSteps[this.tutorialStep];
+        document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
+        let el = document.getElementById(step.id);
+        if (step.id === 'modalBulk') { el = document.querySelector('#modalBulk > div'); document.getElementById('modalBulk').style.zIndex = '99995'; }
+        if(el) {
+            if(step.id === 'heroCard') { el.style.transform = 'none'; el.classList.remove('group'); }
+            el.classList.add('tutorial-highlight');
+        }
+        document.getElementById('stepNum').innerText = this.tutorialStep + 1;
+        document.getElementById('stepTitle').innerText = step.title;
+        document.getElementById('stepDesc').innerText = step.desc;
+        const btnNext = document.getElementById('btnNext');
+        if (step.action === 'import') { btnNext.style.display = 'none'; } else {
+            btnNext.style.display = 'block';
+            btnNext.innerText = (this.tutorialStep === this.tutorialSteps.length - 1) ? 'Hoàn tất' : 'Tiếp theo';
+            btnNext.onclick = () => this.nextTutorialStep();
+        }
+        const box = document.getElementById('tutorialCard');
+        if(window.innerWidth > 768) {
+            const rect = el ? el.getBoundingClientRect() : {top: window.innerHeight/2, left: window.innerWidth/2, width:0, height:0};
+            let top, left;
+            if (step.pos === 'center' || !el) {
+                box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%, -50%)'; box.style.position = 'fixed';
+            } else if (step.pos === 'bottom-force') {
+                top = rect.bottom + 30; left = rect.left + (rect.width / 2) - 160;
+                if(left < 20) left = 20; if(left + 320 > window.innerWidth) left = window.innerWidth - 340;
+                if(top > window.innerHeight - 200) top = rect.top - 250;
+                box.style.position = 'fixed'; box.style.top = `${top}px`; box.style.left = `${left}px`; box.style.transform = 'none';
+            } else {
+                top = rect.top + 20; left = rect.right + 30;
+                if(left + 340 > window.innerWidth) left = rect.left - 360;
+                if(top > window.innerHeight - 200) top = window.innerHeight - 250;
+                box.style.position = 'fixed'; box.style.top = `${top}px`; box.style.left = `${left}px`; box.style.transform = 'none';
+            }
+        }
+    }
+
+    nextTutorialStep() { this.tutorialStep++; if (this.tutorialStep >= this.tutorialSteps.length) { this.endTutorial(); } else { this.updateTutorialUI(); } }
+
+    endTutorial() {
+        this.resetTutorialState();
+        document.getElementById('heroCard').style.transform = ''; document.getElementById('heroCard').classList.add('group');
+        alert("Chúc mừng! Bạn đã sẵn sàng sử dụng.");
+    }
+
+    processBulkImport(){ 
+        const t=document.getElementById('bulkText').value.trim(); 
+        if(t){ 
+            this.students = t.split('\n').filter(x=>x.trim()).map((n,i)=>({id:Date.now()+i, name:n.trim(), logs:[], remark:"", crit:false})); 
+            // Removed default sorting to keep input order
+            this.save(); 
+            this.closeModal('modalBulk'); 
+            if (this.isOnboarding) { this.renderStudentList(); if(this.students.length > 0) this.selectStudent(this.students[0].id); setTimeout(() => { this.nextTutorialStep(); }, 300); } else { this.showMainUI(); }
+        } 
+    }
+    
+    // --- ACCORDION LOGIC ---
+    toggleGroup(key) {
+        if (this.groupStates[key] === undefined) {
+            // If explicit click, initialize inverse of current default
+            const isMobile = window.innerWidth < 1024;
+            const filterText = document.getElementById('ruleSearchInput').value.toLowerCase();
+            const defaultOpen = filterText.length > 0 || !isMobile;
+            this.groupStates[key] = !defaultOpen;
+        } else {
+            this.groupStates[key] = !this.groupStates[key];
+        }
+        this.renderRules();
+    }
+
+    // --- RENDER RULES (ACCORDION) ---
+    renderRules() {
+        const filterText = document.getElementById('ruleSearchInput').value.toLowerCase();
+        const allRules = this.rules.filter(r => r.t.toLowerCase().includes(filterText));
+        const isMobile = window.innerWidth < 1024;
+        const isSearching = filterText.length > 0;
+        
+        const renderGroup = (rules, type) => {
+            const grouped = rules.reduce((acc, r) => { (acc[r.c] = acc[r.c] || []).push(r); return acc; }, {});
+            
+            return Object.keys(CATEGORIES).map(catKey => {
+                if(!grouped[catKey]) return '';
+                
+                // Colors based on type
+                const headerColor = type === 'pos' ? 'text-emerald-600' : 'text-red-600';
+                
+                // Accordion State Logic
+                const groupKey = `${type}_${catKey}`;
+                let isOpen = true; // Default for PC or Search
+                
+                if (isSearching) {
+                    isOpen = true; // Always expand when searching
+                } else if (this.groupStates[groupKey] !== undefined) {
+                    isOpen = this.groupStates[groupKey]; // User preference
+                } else {
+                    isOpen = !isMobile; // Default: Closed on Mobile, Open on PC
+                }
+
+                return `
+                <div class="mb-3 break-inside-avoid bg-white rounded-xl border border-slate-100 overflow-hidden accordion-open">
+                    <div onclick="app.toggleGroup('${groupKey}')" class="w-full flex justify-between items-center p-2 bg-slate-50 cursor-pointer select-none group/header hover:bg-slate-100 transition-colors">
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest ${headerColor}">${CATEGORIES[catKey]}</span>
+                        <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="p-2 bg-white ${isOpen ? '' : 'hidden'}">
+                        <div class="grid grid-cols-1 gap-2">
+                            ${grouped[catKey].map(r => {
+                                let countBadge = '';
+                                if(this.currentId && !this.selectedIds.size && r.inc) {
+                                    const s = this.students.find(x => x.id == this.currentId);
+                                    const count = s ? s.logs.filter(l => l.rid === r.id).length : 0;
+                                    if(count > 0) countBadge = `<span class="absolute top-2 right-2 text-[9px] font-bold bg-slate-800 text-white px-1.5 rounded-full z-10 shadow-sm">x${count+1}</span>`;
+                                }
+                                const isBonus = r.s > 0;
+                                const deleteBtn = r.id.startsWith('c') ? `<button onclick="event.stopPropagation(); app.deleteRule('${r.id}')" class="absolute -top-1 -left-1 w-5 h-5 bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white rounded-full flex items-center justify-center text-[10px] shadow-sm z-20 transition-colors">×</button>` : '';
+                                return `<div onclick="app.addLog('${r.t}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${countBadge} ${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-sm font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${r.t}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        document.getElementById('rulesGridPos').innerHTML = renderGroup(allRules.filter(r => r.s > 0), 'pos');
+        document.getElementById('rulesGridNeg').innerHTML = renderGroup(allRules.filter(r => r.s <= 0), 'neg');
+    }
+
+    // --- CORE LOGIC ---
+    deleteRule(id) { if(confirm("Xóa thẻ hành vi này?")) { this.rules = this.rules.filter(r => r.id !== id); this.saveRules(); } }
+    editRule(id) { const r = this.rules.find(x => x.id === id); if(!r) return; this.editingRuleId = id; document.getElementById('modalRuleTitle').innerText = "Sửa Hành Vi"; document.getElementById('newRText').value = r.t; document.getElementById('newRScore').value = r.s; document.getElementById('newRCat').value = r.c; document.getElementById('newRInc').checked = r.inc || false; this.openModal('modalRule'); }
+    
+    calculate(s) {
+        if(!s) return {total:0, rank:'-'};
+        let total = 80, cheats = 0;
+        s.logs.forEach(l => { total += parseFloat(l.s); if (l.sp === 'cheat') cheats++; });
+        let rank = 'Đạt';
+        if (total >= 80) rank = 'Tốt'; else if (total >= 65) rank = 'Khá'; else if (total >= 50) rank = 'Đạt'; else rank = 'Chưa Đạt';
+        if (cheats >= 2 && ['Tốt','Khá'].includes(rank)) rank = 'Đạt'; if (cheats >= 3) rank = 'Chưa Đạt'; if (s.crit || total < 50) rank = 'Chưa Đạt';
+        return { total: Math.round(total * 100) / 100, rank };
+    }
+    toggleSidebar() { const sb = document.getElementById('sidebar'); const bd = document.getElementById('sidebarBackdrop'); if (sb.classList.contains('-translate-x-full')) { sb.classList.remove('-translate-x-full'); sb.classList.add('sidebar-open'); bd.classList.remove('hidden'); setTimeout(()=>bd.classList.add('active'),10); } else { sb.classList.add('-translate-x-full'); sb.classList.remove('sidebar-open'); bd.classList.remove('active'); setTimeout(()=>bd.classList.add('hidden'),300); } }
+    selectStudent(id) { if (this.selectedIds.size) this.clearSelection(); this.currentId = id; this.renderStudentList(); this.renderInfo(); this.renderRules(); if(window.innerWidth < 1024) { const sb = document.getElementById('sidebar'); if (!sb.classList.contains('-translate-x-full')) { this.toggleSidebar(); } } }
+    toggleSelect(id) { if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id); this.currentId = null; this.renderStudentList(); this.renderInfo(); }
+    toggleSelectAll() { const isAll = this.selectedIds.size === this.students.length; if(isAll) this.selectedIds.clear(); else this.students.forEach(s=>this.selectedIds.add(s.id)); this.renderStudentList(); this.renderInfo(); }
+    clearSelection() { this.selectedIds.clear(); if(this.students.length) this.selectStudent(this.students[0].id); }
+    addLog(txt, score, ruleId=null, sp=null, inc=false) {
+        const dateStr = document.getElementById('datePicker').value.split('-').reverse().slice(0, 2).join('/');
+        const targets = this.selectedIds.size ? this.students.filter(s => this.selectedIds.has(s.id)) : (this.currentId ? [this.students.find(s => s.id == this.currentId)] : []);
+        if (!targets.length) return alert("Chưa chọn học sinh!");
+        targets.forEach(s => {
+            let finalS = score, finalT = txt;
+            if (inc) { const count = s.logs.filter(l => l.rid === ruleId).length + 1; finalT += ` (Lần ${count})`; if (score < 0) finalS = score * count; }
+            s.logs.push({ t: finalT, s: finalS, d: dateStr, rid: ruleId, sp: sp });
+            s.remark = this.generateRemarkText(s);
+        });
+        this.save();
+    }
+    removeLog(idx) { const s = this.students.find(x => x.id == this.currentId); if (!s) return; s.logs.splice(idx, 1); s.remark = this.generateRemarkText(s); this.save(); }
+    addManualLog() { const t = document.getElementById('manText').value.trim(); const s = parseFloat(document.getElementById('manScore').value); if(!t || isNaN(s)) return; this.addLog(t, s); document.getElementById('manText').value=''; document.getElementById('manScore').value=''; }
+    
+    renderStudentList() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        document.getElementById('studentList').innerHTML = this.students.map((s, i) => {
+            if (!s.name.toLowerCase().includes(term)) return '';
+            const st = this.calculate(s);
+            const active = this.currentId == s.id; const checked = this.selectedIds.has(s.id);
+            const initials = s.name.split(' ').slice(-2).map(n=>n[0]).join('');
+            let rankColor = 'bg-gray-100 text-gray-600';
+            if(st.rank === 'Tốt') rankColor = 'bg-emerald-100 text-emerald-700'; else if(st.rank === 'Khá') rankColor = 'bg-yellow-100 text-yellow-700'; else if(st.rank === 'Chưa Đạt') rankColor = 'bg-red-100 text-red-700'; else if(st.rank === 'Đạt') rankColor = 'bg-orange-100 text-orange-700';
+            return `<div onclick="app.selectStudent(${s.id})" class="student-item flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${active ? 'bg-white border-primary-300 shadow-md transform scale-105 z-10' : 'bg-transparent border-transparent hover:bg-slate-50'}"><div onclick="event.stopPropagation(); app.toggleSelect(${s.id})" class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-bold text-xs transition-colors ${checked ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-400'}">${checked ? '✓' : (i+1)}</div><div class="flex-1 min-w-0"><div class="flex justify-between items-center"><span class="text-[15px] font-bold truncate ${active?'text-slate-900':'text-slate-600'}">${s.name}</span><button onclick="event.stopPropagation(); app.deleteStudentById(${s.id})" class="student-delete-btn ml-2 text-slate-300 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div><div class="flex justify-between items-center mt-1"><span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${rankColor}">${st.rank}</span><span class="text-[10px] font-black ${st.total<50?'text-red-500':'text-primary-600'}">${st.total}</span></div></div></div>`;
+        }).join('');
+        document.getElementById('studentCount').innerText = `${this.students.length} Học sinh`;
+    }
+    renderInfo() {
+        if(!this.currentId) return;
+        const s = this.students.find(x => x.id == this.currentId); const st = this.calculate(s);
+        const nameParts = s.name.split(' '); const initials = nameParts.slice(-2).map(n=>n[0]).join('');
+        document.getElementById('heroName').innerText = s.name;
+        const heroScore = document.getElementById('heroScore'); heroScore.innerText = st.total;
+        let colorClass = 'text-slate-800'; let bgClass = 'bg-slate-100 text-slate-500 border-slate-200';
+        if (st.total >= 80) { colorClass = 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400'; bgClass = 'bg-emerald-50 text-emerald-600 border-emerald-200'; } else if (st.total < 50) { colorClass = 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600'; bgClass = 'bg-red-50 text-red-600 border-red-200'; }
+        heroScore.className = `text-6xl lg:text-7xl font-black transition-all duration-300 transform scale-100 ${colorClass}`;
+        document.getElementById('heroRank').innerText = st.rank; document.getElementById('heroRank').className = `px-4 py-1.5 rounded-full text-sm font-bold border transition-colors shadow-sm ${bgClass}`;
+        document.getElementById('heroAvatar').innerText = initials; document.getElementById('critCheck').checked = s.crit;
+        const tbody = document.querySelector('#logTable tbody');
+        if(s.logs.length===0){ tbody.innerHTML=''; document.getElementById('emptyHistory').classList.remove('hidden'); } else {
+            document.getElementById('emptyHistory').classList.add('hidden');
+            tbody.innerHTML = s.logs.slice().reverse().map((l, idx) => `
+                <tr class="group hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"><td class="py-3 pl-2 w-14 text-[11px] text-slate-400 font-medium align-top pt-4">${l.d}</td><td class="py-3 pr-2 align-top"><p class="text-xs font-bold text-slate-700 leading-snug">${l.t}</p></td><td class="py-3 w-12 text-right align-top"><span class="inline-block px-2 py-0.5 rounded text-[10px] font-black ${l.s>0?'bg-emerald-50 text-emerald-600':'bg-red-50 text-red-600'}">${l.s>0?'+':''}${l.s}</span></td><td class="py-3 w-8 text-center align-top"><button onclick="app.removeLog(${s.logs.length-1-idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">×</button></td></tr>`).join('');
+        }
+        document.getElementById('remarkBox').value = s.remark || this.generateRemarkText(s);
+    }
+    openAddRule() { this.editingRuleId = null; document.getElementById('modalRuleTitle').innerText = "Thêm Hành Vi"; document.getElementById('newRText').value = ''; document.getElementById('newRScore').value = ''; document.getElementById('newRCat').value = 'learning'; document.getElementById('newRInc').checked = false; this.openModal('modalRule'); }
+    openModal(id){ 
+        if(id === 'modalBulk') {
+            const cancelBtn = document.querySelector('#modalBulk button:nth-child(2)');
+            if(cancelBtn) cancelBtn.onclick = () => { 
+                 app.closeModal('modalBulk'); 
+                 if(app.isOnboarding) { app.resetTutorialState(); document.getElementById('appContainer').classList.add('opacity-0'); document.getElementById('startScreen').classList.remove('-translate-y-full'); app.isOnboarding = false; }
+             };
+        }
+        document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); 
+    }
+    closeModal(id){ document.getElementById(id).classList.remove('flex'); document.getElementById(id).classList.add('hidden'); }
+    loadDefaultClass(){ document.getElementById('bulkText').value = INIT_DATA.join('\n'); }
+    addStudent(){ 
+        const n=document.getElementById('newStudentName').value.trim(); 
+        if(n){ 
+            this.students.push({id:Date.now(), name:n, logs:[], remark:"", crit:false}); 
+            this.sortStudentsLogic();
+            this.closeModal('modalStudent'); 
+        } 
+    }
+    sortStudents() { this.sortStudentsLogic(); }
+    sortStudentsLogic() { 
+        this.students.sort((a, b) => { 
+            const getName = (fullName) => {
+                const parts = fullName.trim().split(/\s+/);
+                return parts.length > 0 ? parts[parts.length - 1] : "";
+            };
+            const nameA = getName(a.name);
+            const nameB = getName(b.name);
+            return nameA.localeCompare(nameB, 'vi'); 
+        }); 
+        this.save(); 
+    }
+    saveNewRule(){ 
+        const t=document.getElementById('newRText').value; 
+        const s=parseFloat(document.getElementById('newRScore').value); 
+        const c=document.getElementById('newRCat').value; 
+        const inc = document.getElementById('newRInc').checked;
+        if(t && !isNaN(s)){ 
+            if(this.editingRuleId) {
+                const idx = this.rules.findIndex(r => r.id === this.editingRuleId);
+                if(idx !== -1) { this.rules[idx] = { id: this.editingRuleId, t, s, c, inc }; }
+            } else { this.rules.push({id:'c'+Date.now(), t, s, c, inc}); }
+            this.saveRules(); this.closeModal('modalRule'); 
+        } 
+    }
+    generateRemarkText(s) {
+        const st = this.calculate(s);
+        const logs = s.logs;
+        let remarks = [];
+
+        // Rank based intro
+        if (st.rank === 'Tốt') {
+            remarks.push("Em là một học sinh gương mẫu, có ý thức kỷ luật rất tốt.");
+            remarks.push("Luôn chấp hành nghiêm túc nội quy và nỗ lực trong học tập.");
+        } else if (st.rank === 'Khá') {
+            remarks.push("Em có ý thức phấn đấu, tuy nhiên cần khắc phục một số hạn chế nhỏ để hoàn thiện hơn.");
+        } else if (st.rank === 'Đạt') {
+            remarks.push("Cần cố gắng nhiều hơn trong việc rèn luyện nề nếp và tác phong.");
+        } else {
+            remarks.push("Cần nghiêm túc kiểm điểm bản thân và thay đổi thái độ học tập, rèn luyện ngay.");
+        }
+
+        // Specific Positive Feedback
+        if (logs.some(l => l.t.includes('Học tốt') && l.s > 0)) remarks.push("Rất đáng khen ngợi về tinh thần học tập chăm chỉ.");
+        if (logs.some(l => l.t.includes('Phát biểu') && l.s > 0)) remarks.push("Tích cực xây dựng bài, tư duy nhạy bén.");
+        if (logs.some(l => l.t.includes('Phong trào') && l.s > 0)) remarks.push("Năng nổ, nhiệt tình trong các hoạt động phong trào của lớp.");
+        if (logs.some(l => l.t.includes('Việc tốt') && l.s > 0)) remarks.push("Có lòng tốt, hay giúp đỡ thầy cô và bạn bè.");
+
+        // Constructive Feedback (Negative)
+        const badHabits = [];
+        if (logs.some(l => l.t.toLowerCase().includes('trễ'))) badHabits.push("đi học đúng giờ");
+        if (logs.some(l => l.t.toLowerCase().includes('vắng'))) badHabits.push("tham gia đầy đủ các buổi học");
+        if (logs.some(l => l.t.toLowerCase().includes('bài') || l.t.toLowerCase().includes('dụng cụ'))) badHabits.push("chuẩn bị bài vở và dụng cụ chu đáo hơn");
+        if (logs.some(l => l.t.toLowerCase().includes('trật tự') || l.t.toLowerCase().includes('ngủ'))) badHabits.push("tập trung chú ý nghe giảng");
+        if (logs.some(l => l.t.toLowerCase().includes('điện thoại'))) badHabits.push("tuân thủ quy định sử dụng điện thoại");
+        if (logs.some(l => l.t.toLowerCase().includes('đồng phục') || l.t.toLowerCase().includes('tóc'))) badHabits.push("chỉnh đốn trang phục, đầu tóc gọn gàng");
+
+        if (badHabits.length > 0) {
+            const reminders = badHabits.join(", ");
+            remarks.push(`Cần lưu ý: ${reminders}.`);
+        }
+        
+        // Closing encouragement
+        if (st.total < 65) remarks.push("Mong em nỗ lực hơn nữa trong thời gian tới!");
+
+        return remarks.join(" ");
+    }
+    generateRemark(f){ if(this.currentId){ const s=this.students.find(x=>x.id==this.currentId); s.remark=this.generateRemarkText(s); document.getElementById('remarkBox').value=s.remark; this.save(); } }
+    saveRemark(){ if(this.currentId){ this.students.find(x=>x.id==this.currentId).remark=document.getElementById('remarkBox').value; this.save(); } }
+    resetData(){ if(confirm("Xóa hết dữ liệu? (Bao gồm cả danh sách HS)")){ localStorage.removeItem('hk_v33_mobile_acc_data'); localStorage.removeItem('hk_v33_mobile_acc_rules'); location.reload(); } }
+    deleteStudentById(id) { if (confirm("Xóa học sinh này?")) { this.students = this.students.filter(s => s.id != id); if (this.currentId == id) this.currentId = null; this.save(); if (this.students.length) this.selectStudent(this.students[0].id); else { this.renderStudentList(); this.renderInfo(); } } }
+    deleteStudent(){ if(this.currentId) this.deleteStudentById(this.currentId); }
+    toggleCrit(){ if(this.currentId){ const s=this.students.find(x=>x.id==this.currentId); s.crit=!s.crit; this.save(); this.renderInfo(); } }
+    
+    // Updated exportExcel function with FULL STYLING
+    exportExcel() { 
+        const m = document.getElementById('monthSelect').value; 
+        const headers = ["STT", "HỌ VÀ TÊN HỌC SINH", "BIỂU HIỆN TÍCH CỰC", "ĐIỂM CỘNG", "HÀNH VI CẦN CẢI THIỆN", "ĐIỂM TRỪ", "TỔNG ĐIỂM", "XẾP LOẠI", "NHẬN XÉT"];
+        const d = [headers]; 
+        
+        this.students.forEach((s, i) => { 
+            const st = this.calculate(s); 
+            
+            // Helper to format date: 10/11 -> (ngày 10 tháng 11)
+            const fmtDate = (dateStr) => {
+                if (!dateStr) return "";
+                const parts = dateStr.split('/');
+                if (parts.length === 2) return ` (ngày ${parts[0]} tháng ${parts[1]})`;
+                return ` (${dateStr})`;
+            };
+
+            // Format content similar to CSV structure
+            const positiveLogs = s.logs.filter(l => l.s > 0)
+                .map(l => `- ${l.t}${fmtDate(l.d)} (+${l.s})`)
+                .join('\n');
+                
+            const negativeLogs = s.logs.filter(l => l.s < 0)
+                .map(l => `- ${l.t}${fmtDate(l.d)} (${l.s})`)
+                .join('\n');
+            
+            const bonusTotal = s.logs.filter(l => l.s > 0).reduce((a, c) => a + c.s, 0);
+            const penaltyTotal = Math.abs(s.logs.filter(l => l.s < 0).reduce((a, c) => a + c.s, 0)); 
+            
+            d.push([
+                i + 1, 
+                s.name, 
+                positiveLogs, 
+                bonusTotal || 0, 
+                negativeLogs, 
+                penaltyTotal || 0, 
+                st.total, 
+                st.rank, 
+                s.remark || ''
+            ]); 
+        }); 
+        
+        const wb = XLSX.utils.book_new(); 
+        const ws = XLSX.utils.aoa_to_sheet(d); 
+        
+        // 1. Set Column Widths (Approximation)
+        ws['!cols'] = [
+            {wch: 5},  // STT
+            {wch: 25}, // Name
+            {wch: 40}, // Pos Logs
+            {wch: 8},  // Pos Score
+            {wch: 40}, // Neg Logs
+            {wch: 8},  // Neg Score
+            {wch: 8},  // Total
+            {wch: 10}, // Rank
+            {wch: 30}  // Remark
+        ]; 
+        
+        // 2. Apply Styles to All Cells
+        // Get range of sheet
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+                if (!ws[cellRef]) continue;
+                
+                // Base Style Object
+                const style = {
+                    font: { name: "Times New Roman", sz: 12 },
+                    border: {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    },
+                    alignment: { vertical: "center", wrapText: true }
+                };
+
+                // Header Specific Styling (Row 0)
+                if (R === 0) {
+                    style.font.bold = true;
+                    style.fill = { fgColor: { rgb: "D9D9D9" } }; // Light Grey Background
+                    style.alignment.horizontal = "center";
+                } 
+                // Data Specific Styling
+                else {
+                    // Center align specific columns (STT, Scores, Rank)
+                    // Indices: 0(STT), 3(Bonus), 5(Penalty), 6(Total), 7(Rank)
+                    if ([0, 3, 5, 6, 7].includes(C)) {
+                        style.alignment.horizontal = "center";
+                    }
+                }
+                
+                // Apply style
+                ws[cellRef].s = style;
+            }
+        }
+
+        XLSX.utils.book_append_sheet(wb, ws, "HK"); 
+        XLSX.writeFile(wb, `HK_Yersin_Thang${m}.xlsx`); 
+    }
+}
+document.addEventListener('DOMContentLoaded', () => { window.app = new App(); });
+</script>
+</body>
+</html>
