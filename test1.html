@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hạnh Kiểm Yersin - V33 Optimized</title>
+    <title>Hạnh Kiểm Yersin - V33 Performance Fix</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -379,11 +379,8 @@
 <script>
 /**
  * SENIOR DEVELOPER OPTIMIZATION NOTES:
- * 1. Added HTML Escaping: Prevents XSS attacks from student names or rules.
- * 2. Implemented Debouncing: Reduces Firebase writes and improves performance.
- * 3. Memory Management: Properly unregisters old Firebase listeners before adding new ones.
- * 4. Error Guards: Added null checks for data imports and localStorage.
- * 5. Code Structure: Grouped constants and helper functions.
+ * 1. REMOVED "x2, x3" LOGIC: This was causing extreme lag and visual clutter.
+ * 2. OPTIMIZED UI UPDATES: Log adds update UI immediately, list updates are debounced.
  */
 
 // --- CONFIG & CONSTANTS ---
@@ -457,14 +454,18 @@ class App {
         this.mobileTab = 'positive'; 
         this.groupStates = {}; 
         
-        // Debounced Save Methods
-        this.saveDebounced = debounce(() => this.saveToLocalStorageOnly(), 500);
+        // Debounced Save Methods - KEY LAG FIX
+        this.saveDebounced = debounce(() => {
+            this.saveToLocalStorageOnly();
+            this.renderStudentList(); // Wait for user to stop clicking before re-rendering list
+        }, 500);
+        
         this.syncDebounced = debounce(() => this.syncToFirebase(), 1000);
 
         // Firebase Integration
         this.user = null;
         this.dbRef = null;
-        this.unsubscribe = null; // Store unsubscribe function
+        this.unsubscribe = null;
         this.initFirebase();
     }
 
@@ -515,14 +516,12 @@ class App {
         if (!this.user) return;
         const uid = this.user.uid;
         
-        // Unsubscribe old listener if exists to prevent memory leaks
         if (this.dbRef) {
             this.dbRef.off();
         }
 
         this.dbRef = this.db.ref(`users/${uid}/state`);
 
-        // Load data ONCE first
         this.dbRef.once('value').then(snapshot => {
             const val = snapshot.val();
             if (val) {
@@ -538,11 +537,9 @@ class App {
                     });
             }
 
-            // Start Realtime Listener
             this.dbRef.on('value', (snap) => {
                 const data = snap.val();
                 if (data) {
-                    // Only apply if timestamp is newer or different context (simple check)
                     this.applyState(data);
                     this.updateConnectionStatus('online');
                 }
@@ -681,11 +678,10 @@ class App {
 
     // --- DATA HANDLING ---
     
-    // Uses debouncing to prevent excessive writes
     save() { 
         this.saveDebounced();
         this.syncDebounced();
-        this.renderStudentList(); 
+        // REMOVED synchronous renderStudentList() to prevent UI freeze
         if (this.currentId) this.renderInfo(); 
     }
 
@@ -700,7 +696,6 @@ class App {
         const btnText = document.getElementById('saveBtnText');
         if(btnText) btnText.innerText = "Đang đồng bộ...";
         
-        // Bypass debounce for manual save
         this.syncToFirebase()
             .then(() => {
                 this.showToast("Đã đồng bộ thành công lên Google!", "success");
@@ -976,20 +971,12 @@ class App {
                     isOpen = !isMobile; 
                 }
 
-                // Optimization: Array map + join is often faster than string concat
+                // REMOVED "countBadge" logic completely to fix lag and remove "x2, x3" indicators
                 const itemsHtml = grouped[catKey].map(r => {
-                    let countBadge = '';
-                    if(this.currentId && !this.selectedIds.size && r.inc) {
-                        const s = this.students.find(x => x.id == this.currentId);
-                        if (s && s.logs) {
-                            const count = s.logs.filter(l => l.rid === r.id).length;
-                            if(count > 0) countBadge = `<span class="absolute top-2 right-2 text-[9px] font-bold bg-slate-800 text-white px-1.5 rounded-full z-10 shadow-sm">x${count+1}</span>`;
-                        }
-                    }
                     const isBonus = r.s > 0;
                     const deleteBtn = r.id.startsWith('c') ? `<button onclick="event.stopPropagation(); app.deleteRule('${r.id}')" class="absolute -top-1 -left-1 w-5 h-5 bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white rounded-full flex items-center justify-center text-[10px] shadow-sm z-20 transition-colors">×</button>` : '';
                     
-                    return `<div onclick="app.addLog('${escapeQuote(r.t)}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${countBadge} ${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-sm font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${escapeHtml(r.t)}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
+                    return `<div onclick="app.addLog('${escapeQuote(r.t)}', ${r.s}, '${r.id}', '${r.sp||''}', ${r.inc||false})" class="rule-card group relative w-full p-3 rounded-xl border transition-all active:scale-95 text-left shadow-sm hover:shadow-md flex items-center justify-between gap-3 ${isBonus?'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300':'bg-red-50/50 border-red-100 hover:border-red-300'}">${deleteBtn}<div class="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><button onclick="event.stopPropagation(); app.editRule('${r.id}')" class="w-6 h-6 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full flex items-center justify-center text-[10px] shadow-sm border border-slate-200" title="Sửa">✎</button></div><span class="text-sm font-bold text-slate-700 leading-tight select-none pointer-events-none max-w-[80%]">${escapeHtml(r.t)}</span><span class="text-base font-black ${isBonus?'text-emerald-500':'text-red-500'} shrink-0 select-none pointer-events-none">${isBonus?'+':''}${r.s}</span></div>`;
                 }).join('');
 
                 return `
@@ -1094,8 +1081,12 @@ class App {
             s.remark = this.generateRemarkText(s);
         });
         
-        // Debounce will handle calling renderStudentList, so we call renderInfo for immediate feedback
-        this.save();
+        // IMMEDIATE UPDATE for UI (Right Side)
+        this.renderInfo();
+        
+        // DEBOUNCED UPDATE for List (Left Side) & Storage
+        this.saveDebounced();
+        this.syncDebounced();
     }
 
     removeLog(idx) { const s = this.students.find(x => x.id == this.currentId); if (!s) return; s.logs.splice(idx, 1); s.remark = this.generateRemarkText(s); this.save(); }
