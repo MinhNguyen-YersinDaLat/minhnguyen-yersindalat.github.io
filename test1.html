@@ -89,8 +89,40 @@
         .sidebar-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 40; backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
 
-        /* Tutorial */
-        .tutorial-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99990; transition: opacity 0.3s; backdrop-filter: blur(3px); }
+        /* --- TUTORIAL & OVERLAY FIXES START --- */
+        /* Fix overlay blocking clicks: mặc định backdrop vô hiệu thao tác, chỉ bật khi có class .show */
+        .tutorial-backdrop { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.85); 
+            z-index: 99990; 
+            transition: opacity 0.25s ease; 
+            opacity: 0; 
+            pointer-events: none; /* CHÍNH: ngăn chặn chặn click khi không hiển thị */
+            backdrop-filter: blur(3px);
+        }
+        .tutorial-backdrop.show { 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+        
+        /* Tương tự cho modal backdrop nếu cần */
+        #modalBulk, #modalRule, #mobileWarning, #modalStudent { 
+            pointer-events: none;   /* mặc định: không chặn */
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+        
+        /* Khi Modal có class flex (được bật bởi JS), ta bật pointer-events và opacity */
+        #modalBulk.flex, #modalRule.flex, #mobileWarning.flex, #modalStudent.flex { 
+            pointer-events: auto;
+            opacity: 1;
+        }
+        
+        /* Bảo đảm overlay-gradient không chặn */
+        .pointer-safe { pointer-events: none; }
+        /* --- TUTORIAL & OVERLAY FIXES END --- */
+
         .tutorial-highlight { position: relative; z-index: 99991 !important; background-color: white; border-radius: 12px; box-shadow: 0 0 0 4px #f97316, 0 0 50px rgba(255, 255, 255, 0.2) !important; transition: none !important; transform: none !important; }
         .tutorial-card { position: fixed; z-index: 99999; width: 320px; left: 50%; bottom: 40px; transform: translateX(-50%); transition: all 0.3s ease; }
         
@@ -805,8 +837,14 @@ class App {
         this.isOnboarding = false;
         this.syncDebounced();
         document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
-        document.getElementById('tutorialBackdrop').classList.add('hidden');
-        document.getElementById('tutorialCard').classList.add('hidden');
+        
+        const bd = document.getElementById('tutorialBackdrop');
+        const card = document.getElementById('tutorialCard');
+        
+        // --- JS FIX FOR TUTORIAL HIDING ---
+        bd.classList.remove('show');
+        card.classList.add('hidden'); // card hidden immediately is fine
+        setTimeout(() => bd.classList.add('hidden'), 300); // Wait for opacity transition
     }
 
     runTutorial() {
@@ -827,7 +865,13 @@ class App {
         this.isOnboarding = true;
         this.syncDebounced();
         
-        document.getElementById('tutorialBackdrop').classList.remove('hidden');
+        const bd = document.getElementById('tutorialBackdrop');
+        bd.classList.remove('hidden');
+        
+        // --- JS FIX FOR TUTORIAL SHOWING ---
+        // Small timeout to allow 'hidden' (display:none) removal to register before opacity transition
+        setTimeout(() => bd.classList.add('show'), 10);
+        
         this.tutorialSteps = [
             { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
             { id: 'sidebar', title: 'Bước 2: Quản Lý Lớp', desc: 'Danh sách học sinh hiển thị ở đây.' },
@@ -1149,10 +1193,19 @@ class App {
                  if(app.isOnboarding) { app.resetTutorialState(); document.getElementById('appContainer').classList.add('opacity-0'); document.getElementById('startScreen').classList.remove('-translate-y-full'); app.isOnboarding = false; }
              };
         }
-        document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); 
+        // --- JS FIX FOR MODAL SHOWING ---
+        const el = document.getElementById(id);
+        el.classList.remove('hidden');
+        // Small delay to allow flex/block to register before opacity transition (if any)
+        setTimeout(() => el.classList.add('flex'), 10); 
     }
     
-    closeModal(id){ document.getElementById(id).classList.remove('flex'); document.getElementById(id).classList.add('hidden'); }
+    closeModal(id){ 
+        // --- JS FIX FOR MODAL HIDING ---
+        const el = document.getElementById(id);
+        el.classList.remove('flex');
+        setTimeout(() => el.classList.add('hidden'), 200); 
+    }
     loadDefaultClass(){ document.getElementById('bulkText').value = INIT_DATA.join('\n'); }
     
     addStudent(){ 
