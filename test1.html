@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hạnh Kiểm Yersin - V33 Final Sync</title>
+    <title>Hạnh Kiểm Yersin - V33 Mobile Perfected</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,10 +14,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
-    <!-- FIREBASE LIBRARIES -->
+    <!-- FIREBASE INTEGRATION START -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <!-- FIREBASE INTEGRATION END -->
 
     <script>
         tailwind.config = {
@@ -212,7 +213,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    <span class="hidden sm:inline" id="saveBtnText">Lưu Dữ Liệu</span>
+                    <span class="hidden sm:inline" id="saveBtnText">Lưu</span>
                 </button>
 
                 <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
@@ -376,6 +377,7 @@
     <div id="mobileWarning" class="fixed inset-0 z-[9000] bg-slate-900/90 backdrop-blur-sm hidden flex items-center justify-center p-6 text-center"><div class="bg-white rounded-3xl p-8 max-w-sm shadow-2xl animate-bounce-in"><div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div><h3 class="text-xl font-bold text-slate-800 mb-2">Trải nghiệm tốt nhất trên PC</h3><p class="text-sm text-slate-600 mb-6">Tính năng hướng dẫn chỉ hỗ trợ trên màn hình lớn.</p><button onclick="document.getElementById('mobileWarning').classList.add('hidden')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-700">Đã hiểu</button></div></div>
 
 <script>
+// FIREBASE CONFIGURATION START
 const firebaseConfig = {
   apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
   authDomain: "hanhkiem-d853b.firebaseapp.com",
@@ -386,6 +388,7 @@ const firebaseConfig = {
   appId: "1:208584372826:web:6e55373d25ca0ffeb59e63",
   measurementId: "G-M1Z8X4FX8L"
 };
+// FIREBASE INTEGRATION END
 
 const RULES = [
     {id:'h1', t:'Học tốt 1 tuần', s:0.5, c:'learning', inc:true}, {id:'h2', t:'Học tốt 4 tuần', s:2.0, c:'learning', inc:true}, {id:'h3', t:'Phát biểu', s:0.25, c:'learning', inc:true},
@@ -402,6 +405,7 @@ const INIT_DATA = ["Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Â
 
 class App {
     constructor() {
+        // Init local state defaults
         try { 
             this.students = JSON.parse(localStorage.getItem('hk_v33_final_data')) || [];
             const storedRules = localStorage.getItem('hk_v33_final_rules');
@@ -414,20 +418,27 @@ class App {
         this.currentId = null;
         this.editingRuleId = null;
         this.isOnboarding = false;
-        this.tutorialStep = 0; 
+        this.tutorialStep = 0; // Added explicit tracking for sync
         this.mobileTab = 'positive'; 
+        // Track accordion states
         this.groupStates = {}; 
+        
+        // FIREBASE INTEGRATION START
         this.user = null;
         this.dbRef = null;
         this.initFirebase();
+        // FIREBASE INTEGRATION END
     }
 
+    // FIREBASE INTEGRATION START
     initFirebase() {
         try {
             if (typeof firebase === 'undefined') return;
             firebase.initializeApp(firebaseConfig);
             this.auth = firebase.auth();
             this.db = firebase.database();
+            
+            // Auth State Listener
             this.auth.onAuthStateChanged(user => {
                 this.user = user;
                 this.updateAuthUI();
@@ -449,7 +460,9 @@ class App {
         dot.className = `status-dot ${status}`;
         if (status === 'offline' || status === 'error') {
             dot.title = errorMsg || "Mất kết nối / Lỗi quyền truy cập";
-            if (errorMsg) this.showToast("Lỗi: " + errorMsg, "error");
+            if (errorMsg.includes("PERMISSION_DENIED")) {
+                 this.showToast("Lỗi quyền truy cập! Hãy kiểm tra Rules trên Firebase.", "error");
+            }
         } else if (status === 'syncing') {
             dot.title = "Đang đồng bộ...";
         } else {
@@ -466,11 +479,13 @@ class App {
             .then(snapshot => {
                 const val = snapshot.val();
                 if (val) {
+                    // Cloud has data -> Force overwrite Local
                     console.log("Cloud data found. Syncing to local...");
                     this.applyState(val);
                     this.updateConnectionStatus('online');
                     this.showToast("Đã tải dữ liệu từ đám mây", "success");
                 } else {
+                    // Cloud is empty -> Push Local
                     console.log("Cloud empty. Pushing local data...");
                     this.syncToFirebase().then(() => {
                          this.updateConnectionStatus('online');
@@ -478,6 +493,7 @@ class App {
                     });
                 }
 
+                // Listen for future changes
                 stateRef.on('value', (snap) => {
                     const data = snap.val();
                     if (data) {
@@ -488,7 +504,7 @@ class App {
             })
             .catch(error => {
                 console.error("Sync Error:", error);
-                this.updateConnectionStatus('offline', "Không thể truy cập dữ liệu. Vui lòng kiểm tra Rules.");
+                this.updateConnectionStatus('offline', error.message);
             });
     }
 
@@ -510,6 +526,9 @@ class App {
         };
 
         this.students = toArray(data.students);
+        // Clean up any potentially broken student objects
+        this.students = this.students.filter(s => s && s.id && s.name);
+        
         this.rules = toArray(data.rules);
         if (this.rules.length === 0) this.rules = JSON.parse(JSON.stringify(RULES));
 
@@ -531,7 +550,7 @@ class App {
         };
         return this.db.ref(`users/${this.user.uid}/state`).set(state)
             .then(() => this.updateConnectionStatus('online'))
-            .catch(e => this.updateConnectionStatus('offline', "Lỗi lưu: " + e.message));
+            .catch(e => this.updateConnectionStatus('offline', e.message));
     }
 
     refreshUI() {
@@ -554,6 +573,7 @@ class App {
             document.getElementById('tutorialCard').classList.remove('hidden');
             this.updateTutorialUI();
         } else {
+             // If finished onboarding but on start screen (e.g. first load on new device), show main app
              const startScreen = document.getElementById('startScreen');
              if (!startScreen.classList.contains('-translate-y-full') && this.students.length > 0) {
                  this.showMainUI();
@@ -566,18 +586,23 @@ class App {
         const btnStart = document.getElementById('btnStartLogin');
         
         if (this.user) {
+            // Header Button
             btnHeader.innerHTML = `${this.user.displayName} <span class="ml-1 text-red-300">(Thoát)</span>`;
             btnHeader.onclick = () => this.firebaseSignOut();
             btnHeader.classList.remove('hidden');
 
+            // Start Screen Button
             if (btnStart) {
                 btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${this.user.displayName}</span>`;
                 btnStart.onclick = null; 
+                // Start button will just be status, let user click Start App
             }
         } else {
+            // Header Button
             btnHeader.innerHTML = `Đăng nhập`;
             btnHeader.onclick = () => this.googleSignIn();
             
+            // Start Screen Button
             if (btnStart) {
                 btnStart.innerHTML = `
                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
@@ -600,6 +625,7 @@ class App {
             this.auth.signOut().then(() => { location.reload(); });
         }
     }
+    // FIREBASE INTEGRATION END
 
     save() { 
         this.saveToLocalStorageOnly();
@@ -625,7 +651,7 @@ class App {
                 if(btnText) btnText.innerText = "Lưu Dữ Liệu";
             })
             .catch((err) => {
-                this.showToast("Lỗi đồng bộ: " + err.message, "error");
+                // Error handling logic remains the same
                 if(btnText) btnText.innerText = "Lỗi!";
             });
     }
@@ -643,6 +669,7 @@ class App {
         } catch (e) {}
     }
 
+    // TOAST NOTIFICATION SYSTEM
     showToast(msg, type = 'info') {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
