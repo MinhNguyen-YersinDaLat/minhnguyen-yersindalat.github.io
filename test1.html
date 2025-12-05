@@ -12,10 +12,9 @@
     
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Thư viện Excel hỗ trợ định dạng Style -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
-    <!-- FIREBASE LIBRARIES (Compat version) -->
+    <!-- FIREBASE LIBRARIES -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -36,6 +35,7 @@
                     },
                     animation: {
                         'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'fade-in-up': 'fadeInUp 0.3s ease-out forwards',
                     },
                     keyframes: {
                         shake: {
@@ -43,6 +43,10 @@
                             '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
                             '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
                             '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
                         }
                     }
                 }
@@ -74,67 +78,51 @@
             z-index: 50;
         }
         
-        /* Desktop: Always visible */
-        @media (min-width: 1024px) {
-            .sidebar-base { position: relative; transform: none; height: 100%; box-shadow: none; }
-        }
-        
-        /* Mobile: Hidden by default (off-canvas) */
+        @media (min-width: 1024px) { .sidebar-base { position: relative; transform: none; height: 100%; box-shadow: none; } }
         @media (max-width: 1023px) {
-            .sidebar-base { 
-                position: fixed; top: 0; bottom: 0; left: 0; 
-                transform: translateX(-100%); 
-                box-shadow: 10px 0 30px rgba(0,0,0,0.15);
-            }
+            .sidebar-base { position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.15); }
             .sidebar-open { transform: translateX(0) !important; }
         }
 
-        /* Sidebar Backdrop */
-        .sidebar-backdrop {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
-            z-index: 40; backdrop-filter: blur(2px);
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
+        .sidebar-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 40; backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
 
-        /* Tutorial System Optimized */
+        /* Tutorial */
         .tutorial-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99990; transition: opacity 0.3s; backdrop-filter: blur(3px); }
         .tutorial-highlight { position: relative; z-index: 99991 !important; background-color: white; border-radius: 12px; box-shadow: 0 0 0 4px #f97316, 0 0 50px rgba(255, 255, 255, 0.2) !important; transition: none !important; transform: none !important; }
         .tutorial-card { position: fixed; z-index: 99999; width: 320px; left: 50%; bottom: 40px; transform: translateX(-50%); transition: all 0.3s ease; }
         
-        /* Layout Frames */
+        /* Components */
         .frame-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .frame-header { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; flex-shrink: 0; }
         .frame-body { flex: 1; overflow-y: auto; padding: 12px; }
-
-        /* Mobile Tabs */
         .mobile-tab-active { color: #f97316; border-bottom: 2px solid #f97316; background-color: #fff7ed; }
         .mobile-tab-inactive { color: #64748b; border-bottom: 2px solid transparent; }
-
-        /* Custom Inputs */
         .glass-input { background: rgba(255,255,255,0.8); border: 1px solid #e2e8f0; backdrop-filter: blur(4px); }
         .glass-input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); outline: none; }
-
-        /* Sticky Headers */
         .rule-group-title { position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 8px 0; border-bottom: 2px solid #f1f5f9; margin-bottom: 8px; }
-        
-        /* Rule Card Fixes */
         .rule-card { cursor: pointer; user-select: none; }
         .rule-card:active { transform: scale(0.97); }
         .action-btn { cursor: pointer; transition: all 0.2s; opacity: 0; }
         .rule-card:hover .action-btn { opacity: 1; }
         @media (hover: none) { .action-btn { opacity: 1; } } 
-        
         .student-delete-btn { opacity: 0; transition: opacity 0.2s; }
         .student-item:hover .student-delete-btn { opacity: 1; }
         @media (max-width: 1024px) { .student-delete-btn { opacity: 1; } }
-        
-        /* Category Tabs Scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Toast Notification */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 100000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; items-center; gap: 10px; font-size: 13px; font-weight: 600; color: #334155; border-left: 4px solid #3b82f6; animation: fade-in-up 0.3s ease-out forwards; max-width: 300px; }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
     </style>
 </head>
 <body class="text-slate-800 h-screen w-screen flex flex-col">
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
 
     <!-- START SCREEN -->
     <div id="startScreen" class="fixed inset-0 z-[50] bg-gradient-to-br from-slate-900 via-gray-800 to-primary-700 flex flex-col items-center justify-center text-white p-6 transition-transform duration-500 ease-in-out">
@@ -152,9 +140,10 @@
         <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md slide-up relative z-10" id="startActions">
             
             <!-- REFINED GOOGLE LOGIN BUTTON -->
-            <button id="btnStartLogin" onclick="app.firebaseSignIn()" class="w-full sm:flex-1 bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 group border border-slate-100">
-               <svg class="w-6 h-6 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
-               <span class="text-sm md:text-base">Tiếp tục với Google</span>
+            <button id="btnStartLogin" onclick="app.googleSignIn()" class="w-full sm:flex-1 bg-white text-slate-700 font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 group border border-slate-100 relative overflow-hidden">
+               <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+               <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
+               <span class="text-sm md:text-base font-extrabold tracking-tight">Đăng nhập Google</span>
             </button>
 
             <button onclick="app.startApp()" class="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
@@ -211,7 +200,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    <span class="hidden sm:inline" id="saveBtnText">Lưu Dữ Liệu</span>
+                    <span class="hidden sm:inline" id="saveBtnText">Lưu</span>
                 </button>
 
                 <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
@@ -375,8 +364,6 @@
     <div id="mobileWarning" class="fixed inset-0 z-[9000] bg-slate-900/90 backdrop-blur-sm hidden flex items-center justify-center p-6 text-center"><div class="bg-white rounded-3xl p-8 max-w-sm shadow-2xl animate-bounce-in"><div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div><h3 class="text-xl font-bold text-slate-800 mb-2">Trải nghiệm tốt nhất trên PC</h3><p class="text-sm text-slate-600 mb-6">Tính năng hướng dẫn chỉ hỗ trợ trên màn hình lớn.</p><button onclick="document.getElementById('mobileWarning').classList.add('hidden')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-700">Đã hiểu</button></div></div>
 
 <script>
-// --- FIREBASE CONFIGURATION ---
-// FIREBASE INTEGRATION START
 const firebaseConfig = {
   apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
   authDomain: "hanhkiem-d853b.firebaseapp.com",
@@ -387,7 +374,6 @@ const firebaseConfig = {
   appId: "1:208584372826:web:6e55373d25ca0ffeb59e63",
   measurementId: "G-M1Z8X4FX8L"
 };
-// FIREBASE INTEGRATION END
 
 const RULES = [
     {id:'h1', t:'Học tốt 1 tuần', s:0.5, c:'learning', inc:true}, {id:'h2', t:'Học tốt 4 tuần', s:2.0, c:'learning', inc:true}, {id:'h3', t:'Phát biểu', s:0.25, c:'learning', inc:true},
@@ -404,7 +390,6 @@ const INIT_DATA = ["Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Â
 
 class App {
     constructor() {
-        // Init local state defaults
         try { 
             this.students = JSON.parse(localStorage.getItem('hk_v33_final_data')) || [];
             const storedRules = localStorage.getItem('hk_v33_final_rules');
@@ -417,34 +402,25 @@ class App {
         this.currentId = null;
         this.editingRuleId = null;
         this.isOnboarding = false;
-        this.tutorialStep = 0; // Added explicit tracking for sync
+        this.tutorialStep = 0; 
         this.mobileTab = 'positive'; 
-        // Track accordion states
         this.groupStates = {}; 
-        
-        // FIREBASE INTEGRATION START
         this.user = null;
         this.dbRef = null;
         this.initFirebase();
-        // FIREBASE INTEGRATION END
     }
 
-    // FIREBASE INTEGRATION START
     initFirebase() {
         try {
-            if (typeof firebase === 'undefined') {
-                console.warn("Firebase SDK not loaded. App running in offline mode.");
-                return;
-            }
+            if (typeof firebase === 'undefined') return;
             firebase.initializeApp(firebaseConfig);
             this.auth = firebase.auth();
             this.db = firebase.database();
-            
-            // Auth State Listener
             this.auth.onAuthStateChanged(user => {
                 this.user = user;
                 this.updateAuthUI();
                 if (user) {
+                    this.showToast(`Xin chào, ${user.displayName}!`, 'success');
                     this.setupRealtimeListener();
                 } else {
                     if (this.dbRef) this.dbRef.off();
@@ -457,22 +433,17 @@ class App {
     setupRealtimeListener() {
         if (!this.user) return;
         const uid = this.user.uid;
-        this.dbRef = this.db.ref(`users/${uid}/state`); // Point to /state object
-
-        // Load data ONCE first to determine merge strategy
+        this.dbRef = this.db.ref(`users/${uid}/state`);
         this.dbRef.once('value').then(snapshot => {
             const val = snapshot.val();
             if (val) {
-                // Cloud has data -> Overwrite Local
-                console.log("Cloud data found. Syncing to local...");
+                console.log("Cloud data found. Syncing...");
                 this.applyState(val);
+                this.showToast("Đã tải dữ liệu từ đám mây", "success");
             } else {
-                // Cloud is empty -> Push Local
-                console.log("Cloud empty. Pushing local data...");
+                console.log("Cloud empty. Pushing local...");
                 this.syncToFirebase();
             }
-
-            // Start Realtime Listener AFTER initial load logic
             this.dbRef.on('value', (snap) => {
                 const data = snap.val();
                 if (data) this.applyState(data);
@@ -481,26 +452,22 @@ class App {
     }
 
     applyState(data) {
-        if (data.students) this.students = data.students || [];
-        if (data.rules) this.rules = data.rules || [];
-        // Sync tutorial progress
+        // Fix: Accept empty array if data.students is undefined (means user cleared it)
+        this.students = data.students || [];
+        this.rules = data.rules || JSON.parse(JSON.stringify(RULES));
         this.isOnboarding = data.isOnboarding || false;
         this.tutorialStep = data.tutorialStep || 0;
-        
-        // Save to local storage for offline fallback next time
         this.saveToLocalStorageOnly();
         this.refreshUI();
     }
 
     syncToFirebase() {
-        if (!this.user) return Promise.resolve(); // Return promise even if not logged in
-        if (typeof firebase === 'undefined') return Promise.resolve(); // Safety check
-
+        if (!this.user) return Promise.resolve();
         const state = {
-            students: this.students || [],
-            rules: this.rules || [],
-            isOnboarding: this.isOnboarding || false,
-            tutorialStep: this.tutorialStep || 0,
+            students: this.students,
+            rules: this.rules,
+            isOnboarding: this.isOnboarding,
+            tutorialStep: this.tutorialStep,
             lastUpdated: firebase.database.ServerValue.TIMESTAMP
         };
         return this.db.ref(`users/${this.user.uid}/state`).set(state);
@@ -510,24 +477,22 @@ class App {
         this.renderStudentList();
         this.renderRules();
         if (this.currentId) this.renderInfo();
-        
-        // Handle tutorial UI state based on synced data
         if (this.isOnboarding) {
-            // Restore tutorial view if active
             const startScreen = document.getElementById('startScreen');
             const appContainer = document.getElementById('appContainer');
-            const tutBackdrop = document.getElementById('tutorialBackdrop');
-            const tutCard = document.getElementById('tutorialCard');
-
             if (!startScreen.classList.contains('-translate-y-full')) {
                 startScreen.classList.add('-translate-y-full');
                 appContainer.classList.remove('opacity-0');
             }
-            
-            tutBackdrop.classList.remove('hidden');
-            tutCard.classList.remove('hidden');
-            tutCard.classList.remove('scale-95', 'opacity-0');
+            document.getElementById('tutorialBackdrop').classList.remove('hidden');
+            document.getElementById('tutorialCard').classList.remove('hidden');
             this.updateTutorialUI();
+        } else {
+             // If finished onboarding but on start screen (e.g. first load on new device), show main app
+             const startScreen = document.getElementById('startScreen');
+             if (!startScreen.classList.contains('-translate-y-full') && this.students.length > 0) {
+                 this.showMainUI();
+             }
         }
     }
 
@@ -536,41 +501,26 @@ class App {
         const btnStart = document.getElementById('btnStartLogin');
         
         if (this.user) {
-            // Header Button
-            btnHeader.innerHTML = `${this.user.displayName || this.user.email} <span class="ml-1 text-red-300">(Thoát)</span>`;
+            btnHeader.innerHTML = `${this.user.displayName} <span class="ml-1 text-red-300">(Thoát)</span>`;
             btnHeader.onclick = () => this.firebaseSignOut();
             btnHeader.classList.remove('hidden');
 
-            // Start Screen Button
             if (btnStart) {
-                btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${this.user.displayName || 'Bạn'}</span> <span class="text-xs ml-1">(Thoát)</span>`;
-                btnStart.onclick = () => this.firebaseSignOut();
-                btnStart.classList.replace('bg-white', 'bg-slate-100');
+                btnStart.innerHTML = `<span class="truncate max-w-[150px]">Xin chào, ${this.user.displayName}</span>`;
+                btnStart.onclick = null; 
+                // Start button will just be status, let user click Start App
             }
         } else {
-            // Header Button
             btnHeader.innerHTML = `Đăng nhập`;
             btnHeader.onclick = () => this.googleSignIn();
-            
-            // Start Screen Button
-            if (btnStart) {
-                btnStart.innerHTML = `
-               <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
-               <span class="text-sm md:text-base">Tiếp tục với Google</span>`;
-                btnStart.onclick = () => this.googleSignIn();
-                btnStart.classList.replace('bg-slate-100', 'bg-white');
-            }
         }
     }
 
     googleSignIn() {
-        if (typeof firebase === 'undefined' || !this.auth) {
-             alert("Hệ thống Firebase chưa sẵn sàng. Vui lòng kiểm tra kết nối mạng.");
-             return;
-        }
+        if (typeof firebase === 'undefined' || !this.auth) return alert("Lỗi kết nối Firebase!");
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        this.auth.signInWithPopup(provider).catch(e => alert("Lỗi: " + e.message));
+        this.auth.signInWithPopup(provider).catch(e => this.showToast("Lỗi đăng nhập: " + e.message, "error"));
     }
 
     firebaseSignOut() {
@@ -578,11 +528,10 @@ class App {
             this.auth.signOut().then(() => { location.reload(); });
         }
     }
-    // FIREBASE INTEGRATION END
 
     save() { 
         this.saveToLocalStorageOnly();
-        this.syncToFirebase(); // Sync state whenever save called
+        this.syncToFirebase(); 
         this.renderStudentList(); 
         if (this.currentId) this.renderInfo(); 
     }
@@ -590,21 +539,20 @@ class App {
     manualSave() {
         const btnText = document.getElementById('saveBtnText');
         if(btnText) btnText.innerText = "Đang lưu...";
-        
         this.syncToFirebase()
             .then(() => {
-                alert("Đã đồng bộ dữ liệu lên hệ thống thành công!");
-                if(btnText) btnText.innerText = "Lưu Dữ Liệu";
+                this.showToast("Đã lưu dữ liệu lên đám mây", "success");
+                if(btnText) btnText.innerText = "Lưu";
             })
             .catch((err) => {
-                alert("Lỗi khi lưu: " + err.message + "\nVui lòng kiểm tra lại cấu hình Rules trên Firebase.");
-                if(btnText) btnText.innerText = "Lưu Lỗi!";
+                this.showToast("Lỗi lưu trữ! Kiểm tra mạng/quyền.", "error");
+                if(btnText) btnText.innerText = "Lỗi!";
             });
     }
 
     saveRules() { 
         this.saveToLocalStorageOnly();
-        this.syncToFirebase(); // Sync state
+        this.syncToFirebase(); 
         this.renderRules(); 
     }
 
@@ -613,6 +561,19 @@ class App {
             localStorage.setItem('hk_v33_final_data', JSON.stringify(this.students)); 
             localStorage.setItem('hk_v33_final_rules', JSON.stringify(this.rules));
         } catch (e) {}
+    }
+
+    // TOAST NOTIFICATION SYSTEM
+    showToast(msg, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerText = msg;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
     startApp() {
@@ -644,7 +605,6 @@ class App {
     
     goHome() { document.getElementById('startScreen').classList.remove('-translate-y-full'); }
 
-    // --- MOBILE TABS LOGIC ---
     switchMobileTab(tabName) {
         this.mobileTab = tabName;
         const rulesSection = document.getElementById('rulesSection');
@@ -680,11 +640,9 @@ class App {
         }
     }
 
-    // --- TUTORIAL LOGIC ---
     resetTutorialState() {
         this.tutorialStep = 0;
         this.isOnboarding = false;
-        // Sync reset state
         this.syncToFirebase();
         document.querySelectorAll('.tutorial-highlight').forEach(e => { e.classList.remove('tutorial-highlight'); e.style.transform = ''; e.style.zIndex = ''; });
         document.getElementById('tutorialBackdrop').classList.add('hidden');
@@ -695,22 +653,19 @@ class App {
         if (window.innerWidth < 1024) { document.getElementById('mobileWarning').classList.remove('hidden'); return; }
         if (this.students && this.students.length > 0) { if(!confirm("Hướng dẫn sẽ XÓA TOÀN BỘ dữ liệu hiện tại để thiết lập mới. Bạn có chắc chắn?")) return; }
         
-        // Reset local logic
         this.tutorialStep = 0;
         this.isOnboarding = false;
         localStorage.removeItem('hk_v33_mobile_acc_data'); 
         this.students = [];
         
-        // Setup UI
         document.getElementById('startScreen').classList.add('-translate-y-full'); 
         document.getElementById('appContainer').classList.remove('opacity-0');
         this.renderStudentList(); 
         this.renderRules(); 
         this.setToday();
         
-        // Start flow
         this.isOnboarding = true;
-        this.syncToFirebase(); // Sync initial state
+        this.syncToFirebase();
         
         document.getElementById('tutorialBackdrop').classList.remove('hidden');
         this.tutorialSteps = [
@@ -728,7 +683,6 @@ class App {
     }
 
     updateTutorialUI() {
-        // Ensure steps exists if reloaded from state without calling runTutorial
         if (!this.tutorialSteps) {
              this.tutorialSteps = [
                 { id: 'modalBulk', title: 'Bước 1: Nhập Danh Sách', desc: 'Dán danh sách từ Excel vào đây. Bấm "Mẫu 10H" để thử nghiệm, rồi bấm "Xác nhận".', action: 'import' },
@@ -779,7 +733,7 @@ class App {
 
     nextTutorialStep() { 
         this.tutorialStep++; 
-        this.syncToFirebase(); // Sync progress
+        this.syncToFirebase(); 
         if (this.tutorialStep >= this.tutorialSteps.length) { 
             this.endTutorial(); 
         } else { 
@@ -790,7 +744,7 @@ class App {
     endTutorial() {
         this.resetTutorialState();
         document.getElementById('heroCard').style.transform = ''; document.getElementById('heroCard').classList.add('group');
-        alert("Chúc mừng! Bạn đã sẵn sàng sử dụng.");
+        this.showToast("Chúc mừng! Bạn đã sẵn sàng sử dụng.", "success");
     }
 
     processBulkImport(){ 
@@ -808,8 +762,7 @@ class App {
                     crit: false
                 })); 
                 
-                // Save immediately (replaces sort call to keep input order as requested earlier)
-                // Note: Removed explicit sort to honor "giữ nguyên thứ tự" for import
+                // Save immediately
                 this.save(); 
                 this.closeModal('modalBulk'); 
                 
@@ -829,10 +782,8 @@ class App {
         }
     }
     
-    // --- ACCORDION LOGIC ---
     toggleGroup(key) {
         if (this.groupStates[key] === undefined) {
-            // If explicit click, initialize inverse of current default
             const isMobile = window.innerWidth < 1024;
             const filterText = document.getElementById('ruleSearchInput').value.toLowerCase();
             const defaultOpen = filterText.length > 0 || !isMobile;
@@ -843,7 +794,6 @@ class App {
         this.renderRules();
     }
 
-    // --- RENDER RULES (ACCORDION) ---
     renderRules() {
         const filterText = document.getElementById('ruleSearchInput').value.toLowerCase();
         const allRules = this.rules.filter(r => r.t.toLowerCase().includes(filterText));
@@ -856,19 +806,17 @@ class App {
             return Object.keys(CATEGORIES).map(catKey => {
                 if(!grouped[catKey]) return '';
                 
-                // Colors based on type
                 const headerColor = type === 'pos' ? 'text-emerald-600' : 'text-red-600';
                 
-                // Accordion State Logic
                 const groupKey = `${type}_${catKey}`;
-                let isOpen = true; // Default for PC or Search
+                let isOpen = true; 
                 
                 if (isSearching) {
-                    isOpen = true; // Always expand when searching
+                    isOpen = true; 
                 } else if (this.groupStates[groupKey] !== undefined) {
-                    isOpen = this.groupStates[groupKey]; // User preference
+                    isOpen = this.groupStates[groupKey]; 
                 } else {
-                    isOpen = !isMobile; // Default: Closed on Mobile, Open on PC
+                    isOpen = !isMobile; 
                 }
 
                 return `
@@ -902,7 +850,6 @@ class App {
         document.getElementById('rulesGridNeg').innerHTML = renderGroup(allRules.filter(r => r.s <= 0), 'neg');
     }
 
-    // --- CORE LOGIC ---
     deleteRule(id) { if(confirm("Xóa thẻ hành vi này?")) { this.rules = this.rules.filter(r => r.id !== id); this.saveRules(); } }
     editRule(id) { const r = this.rules.find(x => x.id === id); if(!r) return; this.editingRuleId = id; document.getElementById('modalRuleTitle').innerText = "Sửa Hành Vi"; document.getElementById('newRText').value = r.t; document.getElementById('newRScore').value = r.s; document.getElementById('newRCat').value = r.c; document.getElementById('newRInc').checked = r.inc || false; this.openModal('modalRule'); }
     
