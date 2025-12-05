@@ -38,6 +38,7 @@
                         'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
                         'fade-in-up': 'fadeInUp 0.3s ease-out forwards',
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'breath': 'breath 3s ease-in-out infinite', // Hiệu ứng thở nhẹ mới
                     },
                     keyframes: {
                         shake: {
@@ -49,6 +50,10 @@
                         fadeInUp: {
                             '0%': { opacity: '0', transform: 'translateY(10px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        breath: {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+                            '50%': { transform: 'scale(1.05)', opacity: '0.95' }
                         }
                     }
                 }
@@ -206,51 +211,54 @@
         <!-- MOBILE SIDEBAR BACKDROP -->
         <div id="sidebarBackdrop" onclick="app.toggleSidebar()" class="sidebar-backdrop lg:hidden"></div>
 
-        <!-- HEADER -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
-            <div class="flex items-center gap-4">
+        <!-- HEADER (Responsive) -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 md:px-4 shrink-0 z-20 shadow-sm">
+            <div class="flex items-center gap-2 md:gap-4">
                 <button onclick="app.toggleSidebar()" class="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
                 
-                <div class="flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
+                <!-- BRANDING (Hidden on Mobile) -->
+                <div class="hidden lg:flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
                     <div class="w-10 h-10 rounded-lg bg-slate-100 p-1 flex items-center justify-center overflow-hidden border border-slate-200">
                         <img src="logo.png" class="w-full h-full object-contain" onerror="this.style.display='none'">
                     </div>
                     <div class="flex flex-col justify-center">
-                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight hidden sm:block">ỨNG DỤNG THEO DÕI HÀNH VI HỌC SINH</h1>
-                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight sm:hidden">HẠNH KIỂM</h1>
+                        <h1 class="font-extrabold text-sm text-slate-800 uppercase tracking-tight leading-tight">ỨNG DỤNG THEO DÕI HÀNH VI HỌC SINH</h1>
                         <div class="flex items-center gap-2">
-                            <p class="text-[10px] font-semibold text-slate-500 hidden sm:block">Thầy Thái Minh Nguyên • Yersin Đà Lạt</p>
-                            <!-- STATUS INDICATOR -->
+                            <p class="text-[10px] font-semibold text-slate-500">Thầy Thái Minh Nguyên • Yersin Đà Lạt</p>
                             <div id="connectionStatus" class="status-dot offline" title="Trạng thái kết nối" onclick="app.checkConnection()"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+                <div class="h-8 w-px bg-slate-200 mx-2 hidden lg:block"></div>
 
+                <!-- DATE PICKER -->
                 <div class="flex items-center gap-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-primary-200 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
                     <span class="text-lg">📅</span>
                     <input type="date" id="datePicker" class="bg-transparent border-none p-0 text-sm font-bold text-slate-700 cursor-pointer focus:ring-0 w-28">
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <!-- HEADER LOGIN/LOGOUT BUTTON -->
-                <button id="btnLogin" onclick="app.googleSignIn()" class="hidden md:block bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-xl transition-all whitespace-nowrap">
-                    Đăng nhập
+            <!-- ACTIONS (Mobile Optimized) -->
+            <div class="flex items-center gap-2 md:gap-3">
+                <!-- LOGIN BUTTON -->
+                <button id="btnLogin" onclick="app.googleSignIn()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2 px-3 rounded-xl transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="hidden md:inline">Đăng nhập</span>
+                    <svg class="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                 </button>
 
-                <!-- MANUAL SAVE BUTTON -->
-                <button onclick="app.manualSync()" id="btnManualSave" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-all">
+                <!-- SAVE BUTTON -->
+                <button onclick="app.manualSync()" id="btnManualSave" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 md:px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-all">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    <span class="hidden sm:inline" id="saveBtnText">Lưu Dữ Liệu</span>
+                    <span class="hidden md:inline" id="saveBtnText">Lưu Dữ Liệu</span>
                 </button>
 
-                <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
+                <!-- EXPORT BUTTON -->
+                <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3 md:px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    <span class="hidden sm:inline">Xuất Excel</span>
+                    <span class="hidden md:inline">Xuất Excel</span>
                 </button>
                 <select id="monthSelect" class="w-0 h-0 opacity-0 absolute"><option value="9">9</option><option value="5">5</option></select>
             </div>
@@ -292,26 +300,31 @@
             <!-- RIGHT: WORKSPACE -->
             <main class="flex-1 flex flex-col gap-3 overflow-hidden min-w-0">
                 
-                <!-- TOP: HERO CARD -->
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-hidden" id="heroCard">
+                <!-- TOP: HERO CARD (UPDATED) -->
+                <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 relative overflow-hidden" id="heroCard">
                     <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-100/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
                     
-                    <div class="flex items-center gap-5 relative z-10">
+                    <!-- LEFT: AVATAR & NAME -->
+                    <div class="flex items-center gap-4 relative z-10">
                         <div class="relative">
-                            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-2xl font-black text-slate-300 shadow-inner" id="heroAvatar">?</div>
                             <button onclick="app.deleteStudent()" class="absolute -top-2 -right-2 w-6 h-6 bg-white text-red-500 border border-red-100 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-opacity" title="Xóa">×</button>
                         </div>
                         <div>
-                            <h2 class="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight" id="heroName">Vui lòng chọn học sinh</h2>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="px-3 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold border border-slate-200 transition-colors" id="heroRank">---</span>
-                            </div>
+                            <h2 class="text-lg md:text-2xl font-extrabold text-slate-800 tracking-tight leading-tight" id="heroName">Vui lòng chọn học sinh</h2>
+                            <div class="text-[10px] md:text-xs text-slate-400 font-bold mt-1">THPT Yersin Đà Lạt</div>
                         </div>
                     </div>
                     
+                    <!-- CENTER: RANK (NEW DESIGN) -->
+                    <div class="flex-1 flex justify-center relative z-10 order-last md:order-none w-full md:w-auto">
+                        <div id="heroRank" class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-300 to-slate-400 animate-breath tracking-widest drop-shadow-sm transform transition-all">---</div>
+                    </div>
+                    
+                    <!-- RIGHT: SCORE -->
                     <div class="relative z-10 text-right">
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
-                        <div class="text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">TỔNG ĐIỂM</span>
+                        <div class="text-4xl md:text-5xl font-black text-slate-200 transition-all duration-300" id="heroScore">--</div>
                     </div>
                 </div>
 
@@ -681,9 +694,10 @@ class App {
             document.getElementById('tutorialCard').classList.remove('hidden');
             this.updateTutorialUI();
         } else {
-             if (!startScreen.classList.contains('-translate-y-full') && this.students.length > 0) {
-                 this.showMainUI();
-             }
+             // AUTO JUMP REMOVED: Stay on start screen to allow tutorial access
+             // if (!startScreen.classList.contains('-translate-y-full') && this.students.length > 0) {
+             //    this.showMainUI();
+             // }
         }
     }
 
@@ -692,8 +706,12 @@ class App {
         const btnStart = document.getElementById('btnStartLogin');
         
         if (this.user) {
-            btnHeader.innerHTML = `${escapeHtml(this.user.displayName)} <span class="ml-1 text-red-300">(Thoát)</span>`;
+            // Updated for Mobile Header: Icon only on small screens handled by HTML
             btnHeader.onclick = () => this.firebaseSignOut();
+            btnHeader.innerHTML = `
+                <span class="hidden md:inline">${escapeHtml(this.user.displayName)}</span>
+                <svg class="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            `;
             btnHeader.classList.remove('hidden');
 
             if (btnStart) {
@@ -701,8 +719,11 @@ class App {
                 btnStart.onclick = null; 
             }
         } else {
-            btnHeader.innerHTML = `Đăng nhập`;
             btnHeader.onclick = () => this.googleSignIn();
+            btnHeader.innerHTML = `
+                <span class="hidden md:inline">Đăng nhập</span>
+                <svg class="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+            `;
             
             if (btnStart) {
                 btnStart.innerHTML = `
@@ -1194,18 +1215,41 @@ class App {
         const nameParts = s.name.split(' '); const initials = nameParts.slice(-2).map(n=>n[0]).join('');
         document.getElementById('heroName').innerText = s.name;
         const heroScore = document.getElementById('heroScore'); heroScore.innerText = st.total;
-        let colorClass = 'text-slate-800'; let bgClass = 'bg-slate-100 text-slate-500 border-slate-200';
-        if (st.total >= 80) { colorClass = 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400'; bgClass = 'bg-emerald-50 text-emerald-600 border-emerald-200'; } else if (st.total < 50) { colorClass = 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600'; bgClass = 'bg-red-50 text-red-600 border-red-200'; }
-        heroScore.className = `text-6xl lg:text-7xl font-black transition-all duration-300 transform scale-100 ${colorClass}`;
-        document.getElementById('heroRank').innerText = st.rank; document.getElementById('heroRank').className = `px-4 py-1.5 rounded-full text-sm font-bold border transition-colors shadow-sm ${bgClass}`;
-        document.getElementById('heroAvatar').innerText = initials; document.getElementById('critCheck').checked = s.crit;
-        const tbody = document.querySelector('#logTable tbody');
         
+        // COLOR LOGIC for RANK & SCORE
+        let colorClass = 'text-slate-800'; 
+        let rankGradient = 'from-slate-300 to-slate-400';
+        
+        if (st.total >= 80) { 
+            colorClass = 'text-emerald-500'; 
+            rankGradient = 'from-emerald-400 to-teal-500';
+        } else if (st.total >= 65) {
+            colorClass = 'text-yellow-500';
+            rankGradient = 'from-yellow-400 to-orange-500';
+        } else if (st.total >= 50) {
+            colorClass = 'text-orange-500';
+            rankGradient = 'from-orange-400 to-red-400';
+        } else { 
+            colorClass = 'text-red-500'; 
+            rankGradient = 'from-red-500 to-pink-600';
+        }
+        
+        // Update Score
+        heroScore.className = `text-4xl md:text-5xl font-black transition-all duration-300 ${colorClass}`;
+        
+        // Update Rank (Center Big)
+        const heroRank = document.getElementById('heroRank');
+        heroRank.innerText = st.rank; 
+        heroRank.className = `text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br ${rankGradient} animate-breath tracking-widest drop-shadow-sm transform transition-all`;
+        
+        document.getElementById('heroAvatar').innerText = initials; 
+        document.getElementById('critCheck').checked = s.crit;
+        
+        const tbody = document.querySelector('#logTable tbody');
         if(!s.logs || s.logs.length===0){ 
             tbody.innerHTML=''; document.getElementById('emptyHistory').classList.remove('hidden'); 
         } else {
             document.getElementById('emptyHistory').classList.add('hidden');
-            // SECURITY FIX: Escape log text
             tbody.innerHTML = s.logs.slice().reverse().map((l, idx) => `
                 <tr class="group hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"><td class="py-3 pl-2 w-14 text-[11px] text-slate-400 font-medium align-top pt-4">${l.d}</td><td class="py-3 pr-2 align-top"><p class="text-xs font-bold text-slate-700 leading-snug">${escapeHtml(l.t)}</p></td><td class="py-3 w-12 text-right align-top"><span class="inline-block px-2 py-0.5 rounded text-[10px] font-black ${l.s>0?'bg-emerald-50 text-emerald-600':'bg-red-50 text-red-600'}">${l.s>0?'+':''}${l.s}</span></td><td class="py-3 w-8 text-center align-top"><button onclick="app.removeLog(${s.logs.length-1-idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">×</button></td></tr>`).join('');
         }
