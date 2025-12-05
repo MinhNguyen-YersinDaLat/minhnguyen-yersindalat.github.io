@@ -200,7 +200,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    <span class="hidden sm:inline" id="saveBtnText">Lưu</span>
+                    <span class="hidden sm:inline" id="saveBtnText">Lưu Dữ Liệu</span>
                 </button>
 
                 <button onclick="app.exportExcel()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md flex items-center gap-2 active:scale-95 transition-transform" id="btnExport">
@@ -433,22 +433,61 @@ class App {
     setupRealtimeListener() {
         if (!this.user) return;
         const uid = this.user.uid;
-        this.dbRef = this.db.ref(`users/${uid}/state`);
-        this.dbRef.once('value').then(snapshot => {
+        
+        // Change ref to user root to catch both legacy and new structures
+        const userRootRef = this.db.ref(`users/${uid}`);
+
+        userRootRef.once('value').then(snapshot => {
             const val = snapshot.val();
+            
             if (val) {
-                console.log("Cloud data found. Syncing...");
-                this.applyState(val);
-                this.showToast("Đã tải dữ liệu từ đám mây", "success");
+                // 1. Try to find 'state' (New structure)
+                if (val.state) {
+                    console.log("Found 'state' node. Loading...");
+                    this.applyState(val.state);
+                    this.showToast("Đã đồng bộ dữ liệu!", "success");
+                } 
+                // 2. Fallback: Find 'students' (Legacy structure from previous version)
+                else if (val.students) {
+                    console.log("Found legacy data. Migrating...");
+                    // Construct state from legacy parts
+                    const legacyState = {
+                        students: val.students,
+                        rules: val.rules || JSON.parse(JSON.stringify(RULES)),
+                        isOnboarding: false, // Legacy didn't track this, assume done
+                        tutorialStep: 6
+                    };
+                    this.applyState(legacyState);
+                    // Save to new structure immediately
+                    this.syncToFirebase();
+                    this.showToast("Đã nâng cấp dữ liệu cũ!", "success");
+                }
+                else {
+                     // User exists node but no data? Treat as empty.
+                     console.log("User node exists but empty data.");
+                     this.handleEmptyCloud();
+                }
             } else {
-                console.log("Cloud empty. Pushing local...");
-                this.syncToFirebase();
+                // New user entirely
+                this.handleEmptyCloud();
             }
-            this.dbRef.on('value', (snap) => {
+
+            // Set up listener on 'state' for future updates (standardize on new structure)
+            this.db.ref(`users/${uid}/state`).on('value', (snap) => {
                 const data = snap.val();
                 if (data) this.applyState(data);
             });
         });
+    }
+
+    handleEmptyCloud() {
+         if (this.students && this.students.length > 0) {
+            console.log("Pushing local data to cloud...");
+            this.syncToFirebase();
+            this.showToast("Đã sao lưu dữ liệu hiện tại", "success");
+        } else {
+            console.log("Fresh start.");
+        }
     }
 
     applyState(data) {
