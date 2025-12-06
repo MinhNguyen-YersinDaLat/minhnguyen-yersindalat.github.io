@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sổ Điểm & Quản Lý Lớp - Yersin Edition</title>
+    <title>Sổ Điểm & Quản Lý Lớp - Liquid Glass Edition</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -18,10 +18,24 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: { 50:'#fff7ed', 100:'#ffedd5', 500:'#f97316', 600:'#ea580c', 700:'#c2410c' } },
-                    boxShadow: { 'glow': '0 0 20px rgba(249, 115, 22, 0.4)' },
-                    animation: { 'fade-in-up': 'fadeInUp 0.5s ease-out forwards' },
-                    keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                    colors: { 
+                        glass: { 100: 'rgba(255, 255, 255, 0.1)', 200: 'rgba(255, 255, 255, 0.2)', 300: 'rgba(255, 255, 255, 0.3)', 400: 'rgba(255, 255, 255, 0.4)', 800: 'rgba(255, 255, 255, 0.8)' },
+                        primary: { 50:'#fff7ed', 100:'#ffedd5', 500:'#f97316', 600:'#ea580c', 700:'#c2410c' } 
+                    },
+                    fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'] },
+                    animation: { 
+                        'blob': 'blob 15s infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards'
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' }
+                        },
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    }
                 }
             }
         }
@@ -30,7 +44,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- EXCEL EXPORT LIBRARY (ADDED) -->
+    <!-- EXCEL EXPORT LIBRARY -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <!-- FIREBASE SDK -->
@@ -39,18 +53,88 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f8fafc; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #e0e7ff; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         
-        /* BACKGROUND & ANIMATIONS */
-        .aurora-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fad0c4, #a18cd1); background-size: 400% 400%; animation: aurora 20s ease infinite; opacity: 0.5; }
-        .bokeh span { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.6); box-shadow: 0 0 20px rgba(255,255,255,0.4); animation: float-up infinite linear; }
-        @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        @keyframes float-up { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
+        /* --- LIQUID GLASS STYLES --- */
+        .liquid-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: #f0f2f5;
+            overflow: hidden;
+        }
+        .blob-c {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.8; animation: blob 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #ffc0cb; animation-delay: 0s; }
+        .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #87cefa; animation-delay: -5s; }
+        .blob-3 { top: 20%; left: 40%; width: 40vw; height: 40vw; background: #e0ffff; animation-delay: -10s; }
 
-        /* AVATAR RINGS ANIMATIONS */
+        /* Glass Container Utility */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(1.02);
+        }
+        .glass-button-primary {
+            background: rgba(249, 115, 22, 0.85); /* Orange primary */
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+        }
+        .glass-button-primary:hover {
+            background: rgba(249, 115, 22, 1);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+        
+        .glass-table th { background-color: rgba(255,255,255,0.5); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10; }
+        .glass-table tr { border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .glass-table tr:hover td { background-color: rgba(255,255,255,0.4); }
+
+        /* AVATAR RINGS ANIMATIONS (Preserved) */
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spin-medium { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
@@ -73,19 +157,13 @@
         .magic-border-layer { position: absolute; inset: -50%; width: 200%; height: 200%; background: conic-gradient(from var(--angle), transparent 20%, var(--border-color), transparent 80%); animation: border-rotate 3s linear infinite; }
         .magic-border-layer.reverse { animation: border-rotate 5s linear infinite reverse; opacity: 0.7; }
 
-        /* Utilities */
+        /* Shimmer Text */
         .shimmer-text { background: linear-gradient(to right, #ec4899 20%, #8b5cf6 40%, #ec4899 60%, #8b5cf6 80%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: border-flow 3s linear infinite; font-weight: 900; }
         @keyframes border-flow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; }
-        .glass-table th { background-color: rgba(255,255,255,0.7); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(5px); }
-        .glass-table tr:hover td { background-color: rgba(255,255,255,0.6); }
 
         /* Toast */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 100000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { pointer-events: auto; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; items-center; gap: 10px; font-size: 13px; font-weight: 600; color: #334155; border-left: 4px solid #3b82f6; animation: fade-in-up 0.3s ease-out forwards; max-width: 300px; }
+        .toast { pointer-events: auto; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 16px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; items-center; gap: 10px; font-size: 13px; font-weight: 600; color: #334155; border-left: 4px solid #3b82f6; animation: fade-in-up 0.3s ease-out forwards; max-width: 300px; }
         .toast.success { border-left-color: #10b981; } .toast.error { border-left-color: #ef4444; }
         
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -95,11 +173,18 @@
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <!-- LIQUID BACKGROUND -->
+    <div class="liquid-bg">
+        <div class="blob-c blob-1"></div>
+        <div class="blob-c blob-2"></div>
+        <div class="blob-c blob-3"></div>
+    </div>
+
+    <div id="root" class="relative z-10 h-screen flex flex-col"></div>
     <div id="toast-container"></div>
 
     <script type="text/babel">
-        // --- 0. FIREBASE CONFIG ---
+        // --- 0. FIREBASE CONFIG (YERSIN EDITION) ---
         const FIREBASE_CONFIG = {
             apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
             authDomain: "hanhkiem-d853b.firebaseapp.com",
@@ -152,25 +237,21 @@
             return (sum / count).toFixed(1);
         };
 
-        // --- 3. BACKGROUND ---
-        const BokehBackground = () => ( <div className="bokeh">{[...Array(20)].map((_, i) => (<span key={i} style={{ left: Math.random() * 100 + '%', width: Math.random() * 40 + 10 + 'px', height: Math.random() * 40 + 10 + 'px', animationDuration: Math.random() * 10 + 10 + 's', animationDelay: Math.random() * 5 + 's', background: `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.2})` }}></span>))}</div> );
-        const FairyDust = () => ( <div className="absolute inset-0 z-20 pointer-events-none rounded-full overflow-hidden">{[...Array(15)].map((_, i) => (<div key={i} className="absolute bg-white rounded-full shadow-[0_0_8px_white]" style={{ width: Math.random()*2+2+'px', height: Math.random()*2+2+'px', top: Math.random()*100+'%', left: Math.random()*100+'%', animation: 'pulse 1s infinite alternate', animationDelay: Math.random()+'s' }} />))}</div> );
-
-        // --- 4. 10-RANK SYSTEM (1-20 Points) ---
+        // --- 3. 10-RANK SYSTEM (1-20 Points) ---
         const getRankInfo = (points) => {
-            if (points >= 20) return { id: 'scholar', name: 'HỌC GIẢ TRẺ', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 text-white shadow-lg', shadow: 'shadow-purple-400', effect: 'scholar', textColor: 'shimmer-text' };
-            if (points >= 18) return { id: 'breakthrough', name: 'BỨT PHÁ', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md', shadow: 'shadow-rose-300', effect: 'breakthrough', textColor: 'text-rose-600' };
-            if (points >= 16) return { id: 'excellent', name: 'XUẤT SẮC', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-md', shadow: 'shadow-orange-300', effect: 'excellent', textColor: 'text-orange-600' };
-            if (points >= 14) return { id: 'superior', name: 'VƯỢT BẬC', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md', shadow: 'shadow-cyan-200', effect: 'superior', textColor: 'text-cyan-600' };
-            if (points >= 12) return { id: 'confident', name: 'TỰ TIN', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-md', shadow: 'shadow-yellow-200', effect: 'confident', textColor: 'text-yellow-600' };
-            if (points >= 10) return { id: 'progressive', name: 'TIẾN BỘ', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-lime-400 to-green-500 text-white shadow-sm', shadow: 'shadow-lime-200', effect: 'progressive', textColor: 'text-lime-600' };
-            if (points >= 8) return { id: 'persistent', name: 'KIÊN TRÌ', bgClass: 'bg-white', badge: 'bg-teal-500 text-white shadow-sm', shadow: 'shadow-teal-100', effect: 'persistent', textColor: 'text-teal-600' };
-            if (points >= 5) return { id: 'conscious', name: 'TỰ GIÁC', bgClass: 'bg-white', badge: 'bg-blue-400 text-white shadow-sm', shadow: 'shadow-blue-100', effect: 'conscious', textColor: 'text-blue-500' };
-            if (points >= 2) return { id: 'learner', name: 'CHĂM HỌC', bgClass: 'bg-white', badge: 'bg-indigo-300 text-white shadow-sm', shadow: 'shadow-indigo-100', effect: 'learner', textColor: 'text-indigo-500' };
-            return { id: 'starter', name: 'KHỞI ĐỘNG', bgClass: 'bg-white', badge: 'bg-gray-200 text-gray-500', shadow: 'shadow-sm', effect: 'starter', textColor: 'text-gray-500' };
+            if (points >= 20) return { id: 'scholar', name: 'HỌC GIẢ TRẺ', effect: 'scholar', textColor: 'shimmer-text', badge: 'bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 text-white shadow-lg' };
+            if (points >= 18) return { id: 'breakthrough', name: 'BỨT PHÁ', effect: 'breakthrough', textColor: 'text-rose-600', badge: 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md' };
+            if (points >= 16) return { id: 'excellent', name: 'XUẤT SẮC', effect: 'excellent', textColor: 'text-orange-600', badge: 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-md' };
+            if (points >= 14) return { id: 'superior', name: 'VƯỢT BẬC', effect: 'superior', textColor: 'text-cyan-600', badge: 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md' };
+            if (points >= 12) return { id: 'confident', name: 'TỰ TIN', effect: 'confident', textColor: 'text-yellow-600', badge: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-md' };
+            if (points >= 10) return { id: 'progressive', name: 'TIẾN BỘ', effect: 'progressive', textColor: 'text-lime-600', badge: 'bg-gradient-to-r from-lime-400 to-green-500 text-white shadow-sm' };
+            if (points >= 8) return { id: 'persistent', name: 'KIÊN TRÌ', effect: 'persistent', textColor: 'text-teal-600', badge: 'bg-teal-500 text-white shadow-sm' };
+            if (points >= 5) return { id: 'conscious', name: 'TỰ GIÁC', effect: 'conscious', textColor: 'text-blue-500', badge: 'bg-blue-400 text-white shadow-sm' };
+            if (points >= 2) return { id: 'learner', name: 'CHĂM HỌC', effect: 'learner', textColor: 'text-indigo-500', badge: 'bg-indigo-300 text-white shadow-sm' };
+            return { id: 'starter', name: 'KHỞI ĐỘNG', effect: 'starter', textColor: 'text-gray-500', badge: 'bg-gray-200 text-gray-500 shadow-sm' };
         };
 
-        // --- 5. OPTIMIZED AVATAR RINGS ---
+        // --- 4. OPTIMIZED AVATAR RINGS ---
         const AvatarRing = ({ type, isAnimated = false }) => {
             if (type === 'none' || !type) return null;
             const containerClass = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] pointer-events-none flex items-center justify-center";
@@ -198,30 +279,37 @@
             return null;
         };
 
-        // --- 6. START SCREEN COMPONENT ---
+        // --- 6. START SCREEN COMPONENT (Liquid Glass Style) ---
         const StartScreen = ({ onStart, onLogin }) => {
             return (
-                <div id="startScreen" className="fixed inset-0 z-[100] bg-gradient-to-br from-slate-900 via-gray-800 to-primary-700 flex flex-col items-center justify-center text-white p-6 transition-transform duration-500 ease-in-out">
-                    <div className="mb-8 relative animate-fade-in-up" style={{animationDelay: '0.1s'}}>
-                        <div className="w-28 h-28 bg-white rounded-3xl p-4 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 cursor-pointer flex items-center justify-center">
-                            <img src="logo.png" alt="Logo" className="max-w-full max-h-full object-contain" onError={(e)=>{e.target.style.display='none'; e.target.parentNode.innerHTML='<span class="text-4xl">🎓</span>'}}/>
+                <div id="startScreen" className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6">
+                    {/* Glass Layer */}
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-0"></div>
+                    
+                    <div className="relative z-10 flex flex-col items-center w-full max-w-md">
+                         <div className="mb-8 relative animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+                            <div className="w-32 h-32 glass-panel rounded-3xl p-6 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 cursor-pointer flex items-center justify-center border-white/50">
+                                <img src="logo.png" alt="Logo" className="max-w-full max-h-full object-contain drop-shadow-lg" onError={(e)=>{e.target.style.display='none'; e.target.parentNode.innerHTML='<span class="text-5xl">🎓</span>'}}/>
+                            </div>
                         </div>
-                    </div>
-                    <div className="text-center space-y-3 mb-12 animate-fade-in-up relative z-10" style={{animationDelay: '0.2s'}}>
-                        <h1 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-tight">Ứng Dụng Theo Dõi<br/><span className="text-primary-400">Học Sinh & Sổ Điểm</span></h1>
-                        <div className="flex items-center justify-center gap-2 text-primary-100 text-sm font-medium bg-white/10 py-1 px-4 rounded-full backdrop-blur-sm mx-auto w-fit">
-                            <span>Thầy Thái Minh Nguyên</span><span className="w-1 h-1 bg-white rounded-full"></span><span>Yersin Đà Lạt</span>
+                        
+                        <div className="text-center space-y-4 mb-12 animate-fade-in-up relative z-10" style={{animationDelay: '0.2s'}}>
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-tight text-slate-800 drop-shadow-sm">Ứng Dụng Theo Dõi<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">Học Sinh & Sổ Điểm</span></h1>
+                            <div className="flex items-center justify-center gap-2 text-slate-600 text-sm font-bold bg-white/40 py-2 px-6 rounded-full backdrop-blur-md border border-white/40 shadow-sm mx-auto w-fit">
+                                <span>Thầy Thái Minh Nguyên</span><span className="w-1 h-1 bg-slate-400 rounded-full"></span><span>Yersin Đà Lạt</span>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md animate-fade-in-up relative z-10" style={{animationDelay: '0.3s'}}>
-                        <button onClick={onLogin} className="w-full sm:flex-1 bg-white text-slate-700 font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 group border border-slate-100 relative overflow-hidden">
-                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                           <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
-                           <span className="text-sm md:text-base font-extrabold tracking-tight">Đăng nhập Google</span>
-                        </button>
-                        <button onClick={onStart} className="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
-                            <Icon name="rocket" size={24}/> BẮT ĐẦU NGAY
-                        </button>
+
+                        <div className="flex flex-col gap-4 w-full animate-fade-in-up relative z-10" style={{animationDelay: '0.3s'}}>
+                            <button onClick={onLogin} className="w-full bg-white/80 hover:bg-white text-slate-700 font-bold py-4 px-6 rounded-2xl shadow-lg border border-white transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden backdrop-blur-md">
+                               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/50 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
+                               <span className="text-base font-extrabold tracking-tight">Đăng nhập Google</span>
+                            </button>
+                            <button onClick={onStart} className="glass-button-primary text-white font-bold py-4 rounded-2xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+                                <Icon name="rocket" size={24}/> BẮT ĐẦU NGAY
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
@@ -243,23 +331,30 @@
             };
 
             return (
-                <div className="relative group w-full cursor-pointer select-none transition-all duration-300 hover:-translate-y-1" onClick={onClick} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-                    <div className="min-h-[260px] md:min-h-[300px] h-full relative rounded-[1.8rem] p-[4px] overflow-hidden flex flex-col shadow-lg transition-shadow hover:shadow-2xl hover:shadow-purple-200/50"> 
-                        <div className={`absolute inset-0 ${rank.effect === 'scholar' ? 'bg-gradient-to-tr from-purple-100 to-indigo-100' : 'bg-white'} rounded-[1.8rem]`}></div>
-                        <div className={`relative h-full w-full rounded-[1.5rem] flex flex-col items-center p-3 md:p-5 z-10 ${rank.bgClass} overflow-hidden`}>
-                            {burst && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl animate-ping opacity-0 z-50">⭐</div>}
-                            <div className="w-full flex justify-center items-center z-20 mb-3"><span className={`text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${rank.badge}`}>{rank.name}</span></div>
-                            <div className="relative z-10 mb-3 mt-auto transition-transform duration-300 group-hover:scale-105">
+                <div className="relative group w-full cursor-pointer select-none transition-all duration-300 hover:-translate-y-2" onClick={onClick} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+                    <div className="glass-card min-h-[280px] h-full relative rounded-[2rem] p-[4px] overflow-hidden flex flex-col"> 
+                        <div className={`relative h-full w-full rounded-[1.8rem] flex flex-col items-center p-4 z-10 overflow-hidden`}>
+                            {burst && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl animate-ping opacity-0 z-50">⭐</div>}
+                            
+                            <div className="w-full flex justify-center items-center z-20 mb-4">
+                                <span className={`text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm backdrop-blur-md ${rank.badge}`}>{rank.name}</span>
+                            </div>
+
+                            <div className="relative z-10 mb-4 mt-auto transition-transform duration-500 group-hover:scale-110">
                                 <AvatarRing type={rank.effect} isAnimated={shouldAnimate} />
-                                <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-white shadow-xl flex items-center justify-center text-5xl md:text-7xl relative z-10 overflow-hidden border-[3px] border-white ring-1 ring-gray-100`}>
-                                    {student.avatarUrl ? <img src={student.avatarUrl} className="w-full h-full object-cover" /> : <span className="drop-shadow-md">{student.avatar || '🦁'}</span>}
+                                <div className={`w-24 h-24 rounded-full bg-white/80 shadow-inner flex items-center justify-center text-5xl relative z-10 overflow-hidden border-[3px] border-white/60`}>
+                                    {student.avatarUrl ? <img src={student.avatarUrl} className="w-full h-full object-cover" /> : <span className="drop-shadow-md filter saturate-150">{student.avatar || '🦁'}</span>}
                                 </div>
-                                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md border-2 border-yellow-100 flex items-center gap-2 min-w-[3.5rem] justify-center z-30">
-                                    <Icon name="star" size={14} className="fill-yellow-400 text-yellow-400" /><span className="font-black text-gray-800 text-base md:text-lg">{points}</span>
+                                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white/90 px-4 py-1 rounded-full shadow-lg border border-white flex items-center gap-2 min-w-[4rem] justify-center z-30 backdrop-blur-sm">
+                                    <Icon name="star" size={14} className="fill-yellow-400 text-yellow-400" /><span className="font-black text-slate-700 text-lg">{points}</span>
                                 </div>
                             </div>
-                            <div className="mt-auto w-full text-center z-20"><h3 className={`text-base md:text-lg font-black text-center px-1 leading-tight break-words ${rank.textColor || 'text-gray-700'}`}>{student.name}</h3></div>
-                            <button onClick={handleQuickAdd} className="mt-3 w-full py-2.5 rounded-xl bg-gray-50 hover:bg-yellow-50 text-gray-400 hover:text-yellow-600 font-bold text-[10px] md:text-xs flex items-center justify-center gap-1 transition-colors z-20 border border-transparent hover:border-yellow-200"><Icon name="thumbs-up" size={14}/> THƯỞNG NHANH</button>
+
+                            <div className="mt-auto w-full text-center z-20 pb-2">
+                                <h3 className={`text-lg font-black text-center px-1 leading-tight break-words drop-shadow-sm ${rank.textColor || 'text-slate-700'}`}>{student.name}</h3>
+                            </div>
+                            
+                            <button onClick={handleQuickAdd} className="mt-2 w-full py-2.5 rounded-xl bg-white/50 hover:bg-white text-slate-500 hover:text-orange-500 font-bold text-xs flex items-center justify-center gap-1 transition-all border border-white/50 hover:shadow-md"><Icon name="thumbs-up" size={14}/> THƯỞNG NHANH</button>
                         </div>
                     </div>
                 </div>
@@ -294,30 +389,39 @@
             };
 
             return (
-                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-                    <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" onClick={e => e.stopPropagation()}>
-                        <div className={`p-6 ${rank.effect === 'scholar' ? 'bg-gradient-to-r from-purple-100 to-indigo-100' : 'bg-gradient-to-r from-gray-50 to-gray-100'} flex items-center gap-4 relative overflow-hidden`}>
-                            {rank.effect === 'scholar' && <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 animate-pulse"></div>}
-                            <div className="relative z-10"><div className="w-20 h-20 rounded-full bg-white border-2 border-white shadow overflow-hidden flex items-center justify-center text-5xl">{student.avatarUrl ? <img src={student.avatarUrl} className="w-full h-full object-cover"/> : (student.avatar || '🦁')}</div>{tab === 'grades' && (<div className="absolute -bottom-2 -right-2 bg-yellow-400 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center shadow border-2 border-white">{avg || '-'}</div>)}</div>
-                            <div className="flex-1 z-10"><h2 className="text-2xl font-black text-gray-800">{student.name}</h2><span className={`text-xs font-bold px-2 py-0.5 rounded-full ${rank.badge} uppercase shadow-sm`}>{rank.name}</span><div className="flex items-center gap-2 mt-1 text-sm text-gray-500"><Icon name="star" size={14} className="fill-yellow-400 text-yellow-400"/> {student.points || 0} Điểm thi đua</div></div>
-                            <button onClick={onClose} className="bg-white/50 p-2 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors z-10"><Icon name="x" /></button>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="glass-modal w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up z-10 relative">
+                        <div className="p-6 bg-white/50 backdrop-blur-md border-b border-white/50 flex items-center gap-4 relative">
+                            <div className="relative z-10"><div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-5xl border-4 border-white/50">{student.avatarUrl ? <img src={student.avatarUrl} className="w-full h-full object-cover" /> : (student.avatar || '🦁')}</div>{tab === 'grades' && (<div className="absolute -bottom-2 -right-2 bg-orange-500 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white text-lg">{avg || '-'}</div>)}</div>
+                            <div className="flex-1 z-10">
+                                <h2 className="text-2xl font-black text-slate-800">{student.name}</h2>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-full text-white shadow-sm ${rank.badge}`}>{rank.name}</span>
+                                    <span className="bg-white/60 px-3 py-1 rounded-full text-xs font-bold text-slate-600 flex items-center gap-1 border border-white/50"><Icon name="star" size={12} className="text-orange-500"/> {student.points} Điểm</span>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/50 hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors"><Icon name="x" /></button>
                         </div>
-                        <div className="flex border-b border-gray-100"><button onClick={()=>setTab('behavior')} className={`flex-1 py-3 font-bold text-sm ${tab==='behavior'?'text-pink-600 border-b-2 border-pink-500 bg-pink-50':'text-gray-400 hover:bg-gray-50'}`}>HÀNH VI & THI ĐUA</button><button onClick={()=>setTab('grades')} className={`flex-1 py-3 font-bold text-sm ${tab==='grades'?'text-blue-600 border-b-2 border-blue-500 bg-blue-50':'text-gray-400 hover:bg-gray-50'}`}>SỔ ĐIỂM CHI TIẾT</button></div>
-                        <div className="p-6 overflow-y-auto custom-scrollbar">
+                        <div className="flex border-b border-white/50 bg-white/30 p-1 gap-1">
+                            <button onClick={()=>setTab('behavior')} className={`flex-1 py-3 font-bold text-sm rounded-xl transition-all ${tab==='behavior'?'bg-white shadow-sm text-orange-600':'text-slate-500 hover:bg-white/40'}`}>HÀNH VI & THI ĐUA</button>
+                            <button onClick={()=>setTab('grades')} className={`flex-1 py-3 font-bold text-sm rounded-xl transition-all ${tab==='grades'?'bg-white shadow-sm text-blue-600':'text-slate-500 hover:bg-white/40'}`}>SỔ ĐIỂM CHI TIẾT</button>
+                        </div>
+                        <div className="p-6 overflow-y-auto custom-scrollbar bg-white/40">
                             {tab === 'behavior' ? (
                                 <div className="space-y-6">
-                                    <div><h3 className="text-sm font-black text-gray-400 uppercase mb-3">Thưởng điểm (+1 đến +5)</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[{l:'Phát biểu', v:1, i:'hand'}, {l:'Bài tốt', v:2, i:'file-check'}, {l:'Giúp bạn', v:2, i:'users'}, {l:'Xuất sắc', v:5, i:'trophy'}].map((btn, idx) => (<button key={idx} onClick={()=>onUpdatePoints(student.id, btn.v)} className="flex flex-col items-center justify-center p-3 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 hover:scale-105 transition-all border border-green-100 shadow-sm"><Icon name={btn.i} size={24} className="mb-1"/><span className="font-bold text-xs">{btn.l}</span><span className="text-[10px] font-bold bg-green-200 px-2 rounded-full">+{btn.v}</span></button>))}</div></div>
-                                    <div><h3 className="text-sm font-black text-gray-400 uppercase mb-3">Phạt điểm (-1 đến -5)</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[{l:'Nói chuyện', v:-1, i:'message-circle-off'}, {l:'Không thuộc bài', v:-2, i:'book-x'}, {l:'Đi trễ', v:-2, i:'clock'}, {l:'Vô lễ', v:-5, i:'frown'}].map((btn, idx) => (<button key={idx} onClick={()=>onUpdatePoints(student.id, btn.v)} className="flex flex-col items-center justify-center p-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:scale-105 transition-all border border-red-100 shadow-sm"><Icon name={btn.i} size={24} className="mb-1"/><span className="font-bold text-xs">{btn.l}</span><span className="text-[10px] font-bold bg-red-200 px-2 rounded-full">{btn.v}</span></button>))}</div></div>
+                                    <div><h3 className="text-xs font-black text-slate-400 uppercase mb-3 tracking-wider">Thưởng điểm (+1 đến +5)</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[{l:'Phát biểu', v:1, i:'hand'}, {l:'Bài tốt', v:2, i:'file-check'}, {l:'Giúp bạn', v:2, i:'users'}, {l:'Xuất sắc', v:5, i:'trophy'}].map((btn, idx) => (<button key={idx} onClick={()=>onUpdatePoints(student.id, btn.v)} className="glass-button flex flex-col items-center justify-center p-4 rounded-2xl text-emerald-600"><Icon name={btn.i} size={24} className="mb-1"/><span className="font-bold text-xs">{btn.l}</span><span className="text-[10px] font-bold bg-emerald-100 px-2 rounded-full mt-1 text-emerald-700">+{btn.v}</span></button>))}</div></div>
+                                    <div><h3 className="text-xs font-black text-slate-400 uppercase mb-3 tracking-wider">Phạt điểm (-1 đến -5)</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[{l:'Nói chuyện', v:-1, i:'message-circle-off'}, {l:'Không thuộc bài', v:-2, i:'book-x'}, {l:'Đi trễ', v:-2, i:'clock'}, {l:'Vô lễ', v:-5, i:'frown'}].map((btn, idx) => (<button key={idx} onClick={()=>onUpdatePoints(student.id, btn.v)} className="glass-button flex flex-col items-center justify-center p-4 rounded-2xl text-red-500"><Icon name={btn.i} size={24} className="mb-1"/><span className="font-bold text-xs">{btn.l}</span><span className="text-[10px] font-bold bg-red-100 px-2 rounded-full mt-1 text-red-700">{btn.v}</span></button>))}</div></div>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    <div className="mb-4"><label className="block text-sm font-bold text-gray-600 mb-2">Chọn Môn Học Cần Nhập:</label><div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">{SUBJECTS.map(s => (<button key={s.id} onClick={()=>setSelectedSubModal(s.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border ${selectedSubModal === s.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}>{s.name}</button>))}</div></div>
-                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                        <div className="flex justify-between items-center mb-2"><label className="text-sm font-bold text-gray-700">ĐG Thường Xuyên (HS 1)</label><button onClick={handleAddTx} className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold hover:bg-blue-200">+ Thêm</button></div>
-                                        <div className="flex flex-wrap gap-2 mb-4">{txScores.map((s, i) => (<div key={i} className="relative group"><span className="px-3 py-1.5 bg-white border rounded-lg font-bold text-gray-700 shadow-sm">{s}</span><button onClick={()=>{setTxScores(txScores.filter((_,idx)=>idx!==i))}} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">x</button></div>))}{txScores.length===0 && <span className="text-gray-400 italic text-xs">Chưa có điểm</span>}</div>
-                                        <div className="grid grid-cols-2 gap-4"><div><label className="text-sm font-bold text-gray-700 block mb-1">Giữa Kỳ (HS 2)</label><input type="number" value={gkScore} onChange={e=>setGkScore(e.target.value)} className="w-full p-2 border rounded-lg font-bold text-center" placeholder="--"/></div><div><label className="text-sm font-bold text-gray-700 block mb-1">Cuối Kỳ (HS 3)</label><input type="number" value={ckScore} onChange={e=>setCkScore(e.target.value)} className="w-full p-2 border rounded-lg font-bold text-center text-red-600" placeholder="--"/></div></div>
+                                    <div className="mb-4"><label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Môn Học</label><div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">{SUBJECTS.map(s => (<button key={s.id} onClick={()=>setSelectedSubModal(s.id)} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition-all ${selectedSubModal === s.id ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white/60 text-slate-500 border-white hover:bg-white'}`}>{s.name}</button>))}</div></div>
+                                    <div className="bg-white/60 p-5 rounded-2xl border border-white shadow-sm">
+                                        <div className="flex justify-between items-center mb-3"><label className="text-sm font-bold text-slate-700">ĐG Thường Xuyên (HS 1)</label><button onClick={handleAddTx} className="text-xs bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-200 transition-colors">+ Thêm</button></div>
+                                        <div className="flex flex-wrap gap-2 mb-4">{txScores.map((s, i) => (<div key={i} className="relative group"><span className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm">{s}</span><button onClick={()=>{setTxScores(txScores.filter((_,idx)=>idx!==i))}} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-all shadow-md hover:scale-110">×</button></div>))}{txScores.length===0 && <span className="text-slate-400 italic text-xs">Chưa có điểm</span>}</div>
+                                        <div className="grid grid-cols-2 gap-4"><div><label className="text-sm font-bold text-slate-700 block mb-2">Giữa Kỳ (HS 2)</label><input type="number" value={gkScore} onChange={e=>setGkScore(e.target.value)} className="w-full p-3 bg-white/80 border border-white rounded-xl font-bold text-center focus:ring-2 focus:ring-blue-300 outline-none" placeholder="--"/></div><div><label className="text-sm font-bold text-slate-700 block mb-2">Cuối Kỳ (HS 3)</label><input type="number" value={ckScore} onChange={e=>setCkScore(e.target.value)} className="w-full p-3 bg-white/80 border border-white rounded-xl font-bold text-center text-red-600 focus:ring-2 focus:ring-red-300 outline-none" placeholder="--"/></div></div>
                                     </div>
-                                    <button onClick={handleSaveScores} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"><Icon name="save" /> LƯU ĐIỂM MÔN {SUBJECTS.find(s=>s.id===selectedSubModal).name.toUpperCase()}</button>
+                                    <button onClick={handleSaveScores} className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]"><Icon name="save" /> LƯU ĐIỂM MÔN {SUBJECTS.find(s=>s.id===selectedSubModal).name.toUpperCase()}</button>
                                 </div>
                             )}
                         </div>
@@ -327,34 +431,26 @@
         };
 
         const GradebookTable = ({ students, subjectId, onEditStudent }) => {
-            // EXPORT FUNCTION INTEGRATED
             const handleExportGradebook = () => {
                 const subjectName = SUBJECTS.find(s => s.id === subjectId)?.name || "MonHoc";
                 const fileName = `SoDiem_${subjectName}.xlsx`;
                 const headers = ["STT", "Họ và Tên", "ĐG Thường Xuyên (HS1)", "Giữa Kỳ (HS2)", "Cuối Kỳ (HS3)", "ĐTB Môn"];
                 const data = [headers];
-
                 students.forEach((s, idx) => {
                     const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
                     const avg = calculateSubjectAverage(scores);
                     const txString = (scores.tx || []).join(', ');
                     data.push([idx + 1, s.name, txString, scores.gk || '', scores.ck || '', avg || '']);
                 });
-
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.aoa_to_sheet(data);
                 ws['!cols'] = [{ wch: 5 }, { wch: 25 }, { wch: 25 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
-
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 for (let R = range.s.r; R <= range.e.r; ++R) {
                     for (let C = range.s.c; C <= range.e.c; ++C) {
                         const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
                         if (!ws[cellRef]) continue;
-                        const cellStyle = {
-                            font: { name: "Times New Roman", sz: 12 },
-                            border: { top: { style: "thin", color: { rgb: "000000" } }, bottom: { style: "thin", color: { rgb: "000000" } }, left: { style: "thin", color: { rgb: "000000" } }, right: { style: "thin", color: { rgb: "000000" } } },
-                            alignment: { vertical: "center", horizontal: "center", wrapText: true }
-                        };
+                        const cellStyle = { font: { name: "Times New Roman", sz: 12 }, border: { top: { style: "thin", color: { rgb: "000000" } }, bottom: { style: "thin", color: { rgb: "000000" } }, left: { style: "thin", color: { rgb: "000000" } }, right: { style: "thin", color: { rgb: "000000" } } }, alignment: { vertical: "center", horizontal: "center", wrapText: true } };
                         if (C === 1) cellStyle.alignment.horizontal = "left";
                         if (R === 0) { cellStyle.font.bold = true; cellStyle.fill = { fgColor: { rgb: "E0E0E0" } }; cellStyle.alignment.horizontal = "center"; }
                         ws[cellRef].s = cellStyle;
@@ -366,20 +462,71 @@
 
             return (
                 <div className="flex flex-col h-full">
-                    <div className="flex justify-end mb-2">
-                        <button onClick={handleExportGradebook} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2 transition-all active:scale-95">
-                            <Icon name="download" size={14}/> Xuất Excel
+                    <div className="flex justify-end mb-3">
+                        <button onClick={handleExportGradebook} className="glass-button-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95">
+                            <Icon name="download" size={16}/> Xuất Excel
                         </button>
                     </div>
-                    <div className="overflow-x-auto bg-white/80 backdrop-blur rounded-[2rem] shadow-xl border border-white p-4 flex-1">
-                        <table className="w-full text-sm glass-table">
-                            <thead><tr className="text-left border-b border-gray-200"><th className="p-3 font-black text-gray-600">STT</th><th className="p-3 font-black text-gray-600">Họ và Tên</th><th className="p-3 font-black text-gray-600">ĐG Thường Xuyên (HS1)</th><th className="p-3 font-black text-gray-600 text-center">GK (HS2)</th><th className="p-3 font-black text-gray-600 text-center">CK (HS3)</th><th className="p-3 font-black text-blue-600 text-center">ĐTB</th><th className="p-3 text-center">Sửa</th></tr></thead>
-                            <tbody>{students.map((s, idx) => {
-                                const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
-                                const avg = calculateSubjectAverage(scores);
-                                return (<tr key={s.id} className="border-b border-gray-100/50 hover:bg-gray-50/50 transition-colors"><td className="p-3 text-gray-400 font-bold">{idx + 1}</td><td className="p-3 font-bold text-gray-800 flex items-center gap-2"><span className="text-lg">{s.avatar}</span> {s.name}</td><td className="p-3"><div className="flex gap-1 flex-wrap">{scores.tx && scores.tx.map((sc,i)=><span key={i} className="bg-gray-100 px-1.5 rounded text-xs font-bold text-gray-600">{sc}</span>)}</div></td><td className="p-3 text-center font-bold text-gray-700">{scores.gk||'-'}</td><td className="p-3 text-center font-bold text-red-500">{scores.ck||'-'}</td><td className="p-3 text-center font-black text-blue-600 text-lg">{avg||'-'}</td><td className="p-3 text-center"><button onClick={()=>onEditStudent(s)} className="text-gray-400 hover:text-blue-500"><Icon name="edit-3" size={16}/></button></td></tr>);
-                            })}</tbody>
-                        </table>
+                    <div className="overflow-hidden glass-panel rounded-3xl flex-1 flex flex-col relative">
+                        <div className="overflow-y-auto h-full custom-scrollbar pb-24">
+                            {/* DESKTOP TABLE */}
+                            <table className="w-full text-sm glass-table hidden md:table">
+                                <thead><tr className="text-left text-slate-500"><th className="p-4 font-extrabold">STT</th><th className="p-4 font-extrabold">Họ và Tên</th><th className="p-4 font-extrabold">ĐG Thường Xuyên (HS1)</th><th className="p-4 font-extrabold text-center">GK (HS2)</th><th className="p-4 font-extrabold text-center">CK (HS3)</th><th className="p-4 font-extrabold text-center text-blue-600">ĐTB</th><th className="p-4 text-center">Sửa</th></tr></thead>
+                                <tbody>{students.map((s, idx) => {
+                                    const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
+                                    const avg = calculateSubjectAverage(scores);
+                                    return (<tr key={s.id} className="transition-colors group"><td className="p-4 text-slate-400 font-bold">{idx + 1}</td><td className="p-4 font-bold text-slate-700 flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-sm shadow-sm">{s.avatar}</div> {s.name}</td><td className="p-4"><div className="flex gap-1 flex-wrap">{scores.tx && scores.tx.map((sc,i)=><span key={i} className="bg-white/60 border border-white px-2 py-1 rounded-lg text-xs font-bold text-slate-600 shadow-sm">{sc}</span>)}</div></td><td className="p-4 text-center font-bold text-slate-700">{scores.gk||'-'}</td><td className="p-4 text-center font-bold text-red-500">{scores.ck||'-'}</td><td className="p-4 text-center font-black text-blue-600 text-lg">{avg||'-'}</td><td className="p-4 text-center"><button onClick={()=>onEditStudent(s)} className="w-8 h-8 rounded-full hover:bg-white text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all"><Icon name="edit-3" size={16}/></button></td></tr>);
+                                })}</tbody>
+                            </table>
+                            
+                            {/* MOBILE CARD LIST (NEW SMART VIEW) */}
+                            <div className="md:hidden flex flex-col gap-3 p-4">
+                                {students.map((s, idx) => {
+                                    const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
+                                    const avg = calculateSubjectAverage(scores);
+                                    const avgNum = parseFloat(avg);
+                                    const rankColor = avgNum >= 8 ? 'text-green-600' : (avgNum >= 6.5 ? 'text-blue-600' : (avgNum >= 5 ? 'text-orange-500' : 'text-red-500'));
+                                    
+                                    return (
+                                        <div key={s.id} className="bg-white/40 backdrop-blur-md rounded-2xl p-4 border border-white/60 shadow-sm flex flex-col gap-3">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-white shadow-inner flex items-center justify-center text-xl border-2 border-white">{s.avatar}</div>
+                                                    <div>
+                                                        <div className="font-black text-slate-800 text-sm">{s.name}</div>
+                                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">STT: {idx + 1}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className={`text-2xl font-black ${avg ? rankColor : 'text-slate-300'}`}>{avg || '--'}</span>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase">ĐTB Môn</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="bg-white/50 rounded-xl p-3 border border-white/40 grid grid-cols-3 gap-2 text-center">
+                                                <div className="flex flex-col gap-1 col-span-3 border-b border-slate-100 pb-2 mb-1">
+                                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Thường Xuyên</span>
+                                                    <div className="flex gap-1 flex-wrap justify-center">
+                                                        {scores.tx && scores.tx.length > 0 ? scores.tx.map((sc,i)=><span key={i} className="bg-white px-2 py-0.5 rounded border border-slate-100 text-xs font-bold text-slate-600">{sc}</span>) : <span className="text-xs text-slate-300">-</span>}
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col border-r border-slate-100">
+                                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Giữa Kỳ</span>
+                                                    <span className="font-bold text-slate-700">{scores.gk||'-'}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Cuối Kỳ</span>
+                                                    <span className="font-bold text-red-500">{scores.ck||'-'}</span>
+                                                </div>
+                                                <div className="flex items-center justify-center">
+                                                    <button onClick={()=>onEditStudent(s)} className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"><Icon name="edit-3" size={14}/></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
@@ -391,13 +538,17 @@
             const subject = SUBJECTS.find(s => s.id === subjectId);
             const handleImport = () => { if (data.trim()) { onImport(columnType, data.split(/\r?\n/).map(l => l.trim())); onClose(); } };
             return (
-                <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl flex flex-col overflow-hidden animate-fade-in-up">
-                        <div className="p-4 bg-green-600 text-white flex justify-between items-center"><h3 className="font-bold flex items-center gap-2"><Icon name="file-spreadsheet"/> Nhập Điểm Excel: {subject.name}</h3><button onClick={onClose}><Icon name="x"/></button></div>
-                        <div className="p-6 space-y-4">
-                            <div><label className="block text-sm font-bold text-gray-700 mb-2">Chọn Cột Điểm:</label><div className="grid grid-cols-3 gap-2"><button onClick={() => setColumnType('tx')} className={`p-2 rounded-lg border text-xs font-bold ${columnType === 'tx' ? 'bg-green-100 border-green-500 text-green-700' : 'border-gray-200 text-gray-500'}`}>Thường Xuyên</button><button onClick={() => setColumnType('gk')} className={`p-2 rounded-lg border text-xs font-bold ${columnType === 'gk' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-200 text-gray-500'}`}>Giữa Kỳ</button><button onClick={() => setColumnType('ck')} className={`p-2 rounded-lg border text-xs font-bold ${columnType === 'ck' ? 'bg-orange-100 border-orange-500 text-orange-700' : 'border-gray-200 text-gray-500'}`}>Cuối Kỳ</button></div></div>
-                            <div><label className="block text-sm font-bold text-gray-700 mb-2">Dán Cột Điểm Excel:</label><textarea value={data} onChange={e => setData(e.target.value)} className="w-full h-40 p-3 border rounded-xl font-mono text-sm focus:ring-2 focus:ring-green-300 outline-none" placeholder="8.5&#10;9.0&#10;..."></textarea></div>
-                            <button onClick={handleImport} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700">Xác Nhận Nhập</button>
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="glass-modal w-full max-w-lg rounded-3xl flex flex-col overflow-hidden animate-fade-in-up z-10">
+                        <div className="p-5 bg-emerald-600 text-white flex justify-between items-center relative overflow-hidden">
+                             <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+                             <h3 className="font-bold flex items-center gap-2 relative z-10 text-lg"><Icon name="file-spreadsheet"/> Nhập Điểm Excel: {subject.name}</h3><button onClick={onClose} className="relative z-10 hover:bg-white/20 p-2 rounded-full transition-colors"><Icon name="x"/></button>
+                        </div>
+                        <div className="p-6 space-y-5 bg-white/40">
+                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Chọn Cột Điểm:</label><div className="grid grid-cols-3 gap-3"><button onClick={() => setColumnType('tx')} className={`p-3 rounded-xl border text-xs font-bold transition-all ${columnType === 'tx' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white/60 border-white text-slate-500'}`}>Thường Xuyên</button><button onClick={() => setColumnType('gk')} className={`p-3 rounded-xl border text-xs font-bold transition-all ${columnType === 'gk' ? 'bg-blue-100 border-blue-500 text-blue-700 shadow-sm' : 'bg-white/60 border-white text-slate-500'}`}>Giữa Kỳ</button><button onClick={() => setColumnType('ck')} className={`p-3 rounded-xl border text-xs font-bold transition-all ${columnType === 'ck' ? 'bg-orange-100 border-orange-500 text-orange-700 shadow-sm' : 'bg-white/60 border-white text-slate-500'}`}>Cuối Kỳ</button></div></div>
+                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Dán Cột Điểm Excel:</label><textarea value={data} onChange={e => setData(e.target.value)} className="w-full h-48 p-4 bg-white/60 border border-white rounded-xl font-mono text-sm focus:ring-2 focus:ring-emerald-300 outline-none shadow-inner resize-none" placeholder="8.5&#10;9.0&#10;..."></textarea></div>
+                            <button onClick={handleImport} className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">Xác Nhận Nhập</button>
                         </div>
                     </div>
                 </div>
@@ -410,31 +561,33 @@
             const handleCreate = () => { if (!newClassName.trim()) return; onAddClass(newClassName, importText); setNewClassName(''); setImportText(''); };
             
             return (
-                <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-                    <div className="bg-white w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden flex flex-col h-[85vh] animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="glass-modal w-full max-w-5xl rounded-3xl overflow-hidden flex flex-col h-[85vh] animate-fade-in-up z-10">
                         
                         {/* Header */}
-                        <div className="p-5 bg-slate-800 text-white flex justify-between items-center shadow-md z-10 shrink-0">
-                            <h2 className="text-xl font-bold flex items-center gap-3 tracking-wide">
+                        <div className="p-5 bg-slate-800 text-white flex justify-between items-center shadow-md z-10 shrink-0 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
+                            <h2 className="text-xl font-bold flex items-center gap-3 tracking-wide relative z-10">
                                 <Icon name="layout-dashboard" className="text-blue-400"/> QUẢN LÝ LỚP HỌC
                             </h2>
-                            <button onClick={onClose} className="bg-slate-700 p-2 rounded-lg hover:bg-slate-600 transition-colors text-gray-300 hover:text-white">
+                            <button onClick={onClose} className="bg-slate-700 p-2 rounded-lg hover:bg-slate-600 transition-colors text-gray-300 hover:text-white relative z-10">
                                 <Icon name="x" size={20} />
                             </button>
                         </div>
                         
                         <div className="flex flex-col md:flex-row h-full overflow-hidden">
                             {/* Left: Class List */}
-                            <div className="w-full md:w-1/3 bg-slate-50 border-r border-gray-200 flex flex-col">
-                                <div className="p-4 border-b border-gray-200 bg-white">
-                                    <h3 className="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <div className="w-full md:w-1/3 bg-slate-50/80 border-r border-white/50 flex flex-col backdrop-blur-sm">
+                                <div className="p-4 border-b border-white/50 bg-white/30">
+                                    <h3 className="font-bold text-slate-600 text-xs uppercase tracking-wider flex items-center gap-2">
                                         <Icon name="list" size={14}/> Danh Sách Lớp ({classes.length})
                                     </h3>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
                                     {classes.map(c => (
                                         <div key={c.id} onClick={() => onSwitchClass(c.id)} 
-                                             className={`px-4 py-3 rounded-lg cursor-pointer flex justify-between items-center group transition-all border ${activeClassId === c.id ? 'bg-white border-blue-500 shadow-sm ring-1 ring-blue-100' : 'bg-white border-transparent hover:bg-slate-100 hover:border-slate-200'}`}>
+                                             className={`px-4 py-3 rounded-xl cursor-pointer flex justify-between items-center group transition-all border ${activeClassId === c.id ? 'bg-white shadow-md border-blue-200 ring-1 ring-blue-100' : 'bg-white/40 border-white hover:bg-white hover:shadow-sm'}`}>
                                             <div>
                                                 <div className={`font-bold text-sm ${activeClassId === c.id ? 'text-blue-700' : 'text-slate-700'}`}>{c.name}</div>
                                                 <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5"><Icon name="users" size={12}/> {c.students.length} Học sinh</div>
@@ -447,26 +600,26 @@
                             </div>
 
                             {/* Right: Add New */}
-                            <div className="flex-1 flex flex-col bg-white">
-                                <div className="p-6 border-b border-gray-100">
+                            <div className="flex-1 flex flex-col bg-white/40 backdrop-blur-sm">
+                                <div className="p-6 border-b border-white/50">
                                     <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                        <div className="p-2 bg-green-100 rounded-lg text-green-600"><Icon name="plus-circle" size={20}/></div>
+                                        <div className="p-2 bg-green-100 rounded-xl text-green-600 shadow-sm"><Icon name="plus-circle" size={20}/></div>
                                         Thêm Lớp Mới
                                     </h3>
                                 </div>
-                                <div className="p-6 overflow-y-auto space-y-5 bg-slate-50/50 flex-1">
+                                <div className="p-6 overflow-y-auto space-y-6 flex-1">
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Tên Lớp</label>
-                                        <input type="text" value={newClassName} onChange={e => setNewClassName(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-semibold transition-all shadow-sm" placeholder="Ví dụ: 10A1" />
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Tên Lớp</label>
+                                        <input type="text" value={newClassName} onChange={e => setNewClassName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-white bg-white/60 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-bold transition-all shadow-sm" placeholder="Ví dụ: 10A1" />
                                     </div>
                                     <div className="flex-1 flex flex-col min-h-0">
-                                        <label className="block text-sm font-bold text-slate-700 mb-2 flex justify-between">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider flex justify-between">
                                             <span>Danh Sách Học Sinh</span>
-                                            <span className="text-xs font-normal text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100">Copy từ cột Excel (1 tên/dòng)</span>
+                                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 lowercase">copy từ excel (1 tên/dòng)</span>
                                         </label>
-                                        <textarea value={importText} onChange={e => setImportText(e.target.value)} className="w-full h-48 px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-mono leading-relaxed shadow-sm resize-none" placeholder="Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C..."></textarea>
+                                        <textarea value={importText} onChange={e => setImportText(e.target.value)} className="w-full h-48 px-4 py-3 rounded-xl border border-white bg-white/60 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-mono leading-relaxed shadow-sm resize-none" placeholder="Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C..."></textarea>
                                     </div>
-                                    <button onClick={handleCreate} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
+                                    <button onClick={handleCreate} className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
                                         <Icon name="save" size={18} /> TẠO LỚP & NHẬP DANH SÁCH
                                     </button>
                                 </div>
@@ -497,8 +650,31 @@
 
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-24">
-                    <div className="bg-white/80 p-6 rounded-[2rem] shadow-lg flex flex-col items-center justify-center text-center"><div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mb-4"><Icon name="dice-5" size={40} className="text-pink-500"/></div><h3 className="font-black text-xl text-gray-800 mb-2">Vòng Quay May Mắn</h3><div className="h-32 flex items-center justify-center">{chosen ? (<div className="animate-bounce"><div className="text-5xl mb-2">{chosen.avatarUrl ? <img src={chosen.avatarUrl} className="w-16 h-16 rounded-full inline object-cover"/> : chosen.avatar || '🦁'}</div><div className="font-black text-2xl text-pink-600">{chosen.name}</div></div>) : <span className="text-gray-400">Ai sẽ là người được chọn?</span>}</div><button onClick={spinWheel} className="mt-4 bg-pink-500 text-white px-8 py-3 rounded-full font-bold hover:bg-pink-600 shadow-lg transition-all">QUAY NGAY</button></div>
-                    <div className="bg-white/80 p-6 rounded-[2rem] shadow-lg flex flex-col items-center justify-center text-center"><div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4"><Icon name="clock" size={40} className="text-blue-500"/></div><h3 className="font-black text-xl text-gray-800 mb-2">Đồng Hồ Đếm Ngược</h3><div className="text-6xl font-black text-gray-700 font-mono my-4 tracking-widest">{formatTime(timer)}</div><div className="flex gap-2"><button onClick={()=>setTimer(15*60)} className="px-3 py-1 bg-gray-200 rounded text-sm font-bold">15p</button><button onClick={()=>setTimer(45*60)} className="px-3 py-1 bg-gray-200 rounded text-sm font-bold">45p</button><button onClick={()=>setTimer(0)} className="px-3 py-1 bg-red-100 text-red-500 rounded text-sm font-bold">Reset</button></div><button onClick={()=>setIsActive(!isActive)} className={`mt-4 px-8 py-3 rounded-full font-bold shadow-lg transition-all text-white ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'}`}>{isActive ? 'TẠM DỪNG' : 'BẮT ĐẦU'}</button></div>
+                    <div className="glass-card rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center min-h-[300px]">
+                        <div className="w-24 h-24 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center mb-6 shadow-inner border border-white/60"><Icon name="dice-5" size={48} className="text-pink-500"/></div>
+                        <h3 className="font-black text-2xl text-slate-800 mb-4">Vòng Quay May Mắn</h3>
+                        <div className="h-32 flex items-center justify-center mb-4 w-full">
+                            {chosen ? (
+                                <div className="animate-bounce flex flex-col items-center">
+                                    <div className="text-6xl mb-2 drop-shadow-md">{chosen.avatarUrl ? <img src={chosen.avatarUrl} className="w-20 h-20 rounded-full inline object-cover border-4 border-white shadow-lg" /> : chosen.avatar || '🦁'}</div>
+                                    <div className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600">{chosen.name}</div>
+                                </div>
+                            ) : <span className="text-slate-400 font-medium italic">Ai sẽ là người được chọn?</span>}
+                        </div>
+                        <button onClick={spinWheel} className="glass-button-primary w-full py-3.5 rounded-xl font-bold shadow-lg transition-all text-lg">QUAY NGAY</button>
+                    </div>
+                    
+                    <div className="glass-card rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center min-h-[300px]">
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mb-6 shadow-inner border border-white/60"><Icon name="clock" size={48} className="text-blue-500"/></div>
+                        <h3 className="font-black text-2xl text-slate-800 mb-2">Đồng Hồ Đếm Ngược</h3>
+                        <div className="text-7xl font-black text-slate-700 font-mono my-6 tracking-widest drop-shadow-sm">{formatTime(timer)}</div>
+                        <div className="flex gap-2 mb-6 w-full">
+                            <button onClick={()=>setTimer(15*60)} className="flex-1 py-2 bg-white/60 hover:bg-white border border-white rounded-xl text-sm font-bold text-slate-600 shadow-sm transition-all">15p</button>
+                            <button onClick={()=>setTimer(45*60)} className="flex-1 py-2 bg-white/60 hover:bg-white border border-white rounded-xl text-sm font-bold text-slate-600 shadow-sm transition-all">45p</button>
+                            <button onClick={()=>setTimer(0)} className="flex-1 py-2 bg-red-50 hover:bg-red-100 border border-red-100 rounded-xl text-sm font-bold text-red-500 shadow-sm transition-all">Reset</button>
+                        </div>
+                        <button onClick={()=>setIsActive(!isActive)} className={`w-full py-3.5 rounded-xl font-bold shadow-lg transition-all text-white text-lg ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'}`}>{isActive ? 'TẠM DỪNG' : 'BẮT ĐẦU'}</button>
+                    </div>
                 </div>
             );
         };
@@ -523,15 +699,13 @@
                     setUser(u);
                     if (u) {
                         showToast(`Xin chào, ${u.displayName}!`, 'success');
-                        // Load data from Firebase
                         firebase.database().ref(`users/${u.uid}/data`).once('value').then(snapshot => {
                             const val = snapshot.val();
                             if (val) {
                                 setClasses(val.classes || []);
                                 setActiveClassId(val.activeId || null);
-                                setShowStart(false); // Auto enter if logged in
+                                setShowStart(false); 
                             } else {
-                                // First time login, init defaults
                                 initDefaultData();
                                 setShowStart(false);
                             }
@@ -541,47 +715,28 @@
                 return () => unsubscribe();
             }, []);
 
-            // Initial Data Load (Local if not logged in)
             const initDefaultData = () => {
-                const defaultStudents = DEFAULT_STUDENTS.map((n, i) => ({
-                    id: 's_' + i,
-                    name: n,
-                    points: 0,
-                    avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length],
-                    subjects: {} 
-                }));
+                const defaultStudents = DEFAULT_STUDENTS.map((n, i) => ({ id: 's_' + i, name: n, points: 0, avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length], subjects: {} }));
                 const defaultClass = { id: 'c_default', name: 'Lớp 10H', students: defaultStudents };
                 setClasses([defaultClass]);
                 setActiveClassId(defaultClass.id);
             };
 
-            // Sync Data
             React.useEffect(() => {
                 if (classes.length === 0) return;
-                
                 if (user) {
-                    // Sync to Firebase
-                    const debounceSync = setTimeout(() => {
-                        firebase.database().ref(`users/${user.uid}/data`).set({ classes, activeId: activeClassId });
-                    }, 1000);
+                    const debounceSync = setTimeout(() => { firebase.database().ref(`users/${user.uid}/data`).set({ classes, activeId: activeClassId }); }, 1000);
                     return () => clearTimeout(debounceSync);
                 } else {
-                    // Save to LocalStorage
                     localStorage.setItem('gradebook_yersin_data', JSON.stringify({ classes, activeId: activeClassId }));
                 }
             }, [classes, activeClassId, user]);
 
-            // Handle Manual Load from Local if not logged in
             React.useEffect(() => {
                 if (!user && showStart === false) {
                     const saved = localStorage.getItem('gradebook_yersin_data');
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        setClasses(parsed.classes);
-                        setActiveClassId(parsed.activeId);
-                    } else if (classes.length === 0) {
-                        initDefaultData();
-                    }
+                    if (saved) { const parsed = JSON.parse(saved); setClasses(parsed.classes); setActiveClassId(parsed.activeId); } 
+                    else if (classes.length === 0) { initDefaultData(); }
                 }
             }, [user, showStart]);
 
@@ -592,41 +747,13 @@
                 return sorted.slice(0, 3).map(s => s.id);
             }, [students]);
 
-            // --- AUTH ACTIONS ---
-            const handleLogin = () => {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                firebase.auth().signInWithPopup(provider).catch(e => alert("Lỗi: " + e.message));
-            };
+            const handleLogin = () => { const provider = new firebase.auth.GoogleAuthProvider(); firebase.auth().signInWithPopup(provider).catch(e => alert("Lỗi: " + e.message)); };
+            const handleLogout = () => { if(confirm("Đăng xuất?")) firebase.auth().signOut().then(() => { setShowStart(true); setClasses([]); }); };
 
-            const handleLogout = () => {
-                if(confirm("Đăng xuất?")) firebase.auth().signOut().then(() => {
-                    setShowStart(true);
-                    setClasses([]);
-                });
-            };
-
-            // --- CRUD ACTIONS ---
-            const handleUpdateStudent = (studentId, newData) => {
-                setClasses(prev => prev.map(c => {
-                    if (c.id !== activeClassId) return c;
-                    return { ...c, students: c.students.map(s => s.id === studentId ? { ...s, ...newData } : s) };
-                }));
-            };
-
-            const updatePoints = (id, delta) => {
-                const s = students.find(x => x.id === id);
-                if (s) handleUpdateStudent(id, { points: Math.max(0, (s.points || 0) + delta) });
-            };
-
-            const updateScores = (studentId, subjectId, newScores) => {
-                const s = students.find(x => x.id === studentId);
-                if (s) {
-                    handleUpdateStudent(studentId, {
-                        subjects: { ...s.subjects, [subjectId]: newScores }
-                    });
-                }
-            };
-
+            const handleUpdateStudent = (studentId, newData) => { setClasses(prev => prev.map(c => { if (c.id !== activeClassId) return c; return { ...c, students: c.students.map(s => s.id === studentId ? { ...s, ...newData } : s) }; })); };
+            const updatePoints = (id, delta) => { const s = students.find(x => x.id === id); if (s) handleUpdateStudent(id, { points: Math.max(0, (s.points || 0) + delta) }); };
+            const updateScores = (studentId, subjectId, newScores) => { const s = students.find(x => x.id === studentId); if (s) { handleUpdateStudent(studentId, { subjects: { ...s.subjects, [subjectId]: newScores } }); } };
+            
             const handleBulkImport = (columnType, scoresList) => {
                 setClasses(prev => prev.map(c => {
                     if (c.id !== activeClassId) return c;
@@ -646,88 +773,69 @@
                 }));
             };
 
-            const resetData = () => {
-                if(confirm("Xóa hết dữ liệu lớp này?")) {
-                    setClasses(prev => prev.map(c => c.id === activeClassId ? { ...c, students: c.students.map(s => ({ ...s, points: 0, subjects: {} })) } : c));
-                }
-            };
+            const resetData = () => { if(confirm("Xóa hết dữ liệu lớp này?")) { setClasses(prev => prev.map(c => c.id === activeClassId ? { ...c, students: c.students.map(s => ({ ...s, points: 0, subjects: {} })) } : c)); } };
+            const handleAddClass = (name, importText) => { const names = importText.split(/\r?\n/).map(n => n.trim()).filter(n => n); const newStudents = names.length > 0 ? names.map((n, i) => ({ id: Date.now() + '_' + i, name: n, points: 0, avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length], subjects: {} })) : []; const newClass = { id: 'class_' + Date.now(), name, students: newStudents }; setClasses(prev => [...prev, newClass]); setActiveClassId(newClass.id); setShowClassManager(false); };
+            const handleDeleteClass = (id) => { if(confirm("Xóa lớp này vĩnh viễn?")) { const newClasses = classes.filter(c => c.id !== id); setClasses(newClasses); if(activeClassId === id && newClasses.length > 0) setActiveClassId(newClasses[0].id); } };
 
-            const handleAddClass = (name, importText) => {
-                const names = importText.split(/\r?\n/).map(n => n.trim()).filter(n => n);
-                const newStudents = names.length > 0 ? names.map((n, i) => ({ id: Date.now() + '_' + i, name: n, points: 0, avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length], subjects: {} })) : [];
-                const newClass = { id: 'class_' + Date.now(), name, students: newStudents };
-                setClasses(prev => [...prev, newClass]);
-                setActiveClassId(newClass.id);
-                setShowClassManager(false);
-            };
-
-            const handleDeleteClass = (id) => {
-                if(confirm("Xóa lớp này vĩnh viễn?")) {
-                    const newClasses = classes.filter(c => c.id !== id);
-                    setClasses(newClasses);
-                    if(activeClassId === id && newClasses.length > 0) setActiveClassId(newClasses[0].id);
-                }
-            };
-
-            // --- RENDER ---
             if (showStart) return <StartScreen onStart={() => setShowStart(false)} onLogin={handleLogin} />;
             if (!activeClass) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div></div>;
 
             return (
-                <div className="min-h-screen flex flex-col md:flex-row p-2 md:p-6 gap-4 max-w-[1600px] mx-auto relative">
-                    <div className="aurora-bg"></div>
-                    <BokehBackground />
-
+                <div className="min-h-screen flex flex-col md:flex-row p-4 md:p-6 gap-4 max-w-[1600px] mx-auto relative">
+                    
                     {selectedStudent && <StudentDetailModal student={selectedStudent} subjectId={selectedSubject} onClose={()=>setSelectedStudent(null)} onUpdateScore={updateScores} onUpdatePoints={updatePoints} />}
                     {showImport && <ExcelImportModal subjectId={selectedSubject} onClose={()=>setShowImport(false)} onImport={handleBulkImport} />}
                     {showClassManager && <ClassManager classes={classes} activeClassId={activeClassId} onSwitchClass={(id) => { setActiveClassId(id); setShowClassManager(false); }} onAddClass={handleAddClass} onDeleteClass={handleDeleteClass} onClose={()=>setShowClassManager(false)} />}
 
                     {/* Sidebar */}
-                    <div className="hidden md:flex flex-col w-72 bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-6 shadow-2xl h-[90vh] sticky top-6 border border-white/50">
+                    <div className="hidden md:flex flex-col w-72 glass-panel rounded-[2.5rem] p-6 h-[90vh] sticky top-6">
                         <div className="mb-8 flex flex-col items-center justify-center gap-2">
-                            <h1 className="font-black text-2xl leading-tight tracking-tight animate-logo rainbow-title text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">SỔ ĐIỂM<br/>GAMIFICATION</h1>
-                            <div onClick={()=>setShowClassManager(true)} className="bg-white px-4 py-2 rounded-xl shadow border-2 border-blue-100 hover:border-blue-400 font-bold text-blue-600 cursor-pointer flex items-center gap-2 transition-all hover:scale-105"><Icon name="library" size={16}/> {activeClass.name} <Icon name="chevron-down" size={14}/></div>
+                            <h1 className="font-black text-2xl leading-tight tracking-tight animate-fade-in-up text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 drop-shadow-sm">SỔ ĐIỂM<br/>GAMIFICATION</h1>
+                            <div onClick={()=>setShowClassManager(true)} className="glass-button w-full px-4 py-3 rounded-2xl font-bold text-blue-600 cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:shadow-md"><Icon name="library" size={18}/> {activeClass.name} <Icon name="chevron-down" size={16}/></div>
                         </div>
                         <div className="flex flex-col gap-3 flex-1">
                             {[{id:'dashboard',l:'Thi Đua & Avatar',i:'layout-grid'}, {id:'gradebook',l:'Sổ Điểm 22',i:'table-2'}, {id:'tools',l:'Công Cụ Lớp Học',i:'wrench'}].map(t => (
-                                <button key={t.id} onClick={()=>setActiveTab(t.id)} className={`flex items-center gap-4 px-5 py-4 rounded-[1.2rem] font-bold text-base transition-all duration-300 group ${activeTab===t.id ? 'bg-white text-pink-600 shadow-xl scale-105 ring-2 ring-pink-100' : 'text-gray-500 hover:bg-white/50 hover:text-pink-500'}`}>
-                                    <Icon name={t.i} size={20} className={`transition-colors ${activeTab===t.id ? 'fill-pink-200' : 'group-hover:text-pink-400'}`}/> {t.l}
+                                <button key={t.id} onClick={()=>setActiveTab(t.id)} className={`flex items-center gap-4 px-5 py-4 rounded-[1.5rem] font-bold text-base transition-all duration-300 group border ${activeTab===t.id ? 'bg-white/80 text-pink-600 shadow-lg border-white ring-2 ring-pink-100/50' : 'text-slate-500 hover:bg-white/40 hover:text-pink-500 border-transparent'}`}>
+                                    <Icon name={t.i} size={20} className={`transition-colors ${activeTab===t.id ? 'text-pink-500' : 'group-hover:text-pink-400'}`}/> {t.l}
                                 </button>
                             ))}
                         </div>
-                        <div className="mt-auto space-y-2">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                                {user ? <span className="text-xs font-bold text-green-600 flex items-center gap-1"><span className="status-dot online"></span> {user.displayName}</span> : <span className="text-xs font-bold text-slate-400">Chưa đăng nhập</span>}
+                        <div className="mt-auto space-y-3">
+                            <div className="flex items-center justify-center gap-2">
+                                {user ? <span className="text-xs font-bold text-green-600 flex items-center gap-1 bg-white/50 px-3 py-1 rounded-full shadow-sm"><span className="status-dot online"></span> {user.displayName}</span> : <span className="text-xs font-bold text-slate-400">Chưa đăng nhập</span>}
                             </div>
-                            <button onClick={user ? handleLogout : handleLogin} className={`w-full py-2 flex items-center justify-center gap-2 text-xs font-bold rounded-lg transition-colors ${user ? 'text-red-500 bg-red-50 hover:bg-red-100' : 'text-blue-500 bg-blue-50 hover:bg-blue-100'}`}>
-                                <Icon name={user ? 'log-out' : 'log-in'} size={14}/> {user ? 'Đăng Xuất' : 'Đăng Nhập Cloud'}
+                            <button onClick={user ? handleLogout : handleLogin} className={`w-full py-3 flex items-center justify-center gap-2 text-xs font-bold rounded-xl transition-colors shadow-sm ${user ? 'text-red-500 bg-red-50/50 hover:bg-red-100' : 'text-blue-500 bg-blue-50/50 hover:bg-blue-100'}`}>
+                                <Icon name={user ? 'log-out' : 'log-in'} size={16}/> {user ? 'Đăng Xuất' : 'Đăng Nhập Cloud'}
                             </button>
                         </div>
                     </div>
 
                     {/* Mobile Header */}
-                    <div className="md:hidden flex justify-between items-center bg-white/80 backdrop-blur p-4 rounded-xl shadow-sm mb-2">
+                    <div className="md:hidden flex justify-between items-center glass-panel p-4 rounded-2xl shadow-sm mb-2 sticky top-2 z-40">
                         <div onClick={() => setShowClassManager(true)} className="flex items-center gap-2">
                             <span className="font-black text-pink-600 text-lg">{activeClass.name}</span>
                             <Icon name="chevron-down" size={16} className="text-gray-400"/>
                         </div>
                         <div className="flex gap-2">
-                            <button onClick={()=>setActiveTab('dashboard')} className={`p-2 rounded-lg ${activeTab==='dashboard'?'bg-pink-100 text-pink-600':'text-gray-400'}`}><Icon name="layout-grid" size={20}/></button>
-                            <button onClick={()=>setActiveTab('gradebook')} className={`p-2 rounded-lg ${activeTab==='gradebook'?'bg-blue-100 text-blue-600':'text-gray-400'}`}><Icon name="table-2" size={20}/></button>
-                            <button onClick={()=>setActiveTab('tools')} className={`p-2 rounded-lg ${activeTab==='tools'?'bg-orange-100 text-orange-600':'text-gray-400'}`}><Icon name="wrench" size={20}/></button>
+                            <button onClick={()=>setActiveTab('dashboard')} className={`p-2 rounded-xl transition-all ${activeTab==='dashboard'?'bg-pink-100 text-pink-600 shadow-inner':'text-slate-400'}`}><Icon name="layout-grid" size={24}/></button>
+                            <button onClick={()=>setActiveTab('gradebook')} className={`p-2 rounded-xl transition-all ${activeTab==='gradebook'?'bg-blue-100 text-blue-600 shadow-inner':'text-slate-400'}`}><Icon name="table-2" size={24}/></button>
+                            <button onClick={()=>setActiveTab('tools')} className={`p-2 rounded-xl transition-all ${activeTab==='tools'?'bg-orange-100 text-orange-600 shadow-inner':'text-slate-400'}`}><Icon name="wrench" size={24}/></button>
                         </div>
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[1.5rem] md:rounded-[3rem] p-3 md:p-8 shadow-sm border border-white/40 min-h-[85vh] relative overflow-hidden mb-20 md:mb-0">
+                    <div className="flex-1 glass-panel rounded-[2.5rem] p-4 md:p-8 overflow-hidden min-h-[85vh] flex flex-col relative">
                         {activeTab === 'dashboard' && (
                             <div className="h-full overflow-y-auto pb-20 custom-scrollbar">
-                                <div className="flex justify-between items-end mb-6 px-2">
+                                <div className="flex justify-between items-end mb-8 px-2">
                                     <div>
-                                        <h2 className="text-3xl font-black text-gray-800">Thi Đua: {activeClass.name}</h2>
-                                        <p className="text-gray-500 font-medium">Bấm vào thẻ để nhập điểm & thưởng.</p>
+                                        <h2 className="text-4xl font-black text-slate-800 mb-1">Thi Đua</h2>
+                                        <p className="text-slate-500 font-medium flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Chạm thẻ để tương tác</p>
                                     </div>
-                                    <div className="hidden md:block text-right"><div className="text-4xl font-black text-pink-500">{students.reduce((a,b)=>a+(b.points||0),0)}</div><div className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tổng điểm</div></div>
+                                    <div className="hidden md:block text-right">
+                                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 drop-shadow-sm">{students.reduce((a,b)=>a+(b.points||0),0)}</div>
+                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tổng điểm lớp</div>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                                     {students.map(s => (
@@ -739,16 +847,16 @@
 
                         {activeTab === 'gradebook' && (
                             <div className="h-full flex flex-col">
-                                <div className="mb-6 px-2 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                                <div className="mb-8 px-2 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                                     <div>
-                                        <h2 className="text-3xl font-black text-gray-800">Sổ Điểm Điện Tử</h2>
-                                        <p className="text-gray-500 font-medium">Quy chế Thông tư 22/2021/TT-BGDĐT</p>
+                                        <h2 className="text-3xl font-black text-slate-800 mb-1">Sổ Điểm Điện Tử</h2>
+                                        <p className="text-slate-500 font-medium">Chuẩn Thông tư 22/2021/TT-BGDĐT</p>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <select value={selectedSubject} onChange={e=>setSelectedSubject(e.target.value)} className="bg-white border-2 border-pink-200 text-pink-600 font-bold py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300">
+                                    <div className="flex gap-3 bg-white/40 p-2 rounded-2xl border border-white/50">
+                                        <select value={selectedSubject} onChange={e=>setSelectedSubject(e.target.value)} className="bg-white/80 border border-white text-slate-700 font-bold py-2.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm cursor-pointer">
                                             {SUBJECTS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
-                                        <button onClick={()=>setShowImport(true)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl shadow-lg flex items-center gap-2 transition-transform hover:scale-105"><Icon name="file-spreadsheet" size={18}/> Nhập Excel</button>
+                                        <button onClick={()=>setShowImport(true)} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-emerald-200 flex items-center gap-2 transition-all hover:-translate-y-0.5"><Icon name="file-spreadsheet" size={18}/> Nhập Excel</button>
                                     </div>
                                 </div>
                                 <GradebookTable students={students} subjectId={selectedSubject} onEditStudent={setSelectedStudent} />
@@ -757,7 +865,7 @@
 
                         {activeTab === 'tools' && (
                              <div className="h-full overflow-y-auto pb-20 custom-scrollbar">
-                                <div className="mb-6 px-2"><h2 className="text-3xl font-black text-gray-800">Tiện Ích Lớp Học</h2></div>
+                                <div className="mb-8 px-2"><h2 className="text-3xl font-black text-slate-800">Tiện Ích Lớp Học</h2><p className="text-slate-500 font-medium">Công cụ hỗ trợ giảng dạy vui nhộn</p></div>
                                 <ToolsPanel students={students} />
                              </div>
                         )}
