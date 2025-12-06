@@ -25,8 +25,8 @@
                     // Sử dụng Be Vietnam Pro cho toàn bộ các loại font
                     fontFamily: { 
                         sans: ['"Be Vietnam Pro"', 'sans-serif'], 
-                        display: ['"Be Vietnam Pro"', 'sans-serif'], // Thay thế Dancing Script bằng Be Vietnam Pro
-                        cute: ['"Be Vietnam Pro"', 'sans-serif']     // Thay thế Fredoka bằng Be Vietnam Pro cho đồng bộ
+                        display: ['"Be Vietnam Pro"', 'sans-serif'], 
+                        cute: ['"Be Vietnam Pro"', 'sans-serif']     
                     },
                     animation: { 
                         'blob': 'blob 15s infinite',
@@ -63,7 +63,7 @@
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- Google Fonts: Chỉ tải Be Vietnam Pro với đầy đủ các weight -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
     <style>
@@ -353,7 +353,7 @@
                             
                             <div className="text-center space-y-1 mb-8 animate-fade-in-up relative z-10" style={{animationDelay: '0.2s'}}>
                                 <h2 className="text-sm md:text-xl font-bold uppercase tracking-widest text-slate-600 drop-shadow-sm leading-relaxed p-1">Ứng Dụng Theo Dõi Học Sinh</h2>
-                                <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 drop-shadow-xl leading-normal py-2 pb-4 animate-pulse">SỔ ĐIỂM</h1>
+                                <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 drop-shadow-xl leading-relaxed py-6 animate-pulse">SỔ ĐIỂM</h1>
                                 <div className="flex flex-wrap items-center justify-center gap-2 text-slate-600 text-[10px] md:text-xs font-bold bg-white/50 py-1.5 px-4 rounded-full backdrop-blur-md border border-white/40 shadow-sm mx-auto w-fit mt-2">
                                     <span>Thầy Thái Minh Nguyên</span><span className="hidden md:inline w-1 h-1 bg-slate-400 rounded-full"></span><span className="block md:inline">TH, THCS & THPT YERSIN ĐÀ LẠT</span>
                                 </div>
@@ -931,7 +931,7 @@
                                         <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden mb-3 transform hover:scale-110 transition-transform">
                                             {chosen.avatarUrl ? <img src={chosen.avatarUrl} className="w-full h-full object-cover"/> : <div className="w-full h-full bg-pink-100 flex items-center justify-center text-4xl">{chosen.avatar || '🦁'}</div>}
                                         </div>
-                                        <div className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 drop-shadow-sm px-2 text-center leading-tight">{chosen.name}</div>
+                                        <div className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 drop-shadow-sm px-2 text-center leading-tight min-h-[3rem] flex items-center justify-center">{chosen.name}</div>
                                     </div>
                                 ) : (
                                     <div className="text-slate-400 font-medium italic flex flex-col items-center gap-2">
@@ -975,7 +975,7 @@
                             <button onClick={stopTimer} className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-4 rounded-full transition-all">
                                 <Icon name="x" size={32} />
                             </button>
-                            <div className="font-cute text-[15vw] md:text-[20vw] font-bold leading-none tabular-nums tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500 drop-shadow-[0_10px_30px_rgba(245,158,11,0.5)] animate-pulse">
+                            <div className="font-cute text-[12vw] font-bold leading-none tabular-nums tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500 drop-shadow-[0_10px_30px_rgba(245,158,11,0.5)] animate-pulse">
                                 {formatTime(timer)}
                             </div>
                             <div className="mt-8 text-2xl md:text-4xl font-display text-slate-300 animate-bounce">Sắp hết giờ rồi nha! 🏃💨</div>
