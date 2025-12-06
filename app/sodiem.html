@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sổ Điểm & Quản Lý Lớp - Liquid Glass Edition</title>
+    <title>Sổ Điểm & Quản Lý Lớp - Liquid Glass Pro (TT22)</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -22,10 +22,12 @@
                         glass: { 100: 'rgba(255, 255, 255, 0.1)', 200: 'rgba(255, 255, 255, 0.2)', 300: 'rgba(255, 255, 255, 0.3)', 400: 'rgba(255, 255, 255, 0.4)', 800: 'rgba(255, 255, 255, 0.8)' },
                         primary: { 50:'#fff7ed', 100:'#ffedd5', 500:'#f97316', 600:'#ea580c', 700:'#c2410c' } 
                     },
-                    fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'] },
+                    fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'], display: ['"Dancing Script"', 'cursive'] },
                     animation: { 
                         'blob': 'blob 15s infinite',
-                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards'
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'wiggle': 'wiggle 1s ease-in-out infinite'
                     },
                     keyframes: {
                         blob: {
@@ -34,7 +36,8 @@
                             '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
                             '100%': { transform: 'translate(0px, 0px) scale(1)' }
                         },
-                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        wiggle: { '0%, 100%': { transform: 'rotate(-3deg)' }, '50%': { transform: 'rotate(3deg)' } }
                     }
                 }
             }
@@ -52,8 +55,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Dancing+Script:wght@700&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #e0e7ff; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
@@ -170,6 +176,9 @@
         .status-dot.online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .status-dot.syncing { background-color: #eab308; animation: pulse 1s infinite; }
         .status-dot.offline { background-color: #ef4444; }
+
+        /* Fredoka Font for Cute Numbers */
+        .font-cute { font-family: 'Fredoka', sans-serif; }
     </style>
 </head>
 <body>
@@ -197,10 +206,29 @@
         };
 
         // --- 1. APP CONFIG ---
-        const DEFAULT_CLASS_NAME = "Lớp 10H";
-        const DEFAULT_STUDENTS = [ "Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Ân", "Nguyễn Lê Chí Dũng", "Nguyễn Minh Đức", "Nguyễn Thanh Hằng", "Bùi Mạnh Hùng", "Nguyễn Phúc Lộc", "Nguyễn Trọng Nghĩa", "Nguyễn Trọng Nghĩa", "Nguyễn Thiện Nhân", "Hồ Đức Nhật", "Nguyễn Bảo Thiên", "Nguyễn Thị Thu Thủy", "Trần Hà Uyên", "Lê Hoàng Việt", "Hoàng Ngọc Hà Vy" ];
+        const DEFAULT_CLASS_NAME = "Lớp 12C2";
+        const DEFAULT_STUDENTS = [ "Nguyễn Ngọc Phúc An", "Trần Ngọc Khánh An", "Mai Vân Anh", "Nguyễn Trọng Anh", "Nguyễn Lương Bằng", "Đặng Ngọc Bảo Châu", "Trần Mỹ Châu", "Nguyễn Quốc Cường", "Phạm Đức", "Nguyễn Thị Thanh Hằng", "Nguyễn Đức Minh Hoàng", "Phan Ngọc Huy", "Nguyễn Đình Gia Hưng", "Trương Thị Ngọc Hương", "Bế Đăng Nguyên Khang", "Hoàng Trọng Khang", "Nguyễn Văn Đăng Khoa", "Nguyễn Cao Đăng Khôi", "Hứa Lư Mỹ Kim", "Bùi Thị Khánh Linh" ];
         const ANIMAL_AVATARS = ['🦁','🐰','🦊','🐼','🐨','🦄','🐯','🐸','🐷','🐵','🐣','🐧','🦉','🦋','🐞'];
         const SUBJECTS = [ { id: 'math', name: 'Toán', icon: 'calculator' }, { id: 'lit', name: 'Văn', icon: 'book-open' }, { id: 'eng', name: 'Anh', icon: 'languages' }, { id: 'phy', name: 'Lý', icon: 'atom' }, { id: 'chem', name: 'Hóa', icon: 'flask-conical' }, { id: 'bio', name: 'Sinh', icon: 'dna' }, { id: 'hist', name: 'Sử', icon: 'landmark' }, { id: 'geo', name: 'Địa', icon: 'globe-2' }, { id: 'gdcd', name: 'GDPL', icon: 'scale' }, { id: 'it', name: 'Tin', icon: 'monitor' }, { id: 'tech', name: 'CN', icon: 'cpu' } ];
+        
+        // Helper to split names into Last+Middle and First Name
+        const splitName = (fullName) => {
+            const parts = fullName.trim().split(' ');
+            if (parts.length === 1) return { last: '', first: parts[0] };
+            const first = parts.pop();
+            const last = parts.join(' ');
+            return { last, first };
+        };
+
+        // Helper to evaluate rank based on TT22 (Simplified for subject level)
+        const getEvaluation = (score) => {
+            if (score === "" || score === null) return "";
+            const s = parseFloat(score);
+            if (s >= 8.0) return "Tốt";
+            if (s >= 6.5) return "Khá";
+            if (s >= 5.0) return "Đạt";
+            return "Chưa đạt";
+        };
 
         // --- 2. ICONS & HELPERS ---
         const Icon = ({ name, size = 24, className = "", style = {}, onClick }) => {
@@ -226,15 +254,41 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
+        // UPDATED: Calculate average based on Circular 22
+        // CT: (TX + 2*GK + 3*CK) / (Count_TX + 5)
         const calculateSubjectAverage = (scores) => {
             if (!scores) return "";
             const { tx = [], gk, ck } = scores;
-            let sum = 0; let count = 0;
-            if (tx && tx.length > 0) { tx.forEach(s => { sum += s; count += 1; }); }
-            if (gk !== null && gk !== undefined && !isNaN(gk)) { sum += gk * 2; count += 2; }
-            if (ck !== null && ck !== undefined && !isNaN(ck)) { sum += ck * 3; count += 3; }
-            if (count === 0) return "";
-            return (sum / count).toFixed(1);
+            
+            // Filter valid TX scores (non-null, non-empty)
+            const validTx = tx.filter(s => s !== null && s !== undefined && s !== "");
+            
+            // Need at least one score to calculate
+            if (validTx.length === 0 && (gk === null || gk === "") && (ck === null || ck === "")) return "";
+
+            let sum = 0;
+            let coefficientSum = 0;
+
+            // Add TX (Coefficient 1)
+            validTx.forEach(s => {
+                sum += parseFloat(s);
+                coefficientSum += 1;
+            });
+
+            // Add GK (Coefficient 2)
+            if (gk !== null && gk !== undefined && gk !== "") {
+                sum += parseFloat(gk) * 2;
+                coefficientSum += 2;
+            }
+
+            // Add CK (Coefficient 3)
+            if (ck !== null && ck !== undefined && ck !== "") {
+                sum += parseFloat(ck) * 3;
+                coefficientSum += 3;
+            }
+
+            if (coefficientSum === 0) return "";
+            return (sum / coefficientSum).toFixed(1);
         };
 
         // --- 3. 10-RANK SYSTEM (1-20 Points) ---
@@ -278,42 +332,64 @@
             if (type === 'scholar') return <div className={containerClass}>{isAnimated && <div className="magic-border-container"><div className="magic-border-layer" style={{'--border-color': '#a855f7'}}></div><div className="magic-border-layer reverse" style={{'--border-color': '#3b82f6'}}></div></div>}<div className={`absolute inset-0 rounded-full border border-white/50 ${anim('animate-shockwave')}`}></div><FairyDust />{renderOrbits(6, 'star', 'text-yellow-300 fill-white', '12s', false, 85, true)}{renderOrbits(4, 'sparkles', 'text-purple-300', '8s', true, 65, true)}<div className={`absolute -top-8 left-1/2 -translate-x-1/2 filter drop-shadow-[0_0_15px_rgba(234,179,8,0.8)] z-30 ${anim('animate-bounce')}`}><Icon name="crown" size={42} className="text-yellow-400 fill-yellow-100 stroke-[2.5]"/></div></div>;
             return null;
         };
+        
+        const FairyDust = () => { return null; };
 
         // --- 6. START SCREEN COMPONENT (Liquid Glass Style) ---
-        const StartScreen = ({ onStart, onLogin }) => {
+        const StartScreen = ({ onStart, onLogin, user }) => {
             return (
-                <div id="startScreen" className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6">
-                    {/* Glass Layer */}
-                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-0"></div>
-                    
-                    <div className="relative z-10 flex flex-col items-center w-full max-w-md">
-                         <div className="mb-8 relative animate-fade-in-up" style={{animationDelay: '0.1s'}}>
-                            <div className="w-32 h-32 glass-panel rounded-3xl p-6 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 cursor-pointer flex items-center justify-center border-white/50">
-                                <img src="logo.png" alt="Logo" className="max-w-full max-h-full object-contain drop-shadow-lg" onError={(e)=>{e.target.style.display='none'; e.target.parentNode.innerHTML='<span class="text-5xl">🎓</span>'}}/>
-                            </div>
-                        </div>
+                <div id="startScreen" className="fixed inset-0 z-[100] bg-white/20 backdrop-blur-md overflow-y-auto">
+                    <div className="min-h-full flex flex-col items-center justify-center p-6 font-sans">
                         
-                        <div className="text-center space-y-4 mb-12 animate-fade-in-up relative z-10" style={{animationDelay: '0.2s'}}>
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-tight text-slate-800 drop-shadow-sm">Ứng Dụng Theo Dõi<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-600">Học Sinh & Sổ Điểm</span></h1>
-                            <div className="flex items-center justify-center gap-2 text-slate-600 text-sm font-bold bg-white/40 py-2 px-6 rounded-full backdrop-blur-md border border-white/40 shadow-sm mx-auto w-fit">
-                                <span>Thầy Thái Minh Nguyên</span><span className="w-1 h-1 bg-slate-400 rounded-full"></span><span>Yersin Đà Lạt</span>
+                        <div className="relative z-10 flex flex-col items-center w-full max-w-lg my-auto">
+                             <div className="mb-6 md:mb-10 relative animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+                                <div className="w-40 h-40 md:w-56 md:h-56 glass-panel rounded-[2rem] md:rounded-[3rem] p-4 md:p-6 shadow-2xl transform hover:scale-105 transition-transform duration-500 cursor-pointer flex items-center justify-center border-white/60 animate-breathe relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent"></div>
+                                    <img src="logo.png" alt="Logo" className="max-w-full max-h-full object-contain drop-shadow-2xl relative z-10" onError={(e)=>{e.target.style.display='none'; e.target.parentNode.innerHTML='<span class="text-7xl md:text-8xl filter drop-shadow-lg">🎓</span>'}}/>
+                                </div>
                             </div>
-                        </div>
+                            
+                            <div className="text-center space-y-2 mb-8 md:mb-12 animate-fade-in-up relative z-10" style={{animationDelay: '0.2s'}}>
+                                <h2 className="text-lg md:text-3xl font-bold uppercase tracking-widest text-slate-100 drop-shadow-md">Ứng Dụng Theo Dõi Học Sinh</h2>
+                                <h1 className="text-5xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-pink-400 via-rose-500 to-yellow-400 drop-shadow-2xl leading-tight py-2 animate-pulse">SỔ ĐIỂM</h1>
+                                <div className="flex flex-wrap items-center justify-center gap-2 text-slate-700 text-[10px] md:text-sm font-bold bg-white/60 py-2 px-4 md:px-6 rounded-full backdrop-blur-md border border-white/50 shadow-lg mx-auto w-fit mt-4">
+                                    <span>Thầy Thái Minh Nguyên</span><span className="hidden md:inline w-1.5 h-1.5 bg-slate-500 rounded-full"></span><span className="block md:inline">TH, THCS & THPT YERSIN ĐÀ LẠT</span>
+                                </div>
+                            </div>
 
-                        <div className="flex flex-col gap-4 w-full animate-fade-in-up relative z-10" style={{animationDelay: '0.3s'}}>
-                            <button onClick={onLogin} className="w-full bg-white/80 hover:bg-white text-slate-700 font-bold py-4 px-6 rounded-2xl shadow-lg border border-white transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden backdrop-blur-md">
-                               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/50 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
-                               <span className="text-base font-extrabold tracking-tight">Đăng nhập Google</span>
-                            </button>
-                            <button onClick={onStart} className="glass-button-primary text-white font-bold py-4 rounded-2xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
-                                <Icon name="rocket" size={24}/> BẮT ĐẦU NGAY
-                            </button>
+                            <div className="flex flex-col gap-3 w-full animate-fade-in-up relative z-10 max-w-xs md:max-w-sm mb-4" style={{animationDelay: '0.3s'}}>
+                                {user ? (
+                                    <div className="space-y-4 w-full">
+                                        <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl flex items-center gap-3 border border-white shadow-lg">
+                                            <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm shrink-0">
+                                                {user.photoURL ? <img src={user.photoURL} className="w-full h-full object-cover"/> : <span className="w-full h-full flex items-center justify-center text-xl">👤</span>}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold text-slate-500 uppercase truncate">Xin chào,</div>
+                                                <div className="text-lg font-black text-slate-800 truncate">{user.displayName}</div>
+                                            </div>
+                                        </div>
+                                        <button onClick={onStart} className="w-full glass-button-primary text-white font-black py-4 md:py-5 rounded-2xl text-lg md:text-xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 shadow-xl">
+                                            <Icon name="play-circle" size={32} className="animate-pulse"/> BẮT ĐẦU
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <button onClick={onLogin} className="w-full bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 md:py-4 px-6 rounded-2xl shadow-xl border-2 border-white transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden">
+                                           <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
+                                           <span className="text-base md:text-lg font-bold tracking-tight">Đăng nhập Google</span>
+                                        </button>
+                                        <button onClick={onStart} className="glass-button-primary text-white font-bold py-3.5 md:py-4 rounded-2xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 shadow-lg text-sm md:text-base">
+                                            <Icon name="rocket" size={24}/> DÙNG THỬ NGAY (KHÁCH)
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             );
-        }
+        };
 
         // --- 7. MAIN APP COMPONENTS ---
         const StudentCard = ({ student, onAddPoint, onClick, isTopRanked }) => {
@@ -364,28 +440,36 @@
         const StudentDetailModal = ({ student, subjectId, onClose, onUpdateScore, onUpdatePoints }) => {
             const [tab, setTab] = React.useState('behavior');
             const [selectedSubModal, setSelectedSubModal] = React.useState(subjectId);
-            const [txScores, setTxScores] = React.useState([]);
+            const [txScores, setTxScores] = React.useState(['', '', '', '', '']); // 5 fixed slots
             const [gkScore, setGkScore] = React.useState('');
             const [ckScore, setCkScore] = React.useState('');
 
             React.useEffect(() => {
                 const s = student.subjects?.[selectedSubModal] || { tx: [], gk: '', ck: '' };
-                setTxScores(s.tx || []);
+                // Populate TX slots, pad with empty strings up to 5
+                const txData = [...(s.tx || [])];
+                while(txData.length < 5) txData.push('');
+                setTxScores(txData.slice(0, 5));
                 setGkScore(s.gk ?? '');
                 setCkScore(s.ck ?? '');
             }, [selectedSubModal, student]);
 
-            const avg = calculateSubjectAverage({ tx: txScores, gk: gkScore === '' ? null : parseFloat(gkScore), ck: ckScore === '' ? null : parseFloat(ckScore) });
+            const avg = calculateSubjectAverage({ tx: txScores, gk: gkScore, ck: ckScore });
             const rank = getRankInfo(student.points || 0);
 
             const handleSaveScores = () => {
-                onUpdateScore(student.id, selectedSubModal, { tx: txScores, gk: gkScore === '' ? null : parseFloat(gkScore), ck: ckScore === '' ? null : parseFloat(ckScore) });
+                onUpdateScore(student.id, selectedSubModal, { 
+                    tx: txScores, 
+                    gk: gkScore, 
+                    ck: ckScore 
+                });
                 showToast('Đã lưu điểm môn ' + SUBJECTS.find(s=>s.id===selectedSubModal).name, 'success');
             };
 
-            const handleAddTx = () => {
-                const val = prompt("Nhập điểm TX (0-10):");
-                if (val && !isNaN(val) && parseFloat(val) >= 0 && parseFloat(val) <= 10) setTxScores([...txScores, parseFloat(val)]);
+            const handleTxChange = (index, value) => {
+                const newTx = [...txScores];
+                newTx[index] = value;
+                setTxScores(newTx);
             };
 
             return (
@@ -417,9 +501,18 @@
                                 <div className="space-y-6">
                                     <div className="mb-4"><label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Môn Học</label><div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">{SUBJECTS.map(s => (<button key={s.id} onClick={()=>setSelectedSubModal(s.id)} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition-all ${selectedSubModal === s.id ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white/60 text-slate-500 border-white hover:bg-white'}`}>{s.name}</button>))}</div></div>
                                     <div className="bg-white/60 p-5 rounded-2xl border border-white shadow-sm">
-                                        <div className="flex justify-between items-center mb-3"><label className="text-sm font-bold text-slate-700">ĐG Thường Xuyên (HS 1)</label><button onClick={handleAddTx} className="text-xs bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-200 transition-colors">+ Thêm</button></div>
-                                        <div className="flex flex-wrap gap-2 mb-4">{txScores.map((s, i) => (<div key={i} className="relative group"><span className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm">{s}</span><button onClick={()=>{setTxScores(txScores.filter((_,idx)=>idx!==i))}} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-all shadow-md hover:scale-110">×</button></div>))}{txScores.length===0 && <span className="text-slate-400 italic text-xs">Chưa có điểm</span>}</div>
-                                        <div className="grid grid-cols-2 gap-4"><div><label className="text-sm font-bold text-slate-700 block mb-2">Giữa Kỳ (HS 2)</label><input type="number" value={gkScore} onChange={e=>setGkScore(e.target.value)} className="w-full p-3 bg-white/80 border border-white rounded-xl font-bold text-center focus:ring-2 focus:ring-blue-300 outline-none" placeholder="--"/></div><div><label className="text-sm font-bold text-slate-700 block mb-2">Cuối Kỳ (HS 3)</label><input type="number" value={ckScore} onChange={e=>setCkScore(e.target.value)} className="w-full p-3 bg-white/80 border border-white rounded-xl font-bold text-center text-red-600 focus:ring-2 focus:ring-red-300 outline-none" placeholder="--"/></div></div>
+                                        <div className="mb-4">
+                                            <label className="text-sm font-bold text-slate-700 block mb-2">ĐG Thường Xuyên (Hệ số 1)</label>
+                                            <div className="grid grid-cols-5 gap-2">
+                                                {txScores.map((s, i) => (
+                                                    <div key={i}>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase text-center block mb-1">TX{i+1}</label>
+                                                        <input type="number" value={s} onChange={e=>handleTxChange(i, e.target.value)} className="w-full p-2 bg-white/80 border border-white rounded-lg font-bold text-center focus:ring-2 focus:ring-blue-300 outline-none text-slate-700" placeholder="-" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4"><div><label className="text-sm font-bold text-slate-700 block mb-2">Giữa Kỳ (HS 2)</label><input type="number" value={gkScore} onChange={e=>setGkScore(e.target.value)} className="w-full p-3 bg-white/80 border border-white rounded-xl font-bold text-center focus:ring-2 focus:ring-blue-300 outline-none text-blue-600" placeholder="--"/></div><div><label className="text-sm font-bold text-slate-700 block mb-2">Cuối Kỳ (HS 3)</label><input type="number" value={ckScore} onChange={e=>setCkScore(e.target.value)} className="w-full p-3 bg-white/80 border border-white rounded-xl font-bold text-center text-red-600 focus:ring-2 focus:ring-red-300 outline-none" placeholder="--"/></div></div>
                                     </div>
                                     <button onClick={handleSaveScores} className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]"><Icon name="save" /> LƯU ĐIỂM MÔN {SUBJECTS.find(s=>s.id===selectedSubModal).name.toUpperCase()}</button>
                                 </div>
@@ -430,32 +523,132 @@
             );
         };
 
-        const GradebookTable = ({ students, subjectId, onEditStudent }) => {
+        const GradebookTable = ({ students, subjectId, onEditStudent, activeClassName }) => {
             const handleExportGradebook = () => {
                 const subjectName = SUBJECTS.find(s => s.id === subjectId)?.name || "MonHoc";
-                const fileName = `SoDiem_${subjectName}.xlsx`;
-                const headers = ["STT", "Họ và Tên", "ĐG Thường Xuyên (HS1)", "Giữa Kỳ (HS2)", "Cuối Kỳ (HS3)", "ĐTB Môn"];
-                const data = [headers];
+                const fileName = `SoDiem_${subjectName}_${activeClassName}.xlsx`;
+                
+                const wb = XLSX.utils.book_new();
+                
+                // --- STYLES ---
+                const borderStyle = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                const headerStyle = { font: { name: "Times New Roman", sz: 11, bold: true }, border: borderStyle, alignment: { vertical: "center", horizontal: "center", wrapText: true } };
+                const normalStyle = { font: { name: "Times New Roman", sz: 11 }, border: borderStyle, alignment: { vertical: "center", horizontal: "center" } };
+                const nameStyle = { font: { name: "Times New Roman", sz: 11 }, border: borderStyle, alignment: { vertical: "center", horizontal: "left" } };
+
+                // --- DATA PREPARATION ---
+                const data = [];
+                // Row 1: School Header - UPDATED AS REQUESTED
+                data.push(["SỞ GIÁO DỤC VÀ ĐÀO TẠO LÂM ĐỒNG", "", "", "", "", "", "", "", "", "", ""]);
+                data.push(["TRƯỜNG: TH, THCS & THPT YERSIN ĐÀ LẠT", "", "", "", "", "", "", "", "", "", ""]);
+                // Row 3: Title
+                data.push([`BẢNG ĐIỂM CHI TIẾT - MÔN ${subjectName.toUpperCase()} - HỌC KỲ 1 - NĂM HỌC 2025-2026`, "", "", "", "", "", "", "", "", "", ""]);
+                // Row 4: Class info
+                data.push([`Khối 12 - ${activeClassName}`, "", "", "", "", "", "", "", "", "", ""]);
+                
+                // Row 5: Column Headers (Top Level)
+                data.push(["STT", "Họ và tên", "ĐĐGtx", "", "", "", "", "ĐĐG\ngk", "ĐĐG\nck", "ĐTB\nmhk", "Nhận xét"]);
+                // Row 6: Column Headers (Sub Level for TX)
+                data.push(["", "", "TX1", "TX2", "TX3", "TX4", "TX5", "", "", "", ""]);
+
+                let goodCount = 0; let fairCount = 0; let passCount = 0; let failCount = 0;
+
+                // Student Data Rows
                 students.forEach((s, idx) => {
                     const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
+                    const tx = scores.tx || [];
                     const avg = calculateSubjectAverage(scores);
-                    const txString = (scores.tx || []).join(', ');
-                    data.push([idx + 1, s.name, txString, scores.gk || '', scores.ck || '', avg || '']);
+                    
+                    const evalText = getEvaluation(avg);
+                    if (avg !== "") {
+                        if (parseFloat(avg) >= 8.0) goodCount++;
+                        else if (parseFloat(avg) >= 6.5) fairCount++;
+                        else if (parseFloat(avg) >= 5.0) passCount++;
+                        else failCount++;
+                    }
+
+                    data.push([
+                        idx + 1,
+                        s.name, // Combined Name
+                        tx[0] || "", tx[1] || "", tx[2] || "", tx[3] || "", tx[4] || "",
+                        scores.gk || "",
+                        scores.ck || "",
+                        avg || "",
+                        evalText || ""
+                    ]);
                 });
-                const wb = XLSX.utils.book_new();
+
+                // Stats Rows (Footer)
+                const totalStudents = students.length;
+                const getPercent = (count) => totalStudents > 0 ? ((count / totalStudents) * 100).toFixed(2) + "%" : "0%";
+                
+                const startRow = data.length;
+                data.push(["THỐNG KÊ HỌC KỲ 1", "", "", "", "", "", "", "", "", "", ""]);
+                data.push(["Số học sinh đạt", "Tốt", goodCount, "-", getPercent(goodCount), "", "", "", "", "", ""]);
+                data.push(["Số lượng - Tỉ lệ (%)", "Khá", fairCount, "-", getPercent(fairCount), "", "", "", "", "", ""]);
+                data.push(["", "Đạt", passCount, "-", getPercent(passCount), "", "", "", "", "", ""]);
+                data.push(["", "Chưa", failCount, "-", getPercent(failCount), "", "", "", "", "", ""]);
+
+                // Create Sheet
                 const ws = XLSX.utils.aoa_to_sheet(data);
-                ws['!cols'] = [{ wch: 5 }, { wch: 25 }, { wch: 25 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+
+                // --- MERGES ---
+                ws['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }, // Header 1
+                    { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } }, // Header 2
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } }, // Title
+                    { s: { r: 3, c: 0 }, e: { r: 3, c: 10 } }, // Class Info
+                    { s: { r: 4, c: 0 }, e: { r: 5, c: 0 } },  // STT
+                    { s: { r: 4, c: 1 }, e: { r: 5, c: 1 } },  // Ho va Ten Header (Merged Vertical)
+                    { s: { r: 4, c: 2 }, e: { r: 4, c: 6 } },  // DDGtx Header (Span 5 cols)
+                    { s: { r: 4, c: 7 }, e: { r: 5, c: 7 } },  // GK
+                    { s: { r: 4, c: 8 }, e: { r: 5, c: 8 } },  // CK
+                    { s: { r: 4, c: 9 }, e: { r: 5, c: 9 } }, // DTB
+                    { s: { r: 4, c: 10 }, e: { r: 5, c: 10 } }, // Nhan xet
+                    
+                    // Stats Merges
+                    { s: { r: startRow, c: 0 }, e: { r: startRow, c: 4 } }, // Stat Header
+                    { s: { r: startRow + 1, c: 0 }, e: { r: startRow + 1, c: 0 } }, // "So hoc sinh dat" text 
+                    { s: { r: startRow + 2, c: 0 }, e: { r: startRow + 4, c: 0 } }, // "So luong - Ti le" text vertical merge
+                ];
+
+                // --- COL WIDTHS ---
+                ws['!cols'] = [
+                    { wch: 5 }, { wch: 30 }, // Width for Name increased
+                    { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, 
+                    { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 15 }
+                ];
+
+                // --- APPLY STYLES ---
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 for (let R = range.s.r; R <= range.e.r; ++R) {
                     for (let C = range.s.c; C <= range.e.c; ++C) {
                         const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
                         if (!ws[cellRef]) continue;
-                        const cellStyle = { font: { name: "Times New Roman", sz: 12 }, border: { top: { style: "thin", color: { rgb: "000000" } }, bottom: { style: "thin", color: { rgb: "000000" } }, left: { style: "thin", color: { rgb: "000000" } }, right: { style: "thin", color: { rgb: "000000" } } }, alignment: { vertical: "center", horizontal: "center", wrapText: true } };
-                        if (C === 1) cellStyle.alignment.horizontal = "left";
-                        if (R === 0) { cellStyle.font.bold = true; cellStyle.fill = { fgColor: { rgb: "E0E0E0" } }; cellStyle.alignment.horizontal = "center"; }
-                        ws[cellRef].s = cellStyle;
+
+                        // Header Styling
+                        if (R <= 3) {
+                            ws[cellRef].s = { font: { name: "Times New Roman", sz: 12, bold: true }, alignment: { horizontal: "center" } };
+                            if (R === 2) ws[cellRef].s.font.sz = 14;
+                        } 
+                        else if (R === 4 || R === 5) {
+                            ws[cellRef].s = headerStyle;
+                        }
+                        // Data Styling
+                        else if (R >= 6 && R < startRow) {
+                            ws[cellRef].s = normalStyle;
+                            if (C === 1) ws[cellRef].s = nameStyle; // Name
+                            // Color Logic for GK/CK/DTB
+                            if (C === 7 || C === 8) ws[cellRef].s = { ...normalStyle, fill: { fgColor: { rgb: "FFFFE0" } } }; // Yellowish for GK/CK columns
+                        }
+                        // Stats Styling
+                        else if (R >= startRow) {
+                            ws[cellRef].s = headerStyle;
+                             if (C === 2 || C === 4) ws[cellRef].s = { ...headerStyle, font: { ...headerStyle.font, color: { rgb: "0000FF" } } }; // Blue text for numbers
+                        }
                     }
                 }
+
                 XLSX.utils.book_append_sheet(wb, ws, subjectName);
                 XLSX.writeFile(wb, fileName);
             };
@@ -464,18 +657,55 @@
                 <div className="flex flex-col h-full">
                     <div className="flex justify-end mb-3">
                         <button onClick={handleExportGradebook} className="glass-button-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95">
-                            <Icon name="download" size={16}/> Xuất Excel
+                            <Icon name="download" size={16}/> Xuất Excel Chuẩn Mẫu
                         </button>
                     </div>
                     <div className="overflow-hidden glass-panel rounded-3xl flex-1 flex flex-col relative">
                         <div className="overflow-y-auto h-full custom-scrollbar pb-24">
                             {/* DESKTOP TABLE */}
-                            <table className="w-full text-sm glass-table hidden md:table">
-                                <thead><tr className="text-left text-slate-500"><th className="p-4 font-extrabold">STT</th><th className="p-4 font-extrabold">Họ và Tên</th><th className="p-4 font-extrabold">ĐG Thường Xuyên (HS1)</th><th className="p-4 font-extrabold text-center">GK (HS2)</th><th className="p-4 font-extrabold text-center">CK (HS3)</th><th className="p-4 font-extrabold text-center text-blue-600">ĐTB</th><th className="p-4 text-center">Sửa</th></tr></thead>
+                            <table className="w-full text-sm glass-table hidden md:table border-collapse">
+                                <thead>
+                                    <tr className="text-slate-600 bg-white/50">
+                                        <th rowSpan="2" className="p-2 border border-slate-200">STT</th>
+                                        <th rowSpan="2" className="p-2 border border-slate-200 text-left pl-4">Họ và tên</th>
+                                        <th colSpan="5" className="p-2 border border-slate-200 text-center">ĐĐGtx (HS1)</th>
+                                        <th rowSpan="2" className="p-2 border border-slate-200 w-16">GK (HS2)</th>
+                                        <th rowSpan="2" className="p-2 border border-slate-200 w-16">CK (HS3)</th>
+                                        <th rowSpan="2" className="p-2 border border-slate-200 w-16 text-blue-600">ĐTB</th>
+                                        <th rowSpan="2" className="p-2 border border-slate-200 w-10">Sửa</th>
+                                    </tr>
+                                    <tr className="text-slate-500 text-xs bg-white/40">
+                                        <th className="p-1 border border-slate-200 w-10 text-center">1</th>
+                                        <th className="p-1 border border-slate-200 w-10 text-center">2</th>
+                                        <th className="p-1 border border-slate-200 w-10 text-center">3</th>
+                                        <th className="p-1 border border-slate-200 w-10 text-center">4</th>
+                                        <th className="p-1 border border-slate-200 w-10 text-center">5</th>
+                                    </tr>
+                                </thead>
                                 <tbody>{students.map((s, idx) => {
                                     const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
+                                    const tx = scores.tx || [];
                                     const avg = calculateSubjectAverage(scores);
-                                    return (<tr key={s.id} className="transition-colors group"><td className="p-4 text-slate-400 font-bold">{idx + 1}</td><td className="p-4 font-bold text-slate-700 flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center text-sm shadow-sm">{s.avatar}</div> {s.name}</td><td className="p-4"><div className="flex gap-1 flex-wrap">{scores.tx && scores.tx.map((sc,i)=><span key={i} className="bg-white/60 border border-white px-2 py-1 rounded-lg text-xs font-bold text-slate-600 shadow-sm">{sc}</span>)}</div></td><td className="p-4 text-center font-bold text-slate-700">{scores.gk||'-'}</td><td className="p-4 text-center font-bold text-red-500">{scores.ck||'-'}</td><td className="p-4 text-center font-black text-blue-600 text-lg">{avg||'-'}</td><td className="p-4 text-center"><button onClick={()=>onEditStudent(s)} className="w-8 h-8 rounded-full hover:bg-white text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all"><Icon name="edit-3" size={16}/></button></td></tr>);
+                                    
+                                    return (
+                                        <tr key={s.id} className="transition-colors group hover:bg-white/30">
+                                            <td className="p-2 text-center text-slate-400 font-bold border border-slate-100">{idx + 1}</td>
+                                            <td className="p-2 font-bold text-slate-700 border border-slate-100 text-left pl-4">{s.name}</td>
+                                            
+                                            {[0,1,2,3,4].map(i => (
+                                                <td key={i} className="p-2 text-center border border-slate-100">
+                                                    {tx[i] ? <span className="bg-white/60 px-2 py-1 rounded text-xs font-bold shadow-sm">{tx[i]}</span> : ''}
+                                                </td>
+                                            ))}
+                                            
+                                            <td className="p-2 text-center font-bold text-slate-700 border border-slate-100">{scores.gk||'-'}</td>
+                                            <td className="p-2 text-center font-bold text-red-500 border border-slate-100">{scores.ck||'-'}</td>
+                                            <td className="p-2 text-center font-black text-blue-600 border border-slate-100 bg-blue-50/30">{avg||'-'}</td>
+                                            <td className="p-2 text-center border border-slate-100">
+                                                <button onClick={()=>onEditStudent(s)} className="w-8 h-8 rounded-full hover:bg-white text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all"><Icon name="edit-3" size={16}/></button>
+                                            </td>
+                                        </tr>
+                                    );
                                 })}</tbody>
                             </table>
                             
@@ -505,9 +735,9 @@
                                             
                                             <div className="bg-white/50 rounded-xl p-3 border border-white/40 grid grid-cols-3 gap-2 text-center">
                                                 <div className="flex flex-col gap-1 col-span-3 border-b border-slate-100 pb-2 mb-1">
-                                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Thường Xuyên</span>
+                                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Thường Xuyên (5 Cột)</span>
                                                     <div className="flex gap-1 flex-wrap justify-center">
-                                                        {scores.tx && scores.tx.length > 0 ? scores.tx.map((sc,i)=><span key={i} className="bg-white px-2 py-0.5 rounded border border-slate-100 text-xs font-bold text-slate-600">{sc}</span>) : <span className="text-xs text-slate-300">-</span>}
+                                                        {(scores.tx && scores.tx.length > 0) ? scores.tx.map((sc,i)=><span key={i} className="bg-white px-2 py-0.5 rounded border border-slate-100 text-xs font-bold text-slate-600">{sc}</span>) : <span className="text-xs text-slate-300">-</span>}
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col border-r border-slate-100">
@@ -632,49 +862,123 @@
 
         const ToolsPanel = ({ students }) => {
             const [timer, setTimer] = React.useState(0);
+            const [inputMinutes, setInputMinutes] = React.useState(5);
             const [isActive, setIsActive] = React.useState(false);
-            const [chosen, setChosen] = React.useState(null);
+            const [showTimerOverlay, setShowTimerOverlay] = React.useState(false);
             
+            const [chosen, setChosen] = React.useState(null);
+            const [isSpinning, setIsSpinning] = React.useState(false);
+            
+            // Timer Logic
             React.useEffect(() => {
                 let interval = null;
-                if (isActive && timer > 0) { interval = setInterval(() => setTimer(timer => timer - 1), 1000); } else if (timer === 0) { setIsActive(false); }
+                if (isActive && timer > 0) { interval = setInterval(() => setTimer(timer => timer - 1), 1000); } 
+                else if (timer === 0 && isActive) { setIsActive(false); setShowTimerOverlay(false); showToast("Hết giờ!", "success"); }
                 return () => clearInterval(interval);
             }, [isActive, timer]);
 
+            const startTimer = () => {
+                const totalSeconds = inputMinutes * 60;
+                if (totalSeconds > 0) {
+                    setTimer(totalSeconds);
+                    setIsActive(true);
+                    setShowTimerOverlay(true);
+                }
+            };
+
+            const stopTimer = () => { setIsActive(false); setShowTimerOverlay(false); };
+
+            // Wheel Logic
             const spinWheel = () => {
-                setChosen(null); let count = 0;
-                const interval = setInterval(() => { setChosen(students[Math.floor(Math.random() * students.length)]); count++; if(count > 20) clearInterval(interval); }, 100);
+                if (isSpinning) return;
+                setIsSpinning(true);
+                setChosen(null); 
+                let count = 0;
+                const maxSpins = 30;
+                
+                const interval = setInterval(() => { 
+                    setChosen(students[Math.floor(Math.random() * students.length)]); 
+                    count++; 
+                    if(count > maxSpins) { 
+                        clearInterval(interval); 
+                        setIsSpinning(false);
+                        // Trigger Confetti
+                        if (window.confetti) {
+                            window.confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        }
+                    } 
+                }, 80);
             };
 
             const formatTime = (seconds) => { const m = Math.floor(seconds / 60); const s = seconds % 60; return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; };
 
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-24">
-                    <div className="glass-card rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center min-h-[300px]">
-                        <div className="w-24 h-24 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center mb-6 shadow-inner border border-white/60"><Icon name="dice-5" size={48} className="text-pink-500"/></div>
-                        <h3 className="font-black text-2xl text-slate-800 mb-4">Vòng Quay May Mắn</h3>
-                        <div className="h-32 flex items-center justify-center mb-4 w-full">
-                            {chosen ? (
-                                <div className="animate-bounce flex flex-col items-center">
-                                    <div className="text-6xl mb-2 drop-shadow-md">{chosen.avatarUrl ? <img src={chosen.avatarUrl} className="w-20 h-20 rounded-full inline object-cover border-4 border-white shadow-lg" /> : chosen.avatar || '🦁'}</div>
-                                    <div className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600">{chosen.name}</div>
-                                </div>
-                            ) : <span className="text-slate-400 font-medium italic">Ai sẽ là người được chọn?</span>}
+                    {/* LUCKY WHEEL */}
+                    <div className="glass-card rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center min-h-[350px] relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-pink-50 to-purple-50 opacity-50 z-0"></div>
+                        <div className="relative z-10 w-full flex flex-col items-center">
+                            <div className={`w-28 h-28 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl border-4 border-pink-100 ${isSpinning ? 'animate-spin' : ''}`}>
+                                <span className="text-5xl">🎡</span>
+                            </div>
+                            <h3 className="font-black text-2xl text-slate-800 mb-4 font-display">Vòng Quay May Mắn</h3>
+                            
+                            <div className="h-40 flex items-center justify-center mb-6 w-full">
+                                {chosen ? (
+                                    <div className="flex flex-col items-center animate-bounce-slow">
+                                        <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden mb-3 transform hover:scale-110 transition-transform">
+                                            {chosen.avatarUrl ? <img src={chosen.avatarUrl} className="w-full h-full object-cover"/> : <div className="w-full h-full bg-pink-100 flex items-center justify-center text-4xl">{chosen.avatar || '🦁'}</div>}
+                                        </div>
+                                        <div className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 drop-shadow-sm px-2 text-center leading-tight">{chosen.name}</div>
+                                    </div>
+                                ) : (
+                                    <div className="text-slate-400 font-medium italic flex flex-col items-center gap-2">
+                                        <span className="text-4xl opacity-50">✨</span>
+                                        <span>Ai sẽ là người được chọn?</span>
+                                    </div>
+                                )}
+                            </div>
+                            <button onClick={spinWheel} disabled={isSpinning} className="glass-button-primary w-full py-4 rounded-xl font-bold shadow-lg transition-all text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-95">
+                                {isSpinning ? <><Icon name="loader-2" className="animate-spin"/> ĐANG QUAY...</> : 'QUAY NGAY'}
+                            </button>
                         </div>
-                        <button onClick={spinWheel} className="glass-button-primary w-full py-3.5 rounded-xl font-bold shadow-lg transition-all text-lg">QUAY NGAY</button>
                     </div>
                     
-                    <div className="glass-card rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center min-h-[300px]">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mb-6 shadow-inner border border-white/60"><Icon name="clock" size={48} className="text-blue-500"/></div>
-                        <h3 className="font-black text-2xl text-slate-800 mb-2">Đồng Hồ Đếm Ngược</h3>
-                        <div className="text-7xl font-black text-slate-700 font-mono my-6 tracking-widest drop-shadow-sm">{formatTime(timer)}</div>
-                        <div className="flex gap-2 mb-6 w-full">
-                            <button onClick={()=>setTimer(15*60)} className="flex-1 py-2 bg-white/60 hover:bg-white border border-white rounded-xl text-sm font-bold text-slate-600 shadow-sm transition-all">15p</button>
-                            <button onClick={()=>setTimer(45*60)} className="flex-1 py-2 bg-white/60 hover:bg-white border border-white rounded-xl text-sm font-bold text-slate-600 shadow-sm transition-all">45p</button>
-                            <button onClick={()=>setTimer(0)} className="flex-1 py-2 bg-red-50 hover:bg-red-100 border border-red-100 rounded-xl text-sm font-bold text-red-500 shadow-sm transition-all">Reset</button>
+                    {/* COUNTDOWN TIMER */}
+                    <div className="glass-card rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center min-h-[350px] relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-50 to-cyan-50 opacity-50 z-0"></div>
+                        <div className="relative z-10 w-full flex flex-col items-center">
+                            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl border-4 border-blue-100">
+                                <Icon name="clock" size={40} className="text-blue-500"/>
+                            </div>
+                            <h3 className="font-black text-2xl text-slate-800 mb-2 font-display">Đếm Ngược Vui Vẻ</h3>
+                            
+                            <div className="my-6 w-full max-w-xs">
+                                <div className="flex items-center gap-2 mb-4 bg-white/60 p-2 rounded-xl border border-white">
+                                    <button onClick={()=>setInputMinutes(Math.max(1, inputMinutes-1))} className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 font-bold hover:bg-blue-200 transition-colors">-</button>
+                                    <div className="flex-1 text-center font-black text-2xl text-slate-700 font-cute">{inputMinutes} phút</div>
+                                    <button onClick={()=>setInputMinutes(inputMinutes+1)} className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 font-bold hover:bg-blue-200 transition-colors">+</button>
+                                </div>
+                            </div>
+
+                            <button onClick={startTimer} className="w-full py-4 rounded-xl font-bold shadow-lg transition-all text-white text-lg bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transform active:scale-95 flex items-center justify-center gap-2">
+                                <Icon name="play" fill="currentColor" /> BẮT ĐẦU ĐẾM
+                            </button>
                         </div>
-                        <button onClick={()=>setIsActive(!isActive)} className={`w-full py-3.5 rounded-xl font-bold shadow-lg transition-all text-white text-lg ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'}`}>{isActive ? 'TẠM DỪNG' : 'BẮT ĐẦU'}</button>
                     </div>
+
+                    {/* FULL SCREEN OVERLAY TIMER */}
+                    {showTimerOverlay && (
+                        <div className="fixed inset-0 z-[1000] bg-slate-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-white animate-fade-in-up">
+                            <button onClick={stopTimer} className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-4 rounded-full transition-all">
+                                <Icon name="x" size={32} />
+                            </button>
+                            <div className="font-cute text-[15vw] md:text-[20vw] font-bold leading-none tabular-nums tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500 drop-shadow-[0_10px_30px_rgba(245,158,11,0.5)] animate-pulse">
+                                {formatTime(timer)}
+                            </div>
+                            <div className="mt-8 text-2xl md:text-4xl font-display text-slate-300 animate-bounce">Sắp hết giờ rồi nha! 🏃💨</div>
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -704,10 +1008,10 @@
                             if (val) {
                                 setClasses(val.classes || []);
                                 setActiveClassId(val.activeId || null);
-                                setShowStart(false); 
+                                // UPDATED: Do NOT auto-hide start screen here. Let user click "Start".
                             } else {
                                 initDefaultData();
-                                setShowStart(false);
+                                // Same here
                             }
                         });
                     }
@@ -717,7 +1021,7 @@
 
             const initDefaultData = () => {
                 const defaultStudents = DEFAULT_STUDENTS.map((n, i) => ({ id: 's_' + i, name: n, points: 0, avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length], subjects: {} }));
-                const defaultClass = { id: 'c_default', name: 'Lớp 10H', students: defaultStudents };
+                const defaultClass = { id: 'c_default', name: DEFAULT_CLASS_NAME, students: defaultStudents };
                 setClasses([defaultClass]);
                 setActiveClassId(defaultClass.id);
             };
@@ -777,12 +1081,25 @@
             const handleAddClass = (name, importText) => { const names = importText.split(/\r?\n/).map(n => n.trim()).filter(n => n); const newStudents = names.length > 0 ? names.map((n, i) => ({ id: Date.now() + '_' + i, name: n, points: 0, avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length], subjects: {} })) : []; const newClass = { id: 'class_' + Date.now(), name, students: newStudents }; setClasses(prev => [...prev, newClass]); setActiveClassId(newClass.id); setShowClassManager(false); };
             const handleDeleteClass = (id) => { if(confirm("Xóa lớp này vĩnh viễn?")) { const newClasses = classes.filter(c => c.id !== id); setClasses(newClasses); if(activeClassId === id && newClasses.length > 0) setActiveClassId(newClasses[0].id); } };
 
-            if (showStart) return <StartScreen onStart={() => setShowStart(false)} onLogin={handleLogin} />;
+            const toggleFullScreen = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
+            };
+
+            if (showStart) return <StartScreen onStart={() => setShowStart(false)} onLogin={handleLogin} user={user} />;
             if (!activeClass) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div></div>;
 
             return (
                 <div className="min-h-screen flex flex-col md:flex-row p-4 md:p-6 gap-4 max-w-[1600px] mx-auto relative">
                     
+                    {/* Full Screen Toggle Button */}
+                    <button onClick={toggleFullScreen} className="fixed top-4 right-4 z-50 bg-white/80 p-2 rounded-full shadow-lg hover:bg-white transition-all text-slate-500 hover:text-slate-800">
+                        <Icon name="maximize" size={20}/>
+                    </button>
+
                     {selectedStudent && <StudentDetailModal student={selectedStudent} subjectId={selectedSubject} onClose={()=>setSelectedStudent(null)} onUpdateScore={updateScores} onUpdatePoints={updatePoints} />}
                     {showImport && <ExcelImportModal subjectId={selectedSubject} onClose={()=>setShowImport(false)} onImport={handleBulkImport} />}
                     {showClassManager && <ClassManager classes={classes} activeClassId={activeClassId} onSwitchClass={(id) => { setActiveClassId(id); setShowClassManager(false); }} onAddClass={handleAddClass} onDeleteClass={handleDeleteClass} onClose={()=>setShowClassManager(false)} />}
@@ -794,7 +1111,7 @@
                             <div onClick={()=>setShowClassManager(true)} className="glass-button w-full px-4 py-3 rounded-2xl font-bold text-blue-600 cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:shadow-md"><Icon name="library" size={18}/> {activeClass.name} <Icon name="chevron-down" size={16}/></div>
                         </div>
                         <div className="flex flex-col gap-3 flex-1">
-                            {[{id:'dashboard',l:'Thi Đua & Avatar',i:'layout-grid'}, {id:'gradebook',l:'Sổ Điểm 22',i:'table-2'}, {id:'tools',l:'Công Cụ Lớp Học',i:'wrench'}].map(t => (
+                            {[{id:'dashboard',l:'Thi Đua & Avatar',i:'layout-grid'}, {id:'gradebook',l:'Sổ Điểm (TT22)',i:'table-2'}, {id:'tools',l:'Công Cụ Lớp Học',i:'wrench'}].map(t => (
                                 <button key={t.id} onClick={()=>setActiveTab(t.id)} className={`flex items-center gap-4 px-5 py-4 rounded-[1.5rem] font-bold text-base transition-all duration-300 group border ${activeTab===t.id ? 'bg-white/80 text-pink-600 shadow-lg border-white ring-2 ring-pink-100/50' : 'text-slate-500 hover:bg-white/40 hover:text-pink-500 border-transparent'}`}>
                                     <Icon name={t.i} size={20} className={`transition-colors ${activeTab===t.id ? 'text-pink-500' : 'group-hover:text-pink-400'}`}/> {t.l}
                                 </button>
@@ -859,7 +1176,7 @@
                                         <button onClick={()=>setShowImport(true)} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-emerald-200 flex items-center gap-2 transition-all hover:-translate-y-0.5"><Icon name="file-spreadsheet" size={18}/> Nhập Excel</button>
                                     </div>
                                 </div>
-                                <GradebookTable students={students} subjectId={selectedSubject} onEditStudent={setSelectedStudent} />
+                                <GradebookTable students={students} subjectId={selectedSubject} onEditStudent={setSelectedStudent} activeClassName={activeClass.name} />
                             </div>
                         )}
 
