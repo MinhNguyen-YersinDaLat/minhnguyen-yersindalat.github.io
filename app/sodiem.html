@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sổ Điểm & Quản Lý Lớp - Yersin Edition</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: { 50:'#fff7ed', 100:'#ffedd5', 500:'#f97316', 600:'#ea580c', 700:'#c2410c' } },
+                    boxShadow: { 'glow': '0 0 20px rgba(249, 115, 22, 0.4)' },
+                    animation: { 'fade-in-up': 'fadeInUp 0.5s ease-out forwards' },
+                    keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- EXCEL EXPORT LIBRARY (ADDED) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f8fafc; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        
+        /* BACKGROUND & ANIMATIONS */
+        .aurora-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fad0c4, #a18cd1); background-size: 400% 400%; animation: aurora 20s ease infinite; opacity: 0.5; }
+        .bokeh span { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.6); box-shadow: 0 0 20px rgba(255,255,255,0.4); animation: float-up infinite linear; }
+        @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes float-up { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
+
+        /* AVATAR RINGS ANIMATIONS */
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-medium { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+        @keyframes pulse-ring { 0% { transform: scale(0.85); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(0.85); opacity: 0.8; } }
+        @keyframes shockwave { 0% { transform: scale(1); opacity: 1; border-width: 2px; } 100% { transform: scale(1.5); opacity: 0; border-width: 0px; } }
+        @keyframes breathe-glow { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.03); filter: brightness(1.1); } }
+
+        /* Classes */
+        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+        .animate-spin-medium { animation: spin-medium 6s linear infinite; }
+        .animate-spin-reverse { animation: spin-reverse 8s linear infinite; }
+        .animate-pulse-ring { animation: pulse-ring 3s ease-in-out infinite; }
+        .animate-shockwave { animation: shockwave 2s infinite; }
+        .animate-breathe { animation: breathe-glow 3s ease-in-out infinite; }
+
+        /* Magic Borders */
+        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        @keyframes border-rotate { 0% { --angle: 0deg; } 100% { --angle: 360deg; } }
+        .magic-border-container { position: absolute; inset: -4px; border-radius: 50%; z-index: -1; overflow: hidden; }
+        .magic-border-layer { position: absolute; inset: -50%; width: 200%; height: 200%; background: conic-gradient(from var(--angle), transparent 20%, var(--border-color), transparent 80%); animation: border-rotate 3s linear infinite; }
+        .magic-border-layer.reverse { animation: border-rotate 5s linear infinite reverse; opacity: 0.7; }
+
+        /* Utilities */
+        .shimmer-text { background: linear-gradient(to right, #ec4899 20%, #8b5cf6 40%, #ec4899 60%, #8b5cf6 80%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: border-flow 3s linear infinite; font-weight: 900; }
+        @keyframes border-flow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; }
+        .glass-table th { background-color: rgba(255,255,255,0.7); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(5px); }
+        .glass-table tr:hover td { background-color: rgba(255,255,255,0.6); }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 100000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; items-center; gap: 10px; font-size: 13px; font-weight: 600; color: #334155; border-left: 4px solid #3b82f6; animation: fade-in-up 0.3s ease-out forwards; max-width: 300px; }
+        .toast.success { border-left-color: #10b981; } .toast.error { border-left-color: #ef4444; }
+        
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .status-dot.online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .status-dot.syncing { background-color: #eab308; animation: pulse 1s infinite; }
+        .status-dot.offline { background-color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <div id="toast-container"></div>
+
+    <script type="text/babel">
+        // --- 0. FIREBASE CONFIG ---
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
+            authDomain: "hanhkiem-d853b.firebaseapp.com",
+            databaseURL: "https://hanhkiem-d853b-default-rtdb.firebaseio.com",
+            projectId: "hanhkiem-d853b",
+            storageBucket: "hanhkiem-d853b.firebasestorage.app",
+            messagingSenderId: "208584372826",
+            appId: "1:208584372826:web:6e55373d25ca0ffeb59e63",
+            measurementId: "G-M1Z8X4FX8L"
+        };
+
+        // --- 1. APP CONFIG ---
+        const DEFAULT_CLASS_NAME = "Lớp 10H";
+        const DEFAULT_STUDENTS = [ "Bùi Hoàng Gia An", "Yoo Minh Anh", "Vũ Nguyễn Hồng Ân", "Nguyễn Lê Chí Dũng", "Nguyễn Minh Đức", "Nguyễn Thanh Hằng", "Bùi Mạnh Hùng", "Nguyễn Phúc Lộc", "Nguyễn Trọng Nghĩa", "Nguyễn Trọng Nghĩa", "Nguyễn Thiện Nhân", "Hồ Đức Nhật", "Nguyễn Bảo Thiên", "Nguyễn Thị Thu Thủy", "Trần Hà Uyên", "Lê Hoàng Việt", "Hoàng Ngọc Hà Vy" ];
+        const ANIMAL_AVATARS = ['🦁','🐰','🦊','🐼','🐨','🦄','🐯','🐸','🐷','🐵','🐣','🐧','🦉','🦋','🐞'];
+        const SUBJECTS = [ { id: 'math', name: 'Toán', icon: 'calculator' }, { id: 'lit', name: 'Văn', icon: 'book-open' }, { id: 'eng', name: 'Anh', icon: 'languages' }, { id: 'phy', name: 'Lý', icon: 'atom' }, { id: 'chem', name: 'Hóa', icon: 'flask-conical' }, { id: 'bio', name: 'Sinh', icon: 'dna' }, { id: 'hist', name: 'Sử', icon: 'landmark' }, { id: 'geo', name: 'Địa', icon: 'globe-2' }, { id: 'gdcd', name: 'GDPL', icon: 'scale' }, { id: 'it', name: 'Tin', icon: 'monitor' }, { id: 'tech', name: 'CN', icon: 'cpu' } ];
+
+        // --- 2. ICONS & HELPERS ---
+        const Icon = ({ name, size = 24, className = "", style = {}, onClick }) => {
+            const ref = React.useRef(null);
+            React.useEffect(() => {
+                if (window.lucide && ref.current) {
+                    ref.current.innerHTML = '';
+                    const i = document.createElement('i');
+                    i.setAttribute('data-lucide', name);
+                    ref.current.appendChild(i);
+                    window.lucide.createIcons({ root: ref.current, attrs: { width: size, height: size, class: "lucide-icon-svg" } });
+                }
+            }, [name, size]); 
+            return <span ref={ref} onClick={onClick} className={className} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', ...style }} />;
+        };
+
+        const showToast = (msg, type = 'info') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+
+        const calculateSubjectAverage = (scores) => {
+            if (!scores) return "";
+            const { tx = [], gk, ck } = scores;
+            let sum = 0; let count = 0;
+            if (tx && tx.length > 0) { tx.forEach(s => { sum += s; count += 1; }); }
+            if (gk !== null && gk !== undefined && !isNaN(gk)) { sum += gk * 2; count += 2; }
+            if (ck !== null && ck !== undefined && !isNaN(ck)) { sum += ck * 3; count += 3; }
+            if (count === 0) return "";
+            return (sum / count).toFixed(1);
+        };
+
+        // --- 3. BACKGROUND ---
+        const BokehBackground = () => ( <div className="bokeh">{[...Array(20)].map((_, i) => (<span key={i} style={{ left: Math.random() * 100 + '%', width: Math.random() * 40 + 10 + 'px', height: Math.random() * 40 + 10 + 'px', animationDuration: Math.random() * 10 + 10 + 's', animationDelay: Math.random() * 5 + 's', background: `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.2})` }}></span>))}</div> );
+        const FairyDust = () => ( <div className="absolute inset-0 z-20 pointer-events-none rounded-full overflow-hidden">{[...Array(15)].map((_, i) => (<div key={i} className="absolute bg-white rounded-full shadow-[0_0_8px_white]" style={{ width: Math.random()*2+2+'px', height: Math.random()*2+2+'px', top: Math.random()*100+'%', left: Math.random()*100+'%', animation: 'pulse 1s infinite alternate', animationDelay: Math.random()+'s' }} />))}</div> );
+
+        // --- 4. 10-RANK SYSTEM (1-20 Points) ---
+        const getRankInfo = (points) => {
+            if (points >= 20) return { id: 'scholar', name: 'HỌC GIẢ TRẺ', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 text-white shadow-lg', shadow: 'shadow-purple-400', effect: 'scholar', textColor: 'shimmer-text' };
+            if (points >= 18) return { id: 'breakthrough', name: 'BỨT PHÁ', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md', shadow: 'shadow-rose-300', effect: 'breakthrough', textColor: 'text-rose-600' };
+            if (points >= 16) return { id: 'excellent', name: 'XUẤT SẮC', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-md', shadow: 'shadow-orange-300', effect: 'excellent', textColor: 'text-orange-600' };
+            if (points >= 14) return { id: 'superior', name: 'VƯỢT BẬC', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md', shadow: 'shadow-cyan-200', effect: 'superior', textColor: 'text-cyan-600' };
+            if (points >= 12) return { id: 'confident', name: 'TỰ TIN', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-md', shadow: 'shadow-yellow-200', effect: 'confident', textColor: 'text-yellow-600' };
+            if (points >= 10) return { id: 'progressive', name: 'TIẾN BỘ', bgClass: 'bg-white', badge: 'bg-gradient-to-r from-lime-400 to-green-500 text-white shadow-sm', shadow: 'shadow-lime-200', effect: 'progressive', textColor: 'text-lime-600' };
+            if (points >= 8) return { id: 'persistent', name: 'KIÊN TRÌ', bgClass: 'bg-white', badge: 'bg-teal-500 text-white shadow-sm', shadow: 'shadow-teal-100', effect: 'persistent', textColor: 'text-teal-600' };
+            if (points >= 5) return { id: 'conscious', name: 'TỰ GIÁC', bgClass: 'bg-white', badge: 'bg-blue-400 text-white shadow-sm', shadow: 'shadow-blue-100', effect: 'conscious', textColor: 'text-blue-500' };
+            if (points >= 2) return { id: 'learner', name: 'CHĂM HỌC', bgClass: 'bg-white', badge: 'bg-indigo-300 text-white shadow-sm', shadow: 'shadow-indigo-100', effect: 'learner', textColor: 'text-indigo-500' };
+            return { id: 'starter', name: 'KHỞI ĐỘNG', bgClass: 'bg-white', badge: 'bg-gray-200 text-gray-500', shadow: 'shadow-sm', effect: 'starter', textColor: 'text-gray-500' };
+        };
+
+        // --- 5. OPTIMIZED AVATAR RINGS ---
+        const AvatarRing = ({ type, isAnimated = false }) => {
+            if (type === 'none' || !type) return null;
+            const containerClass = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] pointer-events-none flex items-center justify-center";
+            const anim = (c) => isAnimated ? c : '';
+            const renderOrbits = (count, icon, colorClass, duration = '10s', reverse = false, radius = 70, spinSelf = false) => (
+                <div className={`w-full h-full absolute ${reverse ? anim('animate-spin-reverse') : anim('animate-spin-slow')}`} style={{animationDuration: duration}}>
+                    {[...Array(count)].map((_, i) => (
+                        <div key={i} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ transform: `rotate(${i * (360/count)}deg) translate(${radius}px) rotate(-${i * (360/count)}deg)` }}>
+                            <div className={spinSelf ? anim('animate-spin-medium') : ''}><Icon name={icon} size={24} className={colorClass + " drop-shadow-md"} /></div>
+                        </div>
+                    ))}
+                </div>
+            );
+
+            if (type === 'starter') return <div className={containerClass}><div className="w-full h-full border-2 border-dashed border-gray-300 rounded-full opacity-60"></div><div className={`w-[110%] h-[110%] absolute border border-gray-100 rounded-full ${anim('animate-shockwave')}`}></div>{renderOrbits(3, 'sprout', 'text-emerald-400', '12s', false, 65)}</div>;
+            if (type === 'learner') return <div className={containerClass}><div className={`w-full h-full border-[3px] border-dashed border-indigo-300 rounded-full opacity-70 ${anim('animate-spin-slow')}`}></div><div className={`w-[115%] h-[115%] absolute border border-indigo-200 rounded-full ${anim('animate-pulse-ring')}`}></div>{renderOrbits(4, 'pencil', 'text-indigo-400', '15s', true, 70)}<div className={`absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow-lg border border-indigo-100 z-10 ${anim('animate-bounce')}`}><Icon name="book" size={14} className="text-indigo-500"/></div></div>;
+            if (type === 'conscious') return <div className={containerClass}><div className={`w-full h-full border-2 border-blue-400 rounded-full shadow-[0_0_15px_rgba(96,165,250,0.4)] ${anim('animate-pulse')}`}></div><div className={`w-[125%] h-[125%] absolute border border-blue-200 rounded-full ${anim('animate-shockwave')}`} style={{animationDelay: '1s'}}></div><div className={`w-[110%] h-[110%] absolute border-b-4 border-blue-300 rounded-full opacity-60 ${anim('animate-spin-reverse')}`}></div>{renderOrbits(5, 'lightbulb', 'text-blue-500 fill-yellow-100', '18s', false, 75)}</div>;
+            if (type === 'persistent') return <div className={containerClass}><div className="w-full h-full border-[4px] double border-teal-500 rounded-full"></div><div className={`w-[120%] h-[120%] absolute border-2 border-teal-300/50 rounded-full border-t-transparent border-r-transparent ${anim('animate-spin-slow')}`}></div><div className={`w-[120%] h-[120%] absolute border-2 border-teal-300/50 rounded-full border-b-transparent border-l-transparent ${anim('animate-spin-reverse')}`}></div><div className={`absolute -bottom-2 right-0 drop-shadow-lg ${anim('animate-bounce')}`}><Icon name="shield" size={24} className="text-teal-600 fill-teal-100"/></div></div>;
+            if (type === 'progressive') return <div className={containerClass}><div className="w-full h-full border-2 border-lime-400 rounded-full shadow-[0_0_15px_rgba(163,230,53,0.5)]"></div><div className={`w-[115%] h-[115%] absolute border-[3px] border-dotted border-lime-500 rounded-full ${anim('animate-spin-slow')}`}></div>{renderOrbits(6, 'leaf', 'text-lime-600 fill-lime-200', '12s', true, 78)}<div className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 shadow-lg border border-lime-200 z-10"><Icon name="trending-up" size={18} className="text-lime-600 stroke-[3]"/></div></div>;
+            if (type === 'confident') return <div className={containerClass}><div className={`w-full h-full border-[3px] border-yellow-400 rounded-full shadow-[0_0_20px_rgba(250,204,21,0.6),inset_0_0_10px_rgba(250,204,21,0.4)] ${anim('animate-pulse')}`}></div><div className={`w-[140%] h-[140%] absolute rounded-full border border-yellow-200 opacity-40 ${anim('animate-shockwave')}`}></div>{renderOrbits(4, 'award', 'text-yellow-600 fill-yellow-100', '18s', false, 82)}<div className="absolute -top-4 left-1/2 -translate-x-1/2"><Icon name="crown" size={24} className="text-yellow-500 fill-yellow-200 drop-shadow-md"/></div></div>;
+            if (type === 'superior') return <div className={containerClass}><div className="w-full h-full border-2 border-cyan-400 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.5)] bg-cyan-50/20"></div><div className="w-[130%] h-[130%] absolute border border-cyan-400 rounded-full" style={{ transform: 'rotateX(70deg)', animation: isAnimated ? 'spin-medium 4s linear infinite' : 'none' }}></div><div className="w-[130%] h-[130%] absolute border border-cyan-400 rounded-full" style={{ transform: 'rotateY(70deg)', animation: isAnimated ? 'spin-medium 4s linear infinite' : 'none' }}></div><div className="w-[130%] h-[130%] absolute border border-cyan-400 rounded-full" style={{ transform: 'rotate(60deg) rotateX(70deg)', animation: isAnimated ? 'spin-medium 4s linear infinite' : 'none' }}></div>{renderOrbits(3, 'atom', 'text-cyan-500 fill-cyan-100', '6s', false, 85, true)}</div>;
+            if (type === 'excellent') return <div className={containerClass}><div className="w-full h-full border-[3px] border-orange-500 rounded-full shadow-[0_0_25px_orange,inset_0_0_15px_orange]"></div><div className={`w-[110%] h-[110%] absolute border-[2px] border-orange-300 rounded-full ${anim('animate-shockwave')}`}></div><div className={`w-[130%] h-[130%] absolute border-[2px] border-dashed border-orange-400 rounded-full ${anim('animate-spin-slow')}`}></div>{renderOrbits(8, 'sun', 'text-orange-600 fill-yellow-300', '20s', true, 85, true)}</div>;
+            if (type === 'breakthrough') return <div className={containerClass}><div className="w-full h-full border-[3px] border-pink-400 rounded-full shadow-[0_0_30px_rgba(236,72,153,0.6)]"></div><div className={`w-[125%] h-[125%] absolute border-[1px] border-pink-300 rounded-full ${anim('animate-spin-reverse-slow')}`}></div><div className={`w-[115%] h-[115%] absolute border-[2px] dotted border-pink-300 rounded-full opacity-70 ${anim('animate-spin-medium')}`}></div>{renderOrbits(5, 'gem', 'text-rose-500 fill-rose-200', '12s', true, 85, true)}{renderOrbits(5, 'flower', 'text-pink-400', '15s', false, 75, false)}<div className={`absolute inset-0 flex items-center justify-center opacity-30 ${anim('animate-pulse')}`}><Icon name="sparkles" size={100} className="text-pink-300"/></div></div>;
+            if (type === 'scholar') return <div className={containerClass}>{isAnimated && <div className="magic-border-container"><div className="magic-border-layer" style={{'--border-color': '#a855f7'}}></div><div className="magic-border-layer reverse" style={{'--border-color': '#3b82f6'}}></div></div>}<div className={`absolute inset-0 rounded-full border border-white/50 ${anim('animate-shockwave')}`}></div><FairyDust />{renderOrbits(6, 'star', 'text-yellow-300 fill-white', '12s', false, 85, true)}{renderOrbits(4, 'sparkles', 'text-purple-300', '8s', true, 65, true)}<div className={`absolute -top-8 left-1/2 -translate-x-1/2 filter drop-shadow-[0_0_15px_rgba(234,179,8,0.8)] z-30 ${anim('animate-bounce')}`}><Icon name="crown" size={42} className="text-yellow-400 fill-yellow-100 stroke-[2.5]"/></div></div>;
+            return null;
+        };
+
+        // --- 6. START SCREEN COMPONENT ---
+        const StartScreen = ({ onStart, onLogin }) => {
+            return (
+                <div id="startScreen" className="fixed inset-0 z-[100] bg-gradient-to-br from-slate-900 via-gray-800 to-primary-700 flex flex-col items-center justify-center text-white p-6 transition-transform duration-500 ease-in-out">
+                    <div className="mb-8 relative animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+                        <div className="w-28 h-28 bg-white rounded-3xl p-4 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 cursor-pointer flex items-center justify-center">
+                            <img src="logo.png" alt="Logo" className="max-w-full max-h-full object-contain" onError={(e)=>{e.target.style.display='none'; e.target.parentNode.innerHTML='<span class="text-4xl">🎓</span>'}}/>
+                        </div>
+                    </div>
+                    <div className="text-center space-y-3 mb-12 animate-fade-in-up relative z-10" style={{animationDelay: '0.2s'}}>
+                        <h1 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-tight">Ứng Dụng Theo Dõi<br/><span className="text-primary-400">Học Sinh & Sổ Điểm</span></h1>
+                        <div className="flex items-center justify-center gap-2 text-primary-100 text-sm font-medium bg-white/10 py-1 px-4 rounded-full backdrop-blur-sm mx-auto w-fit">
+                            <span>Thầy Thái Minh Nguyên</span><span className="w-1 h-1 bg-white rounded-full"></span><span>Yersin Đà Lạt</span>
+                        </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md animate-fade-in-up relative z-10" style={{animationDelay: '0.3s'}}>
+                        <button onClick={onLogin} className="w-full sm:flex-1 bg-white text-slate-700 font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-3 group border border-slate-100 relative overflow-hidden">
+                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                           <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>
+                           <span className="text-sm md:text-base font-extrabold tracking-tight">Đăng nhập Google</span>
+                        </button>
+                        <button onClick={onStart} className="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-2xl shadow-glow transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+                            <Icon name="rocket" size={24}/> BẮT ĐẦU NGAY
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- 7. MAIN APP COMPONENTS ---
+        const StudentCard = ({ student, onAddPoint, onClick, isTopRanked }) => {
+            const [isHovered, setIsHovered] = React.useState(false);
+            const [burst, setBurst] = React.useState(false);
+            const points = student.points || 0;
+            const rank = getRankInfo(points);
+            const shouldAnimate = isHovered || isTopRanked;
+
+            const handleQuickAdd = (e) => {
+                e.stopPropagation();
+                onAddPoint(student.id, 1);
+                setBurst(true);
+                setTimeout(()=>setBurst(false), 500);
+            };
+
+            return (
+                <div className="relative group w-full cursor-pointer select-none transition-all duration-300 hover:-translate-y-1" onClick={onClick} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+                    <div className="min-h-[260px] md:min-h-[300px] h-full relative rounded-[1.8rem] p-[4px] overflow-hidden flex flex-col shadow-lg transition-shadow hover:shadow-2xl hover:shadow-purple-200/50"> 
+                        <div className={`absolute inset-0 ${rank.effect === 'scholar' ? 'bg-gradient-to-tr from-purple-100 to-indigo-100' : 'bg-white'} rounded-[1.8rem]`}></div>
+                        <div className={`relative h-full w-full rounded-[1.5rem] flex flex-col items-center p-3 md:p-5 z-10 ${rank.bgClass} overflow-hidden`}>
+                            {burst && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl animate-ping opacity-0 z-50">⭐</div>}
+                            <div className="w-full flex justify-center items-center z-20 mb-3"><span className={`text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${rank.badge}`}>{rank.name}</span></div>
+                            <div className="relative z-10 mb-3 mt-auto transition-transform duration-300 group-hover:scale-105">
+                                <AvatarRing type={rank.effect} isAnimated={shouldAnimate} />
+                                <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-white shadow-xl flex items-center justify-center text-5xl md:text-7xl relative z-10 overflow-hidden border-[3px] border-white ring-1 ring-gray-100`}>
+                                    {student.avatarUrl ? <img src={student.avatarUrl} className="w-full h-full object-cover" /> : <span className="drop-shadow-md">{student.avatar || '🦁'}</span>}
+                                </div>
+                                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md border-2 border-yellow-100 flex items-center gap-2 min-w-[3.5rem] justify-center z-30">
+                                    <Icon name="star" size={14} className="fill-yellow-400 text-yellow-400" /><span className="font-black text-gray-800 text-base md:text-lg">{points}</span>
+                                </div>
+                            </div>
+                            <div className="mt-auto w-full text-center z-20"><h3 className={`text-base md:text-lg font-black text-center px-1 leading-tight break-words ${rank.textColor || 'text-gray-700'}`}>{student.name}</h3></div>
+                            <button onClick={handleQuickAdd} className="mt-3 w-full py-2.5 rounded-xl bg-gray-50 hover:bg-yellow-50 text-gray-400 hover:text-yellow-600 font-bold text-[10px] md:text-xs flex items-center justify-center gap-1 transition-colors z-20 border border-transparent hover:border-yellow-200"><Icon name="thumbs-up" size={14}/> THƯỞNG NHANH</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const StudentDetailModal = ({ student, subjectId, onClose, onUpdateScore, onUpdatePoints }) => {
+            const [tab, setTab] = React.useState('behavior');
+            const [selectedSubModal, setSelectedSubModal] = React.useState(subjectId);
+            const [txScores, setTxScores] = React.useState([]);
+            const [gkScore, setGkScore] = React.useState('');
+            const [ckScore, setCkScore] = React.useState('');
+
+            React.useEffect(() => {
+                const s = student.subjects?.[selectedSubModal] || { tx: [], gk: '', ck: '' };
+                setTxScores(s.tx || []);
+                setGkScore(s.gk ?? '');
+                setCkScore(s.ck ?? '');
+            }, [selectedSubModal, student]);
+
+            const avg = calculateSubjectAverage({ tx: txScores, gk: gkScore === '' ? null : parseFloat(gkScore), ck: ckScore === '' ? null : parseFloat(ckScore) });
+            const rank = getRankInfo(student.points || 0);
+
+            const handleSaveScores = () => {
+                onUpdateScore(student.id, selectedSubModal, { tx: txScores, gk: gkScore === '' ? null : parseFloat(gkScore), ck: ckScore === '' ? null : parseFloat(ckScore) });
+                showToast('Đã lưu điểm môn ' + SUBJECTS.find(s=>s.id===selectedSubModal).name, 'success');
+            };
+
+            const handleAddTx = () => {
+                const val = prompt("Nhập điểm TX (0-10):");
+                if (val && !isNaN(val) && parseFloat(val) >= 0 && parseFloat(val) <= 10) setTxScores([...txScores, parseFloat(val)]);
+            };
+
+            return (
+                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+                    <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                        <div className={`p-6 ${rank.effect === 'scholar' ? 'bg-gradient-to-r from-purple-100 to-indigo-100' : 'bg-gradient-to-r from-gray-50 to-gray-100'} flex items-center gap-4 relative overflow-hidden`}>
+                            {rank.effect === 'scholar' && <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 animate-pulse"></div>}
+                            <div className="relative z-10"><div className="w-20 h-20 rounded-full bg-white border-2 border-white shadow overflow-hidden flex items-center justify-center text-5xl">{student.avatarUrl ? <img src={student.avatarUrl} className="w-full h-full object-cover"/> : (student.avatar || '🦁')}</div>{tab === 'grades' && (<div className="absolute -bottom-2 -right-2 bg-yellow-400 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center shadow border-2 border-white">{avg || '-'}</div>)}</div>
+                            <div className="flex-1 z-10"><h2 className="text-2xl font-black text-gray-800">{student.name}</h2><span className={`text-xs font-bold px-2 py-0.5 rounded-full ${rank.badge} uppercase shadow-sm`}>{rank.name}</span><div className="flex items-center gap-2 mt-1 text-sm text-gray-500"><Icon name="star" size={14} className="fill-yellow-400 text-yellow-400"/> {student.points || 0} Điểm thi đua</div></div>
+                            <button onClick={onClose} className="bg-white/50 p-2 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors z-10"><Icon name="x" /></button>
+                        </div>
+                        <div className="flex border-b border-gray-100"><button onClick={()=>setTab('behavior')} className={`flex-1 py-3 font-bold text-sm ${tab==='behavior'?'text-pink-600 border-b-2 border-pink-500 bg-pink-50':'text-gray-400 hover:bg-gray-50'}`}>HÀNH VI & THI ĐUA</button><button onClick={()=>setTab('grades')} className={`flex-1 py-3 font-bold text-sm ${tab==='grades'?'text-blue-600 border-b-2 border-blue-500 bg-blue-50':'text-gray-400 hover:bg-gray-50'}`}>SỔ ĐIỂM CHI TIẾT</button></div>
+                        <div className="p-6 overflow-y-auto custom-scrollbar">
+                            {tab === 'behavior' ? (
+                                <div className="space-y-6">
+                                    <div><h3 className="text-sm font-black text-gray-400 uppercase mb-3">Thưởng điểm (+1 đến +5)</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[{l:'Phát biểu', v:1, i:'hand'}, {l:'Bài tốt', v:2, i:'file-check'}, {l:'Giúp bạn', v:2, i:'users'}, {l:'Xuất sắc', v:5, i:'trophy'}].map((btn, idx) => (<button key={idx} onClick={()=>onUpdatePoints(student.id, btn.v)} className="flex flex-col items-center justify-center p-3 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 hover:scale-105 transition-all border border-green-100 shadow-sm"><Icon name={btn.i} size={24} className="mb-1"/><span className="font-bold text-xs">{btn.l}</span><span className="text-[10px] font-bold bg-green-200 px-2 rounded-full">+{btn.v}</span></button>))}</div></div>
+                                    <div><h3 className="text-sm font-black text-gray-400 uppercase mb-3">Phạt điểm (-1 đến -5)</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[{l:'Nói chuyện', v:-1, i:'message-circle-off'}, {l:'Không thuộc bài', v:-2, i:'book-x'}, {l:'Đi trễ', v:-2, i:'clock'}, {l:'Vô lễ', v:-5, i:'frown'}].map((btn, idx) => (<button key={idx} onClick={()=>onUpdatePoints(student.id, btn.v)} className="flex flex-col items-center justify-center p-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:scale-105 transition-all border border-red-100 shadow-sm"><Icon name={btn.i} size={24} className="mb-1"/><span className="font-bold text-xs">{btn.l}</span><span className="text-[10px] font-bold bg-red-200 px-2 rounded-full">{btn.v}</span></button>))}</div></div>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="mb-4"><label className="block text-sm font-bold text-gray-600 mb-2">Chọn Môn Học Cần Nhập:</label><div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">{SUBJECTS.map(s => (<button key={s.id} onClick={()=>setSelectedSubModal(s.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border ${selectedSubModal === s.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}>{s.name}</button>))}</div></div>
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <div className="flex justify-between items-center mb-2"><label className="text-sm font-bold text-gray-700">ĐG Thường Xuyên (HS 1)</label><button onClick={handleAddTx} className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold hover:bg-blue-200">+ Thêm</button></div>
+                                        <div className="flex flex-wrap gap-2 mb-4">{txScores.map((s, i) => (<div key={i} className="relative group"><span className="px-3 py-1.5 bg-white border rounded-lg font-bold text-gray-700 shadow-sm">{s}</span><button onClick={()=>{setTxScores(txScores.filter((_,idx)=>idx!==i))}} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">x</button></div>))}{txScores.length===0 && <span className="text-gray-400 italic text-xs">Chưa có điểm</span>}</div>
+                                        <div className="grid grid-cols-2 gap-4"><div><label className="text-sm font-bold text-gray-700 block mb-1">Giữa Kỳ (HS 2)</label><input type="number" value={gkScore} onChange={e=>setGkScore(e.target.value)} className="w-full p-2 border rounded-lg font-bold text-center" placeholder="--"/></div><div><label className="text-sm font-bold text-gray-700 block mb-1">Cuối Kỳ (HS 3)</label><input type="number" value={ckScore} onChange={e=>setCkScore(e.target.value)} className="w-full p-2 border rounded-lg font-bold text-center text-red-600" placeholder="--"/></div></div>
+                                    </div>
+                                    <button onClick={handleSaveScores} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"><Icon name="save" /> LƯU ĐIỂM MÔN {SUBJECTS.find(s=>s.id===selectedSubModal).name.toUpperCase()}</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const GradebookTable = ({ students, subjectId, onEditStudent }) => {
+            // EXPORT FUNCTION INTEGRATED
+            const handleExportGradebook = () => {
+                const subjectName = SUBJECTS.find(s => s.id === subjectId)?.name || "MonHoc";
+                const fileName = `SoDiem_${subjectName}.xlsx`;
+                const headers = ["STT", "Họ và Tên", "ĐG Thường Xuyên (HS1)", "Giữa Kỳ (HS2)", "Cuối Kỳ (HS3)", "ĐTB Môn"];
+                const data = [headers];
+
+                students.forEach((s, idx) => {
+                    const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
+                    const avg = calculateSubjectAverage(scores);
+                    const txString = (scores.tx || []).join(', ');
+                    data.push([idx + 1, s.name, txString, scores.gk || '', scores.ck || '', avg || '']);
+                });
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                ws['!cols'] = [{ wch: 5 }, { wch: 25 }, { wch: 25 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                        if (!ws[cellRef]) continue;
+                        const cellStyle = {
+                            font: { name: "Times New Roman", sz: 12 },
+                            border: { top: { style: "thin", color: { rgb: "000000" } }, bottom: { style: "thin", color: { rgb: "000000" } }, left: { style: "thin", color: { rgb: "000000" } }, right: { style: "thin", color: { rgb: "000000" } } },
+                            alignment: { vertical: "center", horizontal: "center", wrapText: true }
+                        };
+                        if (C === 1) cellStyle.alignment.horizontal = "left";
+                        if (R === 0) { cellStyle.font.bold = true; cellStyle.fill = { fgColor: { rgb: "E0E0E0" } }; cellStyle.alignment.horizontal = "center"; }
+                        ws[cellRef].s = cellStyle;
+                    }
+                }
+                XLSX.utils.book_append_sheet(wb, ws, subjectName);
+                XLSX.writeFile(wb, fileName);
+            };
+
+            return (
+                <div className="flex flex-col h-full">
+                    <div className="flex justify-end mb-2">
+                        <button onClick={handleExportGradebook} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2 transition-all active:scale-95">
+                            <Icon name="download" size={14}/> Xuất Excel
+                        </button>
+                    </div>
+                    <div className="overflow-x-auto bg-white/80 backdrop-blur rounded-[2rem] shadow-xl border border-white p-4 flex-1">
+                        <table className="w-full text-sm glass-table">
+                            <thead><tr className="text-left border-b border-gray-200"><th className="p-3 font-black text-gray-600">STT</th><th className="p-3 font-black text-gray-600">Họ và Tên</th><th className="p-3 font-black text-gray-600">ĐG Thường Xuyên (HS1)</th><th className="p-3 font-black text-gray-600 text-center">GK (HS2)</th><th className="p-3 font-black text-gray-600 text-center">CK (HS3)</th><th className="p-3 font-black text-blue-600 text-center">ĐTB</th><th className="p-3 text-center">Sửa</th></tr></thead>
+                            <tbody>{students.map((s, idx) => {
+                                const scores = s.subjects?.[subjectId] || { tx: [], gk: null, ck: null };
+                                const avg = calculateSubjectAverage(scores);
+                                return (<tr key={s.id} className="border-b border-gray-100/50 hover:bg-gray-50/50 transition-colors"><td className="p-3 text-gray-400 font-bold">{idx + 1}</td><td className="p-3 font-bold text-gray-800 flex items-center gap-2"><span className="text-lg">{s.avatar}</span> {s.name}</td><td className="p-3"><div className="flex gap-1 flex-wrap">{scores.tx && scores.tx.map((sc,i)=><span key={i} className="bg-gray-100 px-1.5 rounded text-xs font-bold text-gray-600">{sc}</span>)}</div></td><td className="p-3 text-center font-bold text-gray-700">{scores.gk||'-'}</td><td className="p-3 text-center font-bold text-red-500">{scores.ck||'-'}</td><td className="p-3 text-center font-black text-blue-600 text-lg">{avg||'-'}</td><td className="p-3 text-center"><button onClick={()=>onEditStudent(s)} className="text-gray-400 hover:text-blue-500"><Icon name="edit-3" size={16}/></button></td></tr>);
+                            })}</tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+
+        const ExcelImportModal = ({ onClose, onImport, subjectId }) => {
+            const [data, setData] = React.useState('');
+            const [columnType, setColumnType] = React.useState('tx');
+            const subject = SUBJECTS.find(s => s.id === subjectId);
+            const handleImport = () => { if (data.trim()) { onImport(columnType, data.split(/\r?\n/).map(l => l.trim())); onClose(); } };
+            return (
+                <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl flex flex-col overflow-hidden animate-fade-in-up">
+                        <div className="p-4 bg-green-600 text-white flex justify-between items-center"><h3 className="font-bold flex items-center gap-2"><Icon name="file-spreadsheet"/> Nhập Điểm Excel: {subject.name}</h3><button onClick={onClose}><Icon name="x"/></button></div>
+                        <div className="p-6 space-y-4">
+                            <div><label className="block text-sm font-bold text-gray-700 mb-2">Chọn Cột Điểm:</label><div className="grid grid-cols-3 gap-2"><button onClick={() => setColumnType('tx')} className={`p-2 rounded-lg border text-xs font-bold ${columnType === 'tx' ? 'bg-green-100 border-green-500 text-green-700' : 'border-gray-200 text-gray-500'}`}>Thường Xuyên</button><button onClick={() => setColumnType('gk')} className={`p-2 rounded-lg border text-xs font-bold ${columnType === 'gk' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-200 text-gray-500'}`}>Giữa Kỳ</button><button onClick={() => setColumnType('ck')} className={`p-2 rounded-lg border text-xs font-bold ${columnType === 'ck' ? 'bg-orange-100 border-orange-500 text-orange-700' : 'border-gray-200 text-gray-500'}`}>Cuối Kỳ</button></div></div>
+                            <div><label className="block text-sm font-bold text-gray-700 mb-2">Dán Cột Điểm Excel:</label><textarea value={data} onChange={e => setData(e.target.value)} className="w-full h-40 p-3 border rounded-xl font-mono text-sm focus:ring-2 focus:ring-green-300 outline-none" placeholder="8.5&#10;9.0&#10;..."></textarea></div>
+                            <button onClick={handleImport} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700">Xác Nhận Nhập</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ClassManager = ({ classes, activeClassId, onSwitchClass, onAddClass, onDeleteClass, onClose }) => {
+            const [newClassName, setNewClassName] = React.useState('');
+            const [importText, setImportText] = React.useState('');
+            const handleCreate = () => { if (!newClassName.trim()) return; onAddClass(newClassName, importText); setNewClassName(''); setImportText(''); };
+            
+            return (
+                <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+                    <div className="bg-white w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden flex flex-col h-[85vh] animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Header */}
+                        <div className="p-5 bg-slate-800 text-white flex justify-between items-center shadow-md z-10 shrink-0">
+                            <h2 className="text-xl font-bold flex items-center gap-3 tracking-wide">
+                                <Icon name="layout-dashboard" className="text-blue-400"/> QUẢN LÝ LỚP HỌC
+                            </h2>
+                            <button onClick={onClose} className="bg-slate-700 p-2 rounded-lg hover:bg-slate-600 transition-colors text-gray-300 hover:text-white">
+                                <Icon name="x" size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="flex flex-col md:flex-row h-full overflow-hidden">
+                            {/* Left: Class List */}
+                            <div className="w-full md:w-1/3 bg-slate-50 border-r border-gray-200 flex flex-col">
+                                <div className="p-4 border-b border-gray-200 bg-white">
+                                    <h3 className="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center gap-2">
+                                        <Icon name="list" size={14}/> Danh Sách Lớp ({classes.length})
+                                    </h3>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                    {classes.map(c => (
+                                        <div key={c.id} onClick={() => onSwitchClass(c.id)} 
+                                             className={`px-4 py-3 rounded-lg cursor-pointer flex justify-between items-center group transition-all border ${activeClassId === c.id ? 'bg-white border-blue-500 shadow-sm ring-1 ring-blue-100' : 'bg-white border-transparent hover:bg-slate-100 hover:border-slate-200'}`}>
+                                            <div>
+                                                <div className={`font-bold text-sm ${activeClassId === c.id ? 'text-blue-700' : 'text-slate-700'}`}>{c.name}</div>
+                                                <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5"><Icon name="users" size={12}/> {c.students.length} Học sinh</div>
+                                            </div>
+                                            {activeClassId === c.id && <Icon name="check-circle" size={18} className="text-blue-500"/>}
+                                            {classes.length > 1 && <button onClick={(e) => {e.stopPropagation(); onDeleteClass(c.id)}} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-all"><Icon name="trash-2" size={16}/></button>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Right: Add New */}
+                            <div className="flex-1 flex flex-col bg-white">
+                                <div className="p-6 border-b border-gray-100">
+                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                        <div className="p-2 bg-green-100 rounded-lg text-green-600"><Icon name="plus-circle" size={20}/></div>
+                                        Thêm Lớp Mới
+                                    </h3>
+                                </div>
+                                <div className="p-6 overflow-y-auto space-y-5 bg-slate-50/50 flex-1">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Tên Lớp</label>
+                                        <input type="text" value={newClassName} onChange={e => setNewClassName(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-semibold transition-all shadow-sm" placeholder="Ví dụ: 10A1" />
+                                    </div>
+                                    <div className="flex-1 flex flex-col min-h-0">
+                                        <label className="block text-sm font-bold text-slate-700 mb-2 flex justify-between">
+                                            <span>Danh Sách Học Sinh</span>
+                                            <span className="text-xs font-normal text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100">Copy từ cột Excel (1 tên/dòng)</span>
+                                        </label>
+                                        <textarea value={importText} onChange={e => setImportText(e.target.value)} className="w-full h-48 px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-mono leading-relaxed shadow-sm resize-none" placeholder="Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C..."></textarea>
+                                    </div>
+                                    <button onClick={handleCreate} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
+                                        <Icon name="save" size={18} /> TẠO LỚP & NHẬP DANH SÁCH
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ToolsPanel = ({ students }) => {
+            const [timer, setTimer] = React.useState(0);
+            const [isActive, setIsActive] = React.useState(false);
+            const [chosen, setChosen] = React.useState(null);
+            
+            React.useEffect(() => {
+                let interval = null;
+                if (isActive && timer > 0) { interval = setInterval(() => setTimer(timer => timer - 1), 1000); } else if (timer === 0) { setIsActive(false); }
+                return () => clearInterval(interval);
+            }, [isActive, timer]);
+
+            const spinWheel = () => {
+                setChosen(null); let count = 0;
+                const interval = setInterval(() => { setChosen(students[Math.floor(Math.random() * students.length)]); count++; if(count > 20) clearInterval(interval); }, 100);
+            };
+
+            const formatTime = (seconds) => { const m = Math.floor(seconds / 60); const s = seconds % 60; return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; };
+
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-24">
+                    <div className="bg-white/80 p-6 rounded-[2rem] shadow-lg flex flex-col items-center justify-center text-center"><div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mb-4"><Icon name="dice-5" size={40} className="text-pink-500"/></div><h3 className="font-black text-xl text-gray-800 mb-2">Vòng Quay May Mắn</h3><div className="h-32 flex items-center justify-center">{chosen ? (<div className="animate-bounce"><div className="text-5xl mb-2">{chosen.avatarUrl ? <img src={chosen.avatarUrl} className="w-16 h-16 rounded-full inline object-cover"/> : chosen.avatar || '🦁'}</div><div className="font-black text-2xl text-pink-600">{chosen.name}</div></div>) : <span className="text-gray-400">Ai sẽ là người được chọn?</span>}</div><button onClick={spinWheel} className="mt-4 bg-pink-500 text-white px-8 py-3 rounded-full font-bold hover:bg-pink-600 shadow-lg transition-all">QUAY NGAY</button></div>
+                    <div className="bg-white/80 p-6 rounded-[2rem] shadow-lg flex flex-col items-center justify-center text-center"><div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4"><Icon name="clock" size={40} className="text-blue-500"/></div><h3 className="font-black text-xl text-gray-800 mb-2">Đồng Hồ Đếm Ngược</h3><div className="text-6xl font-black text-gray-700 font-mono my-4 tracking-widest">{formatTime(timer)}</div><div className="flex gap-2"><button onClick={()=>setTimer(15*60)} className="px-3 py-1 bg-gray-200 rounded text-sm font-bold">15p</button><button onClick={()=>setTimer(45*60)} className="px-3 py-1 bg-gray-200 rounded text-sm font-bold">45p</button><button onClick={()=>setTimer(0)} className="px-3 py-1 bg-red-100 text-red-500 rounded text-sm font-bold">Reset</button></div><button onClick={()=>setIsActive(!isActive)} className={`mt-4 px-8 py-3 rounded-full font-bold shadow-lg transition-all text-white ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'}`}>{isActive ? 'TẠM DỪNG' : 'BẮT ĐẦU'}</button></div>
+                </div>
+            );
+        };
+
+        // --- 7. MAIN APP ---
+        const App = () => {
+            const [user, setUser] = React.useState(null);
+            const [showStart, setShowStart] = React.useState(true);
+            const [activeTab, setActiveTab] = React.useState('dashboard');
+            const [selectedSubject, setSelectedSubject] = React.useState('math');
+            const [classes, setClasses] = React.useState([]);
+            const [activeClassId, setActiveClassId] = React.useState(null);
+            
+            const [showImport, setShowImport] = React.useState(false);
+            const [showClassManager, setShowClassManager] = React.useState(false);
+            const [selectedStudent, setSelectedStudent] = React.useState(null);
+
+            // --- FIREBASE INIT ---
+            React.useEffect(() => {
+                if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+                const unsubscribe = firebase.auth().onAuthStateChanged(u => {
+                    setUser(u);
+                    if (u) {
+                        showToast(`Xin chào, ${u.displayName}!`, 'success');
+                        // Load data from Firebase
+                        firebase.database().ref(`users/${u.uid}/data`).once('value').then(snapshot => {
+                            const val = snapshot.val();
+                            if (val) {
+                                setClasses(val.classes || []);
+                                setActiveClassId(val.activeId || null);
+                                setShowStart(false); // Auto enter if logged in
+                            } else {
+                                // First time login, init defaults
+                                initDefaultData();
+                                setShowStart(false);
+                            }
+                        });
+                    }
+                });
+                return () => unsubscribe();
+            }, []);
+
+            // Initial Data Load (Local if not logged in)
+            const initDefaultData = () => {
+                const defaultStudents = DEFAULT_STUDENTS.map((n, i) => ({
+                    id: 's_' + i,
+                    name: n,
+                    points: 0,
+                    avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length],
+                    subjects: {} 
+                }));
+                const defaultClass = { id: 'c_default', name: 'Lớp 10H', students: defaultStudents };
+                setClasses([defaultClass]);
+                setActiveClassId(defaultClass.id);
+            };
+
+            // Sync Data
+            React.useEffect(() => {
+                if (classes.length === 0) return;
+                
+                if (user) {
+                    // Sync to Firebase
+                    const debounceSync = setTimeout(() => {
+                        firebase.database().ref(`users/${user.uid}/data`).set({ classes, activeId: activeClassId });
+                    }, 1000);
+                    return () => clearTimeout(debounceSync);
+                } else {
+                    // Save to LocalStorage
+                    localStorage.setItem('gradebook_yersin_data', JSON.stringify({ classes, activeId: activeClassId }));
+                }
+            }, [classes, activeClassId, user]);
+
+            // Handle Manual Load from Local if not logged in
+            React.useEffect(() => {
+                if (!user && showStart === false) {
+                    const saved = localStorage.getItem('gradebook_yersin_data');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        setClasses(parsed.classes);
+                        setActiveClassId(parsed.activeId);
+                    } else if (classes.length === 0) {
+                        initDefaultData();
+                    }
+                }
+            }, [user, showStart]);
+
+            const activeClass = classes.find(c => c.id === activeClassId) || classes[0];
+            const students = activeClass ? activeClass.students : [];
+            const topStudentIds = React.useMemo(() => {
+                const sorted = [...students].sort((a, b) => (b.points || 0) - (a.points || 0));
+                return sorted.slice(0, 3).map(s => s.id);
+            }, [students]);
+
+            // --- AUTH ACTIONS ---
+            const handleLogin = () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                firebase.auth().signInWithPopup(provider).catch(e => alert("Lỗi: " + e.message));
+            };
+
+            const handleLogout = () => {
+                if(confirm("Đăng xuất?")) firebase.auth().signOut().then(() => {
+                    setShowStart(true);
+                    setClasses([]);
+                });
+            };
+
+            // --- CRUD ACTIONS ---
+            const handleUpdateStudent = (studentId, newData) => {
+                setClasses(prev => prev.map(c => {
+                    if (c.id !== activeClassId) return c;
+                    return { ...c, students: c.students.map(s => s.id === studentId ? { ...s, ...newData } : s) };
+                }));
+            };
+
+            const updatePoints = (id, delta) => {
+                const s = students.find(x => x.id === id);
+                if (s) handleUpdateStudent(id, { points: Math.max(0, (s.points || 0) + delta) });
+            };
+
+            const updateScores = (studentId, subjectId, newScores) => {
+                const s = students.find(x => x.id === studentId);
+                if (s) {
+                    handleUpdateStudent(studentId, {
+                        subjects: { ...s.subjects, [subjectId]: newScores }
+                    });
+                }
+            };
+
+            const handleBulkImport = (columnType, scoresList) => {
+                setClasses(prev => prev.map(c => {
+                    if (c.id !== activeClassId) return c;
+                    const newStudents = c.students.map((s, idx) => {
+                        const rawScore = scoresList[idx];
+                        if (rawScore === undefined || rawScore === '') return s;
+                        const val = parseFloat(rawScore);
+                        if (isNaN(val)) return s;
+                        const currentSub = s.subjects?.[selectedSubject] || { tx: [], gk: null, ck: null };
+                        let newSubData = { ...currentSub };
+                        if (columnType === 'tx') newSubData.tx = [...(newSubData.tx || []), val];
+                        else if (columnType === 'gk') newSubData.gk = val;
+                        else if (columnType === 'ck') newSubData.ck = val;
+                        return { ...s, subjects: { ...s.subjects, [selectedSubject]: newSubData } };
+                    });
+                    return { ...c, students: newStudents };
+                }));
+            };
+
+            const resetData = () => {
+                if(confirm("Xóa hết dữ liệu lớp này?")) {
+                    setClasses(prev => prev.map(c => c.id === activeClassId ? { ...c, students: c.students.map(s => ({ ...s, points: 0, subjects: {} })) } : c));
+                }
+            };
+
+            const handleAddClass = (name, importText) => {
+                const names = importText.split(/\r?\n/).map(n => n.trim()).filter(n => n);
+                const newStudents = names.length > 0 ? names.map((n, i) => ({ id: Date.now() + '_' + i, name: n, points: 0, avatar: ANIMAL_AVATARS[i % ANIMAL_AVATARS.length], subjects: {} })) : [];
+                const newClass = { id: 'class_' + Date.now(), name, students: newStudents };
+                setClasses(prev => [...prev, newClass]);
+                setActiveClassId(newClass.id);
+                setShowClassManager(false);
+            };
+
+            const handleDeleteClass = (id) => {
+                if(confirm("Xóa lớp này vĩnh viễn?")) {
+                    const newClasses = classes.filter(c => c.id !== id);
+                    setClasses(newClasses);
+                    if(activeClassId === id && newClasses.length > 0) setActiveClassId(newClasses[0].id);
+                }
+            };
+
+            // --- RENDER ---
+            if (showStart) return <StartScreen onStart={() => setShowStart(false)} onLogin={handleLogin} />;
+            if (!activeClass) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div></div>;
+
+            return (
+                <div className="min-h-screen flex flex-col md:flex-row p-2 md:p-6 gap-4 max-w-[1600px] mx-auto relative">
+                    <div className="aurora-bg"></div>
+                    <BokehBackground />
+
+                    {selectedStudent && <StudentDetailModal student={selectedStudent} subjectId={selectedSubject} onClose={()=>setSelectedStudent(null)} onUpdateScore={updateScores} onUpdatePoints={updatePoints} />}
+                    {showImport && <ExcelImportModal subjectId={selectedSubject} onClose={()=>setShowImport(false)} onImport={handleBulkImport} />}
+                    {showClassManager && <ClassManager classes={classes} activeClassId={activeClassId} onSwitchClass={(id) => { setActiveClassId(id); setShowClassManager(false); }} onAddClass={handleAddClass} onDeleteClass={handleDeleteClass} onClose={()=>setShowClassManager(false)} />}
+
+                    {/* Sidebar */}
+                    <div className="hidden md:flex flex-col w-72 bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-6 shadow-2xl h-[90vh] sticky top-6 border border-white/50">
+                        <div className="mb-8 flex flex-col items-center justify-center gap-2">
+                            <h1 className="font-black text-2xl leading-tight tracking-tight animate-logo rainbow-title text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">SỔ ĐIỂM<br/>GAMIFICATION</h1>
+                            <div onClick={()=>setShowClassManager(true)} className="bg-white px-4 py-2 rounded-xl shadow border-2 border-blue-100 hover:border-blue-400 font-bold text-blue-600 cursor-pointer flex items-center gap-2 transition-all hover:scale-105"><Icon name="library" size={16}/> {activeClass.name} <Icon name="chevron-down" size={14}/></div>
+                        </div>
+                        <div className="flex flex-col gap-3 flex-1">
+                            {[{id:'dashboard',l:'Thi Đua & Avatar',i:'layout-grid'}, {id:'gradebook',l:'Sổ Điểm 22',i:'table-2'}, {id:'tools',l:'Công Cụ Lớp Học',i:'wrench'}].map(t => (
+                                <button key={t.id} onClick={()=>setActiveTab(t.id)} className={`flex items-center gap-4 px-5 py-4 rounded-[1.2rem] font-bold text-base transition-all duration-300 group ${activeTab===t.id ? 'bg-white text-pink-600 shadow-xl scale-105 ring-2 ring-pink-100' : 'text-gray-500 hover:bg-white/50 hover:text-pink-500'}`}>
+                                    <Icon name={t.i} size={20} className={`transition-colors ${activeTab===t.id ? 'fill-pink-200' : 'group-hover:text-pink-400'}`}/> {t.l}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="mt-auto space-y-2">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                {user ? <span className="text-xs font-bold text-green-600 flex items-center gap-1"><span className="status-dot online"></span> {user.displayName}</span> : <span className="text-xs font-bold text-slate-400">Chưa đăng nhập</span>}
+                            </div>
+                            <button onClick={user ? handleLogout : handleLogin} className={`w-full py-2 flex items-center justify-center gap-2 text-xs font-bold rounded-lg transition-colors ${user ? 'text-red-500 bg-red-50 hover:bg-red-100' : 'text-blue-500 bg-blue-50 hover:bg-blue-100'}`}>
+                                <Icon name={user ? 'log-out' : 'log-in'} size={14}/> {user ? 'Đăng Xuất' : 'Đăng Nhập Cloud'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Mobile Header */}
+                    <div className="md:hidden flex justify-between items-center bg-white/80 backdrop-blur p-4 rounded-xl shadow-sm mb-2">
+                        <div onClick={() => setShowClassManager(true)} className="flex items-center gap-2">
+                            <span className="font-black text-pink-600 text-lg">{activeClass.name}</span>
+                            <Icon name="chevron-down" size={16} className="text-gray-400"/>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={()=>setActiveTab('dashboard')} className={`p-2 rounded-lg ${activeTab==='dashboard'?'bg-pink-100 text-pink-600':'text-gray-400'}`}><Icon name="layout-grid" size={20}/></button>
+                            <button onClick={()=>setActiveTab('gradebook')} className={`p-2 rounded-lg ${activeTab==='gradebook'?'bg-blue-100 text-blue-600':'text-gray-400'}`}><Icon name="table-2" size={20}/></button>
+                            <button onClick={()=>setActiveTab('tools')} className={`p-2 rounded-lg ${activeTab==='tools'?'bg-orange-100 text-orange-600':'text-gray-400'}`}><Icon name="wrench" size={20}/></button>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[1.5rem] md:rounded-[3rem] p-3 md:p-8 shadow-sm border border-white/40 min-h-[85vh] relative overflow-hidden mb-20 md:mb-0">
+                        {activeTab === 'dashboard' && (
+                            <div className="h-full overflow-y-auto pb-20 custom-scrollbar">
+                                <div className="flex justify-between items-end mb-6 px-2">
+                                    <div>
+                                        <h2 className="text-3xl font-black text-gray-800">Thi Đua: {activeClass.name}</h2>
+                                        <p className="text-gray-500 font-medium">Bấm vào thẻ để nhập điểm & thưởng.</p>
+                                    </div>
+                                    <div className="hidden md:block text-right"><div className="text-4xl font-black text-pink-500">{students.reduce((a,b)=>a+(b.points||0),0)}</div><div className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tổng điểm</div></div>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                                    {students.map(s => (
+                                        <StudentCard key={s.id} student={s} onAddPoint={updatePoints} isTopRanked={topStudentIds.includes(s.id)} onClick={() => setSelectedStudent(s)} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'gradebook' && (
+                            <div className="h-full flex flex-col">
+                                <div className="mb-6 px-2 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                                    <div>
+                                        <h2 className="text-3xl font-black text-gray-800">Sổ Điểm Điện Tử</h2>
+                                        <p className="text-gray-500 font-medium">Quy chế Thông tư 22/2021/TT-BGDĐT</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <select value={selectedSubject} onChange={e=>setSelectedSubject(e.target.value)} className="bg-white border-2 border-pink-200 text-pink-600 font-bold py-2 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300">
+                                            {SUBJECTS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        </select>
+                                        <button onClick={()=>setShowImport(true)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl shadow-lg flex items-center gap-2 transition-transform hover:scale-105"><Icon name="file-spreadsheet" size={18}/> Nhập Excel</button>
+                                    </div>
+                                </div>
+                                <GradebookTable students={students} subjectId={selectedSubject} onEditStudent={setSelectedStudent} />
+                            </div>
+                        )}
+
+                        {activeTab === 'tools' && (
+                             <div className="h-full overflow-y-auto pb-20 custom-scrollbar">
+                                <div className="mb-6 px-2"><h2 className="text-3xl font-black text-gray-800">Tiện Ích Lớp Học</h2></div>
+                                <ToolsPanel students={students} />
+                             </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
