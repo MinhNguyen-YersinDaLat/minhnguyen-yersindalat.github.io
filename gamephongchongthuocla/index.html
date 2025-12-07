@@ -8,11 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Font cho các nút bấm -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Font cho slogan nút chính -->
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@700;900&display=swap" rel="stylesheet">
-    <!-- Font cho tiêu đề game và slogan chính -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@900&display=swap" rel="stylesheet">
     
     <style>
@@ -393,12 +390,9 @@
     </style>
 </head>
 <body class="relative">
-    <!-- Lớp phủ cho hiệu ứng sáng toàn màn hình -->
     <div id="gate-flash-overlay"></div>
-    <!-- Container cho các ngôi sao rơi (được tạo bằng JS) -->
     <div id="star-container-fixed" class="absolute inset-0 z-0"></div>
 
-    <!-- Nút cài đặt đồ họa và chú thích -->
     <div id="top-right-controls">
         <button id="graphics-toggle-btn" class="icon-btn" title="Chuyển đổi chất lượng đồ họa">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -409,12 +403,10 @@
         <p id="settings-tooltip" class="settings-tooltip"></p>
     </div>
 
-    <!-- Container chính co giãn theo màn hình -->
     <div id="scaling-container">
         <main class="main-panel relative z-10 w-full h-full text-center flex items-center justify-center p-4">
             <div class="w-full max-w-5xl mx-auto"> 
                 <header class="text-center">
-                    <!-- HƯỚNG DẪN: Nếu có file logo.png cùng cấp, nó sẽ tự được tải. -->
                     <img id="gameLogo" src="logo.png" alt="Game Logo" class="game-logo" title="Xem thông tin trường">
                     
                     <div class="cosmic-title-wrapper">
@@ -423,14 +415,11 @@
                     </div>
                 </header>
 
-                <!-- CONTAINER CHO MENU CHÍNH -->
                 <div id="main-menu-container">
                     <div class="grid grid-cols-3 gap-0 items-center">
-                        <!-- Cột Trái -->
                         <div class="flex flex-col gap-2 anim-fade-in" style="animation-delay: 0.8s;">
                             <button onclick="activateConstellation(event, 'Mở Menu Game...')" class="svg-btn constellation-btn gemini w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"> <defs> <filter id="cosmic-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge> <feMergeNode in="coloredBlur"/> <feMergeNode in="SourceGraphic"/> </feMerge> </filter> <radialGradient id="nebula-gemini"> <stop offset="0%" stop-color="#a855f7" /> <stop offset="100%" stop-color="transparent" /> </radialGradient> </defs> <rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-gemini)" /> 
-                                <!-- Biểu tượng Game Controller chi tiết -->
                                 <g class="lines">
                                     <path d="M 60 60 C 40 60, 40 90, 60 90 L 140 90 C 160 90, 160 60, 140 60 Z" fill="none" style="--line-length: 220; animation-delay: 0.8s;"></path>
                                     <path d="M 75 75 L 75 65" style="--line-length: 10; animation-delay: 0.2s;"></path> 
@@ -452,7 +441,6 @@
                             </button>
                              <button onclick="activateConstellation(event, 'Mở Giới thiệu...')" class="svg-btn constellation-btn leo w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"> <defs> <radialGradient id="nebula-leo"> <stop offset="0%" stop-color="#f59e0b" /> <stop offset="100%" stop-color="transparent" /> </radialGradient> </defs> <rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-leo)" /> 
-                                <!-- Biểu tượng Cuốn sách mở chi tiết -->
                                 <g class="lines">
                                     <path d="M 100 30 L 50 90" style="--line-length: 72; animation-delay: 0.2s;"></path>
                                     <path d="M 100 30 L 150 90" style="--line-length: 72; animation-delay: 0.4s;"></path>
@@ -475,7 +463,6 @@
                                 <text x="100" y="125" class="btn-text" text-anchor="middle">Giới Thiệu</text> </svg>
                             </button>
                         </div>
-                        <!-- Cột Giữa (Nút chính) -->
                         <div class="flex flex-col items-center justify-center gap-2 anim-fade-in" style="animation-delay: 0.6s;">
                             <button onclick="activateConstellation(event, 'batdau.html')" class="svg-btn orrery-btn">
                                 <svg viewBox="0 0 250 250" class="w-56 h-56">
@@ -511,7 +498,6 @@
                             </button>
                              <button onclick="activateConstellation(event, 'phieuhoctap.html')" class="svg-btn constellation-btn libra w-56 mx-auto">
                                  <svg viewBox="0 0 200 130"> <defs> <radialGradient id="nebula-libra"> <stop offset="0%" stop-color="#38bdf8" /> <stop offset="100%" stop-color="transparent" /> </radialGradient> </defs> <rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-libra)" /> 
-                                 <!-- Biểu tượng Tờ giấy & Dấu tick -->
                                  <g class="lines">
                                     <path d="M 60 30 L 140 30 L 140 90 L 60 90 Z" fill="none" stroke-width="1.5" style="--line-length: 280; animation-delay: 0.2s;"></path>
                                     <path d="M 75 45 L 125 45" style="--line-length: 50; animation-delay: 1.2s;"></path>
@@ -531,11 +517,9 @@
                                  <text x="100" y="125" class="btn-text" text-anchor="middle">Phiếu Học Tập</text> </svg>
                              </button>
                         </div>
-                        <!-- Cột Phải -->
                         <div class="flex flex-col gap-2 anim-fade-in" style="animation-delay: 1.2s;">
                             <button onclick="activateConstellation(event, 'Mở Ôn tập - Học tập...')" class="svg-btn constellation-btn virgo w-11/12 mx-auto">
                                  <svg viewBox="0 0 200 130"> <defs> <radialGradient id="nebula-virgo"> <stop offset="0%" stop-color="#22c55e" /> <stop offset="100%" stop-color="transparent" /> </radialGradient> </defs> <rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-virgo)" /> 
-                                 <!-- Biểu tượng Mũ cử nhân -->
                                  <g class="lines">
                                     <path d="M 100 25 L 60 55" style="--line-length: 50; animation-delay: 0.2s;"></path>
                                     <path d="M 100 25 L 140 55" style="--line-length: 50; animation-delay: 0.4s;"></path>
@@ -554,7 +538,6 @@
                              </button>
                              <button onclick="activateConstellation(event, 'ngoaitruyen.html')" class="svg-btn constellation-btn scorpius w-11/12 mx-auto">
                                  <svg viewBox="0 0 200 130"> <defs> <radialGradient id="nebula-scorpius"> <stop offset="0%" stop-color="#ef4444" /> <stop offset="100%" stop-color="transparent" /> </radialGradient> </defs> <rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-scorpius)" /> 
-                                 <!-- Biểu tượng Cuộn phim & Play -->
                                  <g class="lines">
                                     <path d="M 60 35 L 140 35 L 140 85 L 60 85 Z" fill="none" style="--line-length: 260; animation-delay: 0.2s;"></path>
                                     <path d="M 60 45 L 140 45" style="--line-length: 80; animation-delay: 1.2s;"></path>
@@ -576,10 +559,8 @@
                     </div>
                 </div>
 
-                <!-- CONTAINER CHO MENU GAME (ẨN BAN ĐẦU) -->
                 <div id="game-menu-container" class="hidden menu-hidden">
                     <div class="grid grid-cols-3 gap-0 items-center">
-                        <!-- Cột Trái -->
                         <div class="flex flex-col gap-2">
                             <button onclick="window.location.href='khampha.html'" class="svg-btn constellation-btn w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"><defs><radialGradient id="nebula-compass"><stop offset="0%" stop-color="#38bdf8"></stop><stop offset="100%" stop-color="transparent"></stop></radialGradient></defs><rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-compass)"></rect>
@@ -619,13 +600,11 @@
                                 <text x="100" y="125" class="btn-text" text-anchor="middle">Game Bắn Súng</text></svg>
                             </button>
                         </div>
-                        <!-- Cột Giữa (Nút Quay Lại) -->
                         <div class="flex flex-col items-center justify-center gap-2">
                              <button onclick="showMainMenu()" class="svg-btn orrery-btn">
                                 <svg viewBox="0 0 250 250" class="w-56 h-56"><defs><radialGradient id="back-grad-pulse"><stop offset="0%" stop-color="#ffffff"></stop><stop offset="70%" stop-color="#38bdf8"></stop><stop offset="100%" stop-color="#a855f7"></stop></radialGradient><filter id="back-glow"><feGaussianBlur stdDeviation="5" result="coloredBlur"></feGaussianBlur><feMerge><feMergeNode in="coloredBlur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs><g transform="translate(125, 125)"><g class="galaxy-arm" style="animation: rotate-slow 20s linear infinite;" transform-origin="center"><path d="M 0 0 C 40 20, 60 60, 50 100" stroke="url(#back-grad-pulse)" stroke-width="3" fill="none" opacity="0.8"></path><path d="M 0 0 C -40 -20, -60 -60, -50 -100" stroke="url(#back-grad-pulse)" stroke-width="3" fill="none" opacity="0.8"></path></g><g class="galaxy-arm" style="animation: rotate-slow 25s linear infinite reverse;" transform-origin="center"><path d="M 0 0 C 20 -40, 60 -60, 100 -50" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"></path><path d="M 0 0 C -20 40, -60 60, -100 50" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"></path></g><circle class="core" cx="0" cy="0" r="25" fill="url(#back-grad-pulse)" filter="url(#back-glow)"></circle><text x="0" y="8" class="btn-text" text-anchor="middle">Quay Lại</text></g></svg>
                             </button>
                         </div>
-                        <!-- Cột Phải -->
                         <div class="flex flex-col gap-2">
                             <button onclick="window.location.href='kimcuong.html'" class="svg-btn constellation-btn w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"><defs><radialGradient id="nebula-diamond"><stop offset="0%" stop-color="#a5f3fc"></stop><stop offset="100%" stop-color="transparent"></stop></radialGradient></defs><rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-diamond)"></rect>
@@ -661,14 +640,11 @@
                     </div>
                 </div>
 
-                <!-- CONTAINER CHO MENU GIỚI THIỆU (ẨN BAN ĐẦU) -->
                 <div id="intro-menu-container" class="hidden menu-hidden">
                     <div class="grid grid-cols-3 gap-0 items-center">
-                        <!-- Cột Trái -->
                         <div class="flex flex-col gap-2">
                             <button onclick="activateConstellation(event, 'openStoryModal')" class="svg-btn constellation-btn w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"><defs><radialGradient id="nebula-story"><stop offset="0%" stop-color="#f59e0b"></stop><stop offset="100%" stop-color="transparent"></stop></radialGradient></defs><rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-story)"></rect>
-                                <!-- Biểu tượng Con đường uốn lượn và lá cờ -->
                                 <g class="lines">
                                     <path d="M 60 90 Q 80 40, 100 60 T 140 30" stroke-width="1.5" fill="none" style="--line-length: 150; animation-delay: 0.2s;"></path>
                                     <path d="M 140 30 L 140 15" style="--line-length: 15; animation-delay: 1.2s;"></path>
@@ -686,13 +662,10 @@
                             </button>
                              <button onclick="window.location.href='credit.html'" class="svg-btn constellation-btn w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"><defs><radialGradient id="nebula-author"><stop offset="0%" stop-color="#f59e0b"></stop><stop offset="100%" stop-color="transparent"></stop></radialGradient></defs><rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-author)"></rect>
-                                <!-- Chòm sao chữ Ng - Nguyên -->
                                 <g class="lines">
-                                    <!-- Chữ N -->
                                     <path d="M 60 90 L 60 40" style="--line-length: 50; animation-delay: 0.2s;"></path>
                                     <path d="M 60 40 L 90 90" style="--line-length: 58.3; animation-delay: 0.6s;"></path>
                                     <path d="M 90 90 L 90 40" style="--line-length: 50; animation-delay: 1.0s;"></path>
-                                    <!-- Chữ g -->
                                     <path d="M 125 45 L 145 65" style="--line-length: 28.3; animation-delay: 1.4s;"></path>
                                     <path d="M 145 65 L 125 85" style="--line-length: 28.3; animation-delay: 1.8s;"></path>
                                     <path d="M 125 85 L 105 65" style="--line-length: 28.3; animation-delay: 2.2s;"></path>
@@ -701,12 +674,10 @@
                                     <path d="M 145 95 L 115 95" style="--line-length: 30; animation-delay: 3.4s;"></path>
                                 </g>
                                 <g class="stars">
-                                    <!-- Chữ N -->
                                     <circle cx="60" cy="90" r="3" fill="#add8e6" style="animation-delay: 0s;"></circle>
                                     <circle cx="60" cy="40" r="3" fill="#add8e6" style="animation-delay: 0.4s;"></circle>
                                     <circle cx="90" cy="90" r="3" fill="#add8e6" style="animation-delay: 0.8s;"></circle>
                                     <circle cx="90" cy="40" r="3" fill="#add8e6" style="animation-delay: 1.2s;"></circle>
-                                    <!-- Chữ g -->
                                     <circle cx="125" cy="45" r="3" fill="#add8e6" style="animation-delay: 1.6s;"></circle>
                                     <circle cx="145" cy="65" r="3" fill="#add8e6" style="animation-delay: 2.0s;"></circle>
                                     <circle cx="125" cy="85" r="3" fill="#add8e6" style="animation-delay: 2.4s;"></circle>
@@ -717,17 +688,14 @@
                                 <text x="100" y="125" class="btn-text" text-anchor="middle">Tác Giả</text></svg>
                             </button>
                         </div>
-                        <!-- Cột Giữa (Nút Quay Lại) -->
                         <div class="flex flex-col items-center justify-center gap-2">
                              <button onclick="showMainMenu()" class="svg-btn orrery-btn">
                                 <svg viewBox="0 0 250 250" class="w-56 h-56"><defs><radialGradient id="back-grad-pulse-amber"><stop offset="0%" stop-color="#ffffff"></stop><stop offset="70%" stop-color="#f59e0b"></stop><stop offset="100%" stop-color="#facc15"></stop></radialGradient><filter id="back-glow-amber"><feGaussianBlur stdDeviation="5" result="coloredBlur"></feGaussianBlur><feMerge><feMergeNode in="coloredBlur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs><g transform="translate(125, 125)"><g class="galaxy-arm" style="animation: rotate-slow 20s linear infinite;" transform-origin="center"><path d="M 0 0 C 40 20, 60 60, 50 100" stroke="url(#back-grad-pulse-amber)" stroke-width="3" fill="none" opacity="0.8"></path><path d="M 0 0 C -40 -20, -60 -60, -50 -100" stroke="url(#back-grad-pulse-amber)" stroke-width="3" fill="none" opacity="0.8"></path></g><g class="galaxy-arm" style="animation: rotate-slow 25s linear infinite reverse;" transform-origin="center"><path d="M 0 0 C 20 -40, 60 -60, 100 -50" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"></path><path d="M 0 0 C -20 40, -60 60, -100 50" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"></path></g><circle class="core" cx="0" cy="0" r="25" fill="url(#back-grad-pulse-amber)" filter="url(#back-glow-amber)"></circle><text x="0" y="8" class="btn-text" text-anchor="middle">Quay Lại</text></g></svg>
                             </button>
                         </div>
-                        <!-- Cột Phải -->
                         <div class="flex flex-col gap-6 justify-center">
                             <button onclick="window.location.href='phuluc.html'" class="svg-btn constellation-btn w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"><defs><radialGradient id="nebula-appendix"><stop offset="0%" stop-color="#f59e0b"></stop><stop offset="100%" stop-color="transparent"></stop></radialGradient></defs><rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-appendix)"></rect>
-                                <!-- Biểu tượng Kính lúp chi tiết -->
                                 <g class="lines">
                                     <path d="M 85 45 L 125 85" style="--line-length: 56.5; animation-delay: 1.2s;"></path>
                                     <path d="M 115 40 A 30 30 0 1 1 75 80" fill="none" stroke-width="1.5" style="--line-length: 141; animation-delay: 0.2s;"></path>
@@ -747,14 +715,11 @@
                     </div>
                 </div>
 
-                <!-- CONTAINER CHO MENU ÔN TẬP (ẨN BAN ĐẦU) -->
                 <div id="review-menu-container" class="hidden menu-hidden">
                     <div class="grid grid-cols-3 gap-0 items-center">
-                        <!-- Cột Trái -->
                         <div class="flex flex-col gap-4 justify-center">
                             <button onclick="window.location.href='thuvientrithuc.html'" class="svg-btn constellation-btn w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"><defs><radialGradient id="nebula-library"><stop offset="0%" stop-color="#22c55e"></stop><stop offset="100%" stop-color="transparent"></stop></radialGradient></defs><rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-library)"></rect>
-                                <!-- Biểu tượng Chồng sách chi tiết -->
                                 <g class="lines">
                                     <path d="M 60 90 L 140 90 L 140 85 L 60 85 Z" stroke-width="1.5" fill="none" style="--line-length: 170; animation-delay: 0.2s;"></path>
                                     <path d="M 65 75 L 135 75 L 135 70 L 65 70 Z" stroke-width="1.5" fill="none" style="--line-length: 150; animation-delay: 0.8s;"></path>
@@ -771,17 +736,14 @@
                                 <text x="100" y="125" class="btn-text" text-anchor="middle">Thư Viện Tri Thức</text></svg>
                             </button>
                         </div>
-                        <!-- Cột Giữa (Nút Quay Lại) -->
                         <div class="flex flex-col items-center justify-center gap-2">
                              <button onclick="showMainMenu()" class="svg-btn orrery-btn">
                                 <svg viewBox="0 0 250 250" class="w-56 h-56"><defs><radialGradient id="back-grad-pulse-emerald"><stop offset="0%" stop-color="#ffffff"></stop><stop offset="70%" stop-color="#22c55e"></stop><stop offset="100%" stop-color="#34d399"></stop></radialGradient><filter id="back-glow-emerald"><feGaussianBlur stdDeviation="5" result="coloredBlur"></feGaussianBlur><feMerge><feMergeNode in="coloredBlur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs><g transform="translate(125, 125)"><g class="galaxy-arm" style="animation: rotate-slow 20s linear infinite;" transform-origin="center"><path d="M 0 0 C 40 20, 60 60, 50 100" stroke="url(#back-grad-pulse-emerald)" stroke-width="3" fill="none" opacity="0.8"></path><path d="M 0 0 C -40 -20, -60 -60, -50 -100" stroke="url(#back-grad-pulse-emerald)" stroke-width="3" fill="none" opacity="0.8"></path></g><g class="galaxy-arm" style="animation: rotate-slow 25s linear infinite reverse;" transform-origin="center"><path d="M 0 0 C 20 -40, 60 -60, 100 -50" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"></path><path d="M 0 0 C -20 40, -60 60, -100 50" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"></path></g><circle class="core" cx="0" cy="0" r="25" fill="url(#back-grad-pulse-emerald)" filter="url(#back-glow-emerald)"></circle><text x="0" y="8" class="btn-text" text-anchor="middle">Quay Lại</text></g></svg>
                             </button>
                         </div>
-                        <!-- Cột Phải -->
                         <div class="flex flex-col gap-4 justify-center">
                             <button onclick="window.location.href='thegameontap.html'" class="svg-btn constellation-btn w-11/12 mx-auto">
                                 <svg viewBox="0 0 200 130"><defs><radialGradient id="nebula-cards"><stop offset="0%" stop-color="#22c55e"></stop><stop offset="100%" stop-color="transparent"></stop></radialGradient></defs><rect class="nebula" x="0" y="0" width="200" height="120" fill="url(#nebula-cards)"></rect>
-                                <!-- Biểu tượng Thẻ lật chi tiết -->
                                 <g class="lines">
                                     <path d="M 70 35 L 130 35 L 130 85 L 70 85 Z" fill="none" stroke="#add8e6" stroke-width="1" style="--line-length: 220; animation-delay: 0.2s;"></path>
                                     <path d="M 60 45 L 120 45 L 120 95 L 60 95 Z" fill="none" stroke="#add8e6" stroke-width="1" style="--line-length: 220; animation-delay: 1.2s;"></path>
@@ -810,7 +772,6 @@
         </main>
     </div>
 
-    <!-- MODAL CỐT TRUYỆN -->
     <div id="story-modal-overlay" class="modal-overlay">
         <div class="modal-container border border-amber-400/50">
             <h2 class="text-3xl font-bold text-amber-300 uppercase mb-4">Cốt truyện game</h2>
@@ -829,7 +790,6 @@
         </div>
     </div>
 
-    <!-- MODAL THÔNG TIN TRƯỜNG -->
     <div id="school-info-modal" class="modal-overlay">
         <div class="modal-container">
              <h2 class="text-3xl font-bold mb-4 text-center">Trường THPT Yersin Đà Lạt</h2>
@@ -853,10 +813,8 @@
         </div>
     </div>
     
-    <!-- Hộp thông báo nhỏ ở dưới -->
     <div id="notification-box"></div>
     
-    <!-- COPYRIGHT -->
     <div id="copyright">
         © <span id="year"></span> Thầy Thái Minh Nguyên - Trường Tiểu học, THCS & THPT Yersin Đà Lạt. All rights reserved.
     </div>
@@ -1144,7 +1102,28 @@
         // Lắng nghe tương tác đầu tiên của người dùng để bật âm thanh
         document.body.addEventListener('pointerdown', initAndStartAudio, { once: true });
 
+        // --- MOBILE CHECK & NOTIFICATION (MỚI THÊM) ---
+        // Sử dụng kỹ thuật Capturing (useCapture: true) để chặn sự kiện trước khi các hàm khác chạy
+        document.addEventListener('click', function(e) {
+            // Kiểm tra kích thước màn hình (dưới 768px coi là mobile)
+            if (window.innerWidth < 768) {
+                // Kiểm tra xem user có click vào nút (button) hoặc thẻ link (a) hoặc logo không
+                const target = e.target.closest('button, a, .game-logo');
+
+                if (target) {
+                    // Ngăn chặn tất cả hành động mặc định và sự kiện nổi bọt
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    // Hiện thông báo
+                    showNotification("Phiên bản mobi sẽ ra mắt trong thời gian tới, vui lòng sử dụng máy tính để có trải nghiệm tuyệt vời nhất.");
+                    
+                    return false;
+                }
+            }
+        }, true);
+
     </script>
 </body>
 </html>
-
