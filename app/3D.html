@@ -33,7 +33,7 @@
             --text-main: #f1f5f9;
         }
 
-        body { margin: 0; overflow: hidden; font-family: 'Be Vietnam Pro', sans-serif; background: #000; color: var(--text-main); user-select: none; }
+        body { margin: 0; overflow: hidden; font-family: 'Be Vietnam Pro', sans-serif; background: #000; color: var(--text-main); user-select: none; touch-action: none; /* Prevent browser zoom/scroll */ }
         
         /* Background Layer */
         .studio-bg { 
@@ -663,6 +663,7 @@
             let previousMousePosition = { x: 0, y: 0 };
             const dom = renderer.domElement;
 
+            // MOUSE EVENTS
             dom.addEventListener('mousedown', (e) => {
                 if(STATE.mode !== 'mouse') return;
                 isDragging = true;
@@ -683,6 +684,29 @@
 
             window.addEventListener('mouseup', () => { isDragging = false; });
 
+            // TOUCH EVENTS (SWIPE)
+            dom.addEventListener('touchstart', (e) => {
+                if(STATE.mode !== 'mouse' || e.touches.length !== 1) return;
+                isDragging = true;
+                previousMousePosition = { x: e.touches[0].pageX, y: e.touches[0].pageY };
+            }, {passive: false});
+
+            dom.addEventListener('touchmove', (e) => {
+                if (isDragging && STATE.mode === 'mouse' && e.touches.length === 1) {
+                    e.preventDefault(); // Prevent scrolling
+                    const deltaX = e.touches[0].pageX - previousMousePosition.x;
+                    const deltaY = e.touches[0].pageY - previousMousePosition.y;
+
+                    STATE.targetRot.y += deltaX * 0.01;
+                    STATE.targetRot.x += deltaY * 0.01;
+
+                    previousMousePosition = { x: e.touches[0].pageX, y: e.touches[0].pageY };
+                }
+            }, {passive: false});
+
+            dom.addEventListener('touchend', () => { isDragging = false; });
+
+            // ZOOM SLIDER
             const slider = document.getElementById('mouse-zoom-slider');
             slider.addEventListener('input', (e) => {
                 STATE.targetScale = parseFloat(e.target.value);
