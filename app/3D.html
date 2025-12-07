@@ -202,66 +202,75 @@
             text-align: center; padding: 20px;
         }
 
-        /* --- PRIVACY POPUP STYLES --- */
-        #privacy-popup {
+        /* --- POPUP SYSTEM STYLES (Privacy & Guide) --- */
+        .modal-overlay {
             position: fixed; inset: 0; z-index: 9999;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
         }
-        #privacy-popup.active { opacity: 1; pointer-events: auto; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
         
-        .privacy-card {
+        .modal-card {
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 30px;
-            max-width: 480px; width: 90%;
+            border-radius: 20px; /* Reduced radius */
+            padding: 25px; /* Compact padding */
+            max-width: 500px; width: 90%;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
-        #privacy-popup.active .privacy-card { transform: scale(1); }
+        .modal-overlay.active .modal-card { transform: scale(1); }
         
+        /* Privacy Specific */
         .icon-shield {
-            width: 70px; height: 70px; margin: 0 auto 20px;
+            width: 60px; height: 60px; margin: 0 auto 15px; /* Smaller icon */
             background: rgba(34, 197, 94, 0.1); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             border: 2px solid var(--success);
             box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
         }
-        .icon-shield i { font-size: 32px; color: var(--success); }
+        .icon-shield i { font-size: 28px; color: var(--success); }
         
-        .privacy-card h2 {
+        .modal-card h2 {
             font-family: 'Montserrat', sans-serif; font-weight: 800;
-            color: #fff; font-size: 1.5rem; margin-bottom: 15px;
+            color: #fff; font-size: 1.3rem; margin-bottom: 12px; /* Compact margin */
             text-transform: uppercase; letter-spacing: 1px;
         }
         
         .privacy-content {
-            text-align: left; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6;
-            background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 16px;
-            margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05);
+            text-align: left; color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; /* Compact font */
+            background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px;
+            margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);
         }
-        .privacy-content ul { list-style: none; padding: 0; margin: 15px 0; }
-        .privacy-content li { margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; }
-        .privacy-content li i { color: var(--primary); margin-top: 4px; }
+        .privacy-content ul { list-style: none; padding: 0; margin: 10px 0; }
+        .privacy-content li { margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+        .privacy-content li i { margin-top: 3px; font-size: 1em; }
         .privacy-content strong { color: #fff; }
         
         .trust-note {
-            font-size: 0.85rem; color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;
+            font-size: 0.8rem; color: #94a3b8; font-style: italic; text-align: center; margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;
         }
         
         .privacy-btn {
             background: linear-gradient(135deg, var(--success), #16a34a);
             color: white; font-family: 'Montserrat', sans-serif; font-weight: 700;
-            padding: 16px 32px; border-radius: 12px; border: none; width: 100%;
-            cursor: pointer; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;
+            padding: 14px 24px; border-radius: 12px; border: none; width: 100%;
+            cursor: pointer; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
             transition: all 0.3s; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
         }
         .privacy-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4); }
+
+        /* Guide Specific */
+        .guide-section { text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
+        .guide-section h3 { font-size: 0.9rem; color: #fff; margin-bottom: 10px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .guide-section ul { padding: 0; margin: 0; list-style: none; }
+        .guide-section li { font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .guide-section li span.action { font-weight: 700; color: var(--primary); }
 
         /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 768px) {
@@ -276,13 +285,16 @@
             .formula-card h3 { font-size: 0.6rem; }
             #formula-content { font-size: 0.75rem !important; }
             #intro-screen h1 { font-size: 2rem; padding: 0 10px; }
-            .mode-btn { width: 90%; padding: 14px; font-size: 0.85rem; }
+            .mode-btn { width: 100%; padding: 14px; font-size: 0.85rem; } /* Adjusted width for grid */
             
             /* Game responsive */
             .game-hud { top: 70px; width: 90%; }
             .game-panel { min-width: auto; width: 100%; padding: 10px; }
             .level-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
             .level-card { height: 150px; }
+            
+            .modal-card { width: 95%; padding: 20px; }
+            .privacy-content li { font-size: 0.85rem; }
         }
 
         /* REFINED HOME BUTTON - UPDATED Z-INDEX */
@@ -323,12 +335,13 @@
         }
 
         .mode-btn {
-            padding: 18px 30px; margin: 10px 0; width: 100%;
+            padding: 18px 30px; margin: 0; width: 100%; /* Reset margin for grid */
             font-family: 'Montserrat', sans-serif; font-weight: 800; letter-spacing: 1px;
             background: transparent; color: white;
             border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
             text-transform: uppercase; cursor: pointer;
             transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 12px;
+            min-height: 70px; /* Ensure consistent height in grid */
         }
         .mode-btn.primary {
             background: rgba(249, 115, 22, 0.15); 
@@ -406,21 +419,97 @@
         <button onclick="goHome()" class="mt-6 px-6 py-3 bg-slate-800 rounded-xl text-white font-bold border border-slate-600">Quay lại</button>
     </div>
 
-    <!-- PRIVACY POPUP -->
-    <div id="privacy-popup">
-        <div class="privacy-card">
+    <!-- PRIVACY POPUP (Updated Content - Full) -->
+    <div id="privacy-popup" class="modal-overlay">
+        <div class="modal-card">
             <div class="icon-shield"><i class="fas fa-user-shield"></i></div>
             <h2>CAM KẾT RIÊNG TƯ</h2>
             <div class="privacy-content">
-                <p>Tôi thầy Nguyên dùng AI xây dựng ứng dụng để phục vụ việc học và dạy học, quý thầy cô vui lòng đọc kĩ thông tin sau và chịu mọi trách nhiệm khi sử dụng.</p>
+                <p class="mb-4 text-justify">
+                    Tôi thầy Nguyên dùng AI xây dựng ứng dụng để phục vụ việc học và dạy học, quý thầy cô vui lòng đọc kĩ thông tin sau và chịu mọi trách nhiệm khi sử dụng.
+                </p>
                 <ul>
-                    <li><i class="fas fa-microchip"></i> <strong>Xử lý tại chỗ:</strong> Ứng dụng chỉ xử lý hình ảnh tại chỗ trên thiết bị của thầy cô.</li>
-                    <li><i class="fas fa-video-slash"></i> <strong>Không lưu trữ:</strong> Ứng dụng tuyệt đối không ghi lại hay lưu trữ bất kỳ hình ảnh nào.</li>
-                    <li><i class="fas fa-paper-plane"></i> <strong>Không gửi đi:</strong> Dữ liệu không bao giờ được gửi đến máy chủ hay bên thứ ba.</li>
+                    <li>
+                        <i class="fas fa-microchip text-orange-500"></i> 
+                        <div><strong>Xử lý tại chỗ:</strong> Ứng dụng chỉ xử lý hình ảnh tại chỗ trên thiết bị của thầy cô.</div>
+                    </li>
+                    <li>
+                        <i class="fas fa-video-slash text-orange-500"></i> 
+                        <div><strong>Không lưu trữ:</strong> Ứng dụng tuyệt đối không ghi lại hay lưu trữ bất kỳ hình ảnh nào.</div>
+                    </li>
+                    <li>
+                        <i class="fas fa-paper-plane text-orange-500"></i> 
+                        <div><strong>Không gửi đi:</strong> Dữ liệu không bao giờ được gửi đến máy chủ hay bên thứ ba.</div>
+                    </li>
                 </ul>
-                <p class="trust-note">Ứng dụng làm sạch hoàn toàn để thầy cô yên tâm không lo mất thông tin. Khi thầy cô sử dụng đồng nghĩa với việc chịu hoàn toàn mọi trách nhiệm.</p>
+                <p class="trust-note mt-4">
+                    Ứng dụng làm sạch hoàn toàn để thầy cô yên tâm không lo mất thông tin. Khi thầy cô sử dụng đồng nghĩa với việc chịu hoàn toàn mọi trách nhiệm.
+                </p>
             </div>
-            <button class="privacy-btn" onclick="acceptPrivacy()">Hiểu và đồng ý với nội dung trên</button>
+            <button class="privacy-btn" onclick="acceptPrivacy()">HIỂU VÀ ĐỒNG Ý VỚI NỘI DUNG TRÊN</button>
+        </div>
+    </div>
+
+    <!-- GUIDE POPUP (New) -->
+    <div id="guide-popup" class="modal-overlay">
+        <div class="modal-card" style="max-width: 700px;">
+            <button class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors" onclick="toggleGuide(false)">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            <h2 class="text-orange-500 mb-6">HƯỚNG DẪN SỬ DỤNG</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <!-- Hand Mode Guide -->
+                <div class="guide-section">
+                    <h3 class="flex items-center"><i class="fas fa-hand-sparkles text-orange-400 mr-2"></i> CHẾ ĐỘ TAY (CAMERA)</h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <span>1 Ngón (Trỏ)</span>
+                            <span class="action">Di chuyển / Chọn</span>
+                        </li>
+                        <li>
+                            <span>Chụm (Cái + Trỏ)</span>
+                            <span class="action">Xoay Hình 3D</span>
+                        </li>
+                        <li>
+                            <span>2 Bàn Tay (Kéo)</span>
+                            <span class="action">Phóng To / Thu Nhỏ</span>
+                        </li>
+                        <li>
+                            <span>Nắm Tay (Game)</span>
+                            <span class="action">Xác Nhận / Chọn</span>
+                        </li>
+                        <li>
+                            <span>3 Ngón (Co lại)</span>
+                            <span class="action">Reset Góc Nhìn</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Mouse Mode Guide -->
+                <div class="guide-section">
+                    <h3 class="flex items-center text-blue-400 border-blue-500/30"><i class="fas fa-mouse mr-2"></i> CHẾ ĐỘ CHUỘT</h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <span>Chuột Trái (Giữ)</span>
+                            <span class="action">Xoay Hình</span>
+                        </li>
+                        <li>
+                            <span>Lăn Chuột</span>
+                            <span class="action">Zoom</span>
+                        </li>
+                        <li>
+                            <span>Click (Game)</span>
+                            <span class="action">Chọn Đáp Án</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <p class="text-xs text-slate-500 italic mb-4">Lưu ý: Để camera cách xa khoảng 0.5m - 1m và đủ ánh sáng để nhận diện tốt nhất.</p>
+                <button class="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold uppercase tracking-wider transition-all" onclick="toggleGuide(false)">ĐÃ HIỂU</button>
+            </div>
         </div>
     </div>
 
@@ -474,8 +563,9 @@
                     <img src="logo.png" class="w-full h-full object-contain breathing-logo" alt="Yersin Logo">
                 </div>
                 
-                <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-white font-['Montserrat'] mb-2">
-                    HÌNH HỌC <span class="text-orange-500">KHÔNG GIAN</span>
+                <h1 class="text-4xl md:text-6xl font-black tracking-tighter text-white font-['Montserrat'] mb-2 leading-none">
+                    HÌNH HỌC<br>
+                    <span class="text-orange-500 text-5xl md:text-7xl">KHÔNG GIAN</span>
                 </h1>
                 <p class="text-slate-400 text-sm font-bold tracking-[3px] uppercase font-['Be_Vietnam_Pro']">Mô hình Giáo dục Tương tác</p>
             </div>
@@ -487,16 +577,23 @@
                 </p>
             </div>
 
-            <!-- Buttons (MERGED: Added Game Button) -->
-            <div class="w-full flex flex-col gap-3">
+            <!-- Buttons (REDESIGNED: GRID 2 COLS) -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button class="mode-btn primary" onclick="startApplication('hand')">
-                    <i class="fas fa-hand-sparkles text-xl"></i> Cử Chỉ Tay (Học Tập)
+                    <i class="fas fa-hand-sparkles text-2xl"></i> 
+                    <span class="text-sm">Học Tập<br>(Cử Chỉ)</span>
                 </button>
                 <button class="mode-btn game" onclick="startApplication('game')">
-                    <i class="fas fa-gamepad text-xl"></i> Game: Chọn Mặt Phẳng
+                    <i class="fas fa-gamepad text-2xl"></i> 
+                    <span class="text-sm">Game<br>(Thử Thách)</span>
                 </button>
                 <button class="mode-btn" onclick="startApplication('mouse')">
-                    <i class="fas fa-mouse text-xl"></i> Thao Tác Chuột
+                    <i class="fas fa-mouse text-2xl"></i> 
+                    <span class="text-sm">Chuột<br>(Cơ Bản)</span>
+                </button>
+                <button class="mode-btn" onclick="toggleGuide(true)" style="border-color: rgba(255,255,255,0.3); color: #cbd5e1;">
+                    <i class="fas fa-book-open text-2xl text-slate-400"></i> 
+                    <span class="text-sm">Hướng Dẫn<br>& Thao Tác</span>
                 </button>
             </div>
             
@@ -1244,6 +1341,16 @@
             proceedToApp(pendingMode);
         }
 
+        // Function to toggle Guide Popup
+        function toggleGuide(show) {
+            const guide = document.getElementById('guide-popup');
+            if (show) {
+                guide.classList.add('active');
+            } else {
+                guide.classList.remove('active');
+            }
+        }
+
         // Original logic moved here
         function proceedToApp(mode) {
             STATE.appStarted = true;
@@ -1286,6 +1393,7 @@
             document.getElementById('mobile-warning').style.display = 'none';
             document.getElementById('level-select-screen').classList.remove('active');
             document.getElementById('privacy-popup').classList.remove('active'); // Ensure popup is closed
+            document.getElementById('guide-popup').classList.remove('active');
             
             setUI(false);
             document.body.classList.remove('mouse-zoom-active');
