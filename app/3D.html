@@ -202,6 +202,67 @@
             text-align: center; padding: 20px;
         }
 
+        /* --- PRIVACY POPUP STYLES --- */
+        #privacy-popup {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        #privacy-popup.active { opacity: 1; pointer-events: auto; }
+        
+        .privacy-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 480px; width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #privacy-popup.active .privacy-card { transform: scale(1); }
+        
+        .icon-shield {
+            width: 70px; height: 70px; margin: 0 auto 20px;
+            background: rgba(34, 197, 94, 0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--success);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+        }
+        .icon-shield i { font-size: 32px; color: var(--success); }
+        
+        .privacy-card h2 {
+            font-family: 'Montserrat', sans-serif; font-weight: 800;
+            color: #fff; font-size: 1.5rem; margin-bottom: 15px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        .privacy-content {
+            text-align: left; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6;
+            background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 16px;
+            margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .privacy-content ul { list-style: none; padding: 0; margin: 15px 0; }
+        .privacy-content li { margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; }
+        .privacy-content li i { color: var(--primary); margin-top: 4px; }
+        .privacy-content strong { color: #fff; }
+        
+        .trust-note {
+            font-size: 0.85rem; color: #94a3b8; font-style: italic; text-align: center; margin-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;
+        }
+        
+        .privacy-btn {
+            background: linear-gradient(135deg, var(--success), #16a34a);
+            color: white; font-family: 'Montserrat', sans-serif; font-weight: 700;
+            padding: 16px 32px; border-radius: 12px; border: none; width: 100%;
+            cursor: pointer; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.3s; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+        }
+        .privacy-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4); }
+
         /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 768px) {
             #mobile-menu-btn { display: flex; }
@@ -343,6 +404,24 @@
         <h2 class="text-2xl font-bold text-white mt-4 font-['Montserrat']">PHIÊN BẢN MÁY TÍNH</h2>
         <p class="text-slate-400 mt-2 text-sm">Chế độ Game yêu cầu màn hình lớn và Camera để trải nghiệm tốt nhất.</p>
         <button onclick="goHome()" class="mt-6 px-6 py-3 bg-slate-800 rounded-xl text-white font-bold border border-slate-600">Quay lại</button>
+    </div>
+
+    <!-- PRIVACY POPUP -->
+    <div id="privacy-popup">
+        <div class="privacy-card">
+            <div class="icon-shield"><i class="fas fa-user-shield"></i></div>
+            <h2>CAM KẾT RIÊNG TƯ</h2>
+            <div class="privacy-content">
+                <p>Ứng dụng xây dựng để phục vụ việc học và dạy học.</p>
+                <ul>
+                    <li><i class="fas fa-microchip"></i> <strong>Xử lý tại chỗ:</strong> Ứng dụng chỉ xử lý hình ảnh tại chỗ trên thiết bị của bạn.</li>
+                    <li><i class="fas fa-video-slash"></i> <strong>Không lưu trữ:</strong> Chúng tôi tuyệt đối không ghi lại hay lưu trữ bất kỳ hình ảnh nào.</li>
+                    <li><i class="fas fa-paper-plane"></i> <strong>Không gửi đi:</strong> Dữ liệu không bao giờ được gửi đến máy chủ hay bên thứ ba.</li>
+                </ul>
+                <p class="trust-note">Chúng tôi làm sạch hoàn toàn để bạn yên tâm không lo mất thông tin.</p>
+            </div>
+            <button class="privacy-btn" onclick="acceptPrivacy()">Tin tưởng & Sử dụng</button>
+        </div>
     </div>
 
     <!-- LEVEL SELECTION SCREEN (Added from Game) -->
@@ -1122,8 +1201,30 @@
             } catch(e) { console.error("Three init error", e); }
         }
 
-        // --- MERGED START FUNCTION ---
+        // --- MERGED START FUNCTION WITH PRIVACY POPUP ---
+        let pendingMode = null; // Store mode for post-popup launch
+
         function startApplication(mode) {
+            // Check if mode needs camera
+            if (mode === 'hand' || mode === 'game') {
+                // Show Privacy Popup first
+                pendingMode = mode;
+                document.getElementById('privacy-popup').classList.add('active');
+                return; // Stop here, wait for user acceptance
+            }
+            
+            // Mouse mode continues normally
+            proceedToApp(mode);
+        }
+
+        // Function called when "Tin tưởng & Sử dụng" is clicked
+        function acceptPrivacy() {
+            document.getElementById('privacy-popup').classList.remove('active');
+            proceedToApp(pendingMode);
+        }
+
+        // Original logic moved here
+        function proceedToApp(mode) {
             STATE.appStarted = true;
             STATE.mode = mode;
             const intro = document.getElementById('intro-screen');
@@ -1163,6 +1264,7 @@
             if(hoverMesh) { scene.remove(hoverMesh); hoverMesh = null; }
             document.getElementById('mobile-warning').style.display = 'none';
             document.getElementById('level-select-screen').classList.remove('active');
+            document.getElementById('privacy-popup').classList.remove('active'); // Ensure popup is closed
             
             setUI(false);
             document.body.classList.remove('mouse-zoom-active');
