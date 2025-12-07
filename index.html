@@ -185,6 +185,7 @@
             tools: [
                 { filename: "tkb.html", title: "Trích Xuất TKB", desc: "Xem thời khóa biểu", iconType: "ToolCalendar", color: "text-rose-400" },
                 { filename: "sodiem.html", path: "app/", title: "Sổ Điểm", desc: "Quản lý điểm số học sinh", iconType: "ToolGradebook", color: "text-green-500" },
+                { filename: "3D.html", path: "app/", title: "HÌNH HỌC KHÔNG GIAN", desc: "Mô phỏng hình học 3D trực quan", iconType: "ToolGeo3D", color: "text-indigo-400" },
                 { filename: "congcu.html", title: "Công Cụ Tạo Prompt", desc: "Hỗ trợ giáo viên tạo prompt AI", iconType: "ToolPrompt", color: "text-pink-400" },
                 { filename: "quanlihocsinh.html", title: "Theo Dõi Hạnh Kiểm", desc: "Công cụ quản lý nề nếp học sinh", iconType: "ToolConduct", color: "text-blue-500" },
             ],
@@ -505,6 +506,22 @@
                     <path d="M64 70 L68 74 L76 66" stroke="#0b1121" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
             ),
+            ToolGeo3D: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <path d="M50 15 L85 35 V75 L50 95 L15 75 V35 Z" stroke="#818cf8" strokeWidth="3" strokeLinejoin="round" fill="none"/>
+                    <path d="M15 35 L50 55 L85 35" stroke="#818cf8" strokeWidth="3" strokeLinejoin="round"/>
+                    <path d="M50 55 V95" stroke="#818cf8" strokeWidth="3" strokeLinejoin="round"/>
+                    <circle cx="50" cy="15" r="2" fill="#818cf8" />
+                    <circle cx="85" cy="35" r="2" fill="#818cf8" />
+                    <circle cx="85" cy="75" r="2" fill="#818cf8" />
+                    <circle cx="50" cy="95" r="2" fill="#818cf8" />
+                    <circle cx="15" cy="75" r="2" fill="#818cf8" />
+                    <circle cx="15" cy="35" r="2" fill="#818cf8" />
+                    <circle cx="50" cy="55" r="4" fill="#a5b4fc">
+                        <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            ),
             DocPDF: ({size=24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><text x="8" y="18" fontSize="6" fill="#f43f5e" fontWeight="bold">PDF</text></svg>,
             DocWord: ({size=24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><text x="6" y="18" fontSize="6" fill="#3b82f6" fontWeight="bold">DOC</text></svg>,
         };
@@ -548,6 +565,7 @@
             ToolConduct: (p) => <CustomIcons.ToolConduct {...p} />,
             ContentListening: (p) => <CustomIcons.ContentListening {...p} />,
             ToolGradebook: (p) => <CustomIcons.ToolGradebook {...p} />,
+            ToolGeo3D: (p) => <CustomIcons.ToolGeo3D {...p} />,
         };
 
         // --- COMPONENT: FOOTER (With Socials) ---
