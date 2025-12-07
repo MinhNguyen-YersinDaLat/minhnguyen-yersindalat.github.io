@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hình Học Không Gian AI - Yersin Ultimate</title>
+    
+    <!-- CSS & Three.js Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- MediaPipe AI -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <!-- MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* --- 1. CORE AESTHETICS --- */
+        :root {
+            --primary: #06b6d4; /* Cyan-500 */
+            --accent: #f59e0b;  /* Amber-500 */
+            --glass-bg: rgba(15, 23, 42, 0.85); 
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-main: #f1f5f9;
+        }
+
+        body { margin: 0; overflow: hidden; font-family: 'Be Vietnam Pro', sans-serif; background: #000; color: var(--text-main); user-select: none; }
+        
+        /* Background Layer */
+        .studio-bg { 
+            position: absolute; width: 100vw; height: 100vh; z-index: 0; 
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 70%, #000000 100%); 
+        }
+
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; }
+        #canvas-container:active { cursor: grabbing; }
+
+        /* --- UI COMPONENTS --- */
+        .glass-panel {
+            background: var(--glass-bg); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border-radius: 20px; 
+            transition: all 0.4s ease;
+        }
+
+        .ui-element { opacity: 0; pointer-events: none; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(30px); }
+        .ui-active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        
+        /* --- SIDEBAR & MENU SYSTEM --- */
+        /* Hamburger Button (Mobile Only) */
+        #mobile-menu-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 60;
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.2);
+            color: var(--primary); display: none; justify-content: center; align-items: center;
+            font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(10px);
+        }
+
+        /* Sidebar Container */
+        .sidebar { 
+            position: absolute; top: 24px; left: 24px; bottom: 140px; /* Leave space for controls on desktop if needed, or adjust */
+            width: 360px; 
+            max-height: calc(100vh - 48px);
+            overflow-y: auto; overflow-x: hidden;
+            padding: 24px; z-index: 50; 
+            display: flex; flex-direction: column; gap: 12px; 
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Controls Dock (Sliders) - Separated for Mobile layout */
+        .controls-dock {
+            position: absolute; bottom: 24px; left: 24px; width: 360px;
+            padding: 15px; z-index: 50;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        /* ACCORDION STYLES */
+        .accordion-btn {
+            width: 100%; text-align: left; padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; color: var(--text-main); font-weight: 700;
+            font-family: 'Montserrat', sans-serif; text-transform: uppercase;
+            font-size: 0.8rem; letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 5px;
+        }
+        .accordion-btn.active {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.2), transparent);
+            border-color: var(--primary); color: #fff;
+        }
+        .accordion-btn i.fa-chevron-down { transition: transform 0.3s; font-size: 0.8rem; opacity: 0.7; }
+        .accordion-btn.active i.fa-chevron-down { transform: rotate(180deg); color: var(--primary); opacity: 1; }
+
+        .accordion-content {
+            max-height: 0; overflow: hidden; 
+            transition: max-height 0.5s ease-in-out, opacity 0.4s ease;
+            background: rgba(0, 0, 0, 0.3); border-radius: 0 0 12px 12px;
+            margin-top: -5px; margin-bottom: 10px; opacity: 0; pointer-events: none;
+        }
+        .accordion-content.open { max-height: 800px; opacity: 1; pointer-events: auto; border: 1px solid rgba(255,255,255,0.05); border-top: none; }
+        .accordion-inner { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+
+        /* RIGHT PANEL */
+        .right-panel-container { 
+            position: absolute; top: 24px; right: 24px; z-index: 40; 
+            display: flex; flex-direction: column; gap: 15px; width: 300px; 
+            pointer-events: none; 
+        }
+        .right-panel-container > * { pointer-events: auto; }
+
+        /* CONTROLS */
+        select { 
+            width: 100%; background: rgba(15, 23, 42, 0.95); color: #fff; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 14px; 
+            outline: none; font-family: 'Be Vietnam Pro', sans-serif; font-size: 0.9rem;
+        }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: #334155; border-radius: 2px; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); 
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); cursor: pointer; border: 2px solid #fff;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            /* Show Hamburger */
+            #mobile-menu-btn { display: flex; }
+
+            /* Hide Sidebar by default (Off-canvas) */
+            .sidebar {
+                transform: translateX(-120%);
+                top: 80px; bottom: 180px; /* Leave space for bottom controls */
+                left: 10px; width: calc(100% - 20px);
+                max-height: none; border-radius: 16px;
+                background: rgba(10, 15, 30, 0.95);
+            }
+            .sidebar.active { transform: translateX(0); }
+
+            /* Sliders Dock - Always visible at bottom */
+            .controls-dock {
+                bottom: 20px; left: 10px; width: calc(100% - 20px);
+                background: rgba(15, 23, 42, 0.9);
+                padding: 12px 20px; border-radius: 16px;
+                display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;
+            }
+            .controls-dock .control-group { flex: 1; }
+            .controls-dock label { display: none; } /* Hide labels to save space */
+            
+            /* Adjust Right Panel */
+            .right-panel-container { top: 80px; right: 10px; width: 180px; }
+            .formula-card { padding: 10px; }
+            .formula-card h3 { font-size: 0.6rem; }
+            #formula-content { font-size: 0.75rem !important; }
+            
+            /* Intro Screen Text */
+            #intro-screen h1 { font-size: 2rem; padding: 0 10px; }
+            .mode-btn { width: 90%; padding: 14px; font-size: 0.85rem; }
+        }
+
+        /* REFINED HOME BUTTON (Top Right) */
+        .home-btn {
+            position: absolute; top: 20px; right: 20px; z-index: 60;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px);
+        }
+        .home-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); border-color: var(--primary); }
+
+        /* INTRO */
+        #intro-screen {
+            position: fixed; inset: 0; z-index: 100; background: #020617;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+        }
+
+        .cam-box { width: 100%; height: 140px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000; position: relative; display: none !important; }
+        
+        .intersect-info {
+            padding: 12px; border: 1px solid var(--accent); background: rgba(245, 158, 11, 0.15);
+            display: none; box-shadow: 0 0 20px rgba(245, 158, 11, 0.2); border-radius: 12px;
+        }
+
+        .app-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 30px;
+            display: flex; justify-content: center; align-items: center;
+            background: transparent;
+            z-index: 10; pointer-events: none;
+        }
+        .footer-text { font-size: 9px; color: #475569; font-weight: 600; text-shadow: 0 1px 2px #000; }
+
+        #hand-cursor { 
+            position: absolute; width: 44px; height: 44px; border: 2px solid var(--primary); border-radius: 50%; 
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 50; 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.6); display: none; transition: 0.05s; backdrop-filter: blur(2px);
+        }
+        
+        .label-3d {
+            position: absolute; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; 
+            color: #0f172a; background: #fff; width: 32px; height: 32px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; border: 2px solid var(--primary); 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8); pointer-events: none; transform: translate(-50%, -50%); z-index: 10;
+        }
+        
+        .face-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .face-item:hover { background: rgba(255, 255, 255, 0.1); color: #fff; padding-left: 14px; }
+        .face-item input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+
+        #mouse-zoom-control { display: none; /* Integrated into new controls dock logic if needed, but keeping separate for mouse mode compatibility */ }
+        .mouse-zoom-active #mouse-zoom-control { display: block; position: absolute; bottom: 90px; right: 24px; width: 40px; height: 200px; z-index: 40; pointer-events: auto; }
+        .mouse-zoom-active #mouse-zoom-control input { width: 180px; transform: rotate(-90deg) translate(-80px, 0); transform-origin: left top; }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND -->
+    <div class="studio-bg"></div>
+    <div id="canvas-container"></div>
+    
+    <!-- CURSOR & VIDEO -->
+    <div id="hand-cursor"></div>
+    <video id="input_video" playsinline autoplay muted style="position: absolute; opacity: 0; pointer-events: none;"></video>
+
+    <!-- MOBILE HAMBURGER BUTTON -->
+    <button id="mobile-menu-btn" class="ui-element" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- REFINED HOME BUTTON -->
+    <button id="home-btn" class="home-btn ui-element" onclick="goHome()" title="Về màn hình chính">
+        <i class="fas fa-home"></i>
+    </button>
+
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen">
+        <div class="relative mb-8 group cursor-default">
+            <div class="absolute inset-0 bg-cyan-500 blur-[80px] opacity-20 rounded-full group-hover:opacity-30 transition duration-1000"></div>
+            <img src="logo.png" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='flex'" 
+                 class="w-32 h-32 object-contain relative z-10 drop-shadow-2xl animate-bounce-slow" alt="Logo">
+            <div id="fallback-logo" class="hidden w-32 h-32 items-center justify-center bg-white/5 rounded-3xl border border-white/10 relative z-10 backdrop-blur-md shadow-2xl">
+                <i class="fas fa-cube text-6xl text-cyan-400"></i>
+            </div>
+        </div>
+
+        <h1 class="text-4xl md:text-6xl font-black tracking-tighter text-white mb-6 text-center font-['Montserrat'] drop-shadow-lg px-4">
+            HÌNH HỌC KHÔNG GIAN
+        </h1>
+        <div class="text-center px-6 max-w-4xl space-y-2 mb-10">
+            <p class="text-cyan-200 text-sm md:text-lg font-bold tracking-widest uppercase font-['Be_Vietnam_Pro']">MÔ HÌNH GIÁO DỤC TƯƠNG TÁC</p>
+            <p class="text-slate-400 text-xs md:text-sm font-medium tracking-wide border-t border-white/10 pt-4 mt-4 inline-block">
+                TÁC GIẢ: THẦY THÁI MINH NGUYÊN <br> 
+                <span class="text-slate-500">TRƯỜNG TH, THCS & THPT YERSIN ĐÀ LẠT</span>
+            </p>
+        </div>
+
+        <!-- SELECTION BUTTONS -->
+        <div class="flex flex-col md:flex-row gap-4 z-50 w-full max-w-md px-6">
+            <button class="mode-btn primary w-full" onclick="startApplication('hand')">
+                <i class="fas fa-hand-sparkles text-xl"></i> Cử Chỉ Tay (Camera)
+            </button>
+            <button class="mode-btn w-full" onclick="startApplication('mouse')">
+                <i class="fas fa-mouse text-xl"></i> Thao Tác Chuột
+            </button>
+        </div>
+
+        <p id="loading-text" class="absolute bottom-8 text-[10px] text-slate-600 animate-pulse font-mono tracking-widest">INITIALIZING 3D ENGINE...</p>
+    </div>
+
+    <!-- MAIN SIDEBAR (Menu Items) -->
+    <div class="sidebar glass-panel ui-element custom-scrollbar" id="sidebar-panel">
+        <div class="border-b border-white/10 pb-4 mb-2 flex justify-between items-center sticky top-0 bg-transparent z-10">
+            <div>
+                <h1 class="text-lg font-black text-white font-['Montserrat'] tracking-tight">
+                    <span class="text-cyan-400">GEO</span>METRY 12
+                </h1>
+                <p class="text-[9px] text-gray-400 uppercase tracking-widest">Yersin Dalat</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400 cursor-pointer hover:bg-cyan-500/20" onclick="resetView()">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </div>
+        </div>
+        
+        <div class="flex flex-col gap-2">
+            <!-- Shape Selector -->
+            <div class="mb-2">
+                <div class="relative">
+                    <select id="shape-select" onchange="createShape(this.value)">
+                        <optgroup label="Hình Chóp (Pyramids)">
+                            <option value="pyramid_rect" selected>Chóp S.ABCD (Đáy CN)</option>
+                            <option value="pyramid_para">Chóp S.ABCD (Đáy BH)</option>
+                            <option value="pyramid_trap">Chóp S.ABCD (Đáy Thang)</option>
+                            <option value="pyramid_tri">Chóp S.ABC (Đáy Tam Giác)</option>
+                            <option value="pyramid_penta">Chóp S.ABCDE (Đáy Ngũ Giác)</option>
+                        </optgroup>
+                        <optgroup label="Lăng Trụ & Hộp (Prisms)">
+                            <option value="cube">Hình Lập Phương</option>
+                            <option value="box_rect">Hình Hộp Chữ Nhật</option>
+                            <option value="prism_tri">Lăng Trụ Tam Giác Đều</option>
+                            <option value="prism_quad">Lăng Trụ Tứ Giác Đều</option>
+                            <option value="prism_penta">Lăng Trụ Ngũ Giác</option>
+                            <option value="prism_skew_tri">Lăng Trụ Tam Giác Xiên</option>
+                            <option value="prism_skew_quad">Lăng Trụ Tứ Giác Xiên</option>
+                        </optgroup>
+                        <optgroup label="Chóp Cụt (Frustums)">
+                            <option value="frustum_tri">Chóp Cụt Tam Giác</option>
+                            <option value="frustum_quad">Chóp Cụt Tứ Giác</option>
+                        </optgroup>
+                        <optgroup label="Khối Đa Diện Đều (Platon)">
+                            <option value="tetrahedron">Tứ Diện Đều</option>
+                            <option value="octahedron">Bát Diện Đều</option>
+                            <option value="dodecahedron">12 Mặt Đều</option>
+                            <option value="icosahedron">20 Mặt Đều</option>
+                        </optgroup>
+                        <optgroup label="Khối Tròn Xoay">
+                            <option value="cylinder">Hình Trụ</option>
+                            <option value="cone">Hình Nón</option>
+                            <option value="sphere">Hình Cầu</option>
+                        </optgroup>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <i class="fas fa-chevron-down text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCORDION 1: COLORING -->
+            <div class="accordion-btn" onclick="toggleAccordion('acc-color')">
+                <span><i class="fas fa-fill-drip mr-2 text-amber-500"></i> Tô Màu & Giao Tuyến</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="acc-color" class="accordion-content">
+                <div class="accordion-inner">
+                    <div id="face-list" class="max-h-[200px] overflow-y-auto custom-scrollbar p-1"></div>
+                </div>
+            </div>
+
+            <!-- ACCORDION 2: SECTIONING -->
+            <div class="accordion-btn" onclick="toggleAccordion('acc-section')">
+                <span><i class="fas fa-cut mr-2 text-pink-500"></i> Thiết Diện</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="acc-section" class="accordion-content">
+                <div class="accordion-inner">
+                    <div id="section-face-list" class="max-h-[180px] overflow-y-auto custom-scrollbar p-1 border border-white/5 rounded bg-black/20"></div>
+                    <button onclick="triggerSectionCalc()" class="w-full py-3 bg-pink-500/20 hover:bg-pink-500/40 border border-white/10 rounded-lg text-pink-400 font-bold text-xs uppercase tracking-widest transition-all mt-2 shadow-lg">
+                        <i class="fas fa-check mr-2"></i> Tạo Thiết Diện
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS DOCK (Sliders - Always Visible on Mobile) -->
+    <div class="controls-dock glass-panel ui-element" id="controls-panel">
+        <div class="control-group">
+            <div class="flex justify-between mb-1">
+                <label class="text-[10px] text-pink-400 font-bold tracking-wider">MẶT CẮT</label>
+                <i class="fas fa-cut text-xs text-pink-500 md:hidden"></i>
+            </div>
+            <input type="range" id="slice-slider" min="-3" max="4" step="0.1" value="0">
+        </div>
+        <div class="control-group">
+            <div class="flex justify-between mb-1">
+                <label class="text-[10px] text-slate-300 font-bold tracking-wider">ĐỘ TRONG</label>
+                <i class="fas fa-ghost text-xs text-slate-500 md:hidden"></i>
+            </div>
+            <input type="range" id="op-slider" min="0.1" max="1" step="0.1" value="0.8">
+        </div>
+        <div class="control-group">
+            <div class="flex justify-between mb-1">
+                <label class="text-[10px] text-cyan-400 font-bold tracking-wider">THU PHÓNG</label>
+                <i class="fas fa-search-plus text-xs text-cyan-500 md:hidden"></i>
+            </div>
+            <input type="range" id="mobile-zoom-slider" min="0.3" max="3" step="0.1" value="1">
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel-container" id="right-panel">
+        <div class="formula-card glass-panel ui-element">
+            <h3 class="text-xs font-black text-cyan-400 mb-2 border-b border-cyan-500/20 pb-2 flex justify-between items-center tracking-widest font-['Montserrat']">
+                <span>CÔNG THỨC</span>
+                <i class="fas fa-square-root-variable text-lg opacity-80"></i>
+            </h3>
+            <div id="formula-content" class="text-lg text-slate-100 font-['Be_Vietnam_Pro'] space-y-2 font-bold leading-relaxed drop-shadow-md">Loading...</div>
+        </div>
+
+        <div class="intersect-info glass-panel ui-element" id="intersect-box">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                    <i class="fas fa-bolt text-amber-400 text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-[9px] font-bold text-amber-400 uppercase tracking-widest mb-1">Giao Tuyến</h3>
+                    <div id="intersect-text" class="text-sm font-black text-white font-['Montserrat'] tracking-wide"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden Camera Box (Only active in Hand Mode) -->
+        <div class="cam-box ui-element" id="cam-box">
+            <canvas id="output_canvas" style="width:100%; height:100%; transform: scaleX(-1); object-fit: cover;"></canvas>
+            <div class="absolute bottom-0 w-full bg-black/60 backdrop-blur-sm p-1 flex justify-between items-center border-t border-white/10">
+                 <span id="ai-status" class="text-[8px] font-bold text-gray-500 px-2">Connecting...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MOUSE ZOOM CONTROLS (Vertical on Desktop Right) -->
+    <div id="mouse-zoom-control" class="glass-panel p-2 ui-element">
+        <input type="range" id="mouse-zoom-slider" min="0.3" max="3" step="0.1" value="1">
+    </div>
+
+    <div id="labels-container"></div>
+
+    <div class="app-footer ui-element" id="app-footer">
+        <div class="footer-text">
+            <span>&copy; 2024 Yersin Dalat</span>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG & STATE ---
+        const CONFIG = { 
+            color: 0x06b6d4, // Cyan-500 Base
+            bg: 0x000000, 
+            sliceInit: 4, 
+            smooth: 0.3, pinchThresh: 0.06, rotateSpeed: 5.5, 
+            highlightColors: [0xff2244, 0x22ff44, 0xffff00, 0xff00ff, 0x9900ff] 
+        };
+        const STATE = { 
+            targetRot:{x:0.5,y:0.5}, currRot:{x:0.5,y:0.5}, 
+            targetScale:1, currScale:1, opacity:0.8, 
+            handPos:{x:0.5,y:0.5}, pinching:false, lastPos:{x:0.5,y:0.5}, 
+            isTwoHandZooming:false, zoomStartDist:0, zoomStartScale:1, 
+            uiVisible:true, appStarted: false,
+            mode: null, // 'hand' or 'mouse'
+            sectionNormal: new THREE.Vector3(0, 1, 0), // Default Horizontal
+            isSectionComputed: false,
+            isCurvedShape: false
+        };
+
+        let scene, camera, renderer, currentMesh, clipPlane, sectionGroup, intersectionGroup;
+        let labels = [], highlights = [], sectionHighlights = [], currentGeometryData = null, uiTimeout;
+
+        // --- UI LOGIC ---
+        window.toggleAccordion = function(id) {
+            const el = document.getElementById(id);
+            const btn = el.previousElementSibling;
+            
+            // Close others
+            document.querySelectorAll('.accordion-content').forEach(c => {
+                if(c.id !== id && c.classList.contains('open')) {
+                    c.classList.remove('open');
+                    c.previousElementSibling.classList.remove('active');
+                }
+            });
+
+            el.classList.toggle('open');
+            btn.classList.toggle('active');
+        }
+
+        window.toggleSidebar = function() {
+            document.getElementById('sidebar-panel').classList.toggle('active');
+        }
+
+        // --- MATH ENGINE (UNCHANGED) ---
+        function getLineIntersection(p1, p2, p3, p4) {
+            const x1=p1[0], z1=p1[2], x2=p2[0], z2=p2[2];
+            const x3=p3[0], z3=p3[2], x4=p4[0], z4=p4[2];
+            const d = (z4-z3)*(x2-x1) - (x4-x3)*(z2-z1);
+            if(Math.abs(d) < 0.001) return null;
+            const ua = ((x4-x3)*(z1-z3) - (z4-z3)*(x1-x3))/d;
+            const ub = ((x2-x1)*(z1-z3) - (z2-z1)*(x1-x3))/d;
+            if(ua>=0 && ua<=1 && ub>=0 && ub<=1) {
+                return [x1 + ua*(x2-x1), (p1[1]+p2[1]+p3[1]+p4[1])/4, z1 + ua*(z2-z1)];
+            }
+            return null;
+        }
+
+        // --- HELPER: CONVERT THREE.GEOMETRY TO DATA V/F FORMAT ---
+        function convertBufferGeometryToData(geo, name) {
+            const pos = geo.attributes.position;
+            const index = geo.index;
+            const v = [], f = [];
+            for(let i=0; i<pos.count; i++){ v.push([pos.getX(i), pos.getY(i), pos.getZ(i)]); }
+            if(index) {
+                for(let i=0; i<index.count; i+=3){ f.push({i: [index.getX(i), index.getY(i), index.getZ(i)], n: `Face ${i/3}`}); }
+            } else {
+                for(let i=0; i<pos.count; i+=3){ f.push({i: [i, i+1, i+2], n: `Face ${i/3}`}); }
+            }
+            return {v, f, m: [name]};
+        }
+
+        // --- DATA FACTORY (RESTORED DIAGONAL FACES) ---
+        const GEO_FACTORY = {
+            'pyramid_rect': () => buildPyramid(3, 4, 4, 0, ['A','B','C','D'], "$$V=\\frac{1}{3}S_{hcn}.h$$", "$$S_{xq}=\\sum S_{\\Delta}$$"),
+            'pyramid_para': () => buildPyramid(3, 3, 4, 1, ['A','B','C','D'], "$$V=\\frac{1}{3}S_{hbh}.h$$", "$$S_{xq}=\\sum S_{\\Delta}$$"),
+            'pyramid_trap': () => {
+                const v = [[0,2,0,'S'], [-1.5,-2,1.5,'A'], [1.5,-2,1.5,'B'], [0.8,-2,-1.5,'C'], [-0.8,-2,-1.5,'D']];
+                return buildPolyFromVerts(v, 'ABCD', "$$V=\\frac{1}{3}S_{thang}.h$$", "$$S_{xq}=\\sum S_{\\Delta}$$");
+            },
+            'pyramid_tri': () => {
+                const v = [[0,2,0,'S'], [0,-2,2,'A'], [1.73,-2,-1,'B'], [-1.73,-2,-1,'C']];
+                const f = [{i:[1,2,3],n:'Đáy ABC'}, {i:[0,1,2],n:'SAB'}, {i:[0,2,3],n:'SBC'}, {i:[0,3,1],n:'SCA'}];
+                return {v, f, m: ["$$V=\\frac{1}{3}S_{ABC}.h$$", "$$S_{tp}=S_{đáy}+S_{xq}$$"]};
+            },
+            'pyramid_penta': () => {
+                const h=2, r=2.5, v=[[0,h,0,'S']];
+                for(let i=0;i<5;i++) v.push([r*Math.sin(i*Math.PI*2/5), -h, r*Math.cos(i*Math.PI*2/5), String.fromCharCode(65+i)]);
+                const f = [{i:[1,2,3,4,5],n:'Đáy ABCDE'}];
+                for(let i=1;i<=5;i++) f.push({i:[0,i, i%5==0?1:i+1], n:`S${v[i][3]}${v[i%5==0?1:i+1][3]}`});
+                f.push({i:[0,1,3],n:'Chéo SAC',isD:true}, {i:[0,1,4],n:'Chéo SAD',isD:true}, {i:[0,2,4],n:'Chéo SBD',isD:true});
+                return {v, f, m: ["$$V=\\frac{1}{3}S_{5giac}.h$$", "$$S_{xq}=5 \\times S_{\\Delta}$$"]};
+            },
+            'cube': () => buildPrism(2.5,2.5,2.5,0, "$$V=a^3$$", "$$S_{tp}=6a^2$$"),
+            'box_rect': () => buildPrism(2,1.5,3,0, "$$V=abc$$", "$$S_{tp}=2(ab+bc+ca)$$"),
+            'prism_quad': () => buildPrism(1.5,1.5,4,0, "$$V=S_{đáy}.h$$", "$$S_{xq}=2p.h$$"),
+            'prism_skew_quad': () => buildPrism(1.5,1.5,4,1.2, "$$V=S_{đáy}.h$$", "$$S_{xq}=\\sum S_{hbh}$$"),
+            'prism_tri': () => {
+                const r=1.5, h=4, v=[];
+                for(let y of [-h/2,h/2]) for(let i=0;i<3;i++) v.push([r*Math.sin(i*2.1), y, r*Math.cos(i*2.1)]);
+                ['A','B','C',"A'","B'","C'"].forEach((n,i)=>v[i].push(n));
+                const f = [{i:[0,1,2],n:'Đáy ABC'},{i:[3,4,5],n:"Đỉnh A'B'C'"}, {i:[0,1,4,3],n:"ABB'A'"},{i:[1,2,5,4],n:"BCC'B'"},{i:[2,0,3,5],n:"CAA'C'"}];
+                f.push({i:[0,2,4,3],n:"Chéo AB'C",isD:true});
+                return {v, f, m: ["$$V=S_{ABC}.h$$", "$$S_{xq}=(a+b+c)h$$"]};
+            },
+            'prism_skew_tri': () => {
+                const d = GEO_FACTORY['prism_tri']();
+                [3,4,5].forEach(i => d.v[i][0]+=1.5); 
+                d.m = ["$$V=S_{ABC}.h$$", "Lăng trụ xiên"]; return d;
+            },
+            'prism_penta': () => {
+                 const r=1.5, h=4, v=[];
+                 for(let y of [-h/2,h/2]) for(let i=0;i<5;i++) v.push([r*Math.sin(i*1.256), y, r*Math.cos(i*1.256)]);
+                 const n=['A','B','C','D','E',"A'","B'","C'","D'","E'"]; n.forEach((l,i)=>v[i].push(l));
+                 const f=[{i:[0,1,2,3,4],n:'Đáy dưới'},{i:[5,6,7,8,9],n:'Đáy trên'}];
+                 for(let i=0;i<5;i++) f.push({i:[i, (i+1)%5, (i+1)%5+5, i+5], n:`Mặt ${n[i]}${n[(i+1)%5]}`});
+                 return {v, f, m: ["$$V=S_{5giac}.h$$", "$$S_{xq}=5ah$$"]};
+            },
+            'frustum_quad': () => {
+                const w1=3,d1=3, w2=1.5,d2=1.5, h=3;
+                const v = [[-w1/2,-h/2,d1/2,'A'],[w1/2,-h/2,d1/2,'B'],[w1/2,-h/2,-d1/2,'C'],[-w1/2,-h/2,-d1/2,'D'],
+                           [-w2/2,h/2,d2/2,"A'"],[w2/2,h/2,d2/2,"B'"],[w2/2,h/2,-d2/2,"C'"],[-w2/2,h/2,-d2/2,"D'"]];
+                const f = [{i:[3,2,1,0],n:'Đáy Lớn'},{i:[4,5,6,7],n:'Đáy Nhỏ'},{i:[0,1,5,4],n:"ABB'A'"},{i:[1,2,6,5],n:"BCC'B'"},{i:[2,3,7,6],n:"CDD'C'"},{i:[3,0,4,7],n:"DAA'D'"}];
+                f.push({i:[0,2,6,4],n:"Chéo ACC'A'",isD:true},{i:[1,3,7,5],n:"Chéo BDD'B'",isD:true});
+                return {v, f, m: ["$$V=\\frac{h}{3}(S_1+S_2+\\sqrt{S_1S_2})$$", "$$S_{xq}=(p_1+p_2)l$$"]};
+            },
+            'frustum_tri': () => {
+                 const v = [[0,-2,2,'A'],[1.7,-2,-1,'B'],[-1.7,-2,-1,'C'], [0,2,1,"A'"],[0.85,2,-0.5,"B'"],[-0.85,2,-0.5,"C'"]];
+                 const f = [{i:[0,2,1],n:'Đáy Lớn'},{i:[3,4,5],n:'Đáy Nhỏ'},{i:[0,1,4,3],n:"ABB'A'"},{i:[1,2,5,4],n:"BCC'B'"},{i:[2,0,3,5],n:"CAA'C'"}];
+                 return {v, f, m: ["$$V=\\frac{h}{3}(S_1+S_2+\\sqrt{S_1S_2})$$", ""]};
+            }
+        };
+
+        function buildPyramid(w,d,h,skew,names,m1,m2) {
+            const v = [[0,h/2,0,'S'], [-w/2,-h/2,d/2,names[0]], [w/2,-h/2,d/2,names[1]], [w/2+skew,-h/2,-d/2,names[2]], [-w/2+skew,-h/2,-d/2,names[3]]];
+            const f = [{i:[1,2,3,4],n:'Đáy'}, {i:[0,1,2],n:'Mặt SAB'}, {i:[0,2,3],n:'Mặt SBC'}, {i:[0,3,4],n:'Mặt SCD'}, {i:[0,4,1],n:'Mặt SDA'}, {i:[0,1,3],n:'Chéo SAC',isD:true}, {i:[0,2,4],n:'Chéo SBD',isD:true}];
+            return {v, f, m:[m1,m2]};
+        }
+        function buildPrism(w,d,h,skew,m1,m2) {
+            const v = [[-w/2,-h/2,d/2,'A'],[w/2,-h/2,d/2,'B'],[w/2,-h/2,-d/2,'C'],[-w/2,-h/2,-d/2,'D'],
+                       [-w/2+skew,h/2,d/2,"A'"],[w/2+skew,h/2,d/2,"B'"],[w/2+skew,h/2,-d/2,"C'"],[-w/2+skew,h/2,-d/2,"D'"]];
+            const f = [{i:[0,1,2,3],n:'Đáy Dưới'},{i:[4,5,6,7],n:'Đáy Trên'},{i:[0,1,5,4],n:"ABB'A'"},{i:[1,2,6,5],n:"BCC'B'"},{i:[2,3,7,6],n:"CDD'C'"},{i:[3,0,4,7],n:"DAA'D'"}, {i:[0,2,6,4],n:"Chéo ACC'A'",isD:true}, {i:[1,3,7,5],n:"Chéo BDD'B'",isD:true}];
+            return {v, f, m:[m1,m2]};
+        }
+        function buildPolyFromVerts(v, baseNames, m1, m2) {
+            const f = [{i:[1,2,3,4],n:'Đáy'}];
+            for(let i=1;i<=4;i++) f.push({i:[0,i, i==4?1:i+1], n:`Mặt S${baseNames[i-1]}${baseNames[i==4?0:i]}`});
+            f.push({i:[0,1,3],n:'Chéo SAC',isD:true},{i:[0,2,4],n:'Chéo SBD',isD:true});
+            return {v, f, m:[m1,m2]};
+        }
+
+        // --- RENDER ENGINE (UNCHANGED) ---
+        function initThree() {
+            try {
+                const cont = document.getElementById('canvas-container');
+                scene = new THREE.Scene(); 
+                scene.fog = new THREE.FogExp2(0x000000, 0.02);
+                
+                camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+                camera.position.set(0, 5, 13); camera.lookAt(0,0,0);
+                
+                renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled=true;
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                renderer.toneMappingExposure = 1.2;
+                cont.appendChild(renderer.domElement);
+                
+                scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                const keyLight = new THREE.DirectionalLight(0xffffff, 1.2); keyLight.position.set(5, 10, 7); scene.add(keyLight);
+                const rimLight = new THREE.SpotLight(0x06b6d4, 5); rimLight.position.set(-5, 5, -5); rimLight.lookAt(0,0,0); scene.add(rimLight);
+                const fillLight = new THREE.PointLight(0x8b5cf6, 0.5); fillLight.position.set(0, -5, 5); scene.add(fillLight);
+                
+                clipPlane = new THREE.Plane(new THREE.Vector3(0,-1,0), CONFIG.sliceInit);
+                createShape('pyramid_rect'); 
+                
+                const loadTxt = document.getElementById('loading-text');
+                if(loadTxt) loadTxt.innerText = "SYSTEM READY.";
+
+                animate();
+                window.addEventListener('resize', ()=>{
+                    camera.aspect=window.innerWidth/window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+            } catch(e) { console.error("Three init error", e); }
+        }
+
+        function startApplication(mode) {
+            STATE.appStarted = true;
+            STATE.mode = mode;
+            const intro = document.getElementById('intro-screen');
+            intro.style.opacity = '0';
+            intro.style.visibility = 'hidden';
+            
+            setTimeout(() => { 
+                setUI(true); 
+                if(mode === 'mouse') {
+                    initMouseControl();
+                    document.body.classList.add('mouse-zoom-active');
+                    document.getElementById('cam-box').style.display = 'none !important';
+                }
+            }, 500);
+
+            if(mode === 'hand') {
+                initMediaPipe();
+            }
+        }
+        
+        function goHome() {
+            STATE.appStarted = false;
+            STATE.mode = null;
+            STATE.isTwoHandZooming = false;
+            STATE.pinching = false;
+            
+            setUI(false);
+            document.body.classList.remove('mouse-zoom-active');
+            
+            const intro = document.getElementById('intro-screen');
+            intro.style.opacity = '1';
+            intro.style.visibility = 'visible';
+            
+            resetView();
+        }
+
+        function initMouseControl() {
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            const dom = renderer.domElement;
+
+            dom.addEventListener('mousedown', (e) => {
+                if(STATE.mode !== 'mouse') return;
+                isDragging = true;
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+
+            dom.addEventListener('mousemove', (e) => {
+                if (isDragging && STATE.mode === 'mouse') {
+                    const deltaX = e.offsetX - previousMousePosition.x;
+                    const deltaY = e.offsetY - previousMousePosition.y;
+
+                    STATE.targetRot.y += deltaX * 0.01;
+                    STATE.targetRot.x += deltaY * 0.01;
+
+                    previousMousePosition = { x: e.offsetX, y: e.offsetY };
+                }
+            });
+
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            const slider = document.getElementById('mouse-zoom-slider');
+            slider.addEventListener('input', (e) => {
+                STATE.targetScale = parseFloat(e.target.value);
+            });
+        }
+
+        // --- SHAPE GENERATOR (SMART EDGE FILTERING) ---
+        function createShape(type) {
+            if(currentMesh) scene.remove(currentMesh);
+            document.getElementById('labels-container').innerHTML='';
+            document.getElementById('face-list').innerHTML='';
+            document.getElementById('section-face-list').innerHTML=''; 
+            
+            labels=[]; highlights=[]; sectionHighlights=[]; 
+            if(intersectionGroup) intersectionGroup.clear();
+            if(sectionGroup) sectionGroup.clear();
+
+            document.getElementById('intersect-box').style.display='none';
+            document.getElementById('intersect-box').classList.remove('ui-active');
+
+            let geo, data;
+            STATE.isCurvedShape = false;
+            
+            const mat = new THREE.MeshStandardMaterial({
+                color: 0x3b82f6, emissive: 0x1d4ed8, emissiveIntensity: 0.1,
+                roughness: 0.1, metalness: 0.1, transparent: true, opacity: 0.2,
+                side: THREE.DoubleSide, 
+                clipShadows: true,
+                depthWrite: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+            });
+
+            const hiddenLineMat = new THREE.LineDashedMaterial({
+                color: 0xf59e0b, dashSize: 0.15, gapSize: 0.1, opacity: 0.8, transparent: true,
+                depthTest: true, depthWrite: false, depthFunc: THREE.GreaterDepth
+            });
+            
+            const visibleLineMat = new THREE.LineBasicMaterial({
+                color: 0xffffff, linewidth: 2, transparent: true, opacity: 1,
+                depthTest: true, depthWrite: true, depthFunc: THREE.LessEqual
+            });
+
+            currentMesh = new THREE.Group();
+
+            if(GEO_FACTORY[type]) {
+                data = GEO_FACTORY[type]();
+            } else if (type.includes('hedron')) {
+                let tmpGeo;
+                if(type==='tetrahedron') { tmpGeo = new THREE.TetrahedronGeometry(2.5); data={m:["$$V=\\frac{a^3\\sqrt{2}}{12}$$"]}; }
+                else if(type==='octahedron') { tmpGeo = new THREE.OctahedronGeometry(2.5); data={m:["$$V=\\frac{a^3\\sqrt{2}}{3}$$"]}; }
+                else if(type==='dodecahedron') { tmpGeo = new THREE.DodecahedronGeometry(2.2); data={m:["12 Mặt Đều"]}; }
+                else if(type==='icosahedron') { tmpGeo = new THREE.IcosahedronGeometry(2.2); data={m:["20 Mặt Đều"]}; }
+                data = convertBufferGeometryToData(tmpGeo, data.m[0]);
+            } else {
+                STATE.isCurvedShape = true;
+                let tmpGeo;
+                let mathInfo = [];
+                if(type==='cylinder') { 
+                    tmpGeo=new THREE.CylinderGeometry(1.5,1.5,4,32, 1, false); 
+                    mathInfo=["$$V=\\pi r^2h$$", "$$S_{xq}=2\\pi rh$$"]; 
+                }
+                else if(type==='cone') { 
+                    tmpGeo=new THREE.ConeGeometry(2,4,32, 1, false); 
+                    mathInfo=["$$V=\\frac{1}{3}\\pi r^2h$$", "$$S_{xq}=\\pi rl$$"]; 
+                }
+                else if(type==='sphere') { 
+                    tmpGeo=new THREE.SphereGeometry(2,32,16); 
+                    mathInfo=["$$V=\\frac{4}{3}\\pi r^3$$", "$$S=4\\pi r^2$$"];
+                    const centerDot = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshBasicMaterial({color:0xff0000}));
+                    currentMesh.add(centerDot);
+                }
+                data = convertBufferGeometryToData(tmpGeo, "");
+                data.m = mathInfo;
+            }
+
+            currentGeometryData = data;
+            
+            const vertices = [];
+            const edgeVertices = []; 
+            
+            data.f.forEach(face => {
+                const p0 = data.v[face.i[0]];
+                for(let k=1; k<face.i.length-1; k++) {
+                    const tris = [...p0.slice(0,3), ...data.v[face.i[k]].slice(0,3), ...data.v[face.i[k+1]].slice(0,3)];
+                    vertices.push(...tris);
+                    if (!face.isD) {
+                        edgeVertices.push(...tris);
+                    }
+                }
+            });
+            
+            geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geo.computeVertexNormals();
+
+            const edgeObjGeo = new THREE.BufferGeometry();
+            edgeObjGeo.setAttribute('position', new THREE.Float32BufferAttribute(edgeVertices, 3));
+
+            if(!STATE.isCurvedShape) {
+                data.v.forEach(v => {
+                    if(v[3]) { 
+                        const el = document.createElement('div'); el.className='label-3d'; el.innerText=v[3];
+                        document.getElementById('labels-container').appendChild(el);
+                        labels.push({el:el, pos:new THREE.Vector3(v[0],v[1],v[2])});
+                    }
+                });
+            }
+            
+            const list = document.getElementById('face-list');
+            const sectionList = document.getElementById('section-face-list');
+            
+            if (!STATE.isCurvedShape) {
+                data.f.forEach((f,i) => {
+                    list.innerHTML += `<div class="face-item"><input type="checkbox" id="f${i}" onchange="toggleFace(${i})"><label for="f${i}" class="flex-1 ml-2 cursor-pointer select-none">${f.n}</label></div>`;
+                    sectionList.innerHTML += `<div class="face-item"><input type="checkbox" id="sf${i}" onchange="toggleSectionFace(${i})"><label for="sf${i}" class="flex-1 ml-2 cursor-pointer select-none">${f.n}</label></div>`;
+                });
+            } else {
+                list.innerHTML = "<div class='text-xs text-gray-500 italic text-center mt-4'>Hình khối tròn xoay<br>không hỗ trợ tô mặt phẳng.</div>";
+                let modes = [];
+                if(type === 'sphere') {
+                    modes = [{id: 'planar', name: 'Cắt mặt phẳng'}];
+                } else {
+                    modes = [
+                        {id: 'perp', name: 'Vuông góc trục (Đáy)'},
+                        {id: 'para', name: 'Song song trục (Dọc)'},
+                        {id: 'oblique', name: 'Mặt cắt chéo (Xiên)'}
+                    ];
+                }
+                modes.forEach((m, idx) => {
+                    sectionList.innerHTML += `<div class="face-item"><input type="radio" name="cutmode" id="cm${idx}" onchange="setCutMode('${m.id}')"><label for="cm${idx}" class="flex-1 ml-2 cursor-pointer select-none">${m.name}</label></div>`;
+                });
+            }
+
+            updateInfo(data.m);
+            
+            const mesh = new THREE.Mesh(geo, mat); mesh.renderOrder = 0; currentMesh.add(mesh);
+            const edgeGeo = new THREE.EdgesGeometry(edgeObjGeo, STATE.isCurvedShape ? 30 : 15); 
+            
+            const hiddenLines = new THREE.LineSegments(edgeGeo, hiddenLineMat); hiddenLines.computeLineDistances(); hiddenLines.renderOrder = 1; currentMesh.add(hiddenLines);
+            const visibleLines = new THREE.LineSegments(edgeGeo, visibleLineMat); visibleLines.renderOrder = 2; currentMesh.add(visibleLines);
+
+            intersectionGroup = new THREE.Group(); currentMesh.add(intersectionGroup);
+            sectionGroup = new THREE.Group(); currentMesh.add(sectionGroup);
+
+            scene.add(currentMesh);
+        }
+
+        function updateInfo(maths) {
+            const el = document.getElementById('formula-content');
+            el.innerHTML = maths.map(m => `<div class="mb-1">${m}</div>`).join('');
+            if(window.MathJax) MathJax.typesetPromise([el]);
+        }
+
+        window.toggleFace = function(idx) {
+            const exist = highlights.find(h => h.id === idx);
+            if(exist) {
+                currentMesh.remove(exist.mesh);
+                highlights = highlights.filter(h => h.id !== idx);
+            } else {
+                const face = currentGeometryData.f[idx];
+                const vs = [];
+                const p0 = currentGeometryData.v[face.i[0]];
+                for(let k=1; k<face.i.length-1; k++) {
+                    vs.push(...p0.slice(0,3), ...currentGeometryData.v[face.i[k]].slice(0,3), ...currentGeometryData.v[face.i[k+1]].slice(0,3));
+                }
+                const g = new THREE.BufferGeometry();
+                g.setAttribute('position', new THREE.Float32BufferAttribute(vs, 3));
+                
+                const col = CONFIG.highlightColors[highlights.length % CONFIG.highlightColors.length];
+                const m = new THREE.MeshBasicMaterial({color:col, transparent:true, opacity:0.7, side:THREE.DoubleSide, depthTest:false});
+                
+                const mesh = new THREE.Mesh(g, m);
+                mesh.scale.setScalar(1.01); mesh.userData = {indices: face.i, name: face.n};
+                currentMesh.add(mesh); highlights.push({id:idx, mesh:mesh});
+            }
+            calcIntersections();
+        };
+
+        window.toggleSectionFace = function(idx) {
+            const existIdx = sectionHighlights.indexOf(idx);
+            if(existIdx > -1) {
+                sectionHighlights.splice(existIdx, 1);
+            } else {
+                sectionHighlights.push(idx);
+            }
+            if(sectionGroup) sectionGroup.clear(); 
+            STATE.isSectionComputed = false;
+        };
+        
+        window.setCutMode = function(mode) {
+            if (mode === 'perp' || mode === 'planar') STATE.sectionNormal.set(0, 1, 0);
+            else if (mode === 'para') STATE.sectionNormal.set(1, 0, 0);
+            else if (mode === 'oblique') STATE.sectionNormal.set(1, 1, 0).normalize();
+            STATE.isSectionComputed = false;
+            if(sectionGroup) sectionGroup.clear();
+        };
+
+        function calcIntersections() {
+            intersectionGroup.clear();
+            const hud = document.getElementById('intersect-box');
+            hud.style.display = 'none'; hud.classList.remove('ui-active');
+            
+            if(highlights.length < 2) return;
+
+            for(let a=0; a<highlights.length; a++) {
+                for(let b=a+1; b<highlights.length; b++) {
+                    const fA = highlights[a].mesh.userData;
+                    const fB = highlights[b].mesh.userData;
+                    const common = fA.indices.filter(x => fB.indices.includes(x));
+                    
+                    let p1, p2, txt="";
+                    
+                    if(common.length >= 2) { 
+                        p1 = currentGeometryData.v[common[0]];
+                        p2 = currentGeometryData.v[common[1]];
+                        const n1 = p1[3] || '', n2 = p2[3] || '';
+                        if(n1 && n2) txt = `${n1} - ${n2}`;
+                    } 
+                    else if (common.length === 1) { 
+                        const S = currentGeometryData.v[common[0]];
+                        const baseA = fA.indices.filter(x => x!==common[0]);
+                        const baseB = fB.indices.filter(x => x!==common[0]);
+                        
+                        if(baseA.length==2 && baseB.length==2) {
+                            const A1=currentGeometryData.v[baseA[0]], A2=currentGeometryData.v[baseA[1]];
+                            const B1=currentGeometryData.v[baseB[0]], B2=currentGeometryData.v[baseB[1]];
+                            const inter = getLineIntersection(A1, A2, B1, B2); 
+                            if(inter) {
+                                p1 = S; p2 = [inter[0], A1[1], inter[2]];
+                                txt = `${S[3] || 'S'} - O`;
+                                const od = document.createElement('div'); od.className='label-3d'; od.innerText='O'; 
+                                od.style.background='#facc15'; od.style.color='black';
+                                document.getElementById('labels-container').appendChild(od);
+                                labels.push({el:od, pos:new THREE.Vector3(...p2), temp:true});
+                            }
+                        }
+                    }
+
+                    if(p1 && p2) {
+                        const pts = [new THREE.Vector3(p1[0],p1[1],p1[2]), new THREE.Vector3(p2[0],p2[1],p2[2])];
+                        const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(pts[0],pts[1]), 1, 0.08, 8, false), new THREE.MeshBasicMaterial({color: 0xffaa00, opacity: 1, transparent: false}));
+                        intersectionGroup.add(tube);
+                        
+                        if(txt) {
+                            hud.style.display='block'; setTimeout(() => hud.classList.add('ui-active'), 50);
+                            document.getElementById('intersect-text').innerText = txt;
+                        }
+                    }
+                }
+            }
+        }
+
+        window.triggerSectionCalc = function() {
+            STATE.isSectionComputed = true;
+            if (!STATE.isCurvedShape) {
+                if(sectionHighlights.length >= 3) {
+                    const centroids = [];
+                    for(let i=0; i<3; i++) {
+                        const face = currentGeometryData.f[sectionHighlights[i]];
+                        const indices = face.i;
+                        let cx=0, cy=0, cz=0;
+                        indices.forEach(idx => {
+                            cx += currentGeometryData.v[idx][0];
+                            cy += currentGeometryData.v[idx][1];
+                            cz += currentGeometryData.v[idx][2];
+                        });
+                        centroids.push(new THREE.Vector3(cx/indices.length, cy/indices.length, cz/indices.length));
+                    }
+                    const v1 = new THREE.Vector3().subVectors(centroids[1], centroids[0]);
+                    const v2 = new THREE.Vector3().subVectors(centroids[2], centroids[0]);
+                    STATE.sectionNormal.crossVectors(v1, v2).normalize();
+                } else {
+                    STATE.sectionNormal.set(0, 1, 0); 
+                }
+            }
+            calcSection();
+        }
+
+        function calcSection() {
+            if(!sectionGroup || !STATE.isSectionComputed) return;
+            sectionGroup.clear();
+            
+            const sliderVal = parseFloat(document.getElementById('slice-slider').value);
+            const planeConstant = sliderVal; 
+            const normal = STATE.sectionNormal;
+            
+            const allPoints = [];
+
+            currentGeometryData.f.forEach((face, faceIdx) => {
+                const indices = face.i;
+                const points = [];
+                const V = currentGeometryData.v;
+                
+                for(let i=0; i<indices.length; i++) {
+                    const idx1 = indices[i];
+                    const idx2 = indices[(i+1) % indices.length];
+                    
+                    const p1 = new THREE.Vector3(...V[idx1]);
+                    const p2 = new THREE.Vector3(...V[idx2]);
+                    
+                    const d1 = p1.dot(normal) - planeConstant;
+                    const d2 = p2.dot(normal) - planeConstant;
+                    
+                    if (d1 * d2 <= 0 && d1 !== d2) {
+                        const t = d1 / (d1 - d2);
+                        const intersection = new THREE.Vector3().lerpVectors(p1, p2, t);
+                        points.push(intersection);
+                    }
+                }
+                
+                if(points.length >= 2) {
+                     allPoints.push(...points);
+                }
+            });
+
+            if(allPoints.length >= 3) {
+                const uniquePoints = [];
+                allPoints.forEach(p => {
+                    if(!uniquePoints.some(up => up.distanceTo(p) < 0.05)) uniquePoints.push(p);
+                });
+
+                if(uniquePoints.length >= 3) {
+                    const center = new THREE.Vector3();
+                    uniquePoints.forEach(p => center.add(p));
+                    center.divideScalar(uniquePoints.length);
+                    
+                    let up = new THREE.Vector3(0, 1, 0);
+                    if(Math.abs(normal.y) > 0.99) up = new THREE.Vector3(1, 0, 0);
+                    const basisU = new THREE.Vector3().crossVectors(normal, up).normalize();
+                    const basisV = new THREE.Vector3().crossVectors(normal, basisU).normalize();
+                    
+                    uniquePoints.sort((a,b) => {
+                        const va = a.clone().sub(center);
+                        const vb = b.clone().sub(center);
+                        const angleA = Math.atan2(va.dot(basisV), va.dot(basisU));
+                        const angleB = Math.atan2(vb.dot(basisV), vb.dot(basisU));
+                        return angleA - angleB;
+                    });
+
+                    const tubePoints = [...uniquePoints, uniquePoints[0]]; 
+                    const tube = new THREE.Mesh(
+                        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(tubePoints, false, 'catmullrom', 0), 64, 0.06, 8, false),
+                        new THREE.MeshBasicMaterial({color: 0xff4400, depthTest:false}) 
+                    );
+                    tube.renderOrder = 999;
+                    sectionGroup.add(tube);
+
+                    const shape = new THREE.Shape();
+                    const p0 = uniquePoints[0].clone().sub(center);
+                    shape.moveTo(p0.dot(basisU), p0.dot(basisV));
+                    
+                    for(let i=1; i<uniquePoints.length; i++) {
+                        const pi = uniquePoints[i].clone().sub(center);
+                        shape.lineTo(pi.dot(basisU), pi.dot(basisV));
+                    }
+                    shape.closePath();
+
+                    const geom = new THREE.ShapeGeometry(shape);
+                    const matrix = new THREE.Matrix4();
+                    matrix.makeBasis(basisU, basisV, normal);
+                    matrix.setPosition(center);
+                    
+                    const capMesh = new THREE.Mesh(
+                        geom, 
+                        new THREE.MeshBasicMaterial({
+                            color: 0xff6600, 
+                            side: THREE.DoubleSide, 
+                            transparent:true, 
+                            opacity:0.8,
+                            depthTest: false
+                        })
+                    );
+                    capMesh.geometry.applyMatrix4(matrix);
+                    capMesh.renderOrder = 998;
+                    
+                    sectionGroup.add(capMesh);
+                }
+            }
+        }
+
+        document.getElementById('slice-slider').addEventListener('input', (e)=>{
+             calcSection();
+        });
+        document.getElementById('op-slider').addEventListener('input', (e)=>{STATE.opacity=parseFloat(e.target.value); if(currentMesh) currentMesh.children[0].material.opacity=STATE.opacity});
+        // --- ADDED: Mobile Zoom Slider Listener ---
+        document.getElementById('mobile-zoom-slider').addEventListener('input', (e)=>{
+            STATE.targetScale = parseFloat(e.target.value);
+            // Sync with desktop slider if exists (optional but good for consistency)
+            const desktopSlider = document.getElementById('mouse-zoom-slider');
+            if(desktopSlider) desktopSlider.value = e.target.value;
+        });
+        
+        function resetView() {
+            STATE.targetRot={x:0.5,y:0.5}; STATE.targetScale=1; clipPlane.constant=4; 
+            document.getElementById('slice-slider').value=0;
+            document.getElementById('mouse-zoom-slider').value=1;
+            document.getElementById('mobile-zoom-slider').value=1; // Reset mobile zoom
+            highlights.forEach(h => currentMesh.remove(h.mesh)); highlights=[]; intersectionGroup.clear();
+            sectionHighlights=[]; if(sectionGroup) sectionGroup.clear(); 
+            STATE.sectionNormal.set(0,1,0); STATE.isSectionComputed = false;
+            
+            document.querySelectorAll('#face-list input').forEach(c => c.checked=false);
+            document.querySelectorAll('#section-face-list input').forEach(c => c.checked=false);
+            
+            document.getElementById('intersect-box').style.display='none';
+            document.getElementById('intersect-box').classList.remove('ui-active');
+            labels = labels.filter(l => { if(l.temp) l.el.remove(); return !l.temp; });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if(currentMesh) {
+                STATE.currRot.x += (STATE.targetRot.x - STATE.currRot.x)*0.2;
+                STATE.currRot.y += (STATE.targetRot.y - STATE.currRot.y)*0.2;
+                STATE.currScale += (STATE.targetScale - STATE.currScale)*0.1;
+                currentMesh.rotation.x = STATE.currRot.x;
+                currentMesh.rotation.y = STATE.currRot.y;
+                currentMesh.scale.setScalar(STATE.currScale);
+
+                labels.forEach(l => {
+                    const v = l.pos.clone(); v.applyMatrix4(currentMesh.matrixWorld); v.project(camera);
+                    const x = (v.x*.5+.5)*window.innerWidth; const y = (-(v.y*.5)+.5)*window.innerHeight;
+                    l.el.style.left = x+'px'; l.el.style.top = y+'px';
+                    l.el.style.display = (v.z>1) ? 'none' : 'flex';
+                });
+            }
+            renderer.render(scene, camera);
+        }
+        
+        initThree();
+        const cursor=document.getElementById('hand-cursor');
+        
+        function initMediaPipe() {
+            if(typeof Hands !== 'undefined') {
+                const hands = new Hands({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+                hands.setOptions({maxNumHands:2, modelComplexity:0, minDetectionConfidence:0.5});
+                hands.onResults(onResults);
+                
+                const vid = document.getElementById('input_video');
+                const statusEl = document.getElementById('ai-status');
+                let camRunning = false;
+                
+                statusEl.innerText = "Requesting Cam...";
+
+                navigator.mediaDevices.getUserMedia({video:{width:320,height:240}}).then(s => {
+                    vid.srcObject = s;
+                    vid.onloadedmetadata = () => { vid.play(); camRunning=true; loop(); 
+                        statusEl.innerText = "ONLINE ● TRACKING";
+                        statusEl.className = "text-[9px] font-bold text-green-400 animate-pulse";
+                    };
+                }).catch(e => {
+                    statusEl.innerText = "CAMERA ERROR";
+                    statusEl.className = "text-[9px] font-bold text-red-500";
+                });
+
+                async function loop() { if(camRunning && vid.readyState>=2) await hands.send({image:vid}); requestAnimationFrame(loop); }
+            }
+        }
+
+        function setUI(show) {
+            STATE.uiVisible = show;
+            const els = [document.getElementById('sidebar-panel'), document.querySelector('.formula-card'), document.getElementById('app-footer'), document.getElementById('intersect-box'), document.getElementById('home-btn'), document.getElementById('mobile-menu-btn'), document.getElementById('controls-panel')];
+            // Only add cam-box if we are in hand mode
+            if (STATE.mode === 'hand') {
+                els.push(document.getElementById('cam-box'));
+            }
+            
+            els.forEach(el => {
+                if(!el) return;
+                if(el.id === 'intersect-box' && el.style.display === 'none') return;
+                if(show) el.classList.add('ui-active');
+                else el.classList.remove('ui-active');
+            });
+        }
+
+        function onResults(res) {
+            if(!STATE.appStarted || STATE.mode !== 'hand') return;
+
+            const ctx = document.getElementById('output_canvas').getContext('2d');
+            ctx.clearRect(0,0,300,200); ctx.drawImage(res.image,0,0,300,200);
+
+            if(res.multiHandLandmarks.length > 0) {
+                if(uiTimeout) { clearTimeout(uiTimeout); uiTimeout=null; }
+                if(STATE.uiVisible) setUI(false);
+
+                if(res.multiHandLandmarks.length === 2) {
+                    const h1=res.multiHandLandmarks[0][9], h2=res.multiHandLandmarks[1][9];
+                    const d = Math.hypot(h1.x-h2.x, h1.y-h2.y);
+                    if(!STATE.isTwoHandZooming) { STATE.isTwoHandZooming=true; STATE.zoomStartDist=d; STATE.zoomStartScale=STATE.targetScale; }
+                    else { STATE.targetScale = Math.max(0.5, Math.min(3.5, STATE.zoomStartScale * (d/STATE.zoomStartDist))); }
+                    cursor.style.display='none'; return;
+                }
+                STATE.isTwoHandZooming=false;
+
+                const lm = res.multiHandLandmarks[0];
+                drawConnectors(ctx, lm, HAND_CONNECTIONS, {color:'#22d3ee', lineWidth:2});
+
+                const wrist=lm[0]; let curled=0;
+                [8,12,16,20].forEach(i=>{ if(Math.hypot(lm[i].x-wrist.x, lm[i].y-wrist.y) < 0.15) curled++; });
+                
+                if(curled >= 3) {
+                    resetView(); cursor.style.display='block'; cursor.style.backgroundColor='red';
+                    cursor.style.left=((1-lm[9].x)*100)+'%'; cursor.style.top=(lm[9].y*100)+'%';
+                    return;
+                }
+
+                const x=1-lm[8].x, y=lm[8].y;
+                const dist = Math.hypot(x-STATE.handPos.x, y-STATE.handPos.y);
+                const alpha = dist > 0.02 ? 0.8 : CONFIG.smooth;
+                STATE.handPos.x += (x-STATE.handPos.x)*alpha;
+                STATE.handPos.y += (y-STATE.handPos.y)*alpha;
+
+                cursor.style.display='block'; 
+                cursor.style.left=(STATE.handPos.x*100)+'%'; 
+                cursor.style.top=(STATE.handPos.y*100)+'%';
+                
+                const pinch = Math.hypot(lm[8].x-lm[4].x, lm[8].y-lm[4].y);
+                if(pinch < CONFIG.pinchThresh) {
+                    cursor.style.backgroundColor='#22d3ee';
+                    if(!STATE.pinching) { STATE.pinching=true; STATE.lastPos={...STATE.handPos}; }
+                    else {
+                        const dx = (STATE.handPos.x-STATE.lastPos.x)*CONFIG.rotateSpeed;
+                        const dy = (STATE.handPos.y-STATE.lastPos.y)*CONFIG.rotateSpeed;
+                        STATE.targetRot.y += dx*3; STATE.targetRot.x += dy*3;
+                        STATE.lastPos={...STATE.handPos};
+                    }
+                } else {
+                    cursor.style.backgroundColor='transparent';
+                    STATE.pinching=false;
+                }
+
+            } else {
+                cursor.style.display='none'; STATE.isTwoHandZooming=false;
+                
+                if(!STATE.uiVisible && !uiTimeout) {
+                    uiTimeout = setTimeout(() => { setUI(true); uiTimeout=null; }, 800);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
