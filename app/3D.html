@@ -412,15 +412,15 @@
             <div class="icon-shield"><i class="fas fa-user-shield"></i></div>
             <h2>CAM KẾT RIÊNG TƯ</h2>
             <div class="privacy-content">
-                <p>Ứng dụng xây dựng để phục vụ việc học và dạy học.</p>
+                <p>Tôi thầy Nguyên dùng AI xây dựng ứng dụng để phục vụ việc học và dạy học, quý thầy cô vui lòng đọc kĩ thông tin sau và chịu mọi trách nhiệm khi sử dụng.</p>
                 <ul>
-                    <li><i class="fas fa-microchip"></i> <strong>Xử lý tại chỗ:</strong> Ứng dụng chỉ xử lý hình ảnh tại chỗ trên thiết bị của bạn.</li>
-                    <li><i class="fas fa-video-slash"></i> <strong>Không lưu trữ:</strong> Chúng tôi tuyệt đối không ghi lại hay lưu trữ bất kỳ hình ảnh nào.</li>
+                    <li><i class="fas fa-microchip"></i> <strong>Xử lý tại chỗ:</strong> Ứng dụng chỉ xử lý hình ảnh tại chỗ trên thiết bị của thầy cô.</li>
+                    <li><i class="fas fa-video-slash"></i> <strong>Không lưu trữ:</strong> Ứng dụng tuyệt đối không ghi lại hay lưu trữ bất kỳ hình ảnh nào.</li>
                     <li><i class="fas fa-paper-plane"></i> <strong>Không gửi đi:</strong> Dữ liệu không bao giờ được gửi đến máy chủ hay bên thứ ba.</li>
                 </ul>
-                <p class="trust-note">Chúng tôi làm sạch hoàn toàn để bạn yên tâm không lo mất thông tin.</p>
+                <p class="trust-note">Ứng dụng làm sạch hoàn toàn để thầy cô yên tâm không lo mất thông tin. Khi thầy cô sử dụng đồng nghĩa với việc chịu hoàn toàn mọi trách nhiệm.</p>
             </div>
-            <button class="privacy-btn" onclick="acceptPrivacy()">Tin tưởng & Sử dụng</button>
+            <button class="privacy-btn" onclick="acceptPrivacy()">Hiểu và đồng ý với nội dung trên</button>
         </div>
     </div>
 
@@ -779,27 +779,48 @@
                 if (faces.length < 2) return;
 
                 const vertices = data.v;
-                const edgeMap = {}; 
+                
+                // Helper to get name of vertex i
+                const getName = (i) => vertices[i][3];
 
-                // 1. Map all edges to faces
+                // 1. Identify all unique edges based on the geometry definitions
+                // An edge exists if it is a segment in ANY face.
+                const uniqueEdges = {}; // "AB": {n1: "A", n2: "B"}
+
                 for (let i = 0; i < faces.length; i++) {
                     const face = faces[i];
                     for (let j = 0; j < face.i.length; j++) {
                         const idx1 = face.i[j];
                         const idx2 = face.i[(j + 1) % face.i.length];
-                        const v1 = vertices[idx1];
-                        const v2 = vertices[idx2];
+                        const n1 = getName(idx1);
+                        const n2 = getName(idx2);
                         
-                        if (v1[3] && v2[3]) {
-                            const name1 = v1[3];
-                            const name2 = v2[3];
-                            const edgeName = name1 < name2 ? name1 + name2 : name2 + name1;
-                            
-                            if (!edgeMap[edgeName]) edgeMap[edgeName] = [];
-                            edgeMap[edgeName].push(i);
+                        if (n1 && n2) {
+                            const key = n1 < n2 ? n1 + n2 : n2 + n1;
+                            if (!uniqueEdges[key]) {
+                                uniqueEdges[key] = { n1, n2, key };
+                            }
                         }
                     }
                 }
+
+                // 2. Map each edge to ALL faces that contain both vertices of that edge
+                const edgeMap = {}; // "AB": [faceIndex1, faceIndex2]
+
+                Object.values(uniqueEdges).forEach(edge => {
+                    edgeMap[edge.key] = [];
+                    
+                    for (let i = 0; i < faces.length; i++) {
+                        const face = faces[i];
+                        // Get all vertex names for this face
+                        const faceVNames = face.i.map(idx => getName(idx));
+                        
+                        // Check if face contains both n1 and n2
+                        if (faceVNames.includes(edge.n1) && faceVNames.includes(edge.n2)) {
+                            edgeMap[edge.key].push(i);
+                        }
+                    }
+                });
 
                 const allEdges = Object.keys(edgeMap);
                 const qType1 = []; // Face containing edge
