@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TMN Math Lab - Thầy Thái Minh Nguyên</title>
     
     <!-- LIBRARIES -->
@@ -15,131 +15,139 @@
     <!-- FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@1,600&display=swap" rel="stylesheet">
 
     <!-- STYLES -->
     <style>
         :root {
+            /* --- DARK MODE (Default) --- */
             --bg-deep: #020617; 
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: rgba(0, 0, 0, 0.4);
+            --accent-glow: rgba(34, 211, 238, 0.4);
+            
+            --icon-color: #22d3ee; /* Neon Cyan */
+            --hamburger-color: #22d3ee;
+            
             --neon-cyan: #06b6d4;
             --neon-purple: #a855f7;
             --neon-amber: #f59e0b;
             --neon-rose: #f43f5e;
+            --neon-emerald: #10b981;
+        }
+
+        /* --- LIGHT MODE (Optimized for readability & less glare) --- */
+        [data-theme="light"] {
+            --bg-deep: #f8fafc; /* Slate 50 - Softer than pure white */
+            --text-primary: #0f172a; /* Slate 900 */
+            --text-secondary: #475569; /* Slate 600 */
+            --glass-bg: rgba(255, 255, 255, 0.85); /* Less transparent */
+            --glass-border: rgba(203, 213, 225, 0.6); /* Slate 300 */
+            --glass-shadow: rgba(148, 163, 184, 0.15);
+            --accent-glow: rgba(8, 145, 178, 0.3);
+            
+            /* Darker colors for light mode visibility */
+            --neon-cyan: #0284c7; /* Sky 600 */
+            --neon-purple: #7c3aed; /* Violet 600 */
+            --neon-amber: #d97706; /* Amber 600 */
+            --neon-rose: #e11d48; /* Rose 600 */
         }
 
         body {
             font-family: 'Be Vietnam Pro', sans-serif;
             background-color: var(--bg-deep);
-            color: #f8fafc;
+            color: var(--text-primary);
             margin: 0; padding: 0;
             overflow-x: hidden;
             cursor: default;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         .font-math { font-family: 'Space Grotesk', sans-serif; }
+        .font-symbol { font-family: 'Cormorant Garamond', serif; font-style: italic; }
 
         /* --- ADVANCED BACKGROUND --- */
         .math-universe {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: radial-gradient(circle at 50% -20%, #1e293b 0%, #020617 80%);
             overflow: hidden;
+            transition: background 0.4s ease;
         }
         
-        /* Grid Floor 3D */
-        .grid-floor {
-            position: absolute; width: 300%; height: 200%; bottom: -50%; left: -100%;
-            background-image: 
-                linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
-            background-size: 60px 60px;
-            transform: perspective(800px) rotateX(70deg);
-            animation: gridMove 20s linear infinite;
-            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
+        [data-theme="dark"] .math-universe {
+            background: radial-gradient(circle at 50% -20%, #1e293b 0%, #020617 80%);
         }
-        @keyframes gridMove {
-            0% { transform: perspective(800px) rotateX(70deg) translateY(0); }
-            100% { transform: perspective(800px) rotateX(70deg) translateY(60px); }
+        [data-theme="light"] .math-universe {
+            background: radial-gradient(circle at 50% -20%, #ffffff 0%, #f1f5f9 80%);
         }
 
-        /* Floating Particles */
-        .particle {
+        /* 3D Floating Math Symbols */
+        .math-symbol {
             position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0;
-            animation: floatParticle linear infinite;
+            color: var(--text-secondary);
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            user-select: none;
+            will-change: transform, opacity;
+            text-shadow: 0 0 10px var(--accent-glow);
         }
-        @keyframes floatParticle {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            20% { opacity: 0.5; }
-            80% { opacity: 0.5; }
-            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        
+        [data-theme="dark"] .math-symbol {
+            opacity: 0.15;
+            mix-blend-mode: screen;
+        }
+        [data-theme="light"] .math-symbol {
+            opacity: 0.08;
+            mix-blend-mode: multiply;
         }
 
         /* --- GLASS CARD ULTRA --- */
         .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08); 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); 
+            box-shadow: 0 4px 20px var(--glass-shadow);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative; overflow: hidden;
         }
         
-        /* Shimmer Effect */
-        .glass-card::after {
-            content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
-            transform: translateX(-100%); transition: 0.6s;
-        }
-        
         .glass-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: rgba(34, 211, 238, 0.3);
-            box-shadow: 0 20px 50px -10px rgba(34, 211, 238, 0.15);
-            background: rgba(30, 41, 59, 0.8);
+            transform: translateY(-4px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 15px 40px -10px var(--accent-glow);
         }
-        .glass-card:hover::after { transform: translateX(100%); }
 
-        /* --- ANIMATED TEXT --- */
-        .text-gradient-anim {
-            background: linear-gradient(to right, #22d3ee, #c084fc, #f43f5e, #22d3ee);
-            background-size: 300% auto;
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: gradientText 5s linear infinite;
-        }
-        @keyframes gradientText { to { background-position: 300% center; } }
-
-        /* --- MOUSE TRAIL --- */
-        #mouse-trail {
-            position: fixed; pointer-events: none; z-index: 9999;
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
-            transform: translate(-50%, -50%);
-            mix-blend-mode: screen;
-            transition: transform 0.1s ease-out;
+        /* --- MOBILE OPTIMIZATIONS --- */
+        @media (max-width: 768px) {
+            .glass-card:hover { transform: none; } 
+            .hide-scrollbar::-webkit-scrollbar { display: none; }
+            .mobile-stack { flex-direction: column; }
+            .mobile-compact-text { font-size: 0.9rem; }
+            .mobile-hidden { display: none; }
+            
+            /* Better Touch Targets */
+            button, a { min-height: 44px; }
         }
 
         /* --- ANIMATIONS --- */
         .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Pulse Glow for Icons */
-        .icon-glow-box {
-            position: relative; z-index: 1;
-        }
+        .icon-glow-box { position: relative; z-index: 1; }
         .icon-glow-box::before {
             content: ''; position: absolute; inset: -5px; z-index: -1;
-            background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
             opacity: 0; transition: opacity 0.3s;
         }
         .glass-card:hover .icon-glow-box::before { opacity: 0.6; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; border: 1px solid #020617; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 10px; opacity: 0.3; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
     </style>
 </head>
 <body>
@@ -147,11 +155,12 @@
     <div id="mouse-trail"></div>
 
     <script>
-        // Mouse Trail Script
         document.addEventListener('mousemove', (e) => {
             const trail = document.getElementById('mouse-trail');
-            if(trail) trail.style.left = e.clientX + 'px';
-            if(trail) trail.style.top = e.clientY + 'px';
+            if(trail) {
+                trail.style.left = e.clientX + 'px';
+                trail.style.top = e.clientY + 'px';
+            }
         });
     </script>
 
@@ -181,15 +190,16 @@
                 { filename: "sudoku.html", title: "Sudoku Logic", category: "Tư duy", iconType: "GameSudoku", color: "from-violet-500 to-fuchsia-500", plays: "8.5k" },
                 { filename: "quiz.html", title: "Đố Vui Hình Học", category: "Trực quan", iconType: "GameGeo", color: "from-orange-500 to-amber-500", plays: "5k" },
                 { filename: "iq-test.html", title: "Thử Thách IQ", category: "Logic", iconType: "GameBrain", color: "from-rose-500 to-pink-500", plays: "15k" },
+                // MỚI: Game Oxyz Joyride
+                { filename: "gameoxyz.html", title: "Oxyz Joyride", category: "Giải cứu Toán học", iconType: "GameJoyride", color: "from-blue-500 to-cyan-500", plays: "New" },
             ],
             tools: [
                 { filename: "tkb.html", title: "Trích Xuất TKB", desc: "Xem thời khóa biểu", iconType: "ToolCalendar", color: "text-rose-400" },
                 { filename: "congcu.html", title: "Công Cụ Tạo Prompt", desc: "Hỗ trợ giáo viên tạo prompt AI", iconType: "ToolPrompt", color: "text-pink-400" },
-                { filename: "quanlihocsinh.html", title: "Theo Dõi Hạnh Kiểm", desc: "Công cụ quản lý nề nếp học sinh", iconType: "ToolConduct", color: "text-blue-500" },
-                // MỚI: SỔ ĐIỂM
+                { filename: "quanlihocsinh.html", title: "Theo Dõi Hạnh Kiểm", desc: "Công cụ quản lý nề nếp", iconType: "ToolConduct", color: "text-blue-500" },
                 { filename: "sodiem.html", title: "Sổ Điểm Điện Tử", desc: "Quản lý điểm số học sinh", iconType: "ToolGradebook", color: "text-green-500" },
-                // MỚI: TKB GV
                 { filename: "tkbgv.html", title: "Trích xuất TKB GV", desc: "Xem TKB Giáo Viên", iconType: "ToolCalendar", color: "text-purple-500" },
+                { filename: "3D.html", title: "Hình Học Tương Tác", desc: "Mô hình 3D trực quan", iconType: "Tool3D", color: "text-blue-400" },
             ],
             projects: [
                 { 
@@ -202,7 +212,6 @@
                 }
             ],
             infographics: [
-                // Placeholder
                 { filename: "info_dao_ham.jpg", title: "Sơ đồ tư duy Đạo Hàm", desc: "Tóm tắt công thức chương 1" },
                 { filename: "info_hinh_hoc.png", title: "Hình học Không gian", desc: "Các khối đa diện thường gặp" }
             ],
@@ -216,6 +225,42 @@
                     color: "text-indigo-400" 
                 }
             ]
+        };
+
+        // --- FLOATING MATH SYMBOLS (3D Rotating) ---
+        const FloatingMathBackground = () => {
+            const symbols = ["∫", "∑", "∂", "∆", "π", "∞", "√", "θ", "λ", "Ω", "μ", "σ", "φ", "∀", "∃", "∈"];
+            const particles = useMemo(() => {
+                return [...Array(25)].map((_, i) => ({
+                    id: i,
+                    symbol: symbols[Math.floor(Math.random() * symbols.length)],
+                    left: Math.random() * 95,
+                    duration: 20 + Math.random() * 30,
+                    delay: Math.random() * -30,
+                    size: Math.random() * 2 + 1, 
+                    blur: Math.random() * 3,
+                    opacity: Math.random() * 0.4 + 0.1
+                }));
+            }, []);
+
+            return (
+                <div className="math-universe">
+                    <div className="grid-floor"></div>
+                    {particles.map(p => (
+                        <div key={p.id} className="math-symbol font-symbol" style={{
+                            left: `${p.left}%`,
+                            fontSize: `${p.size}rem`,
+                            animation: `floatRotate ${p.duration}s linear infinite`, 
+                            animationDelay: `${p.delay}s`,
+                            filter: `blur(${p.blur}px)`,
+                            opacity: p.opacity
+                        }}>
+                            {p.symbol}
+                        </div>
+                    ))}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-deep)] via-transparent to-transparent"></div>
+                </div>
+            );
         };
 
         // --- ICON SYSTEM ---
@@ -232,291 +277,63 @@
             return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center' }} />;
         };
 
-        // CUSTOM HIGH-FIDELITY ANIMATED SVGs
         const CustomIcons = {
-            SocialTikTok: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                </svg>
-            ),
-            // Fixed Facebook Icon
-            SocialFacebook: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
-                    <path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" />
-                </svg>
-            ),
-            // ICON MỚI: MenuLeader (Chữ LiM đa sắc)
-            MenuLeader: ({ size = 24, className }) => (
+            SocialTikTok: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>),
+            SocialFacebook: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" /></svg>),
+            MenuLeader: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><path d="M15 25 V75 H35" stroke="#ef4444" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /><line x1="48" y1="45" x2="48" y2="75" stroke="#22c55e" strokeWidth="12" strokeLinecap="round" /><circle cx="48" cy="25" r="7" fill="#22c55e" /><path d="M65 75 V35 L80 60 L95 35 V75" stroke="#3b82f6" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" /></svg>),
+            ContentListening: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><defs><linearGradient id="heartGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#f43f5e" /><stop offset="100%" stopColor="#e11d48" /></linearGradient><filter id="glowHeart"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g transform="translate(50,50)"><g><animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="1.5s" repeatCount="indefinite"/><path d="M0 -30 C-20 -50, -50 -30, -50 0 C-50 30, 0 50, 0 50 C0 50, 50 30, 50 0 C50 -30, 20 -50, 0 -30 Z" fill="url(#heartGrad)" filter="url(#glowHeart)" transform="translate(0, -5)" /><path d="M-30 -10 Q-40 -20, -30 -30" stroke="white" strokeWidth="3" strokeLinecap="round" opacity="0.6" fill="none"/><path d="M30 -10 Q40 -20, 30 -30" stroke="white" strokeWidth="3" strokeLinecap="round" opacity="0.6" fill="none"/></g></g></svg>),
+            MenuDashboard: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><path d="M50 20 L20 45 V85 H80 V45 L50 20 Z" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/><path d="M35 85 V55 H65 V85" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/><rect x="42" y="35" width="16" height="10" fill="currentColor" opacity="0.5"/></svg>),
+            MenuMathHall: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><path d="M10 100 H90 V90 H10 Z" fill="#fbbf24" opacity="0.3" /><rect x="20" y="40" width="10" height="50" stroke="#fbbf24" strokeWidth="4" /><rect x="45" y="40" width="10" height="50" stroke="#fbbf24" strokeWidth="4" /><rect x="70" y="40" width="10" height="50" stroke="#fbbf24" strokeWidth="4" /><path d="M5 40 L50 10 L95 40 H5 Z" stroke="#fbbf24" strokeWidth="6" strokeLinejoin="round" /><circle cx="50" cy="28" r="4" fill="#fbbf24" /></svg>),
+            MenuLifeSkills: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><circle cx="50" cy="50" r="35" stroke="#f43f5e" strokeWidth="6"/><circle cx="50" cy="50" r="20" stroke="#f43f5e" strokeWidth="4" opacity="0.5"/><circle cx="50" cy="50" r="5" fill="#f43f5e"/></svg>),
+            MenuDocuments: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><path d="M20 30 Q50 30 50 50 Q50 30 80 30 V80 Q50 80 50 100 Q50 80 20 80 V30 Z" stroke="#34d399" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/><path d="M50 50 V100" stroke="#34d399" strokeWidth="6" strokeLinecap="round"/><path d="M25 45 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/><path d="M25 55 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/><path d="M55 45 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/><path d="M55 55 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/></svg>),
+            MenuGames: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="15" y="35" width="70" height="40" rx="10" stroke="#a855f7" strokeWidth="6"/><path d="M30 55 H40 M35 50 V60" stroke="#a855f7" strokeWidth="6" strokeLinecap="round"/><circle cx="65" cy="50" r="4" fill="#a855f7"/><circle cx="75" cy="55" r="4" fill="#a855f7"/></svg>),
+            MenuTools: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="25" y="20" width="50" height="70" rx="5" stroke="#38bdf8" strokeWidth="6"/><rect x="35" y="30" width="30" height="20" fill="#38bdf8" opacity="0.3"/><circle cx="40" cy="65" r="4" fill="#38bdf8"/><circle cx="60" cy="65" r="4" fill="#38bdf8"/><circle cx="40" cy="75" r="4" fill="#38bdf8"/><circle cx="60" cy="75" r="4" fill="#38bdf8"/></svg>),
+            InfographicIcon: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="15" y="15" width="70" height="70" rx="5" stroke="#fbbf24" strokeWidth="4" fill="none" /><rect x="25" y="25" width="50" height="30" rx="2" fill="#fbbf24" opacity="0.2"/><line x1="25" y1="65" x2="75" y2="65" stroke="#fbbf24" strokeWidth="4" strokeLinecap="round"/><line x1="25" y1="75" x2="55" y2="75" stroke="#fbbf24" strokeWidth="4" strokeLinecap="round"/><circle cx="85" cy="85" r="10" fill="#f59e0b"><animate attributeName="r" values="10;12;10" dur="2s" repeatCount="indefinite"/></circle><path d="M85 80 L85 90 M80 85 L90 85" stroke="black" strokeWidth="3"/></svg>),
+            ProjectTobacco: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><circle cx="50" cy="50" r="45" stroke="#f43f5e" strokeWidth="4" fill="none"/><path d="M25,25 L75,75" stroke="#f43f5e" strokeWidth="8" strokeLinecap="round"/><rect x="30" y="45" width="40" height="10" fill="#cbd5e1" rx="2" transform="rotate(-15 50 50)"/><rect x="60" y="45" width="10" height="10" fill="#f59e0b" rx="2" transform="rotate(-15 50 50)"/><path d="M65,35 Q70,25 65,15" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.5"><animate attributeName="d" values="M65,35 Q70,25 65,15; M65,35 Q60,25 65,15; M65,35 Q70,25 65,15" dur="2s" repeatCount="indefinite"/></path></svg>),
+            GameSnake: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><defs><linearGradient id="snakeBody" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#10b981"/><stop offset="100%" stopColor="#34d399"/></linearGradient></defs><pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/></pattern><rect width="100" height="100" fill="url(#smallGrid)" rx="10"/><path d="M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70" stroke="url(#snakeBody)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"><animate attributeName="d" values="M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70; M30,50 H50 Q60,50 60,40 V30 Q60,20 70,20 H80; M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70" dur="2s" repeatCount="indefinite" /></path><circle cx="80" cy="50" r="6" fill="#ef4444"><animate attributeName="r" values="6;8;6" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.7;1" dur="1s" repeatCount="indefinite"/></circle></svg>),
+            GameSudoku: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><rect x="10" y="10" width="80" height="80" rx="8" fill="#2e1065" stroke="#a855f7" strokeWidth="3"/><line x1="50" y1="10" x2="50" y2="90" stroke="#a855f7" strokeWidth="2"/><line x1="10" y1="50" x2="90" y2="50" stroke="#a855f7" strokeWidth="2"/><text x="30" y="40" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold">1</text><text x="70" y="40" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold" opacity="0.3">4</text><text x="30" y="80" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold" opacity="0.3">2</text><text x="70" y="80" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold">9</text></svg>),
+            GameGeo: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><g transform="translate(50,50)"><g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="10s" repeatCount="indefinite"/><rect x="-30" y="-30" width="60" height="60" rx="4" stroke="#fbbf24" strokeWidth="3" fill="none" strokeDasharray="5 5"/></g><polygon points="0,-20 17,10 -17,10" fill="#f59e0b"><animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="5s" repeatCount="indefinite"/></polygon></g></svg>),
+            GameBrain: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><path d="M30,50 Q30,20 50,20 Q70,20 70,50 Q70,80 50,80 Q30,80 30,50" stroke="#fb7185" strokeWidth="3" fill="#881337" fillOpacity="0.3"/><circle cx="50" cy="50" r="5" fill="#f43f5e"><animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/></circle><circle cx="35" cy="40" r="3" fill="#f43f5e"/><circle cx="65" cy="40" r="3" fill="#f43f5e"/><circle cx="50" cy="70" r="3" fill="#f43f5e"/><line x1="50" y1="50" x2="35" y2="40" stroke="#f43f5e" strokeWidth="1"/><line x1="50" y1="50" x2="65" y2="40" stroke="#f43f5e" strokeWidth="1"/><line x1="50" y1="50" x2="50" y2="70" stroke="#f43f5e" strokeWidth="1"/></svg>),
+            ToolGraph: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><line x1="10" y1="90" x2="90" y2="90" stroke="#22d3ee" strokeWidth="2" /><line x1="10" y1="90" x2="10" y2="10" stroke="#22d3ee" strokeWidth="2" /><path d="M10,50 Q30,10 50,50 T90,50" fill="none" stroke="#67e8f9" strokeWidth="3"><animate attributeName="d" values="M10,50 Q30,10 50,50 T90,50; M10,50 Q30,90 50,50 T90,50; M10,50 Q30,10 50,50 T90,50" dur="4s" repeatCount="indefinite" /></path></svg>),
+            ToolEquation: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><text x="50" y="60" textAnchor="middle" fill="#34d399" fontSize="50" fontWeight="bold" fontFamily="monospace">√x</text></svg>),
+            ToolFormula: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><text x="50" y="65" textAnchor="middle" fill="#a78bfa" fontSize="60" fontWeight="bold" fontFamily="serif">∫</text><circle cx="50" cy="50" r="30" stroke="#8b5cf6" strokeWidth="2" fill="none" strokeDasharray="10 10"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="10s" repeatCount="indefinite"/></circle></svg>),
+            ToolUnit: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><rect x="20" y="30" width="60" height="40" rx="4" stroke="#fbbf24" strokeWidth="2" fill="none" /><path d="M10,50 L30,50 M90,50 L70,50" stroke="#fbbf24" strokeWidth="2"/><text x="50" y="55" textAnchor="middle" fill="#fbbf24" fontSize="20" fontWeight="bold">kg</text></svg>),
+            ToolCalendar: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><rect x="15" y="20" width="70" height="70" rx="5" stroke="#f43f5e" strokeWidth="3" fill="none" /><line x1="15" y1="35" x2="85" y2="35" stroke="#f43f5e" strokeWidth="2" /><line x1="38" y1="35" x2="38" y2="90" stroke="#f43f5e" strokeWidth="2" /><line x1="62" y1="35" x2="62" y2="90" stroke="#f43f5e" strokeWidth="2" /><path d="M30,10 V25 M70,10 V25" stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" /><rect x="42" y="45" width="16" height="10" fill="#f43f5e" opacity="0.5"><animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></rect><rect x="19" y="65" width="15" height="10" fill="#f43f5e" opacity="0.3"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" begin="1s" repeatCount="indefinite"/></rect></svg>),
+            ToolPrompt: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className}><rect x="20" y="15" width="60" height="70" rx="5" stroke="#e879f9" strokeWidth="3" fill="none" /><line x1="30" y1="35" x2="70" y2="35" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" /><line x1="30" y1="50" x2="70" y2="50" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" /><line x1="30" y1="65" x2="50" y2="65" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" /><path d="M80 75 L83 82 L90 85 L83 88 L80 95 L77 88 L70 85 L77 82 Z" fill="#e879f9"><animateTransform attributeName="transform" type="scale" values="1;1.2;1" dur="1s" repeatCount="indefinite" additive="sum"/></path></svg>),
+            ToolConduct: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="20" y="15" width="60" height="75" rx="5" stroke="#3b82f6" strokeWidth="3" fill="none" /><path d="M35 15 V10 H65 V15" stroke="#3b82f6" strokeWidth="3" /><circle cx="50" cy="40" r="8" stroke="#3b82f6" strokeWidth="3" /><path d="M35 60 Q50 70 65 60" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" /><line x1="30" y1="75" x2="70" y2="75" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" /><path d="M75 25 L85 35 L75 45" stroke="#fbbf24" strokeWidth="3" fill="none" opacity="0.8"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" /></path></svg>),
+            ToolGradebook: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="15" y="15" width="70" height="70" rx="4" stroke="#22c55e" strokeWidth="3" fill="none" /><line x1="15" y1="35" x2="85" y2="35" stroke="#22c55e" strokeWidth="2" /><line x1="40" y1="15" x2="40" y2="85" stroke="#22c55e" strokeWidth="2" /><path d="M25 50 L30 55 L35 45" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><path d="M25 70 L30 75 L35 65" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /><rect x="50" y="45" width="25" height="10" fill="#22c55e" opacity="0.3"><animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" repeatCount="indefinite" /></rect><rect x="50" y="65" width="20" height="10" fill="#22c55e" opacity="0.3"><animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" begin="1s" repeatCount="indefinite" /></rect></svg>),
+            Tool3D: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    {/* Chữ L - Màu Đỏ */}
-                    <path d="M15 20 V80 H40" stroke="#ef4444" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
-                    
-                    {/* Chữ i - Màu Xanh Lá */}
-                    <line x1="50" y1="45" x2="50" y2="80" stroke="#22c55e" strokeWidth="12" strokeLinecap="round" />
-                    <circle cx="50" cy="25" r="7" fill="#22c55e" />
-
-                    {/* Chữ M - Màu Xanh Dương */}
-                    <path d="M65 80 V35 L80 60 L95 35 V80" stroke="#3b82f6" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <g transform="translate(50,50)">
+                        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="20s" repeatCount="indefinite" />
+                        <path d="M-25,-15 L25,-15 L25,35 L-25,35 Z" stroke="#38bdf8" strokeWidth="3" fill="none" transform="skewY(-15)"/>
+                        <path d="M-25,-15 L-25,-35 L25,-35 L25,-15" stroke="#38bdf8" strokeWidth="3" fill="none" transform="skewX(-45)"/>
+                        <path d="M25,-15 L45,-15 L45,35 L25,35" stroke="#38bdf8" strokeWidth="3" fill="none" transform="skewY(-45)"/>
+                    </g>
+                    <circle cx="50" cy="50" r="4" fill="#38bdf8">
+                         <animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite"/>
+                    </circle>
                 </svg>
             ),
-            // ICON MỚI: ContentListening (Trái tim đẹp hơn)
-            ContentListening: ({ size = 48, className }) => (
+            // NEW ICON: GameJoyride (Rocket/Jetpack)
+            GameJoyride: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
                     <defs>
-                        <linearGradient id="heartGrad" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stopColor="#f43f5e" />
-                            <stop offset="100%" stopColor="#e11d48" />
-                        </linearGradient>
-                        <filter id="glowHeart">
-                            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-                            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
+                        <linearGradient id="rocketGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#3b82f6"/><stop offset="100%" stopColor="#6366f1"/></linearGradient>
                     </defs>
-                    <g transform="translate(50,50)">
-                        <g>
-                            <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="1.5s" repeatCount="indefinite"/>
-                            {/* Trái tim chính */}
-                            <path d="M0 -30 C-20 -50, -50 -30, -50 0 C-50 30, 0 50, 0 50 C0 50, 50 30, 50 0 C50 -30, 20 -50, 0 -30 Z" 
-                                  fill="url(#heartGrad)" 
-                                  filter="url(#glowHeart)"
-                                  transform="translate(0, -5)" 
-                            />
-                            {/* Đường sóng âm thanh biểu thị sự lắng nghe */}
-                            <path d="M-30 -10 Q-40 -20, -30 -30" stroke="white" strokeWidth="3" strokeLinecap="round" opacity="0.6" fill="none"/>
-                            <path d="M30 -10 Q40 -20, 30 -30" stroke="white" strokeWidth="3" strokeLinecap="round" opacity="0.6" fill="none"/>
-                        </g>
-                    </g>
-                </svg>
-            ),
-            // Menu Icons
-            MenuDashboard: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <path d="M50 20 L20 45 V85 H80 V45 L50 20 Z" stroke="#22d3ee" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M35 85 V55 H65 V85" stroke="#22d3ee" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                    <rect x="42" y="35" width="16" height="10" fill="#22d3ee" opacity="0.5">
-                         <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
-                    </rect>
-                </svg>
-            ),
-            MenuMathHall: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <path d="M10 100 H90 V90 H10 Z" fill="#fbbf24" opacity="0.3" />
-                    <rect x="20" y="40" width="10" height="50" stroke="#fbbf24" strokeWidth="4" />
-                    <rect x="45" y="40" width="10" height="50" stroke="#fbbf24" strokeWidth="4" />
-                    <rect x="70" y="40" width="10" height="50" stroke="#fbbf24" strokeWidth="4" />
-                    <path d="M5 40 L50 10 L95 40 H5 Z" stroke="#fbbf24" strokeWidth="6" strokeLinejoin="round" />
-                    <circle cx="50" cy="28" r="4" fill="#fbbf24" />
-                </svg>
-            ),
-            MenuLifeSkills: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <circle cx="50" cy="50" r="35" stroke="#f43f5e" strokeWidth="6"/>
-                    <circle cx="50" cy="50" r="20" stroke="#f43f5e" strokeWidth="4" opacity="0.5"/>
-                    <circle cx="50" cy="50" r="5" fill="#f43f5e">
-                        <animate attributeName="r" values="5;8;5" dur="1.5s" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-            ),
-            MenuDocuments: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <path d="M20 30 Q50 30 50 50 Q50 30 80 30 V80 Q50 80 50 100 Q50 80 20 80 V30 Z" stroke="#34d399" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M50 50 V100" stroke="#34d399" strokeWidth="6" strokeLinecap="round"/>
-                    <path d="M25 45 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                    <path d="M25 55 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                    <path d="M55 45 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                    <path d="M55 55 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/>
-                </svg>
-            ),
-            MenuGames: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <rect x="15" y="35" width="70" height="40" rx="10" stroke="#a855f7" strokeWidth="6"/>
-                    <path d="M30 55 H40 M35 50 V60" stroke="#a855f7" strokeWidth="6" strokeLinecap="round"/>
-                    <circle cx="65" cy="50" r="4" fill="#a855f7"/>
-                    <circle cx="75" cy="55" r="4" fill="#a855f7"/>
-                     <animateTransform attributeName="transform" type="rotate" values="-5 50 50; 5 50 50; -5 50 50" dur="3s" repeatCount="indefinite"/>
-                </svg>
-            ),
-            MenuTools: ({ size = 24, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <rect x="25" y="20" width="50" height="70" rx="5" stroke="#38bdf8" strokeWidth="6"/>
-                    <rect x="35" y="30" width="30" height="20" fill="#38bdf8" opacity="0.3"/>
-                    <circle cx="40" cy="65" r="4" fill="#38bdf8"/>
-                    <circle cx="60" cy="65" r="4" fill="#38bdf8"/>
-                    <circle cx="40" cy="75" r="4" fill="#38bdf8"/>
-                    <circle cx="60" cy="75" r="4" fill="#38bdf8"/>
-                </svg>
-            ),
-            InfographicIcon: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                     <rect x="15" y="15" width="70" height="70" rx="5" stroke="#fbbf24" strokeWidth="4" fill="none" />
-                     <rect x="25" y="25" width="50" height="30" rx="2" fill="#fbbf24" opacity="0.2"/>
-                     <line x1="25" y1="65" x2="75" y2="65" stroke="#fbbf24" strokeWidth="4" strokeLinecap="round"/>
-                     <line x1="25" y1="75" x2="55" y2="75" stroke="#fbbf24" strokeWidth="4" strokeLinecap="round"/>
-                     <circle cx="85" cy="85" r="10" fill="#f59e0b">
-                        <animate attributeName="r" values="10;12;10" dur="2s" repeatCount="indefinite"/>
-                     </circle>
-                     <path d="M85 80 L85 90 M80 85 L90 85" stroke="black" strokeWidth="3"/>
-                </svg>
-            ),
-            ProjectTobacco: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <circle cx="50" cy="50" r="45" stroke="#f43f5e" strokeWidth="4" fill="none"/>
-                    <path d="M25,25 L75,75" stroke="#f43f5e" strokeWidth="8" strokeLinecap="round"/>
-                    <rect x="30" y="45" width="40" height="10" fill="#cbd5e1" rx="2" transform="rotate(-15 50 50)"/>
-                    <rect x="60" y="45" width="10" height="10" fill="#f59e0b" rx="2" transform="rotate(-15 50 50)"/>
-                    <path d="M65,35 Q70,25 65,15" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.5">
-                        <animate attributeName="d" values="M65,35 Q70,25 65,15; M65,35 Q60,25 65,15; M65,35 Q70,25 65,15" dur="2s" repeatCount="indefinite"/>
-                    </path>
-                </svg>
-            ),
-            GameSnake: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <defs>
-                        <linearGradient id="snakeBody" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#10b981"/><stop offset="100%" stopColor="#34d399"/></linearGradient>
-                        <filter id="glowGreen"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    </defs>
-                    <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
-                    </pattern>
-                    <rect width="100" height="100" fill="url(#smallGrid)" rx="10"/>
-                    <path d="M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70" stroke="url(#snakeBody)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" filter="url(#glowGreen)">
-                        <animate attributeName="d" values="M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70; M30,50 H50 Q60,50 60,40 V30 Q60,20 70,20 H80; M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70" dur="2s" repeatCount="indefinite" />
-                    </path>
-                    <circle cx="80" cy="50" r="6" fill="#ef4444">
-                        <animate attributeName="r" values="6;8;6" dur="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;1" dur="1s" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-            ),
-            GameSudoku: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <rect x="10" y="10" width="80" height="80" rx="8" fill="#2e1065" stroke="#a855f7" strokeWidth="3"/>
-                    <line x1="50" y1="10" x2="50" y2="90" stroke="#a855f7" strokeWidth="2"/>
-                    <line x1="10" y1="50" x2="90" y2="50" stroke="#a855f7" strokeWidth="2"/>
-                    <text x="30" y="40" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold">1</text>
-                    <text x="70" y="40" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold" opacity="0.3">
-                        <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>4
-                    </text>
-                    <text x="30" y="80" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold" opacity="0.3">
-                        <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" begin="1s" repeatCount="indefinite"/>2
-                    </text>
-                    <text x="70" y="80" fill="#d8b4fe" fontSize="24" textAnchor="middle" fontWeight="bold">9</text>
-                </svg>
-            ),
-            GameGeo: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <defs><filter id="glowOrange"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-                    <g transform="translate(50,50)">
-                        <g>
-                            <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="10s" repeatCount="indefinite"/>
-                            <rect x="-30" y="-30" width="60" height="60" rx="4" stroke="#fbbf24" strokeWidth="3" fill="none" strokeDasharray="5 5"/>
-                        </g>
-                        <polygon points="0,-20 17,10 -17,10" fill="#f59e0b" filter="url(#glowOrange)">
-                            <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="5s" repeatCount="indefinite"/>
-                        </polygon>
-                    </g>
-                </svg>
-            ),
-            GameBrain: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <path d="M30,50 Q30,20 50,20 Q70,20 70,50 Q70,80 50,80 Q30,80 30,50" stroke="#fb7185" strokeWidth="3" fill="#881337" fillOpacity="0.3"/>
-                    <circle cx="50" cy="50" r="5" fill="#f43f5e"><animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/></circle>
-                    <circle cx="35" cy="40" r="3" fill="#f43f5e"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.5s" repeatCount="indefinite"/></circle>
-                    <circle cx="65" cy="40" r="3" fill="#f43f5e"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.2s" repeatCount="indefinite"/></circle>
-                    <circle cx="50" cy="70" r="3" fill="#f43f5e"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" repeatCount="indefinite"/></circle>
-                    <line x1="50" y1="50" x2="35" y2="40" stroke="#f43f5e" strokeWidth="1"/>
-                    <line x1="50" y1="50" x2="65" y2="40" stroke="#f43f5e" strokeWidth="1"/>
-                    <line x1="50" y1="50" x2="50" y2="70" stroke="#f43f5e" strokeWidth="1"/>
-                </svg>
-            ),
-            ToolGraph: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <line x1="10" y1="90" x2="90" y2="90" stroke="#22d3ee" strokeWidth="2" />
-                    <line x1="10" y1="90" x2="10" y2="10" stroke="#22d3ee" strokeWidth="2" />
-                    <path d="M10,50 Q30,10 50,50 T90,50" fill="none" stroke="#67e8f9" strokeWidth="3">
-                        <animate attributeName="d" values="M10,50 Q30,10 50,50 T90,50; M10,50 Q30,90 50,50 T90,50; M10,50 Q30,10 50,50 T90,50" dur="4s" repeatCount="indefinite" />
-                    </path>
-                </svg>
-            ),
-            ToolEquation: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <text x="50" y="60" textAnchor="middle" fill="#34d399" fontSize="50" fontWeight="bold" fontFamily="monospace">
-                        √x
-                        <animate attributeName="opacity" values="1;0.5;1" dur="3s" repeatCount="indefinite"/>
-                    </text>
-                </svg>
-            ),
-            ToolFormula: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <text x="50" y="65" textAnchor="middle" fill="#a78bfa" fontSize="60" fontWeight="bold" fontFamily="serif">∫</text>
-                    <circle cx="50" cy="50" r="30" stroke="#8b5cf6" strokeWidth="2" fill="none" strokeDasharray="10 10">
-                        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="10s" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-            ),
-            ToolUnit: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <rect x="20" y="30" width="60" height="40" rx="4" stroke="#fbbf24" strokeWidth="2" fill="none" />
-                    <path d="M10,50 L30,50 M90,50 L70,50" stroke="#fbbf24" strokeWidth="2"/>
-                    <text x="50" y="55" textAnchor="middle" fill="#fbbf24" fontSize="20" fontWeight="bold">kg</text>
-                </svg>
-            ),
-            ToolCalendar: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <rect x="15" y="20" width="70" height="70" rx="5" stroke="#f43f5e" strokeWidth="3" fill="none" />
-                    <line x1="15" y1="35" x2="85" y2="35" stroke="#f43f5e" strokeWidth="2" />
-                    <line x1="38" y1="35" x2="38" y2="90" stroke="#f43f5e" strokeWidth="2" />
-                    <line x1="62" y1="35" x2="62" y2="90" stroke="#f43f5e" strokeWidth="2" />
-                    <path d="M30,10 V25 M70,10 V25" stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" />
-                    <rect x="42" y="45" width="16" height="10" fill="#f43f5e" opacity="0.5">
-                        <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
-                    </rect>
-                    <rect x="19" y="65" width="15" height="10" fill="#f43f5e" opacity="0.3">
-                        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" begin="1s" repeatCount="indefinite"/>
-                    </rect>
-                </svg>
-            ),
-            ToolPrompt: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className}>
-                    <rect x="20" y="15" width="60" height="70" rx="5" stroke="#e879f9" strokeWidth="3" fill="none" />
-                    <line x1="30" y1="35" x2="70" y2="35" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" />
-                    <line x1="30" y1="50" x2="70" y2="50" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" />
-                    <line x1="30" y1="65" x2="50" y2="65" stroke="#e879f9" strokeWidth="3" strokeLinecap="round" />
-                    <path d="M80 75 L83 82 L90 85 L83 88 L80 95 L77 88 L70 85 L77 82 Z" fill="#e879f9">
-                         <animateTransform attributeName="transform" type="scale" values="1;1.2;1" dur="1s" repeatCount="indefinite" additive="sum"/>
-                    </path>
-                </svg>
-            ),
-            ToolConduct: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <rect x="20" y="15" width="60" height="75" rx="5" stroke="#3b82f6" strokeWidth="3" fill="none" />
-                    <path d="M35 15 V10 H65 V15" stroke="#3b82f6" strokeWidth="3" />
-                    <circle cx="50" cy="40" r="8" stroke="#3b82f6" strokeWidth="3" />
-                    <path d="M35 60 Q50 70 65 60" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
-                    <line x1="30" y1="75" x2="70" y2="75" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
-                    <path d="M75 25 L85 35 L75 45" stroke="#fbbf24" strokeWidth="3" fill="none" opacity="0.8">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
-                    </path>
-                </svg>
-            ),
-            // NEW ICON: ToolGradebook (Sổ điểm)
-            ToolGradebook: ({ size = 48, className }) => (
-                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <rect x="15" y="15" width="70" height="70" rx="4" stroke="#22c55e" strokeWidth="3" fill="none" />
-                    <line x1="15" y1="35" x2="85" y2="35" stroke="#22c55e" strokeWidth="2" />
-                    <line x1="40" y1="15" x2="40" y2="85" stroke="#22c55e" strokeWidth="2" />
-                    <path d="M25 50 L30 55 L35 45" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M25 70 L30 75 L35 65" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    <rect x="50" y="45" width="25" height="10" fill="#22c55e" opacity="0.3">
-                        <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" repeatCount="indefinite" />
-                    </rect>
-                    <rect x="50" y="65" width="20" height="10" fill="#22c55e" opacity="0.3">
-                        <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" begin="1s" repeatCount="indefinite" />
-                    </rect>
+                     <path d="M50 20 C50 20 70 40 70 60 C70 80 60 90 50 90 C40 90 30 80 30 60 C30 40 50 20 50 20 Z" fill="url(#rocketGrad)" />
+                     <circle cx="50" cy="55" r="10" fill="white" opacity="0.3"/>
+                     <path d="M30 65 L20 75" stroke="#3b82f6" strokeWidth="4" strokeLinecap="round"/>
+                     <path d="M70 65 L80 75" stroke="#3b82f6" strokeWidth="4" strokeLinecap="round"/>
+                     <path d="M45 90 L40 100 M55 90 L60 100" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round">
+                        <animate attributeName="d" values="M45 90 L40 95 M55 90 L60 95; M45 90 L35 100 M55 90 L65 100; M45 90 L40 95 M55 90 L60 95" dur="0.5s" repeatCount="indefinite"/>
+                     </path>
                 </svg>
             ),
             DocPDF: ({size=24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><text x="8" y="18" fontSize="6" fill="#f43f5e" fontWeight="bold">PDF</text></svg>,
             DocWord: ({size=24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><text x="6" y="18" fontSize="6" fill="#3b82f6" fontWeight="bold">DOC</text></svg>,
+            Sun: ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>,
+            Moon: ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
         };
 
         const Icons = {
@@ -552,37 +369,52 @@
             MenuDocuments: (p) => <CustomIcons.MenuDocuments {...p} />,
             MenuGames: (p) => <CustomIcons.MenuGames {...p} />,
             MenuTools: (p) => <CustomIcons.MenuTools {...p} />,
-            // Đăng ký icon mới
             MenuLeader: (p) => <CustomIcons.MenuLeader {...p} />,
             ToolPrompt: (p) => <CustomIcons.ToolPrompt {...p} />,
             ToolConduct: (p) => <CustomIcons.ToolConduct {...p} />,
             ContentListening: (p) => <CustomIcons.ContentListening {...p} />,
             ToolGradebook: (p) => <CustomIcons.ToolGradebook {...p} />,
+            ToolCalendar: (p) => <CustomIcons.ToolCalendar {...p} />, 
+            Tool3D: (p) => <CustomIcons.Tool3D {...p} />,
+            GameJoyride: (p) => <CustomIcons.GameJoyride {...p} />,
+            Sun: (p) => <CustomIcons.Sun {...p} />,
+            Moon: (p) => <CustomIcons.Moon {...p} />,
         };
 
-        // --- COMPONENT: FOOTER (With Socials) ---
+        // --- THEME SWITCH COMPONENT ---
+        const ThemeSwitch = ({ theme, toggleTheme }) => (
+            <div className="theme-switch" onClick={toggleTheme}>
+                <div className="theme-switch-handle">
+                    {theme === 'light' ? <Icons.Sun size={14} className="text-amber-500" /> : <Icons.Moon size={14} className="text-blue-500" />}
+                </div>
+                <Icons.Sun size={14} className="theme-icon-sun" />
+                <Icons.Moon size={14} className="theme-icon-moon" />
+            </div>
+        );
+
+        // --- COMPONENT: FOOTER (MOBILE OPTIMIZED) ---
         const Footer = () => (
-            <footer className="relative z-10 border-t border-white/10 bg-[#020617]/90 backdrop-blur-md px-6 py-8 mt-auto shrink-0">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="text-center md:text-left">
-                        <p className="text-sm font-bold text-white mb-1 flex items-center justify-center md:justify-start gap-2">
+            <footer className="relative z-10 border-t border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-md px-4 py-4 mt-auto shrink-0 transition-colors duration-300">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 footer-compact">
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                        <p className="text-xs font-bold text-[var(--text-primary)] mb-0.5">
                             © 2025 THÁI MINH NGUYÊN
                         </p>
-                        <p className="text-xs text-slate-400">Giáo viên Toán - Trường TH, THCS & THPT Yersin Đà Lạt</p>
+                        <p className="text-[10px] text-[var(--text-secondary)] opacity-80">Giáo viên Toán - Trường TH, THCS & THPT Yersin Đà Lạt</p>
                     </div>
                     
-                    <div className="flex flex-col md:flex-row items-center gap-6">
-                        <div className="flex items-center gap-4">
-                            <a href="https://www.facebook.com/thaiminhnguyen1996/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(37,99,235,0.8)] hover:-translate-y-1">
-                                <Icons.Facebook size={24} />
+                    <div className="flex flex-row items-center gap-4 footer-links">
+                        <div className="flex items-center gap-3">
+                            <a href="https://www.facebook.com/thaiminhnguyen1996/" target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-sm">
+                                <Icons.Facebook size={18} />
                             </a>
-                            <a href="https://www.tiktok.com/@m_nguyen96?_r=1&_t=ZS-91nZSGUVIt5" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-black text-white hover:bg-gray-900 border border-white/10 transition-all shadow-[0_0_15px_rgba(236,72,153,0.2)] hover:shadow-[0_0_20px_rgba(236,72,153,0.6)] hover:-translate-y-1">
-                                <Icons.SocialTikTok size={24} />
+                            <a href="https://www.tiktok.com/@m_nguyen96?_r=1&_t=ZS-91nZSGUVIt5" target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-full bg-black text-white hover:bg-gray-900 border border-white/10 transition-all shadow-sm">
+                                <Icons.SocialTikTok size={18} />
                             </a>
                         </div>
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-900/20 border border-emerald-500/20 text-emerald-400 hover:text-emerald-300 hover:border-emerald-500/50 transition-all">
-                            <Icons.Phone size={20} className="animate-pulse"/>
-                            <span className="text-sm font-mono font-bold">0924.336.827 - 0977.917.249</span>
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                            <Icons.Phone size={14} />
+                            <span className="text-[10px] font-mono font-bold">0924.336.827</span>
                         </div>
                     </div>
                 </div>
@@ -607,22 +439,22 @@
                 {mobileOpen && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden animate-fade-in" onClick={() => setMobileOpen(false)}/>
                 )}
-                <aside className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#020617]/95 backdrop-blur-xl border-r border-white/10 transform transition-transform duration-300 ease-in-out flex flex-col ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-                    <div className="h-24 flex items-center px-8 border-b border-white/5 relative overflow-hidden shrink-0">
+                <aside className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[var(--glass-bg)] backdrop-blur-xl border-r border-[var(--glass-border)] transform transition-transform duration-300 ease-in-out flex flex-col ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+                    <div className="h-20 flex items-center px-6 border-b border-[var(--glass-border)] relative overflow-hidden shrink-0">
                         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent opacity-50"></div>
-                        <div className="relative z-10 flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-cyan-500/50 shadow-lg shadow-cyan-500/30">
-                                <img src="ava.jpg" alt="Thầy Nguyên" className="w-full h-full object-cover" onError={(e) => {e.target.style.display='none'; e.target.parentElement.innerHTML='<div class="w-full h-full bg-cyan-600 flex items-center justify-center text-white font-bold">N</div>'}}/>
+                        <div className="relative z-10 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-cyan-500/50 shadow-lg shadow-cyan-500/30">
+                                <img src="ava.jpg" alt="Thầy Nguyên" className="w-full h-full object-cover" onError={(e) => {e.target.style.display='none'; e.target.parentElement.innerHTML='<div class="w-full h-full bg-cyan-600 flex items-center justify-center text-white font-bold text-xs">N</div>'}}/>
                             </div>
                             <div>
-                                <span className="text-lg font-bold text-white tracking-tight block leading-tight font-math">Thầy Nguyên</span>
-                                <span className="text-[10px] font-bold text-cyan-400 tracking-[0.1em] uppercase">Giáo viên Toán</span>
+                                <span className="text-base font-bold text-[var(--text-primary)] tracking-tight block leading-tight font-math">Thầy Nguyên</span>
+                                <span className="text-[10px] font-bold text-cyan-500 tracking-[0.1em] uppercase">Giáo viên Toán</span>
                             </div>
                         </div>
-                        <button className="md:hidden ml-auto text-slate-400 hover:text-white" onClick={() => setMobileOpen(false)}><Icons.X size={24} /></button>
+                        <button className="md:hidden ml-auto text-[var(--text-secondary)] hover:text-[var(--text-primary)]" onClick={() => setMobileOpen(false)}><Icons.X size={24} /></button>
                     </div>
-                    <nav className="flex-1 px-4 py-8 space-y-3 overflow-y-auto">
-                        <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Điều Hướng</p>
+                    <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                        <p className="px-4 text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-2">Điều Hướng</p>
                         {menuItems.map((item) => (
                         <button 
                             key={item.id} 
@@ -634,52 +466,49 @@
                                 }
                                 setMobileOpen(false); 
                             }} 
-                            className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all font-bold text-sm group relative overflow-hidden ${currentView === item.id ? 'text-white bg-white/10 border border-white/10 shadow-[0_0_20px_rgba(34,211,238,0.1)]' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm group relative overflow-hidden ${currentView === item.id ? 'bg-[var(--accent-glow)] text-[var(--text-primary)] shadow-lg' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)] hover:text-[var(--text-primary)]'}`}
                         >
                             {currentView === item.id && <div className="absolute left-0 top-0 w-1 h-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></div>}
-                            <span className={currentView === item.id ? 'text-cyan-400' : 'group-hover:text-cyan-400 transition-colors'}>{item.icon({size: 22})}</span>
+                            <span className={currentView === item.id ? 'text-cyan-400' : 'group-hover:text-cyan-400 transition-colors'}>{item.icon({size: 20})}</span>
                             <span className="relative z-10">{item.label}</span>
                         </button>
                         ))}
                     </nav>
-                    <div className="p-6 border-t border-white/5 shrink-0">
-                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-white/5 to-transparent border border-white/10 hover:border-cyan-500/30 transition-all cursor-pointer group">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">GV</div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-white truncate group-hover:text-cyan-300 transition-colors">THÁI MINH NGUYÊN</p>
-                                <p className="text-xs text-slate-400 truncate">Yersin Đà Lạt</p>
-                            </div>
-                        </div>
-                    </div>
                 </aside>
                 </Fragment>
             );
         };
 
-        const Header = ({ title, setMobileOpen, searchQuery, setSearchQuery }) => (
-            <header className="h-24 sticky top-0 z-30 px-6 md:px-10 flex items-center justify-between backdrop-blur-sm shrink-0 bg-[#020617]/80 border-b border-white/5 shadow-2xl">
+        const Header = ({ title, setMobileOpen, searchQuery, setSearchQuery, toggleTheme, theme }) => (
+            <header className="h-16 sticky top-0 z-30 px-4 md:px-8 flex items-center justify-between backdrop-blur-sm shrink-0 bg-[var(--glass-bg)] border-b border-[var(--glass-border)] shadow-sm transition-colors duration-300">
                 <div className="flex items-center gap-4">
-                    <button className="md:hidden p-2 text-slate-400 hover:text-white bg-white/5 rounded-lg border border-white/10" onClick={() => setMobileOpen(true)}><Icons.Menu size={24} /></button>
+                    <button className="md:hidden p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg" onClick={() => setMobileOpen(true)}>
+                        <div className="menu-btn-mobile"><span></span><span></span><span></span></div>
+                    </button>
                     <div className="hidden md:block">
-                        <h2 className="text-3xl font-black text-white tracking-tight font-math flex items-center gap-2">{title} <Icons.Sparkles size={18} className="text-amber-400 animate-pulse"/></h2>
-                        <p className="text-sm text-slate-400 font-medium">Hôm nay bạn muốn giải bài toán nào?</p>
+                        <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight font-math flex items-center gap-2">{title} <Icons.Sparkles size={16} className="text-amber-400 animate-pulse"/></h2>
                     </div>
                 </div>
-                <div className="flex items-center gap-4 md:gap-6">
-                    <div className="relative hidden md:block group w-96">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl opacity-30 group-hover:opacity-100 transition duration-500 blur"></div>
-                        <div className="relative flex items-center bg-[#0b1121] rounded-xl px-4 py-3 border border-white/10">
-                            <Icons.Search className="text-slate-500 mr-3" size={20} />
+                <div className="flex items-center gap-2 md:gap-4 header-search">
+                     <div className="md:hidden">
+                        {/* Mobile Search Icon Only */}
+                        <button className="p-2 text-[var(--text-secondary)]" onClick={() => {
+                            // Simple toggle or expand logic could go here, for now just an icon
+                        }}><Icons.Search size={20}/></button>
+                     </div>
+                    <div className="relative hidden md:block group w-64">
+                        <div className="relative flex items-center bg-[var(--glass-border)] rounded-lg px-3 py-1.5 border border-[var(--glass-border)]">
+                            <Icons.Search className="text-[var(--text-secondary)] mr-2" size={16} />
                             <input 
                                 type="text" 
-                                placeholder="Tìm tài liệu, game, công cụ..." 
-                                className="bg-transparent border-none text-white text-sm w-full focus:outline-none placeholder:text-slate-600 font-medium" 
+                                placeholder="Tìm kiếm..." 
+                                className="bg-transparent border-none text-[var(--text-primary)] text-sm w-full focus:outline-none placeholder:text-[var(--text-secondary)]" 
                                 value={searchQuery} 
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                     </div>
-                    <button className="relative p-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all border border-white/10"><Icons.Bell size={22} /><span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#0b1121] shadow-[0_0_10px_#f43f5e]"></span></button>
+                    <ThemeSwitch theme={theme} toggleTheme={toggleTheme} />
                 </div>
             </header>
         );
@@ -687,7 +516,6 @@
         // --- DASHBOARD & SEARCH RESULTS ---
         const DashboardView = ({ setView, openViewer, searchQuery, allData }) => {
             
-            // LOGIC TÌM KIẾM TOÀN CỤC
             if (searchQuery) {
                 const lowerQ = searchQuery.toLowerCase();
                 const matchedDocs = allData.documents.filter(d => d.title.toLowerCase().includes(lowerQ) || d.tag.toLowerCase().includes(lowerQ));
@@ -695,31 +523,30 @@
                 const matchedTools = allData.tools.filter(t => t.title.toLowerCase().includes(lowerQ) || t.desc.toLowerCase().includes(lowerQ));
                 const matchedProjects = allData.projects.filter(p => p.title.toLowerCase().includes(lowerQ) || p.desc.toLowerCase().includes(lowerQ));
                 const matchedInfographics = allData.infographics.filter(i => i.title.toLowerCase().includes(lowerQ) || i.desc.toLowerCase().includes(lowerQ));
-                // Tìm kiếm trong leaderInMe
                 const matchedLeader = allData.leaderInMe ? allData.leaderInMe.filter(l => l.title.toLowerCase().includes(lowerQ)) : [];
 
                 return (
-                    <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
-                        <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                            <Icons.Search className="text-cyan-400"/> Kết quả tìm kiếm cho "{searchQuery}"
+                    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                        <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3">
+                            <Icons.Search className="text-cyan-400"/> Kết quả: "{searchQuery}"
                         </h2>
                         
-                        {matchedDocs.length === 0 && matchedGames.length === 0 && matchedTools.length === 0 && matchedProjects.length === 0 && matchedInfographics.length === 0 && (
-                            <div className="text-center py-20 text-slate-500">
-                                <p className="text-xl">Không tìm thấy kết quả nào.</p>
+                        {matchedDocs.length === 0 && matchedGames.length === 0 && matchedTools.length === 0 && matchedProjects.length === 0 && matchedInfographics.length === 0 && matchedLeader.length === 0 && (
+                            <div className="text-center py-10 text-[var(--text-secondary)]">
+                                <p className="text-lg">Không tìm thấy kết quả nào.</p>
                             </div>
                         )}
 
                         {matchedDocs.length > 0 && (
-                            <div className="mb-10">
-                                <h3 className="text-xl font-bold text-white mb-4 border-l-4 border-cyan-500 pl-3">Tài liệu</h3>
-                                <div className="space-y-3">
+                            <div className="mb-8">
+                                <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3 border-l-4 border-cyan-500 pl-3">Tài liệu</h3>
+                                <div className="space-y-2">
                                     {matchedDocs.map((doc, i) => (
-                                        <div key={i} onClick={() => openViewer({...doc, category: 'doc'})} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer">
-                                            <div className="p-2 bg-cyan-900/30 rounded text-cyan-400"><Icons.FileText size={20}/></div>
+                                        <div key={i} onClick={() => openViewer({...doc, category: 'doc'})} className="flex items-center gap-3 p-3 rounded-lg glass-card cursor-pointer">
+                                            <div className="p-1.5 bg-cyan-900/30 rounded text-cyan-400"><Icons.FileText size={18}/></div>
                                             <div className="flex-1">
-                                                <h4 className="text-white font-bold">{doc.title}</h4>
-                                                <span className="text-xs text-slate-400">{doc.tag}</span>
+                                                <h4 className="text-[var(--text-primary)] font-bold text-sm">{doc.title}</h4>
+                                                <span className="text-xs text-[var(--text-secondary)]">{doc.tag}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -727,19 +554,18 @@
                             </div>
                         )}
 
-                        {/* Similar sections for Games, Tools, Projects if needed in search results */}
                         {(matchedGames.length > 0 || matchedTools.length > 0 || matchedProjects.length > 0 || matchedLeader.length > 0) && (
-                            <div className="mb-10">
-                                <h3 className="text-xl font-bold text-white mb-4 border-l-4 border-purple-500 pl-3">Ứng dụng & Game</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="mb-8">
+                                <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3 border-l-4 border-purple-500 pl-3">Ứng dụng & Game</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {[...matchedGames, ...matchedTools, ...matchedProjects, ...matchedLeader].map((item, i) => {
                                         const ItemIcon = CustomIcons[item.iconType] || Icons.Gamepad2;
                                         return (
-                                            <div key={i} onClick={() => openViewer({...item, category: item.category || (item.desc ? 'tool' : 'game')})} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer">
-                                                <div className="w-10 h-10"><ItemIcon size={40}/></div>
-                                                <div>
-                                                    <h4 className="text-white font-bold text-sm">{item.title}</h4>
-                                                    <p className="text-xs text-slate-400">{item.category || item.desc}</p>
+                                            <div key={i} onClick={() => openViewer({...item, category: item.category || (item.desc ? 'tool' : 'game')})} className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-3 p-3 rounded-lg glass-card cursor-pointer">
+                                                <div className="w-8 h-8 shrink-0"><ItemIcon size={32}/></div>
+                                                <div className="min-w-0">
+                                                    <h4 className="text-[var(--text-primary)] font-bold text-sm truncate">{item.title}</h4>
+                                                    <p className="text-xs text-[var(--text-secondary)] line-clamp-1">{item.category || item.desc}</p>
                                                 </div>
                                             </div>
                                         )
@@ -752,48 +578,49 @@
             }
 
             return (
-                <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto w-full fade-in-up">
-                    {/* Welcome Banner */}
-                    <div className="relative rounded-[32px] p-1 overflow-hidden group">
+                <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="relative rounded-2xl p-1 overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-1000"></div>
-                        <div className="relative bg-[#0f172a]/90 backdrop-blur-2xl rounded-[30px] p-8 md:p-12 border border-white/10 overflow-hidden flex flex-col md:flex-row gap-10 items-center">
-                            
-                            <div className="relative z-10 flex-1">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold mb-6">
-                                    <Icons.GraduationCap size={14} /> GIÁO VIÊN TOÁN
+                        <div className="relative bg-[var(--glass-bg)] backdrop-blur-2xl rounded-xl p-4 md:p-8 border border-[var(--glass-border)] overflow-hidden flex flex-col md:flex-row gap-6 shadow-lg author-banner">
+                            <div className="relative z-10 flex-1 flex flex-col items-center md:items-start text-center md:text-left author-info">
+                                <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-indigo-500/50 shadow-lg author-avatar">
+                                        <img src="ava.jpg" alt="Thầy Nguyên" className="w-full h-full object-cover" onError={(e) => {e.target.style.display='none'; e.target.parentElement.innerHTML='<div class="w-full h-full bg-cyan-600 flex items-center justify-center text-white font-bold">N</div>'}}/>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-[10px] font-bold mb-1">
+                                            <Icons.GraduationCap size={10} /> GIÁO VIÊN TOÁN
+                                        </div>
+                                        <h1 className="text-xl md:text-3xl font-black text-[var(--text-primary)] mb-1 leading-tight">
+                                            THẦY THÁI MINH NGUYÊN
+                                        </h1>
+                                        <p className="text-[var(--text-secondary)] text-xs md:text-sm font-medium">Trường TH, THCS & THPT Yersin Đà Lạt</p>
+                                    </div>
                                 </div>
-                                <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
-                                    THÁI MINH NGUYÊN <br/>
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 text-glow text-2xl md:text-3xl">Trường TH, THCS & THPT Yersin Đà Lạt</span>
-                                </h1>
-                                <p className="text-slate-300 text-lg mb-6 leading-relaxed font-medium italic">
+                                
+                                <p className="text-[var(--text-secondary)] text-sm md:text-base mt-3 mb-4 leading-relaxed font-medium italic quote mobile-hidden">
                                     "Toán học không chỉ là những con số, mà là tư duy để giải quyết vấn đề cuộc sống."
                                 </p>
-                                <p className="text-slate-400 text-sm mb-8 leading-relaxed max-w-xl">
-                                    Với phương châm giáo dục khai phóng, kết hợp công nghệ và Gamification, tôi mong muốn mang đến những giờ học Toán đầy cảm hứng và sáng tạo cho các em học sinh.
-                                </p>
-                                <div className="flex flex-wrap gap-4">
-                                    <button onClick={() => setView('games')} className="px-8 py-3.5 bg-white text-[#0b1121] rounded-2xl font-black hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-                                        <Icons.Gamepad2 size={20} fill="currentColor"/> GAME TƯ DUY
+                                
+                                <div className="flex flex-wrap justify-center md:justify-start gap-2 w-full author-actions">
+                                    <button onClick={() => setView('games')} className="flex-1 md:flex-none px-3 py-2 bg-white text-[#0b1121] rounded-lg font-bold hover:scale-105 transition-transform flex items-center justify-center gap-1.5 shadow-sm text-xs border border-transparent">
+                                        <Icons.Gamepad2 size={14} fill="currentColor"/> GAME TƯ DUY
                                     </button>
-                                    <button onClick={() => window.open('game/giasu.html', '_blank')} className="px-8 py-3.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-2xl font-bold hover:bg-amber-500/20 transition-all flex items-center gap-2 backdrop-blur-md">
-                                        <Icons.MenuMathHall size={20}/> ĐẠI SẢNH TOÁN
+                                    <button onClick={() => window.open('game/giasu.html', '_blank')} className="flex-1 md:flex-none px-3 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg font-bold hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 text-xs">
+                                        <Icons.MenuMathHall size={14}/> ĐẠI SẢNH TOÁN
                                     </button>
-                                     <button onClick={() => openViewer(allData.projects[0])} className="px-8 py-3.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-2xl font-bold hover:bg-rose-500/20 transition-all flex items-center gap-2 backdrop-blur-md">
-                                        <Icons.ProjectTobacco size={20}/> GAME PHÒNG CHỐNG THUỐC LÁ
+                                     <button onClick={() => openViewer(allData.projects[0])} className="w-full md:w-auto px-3 py-2 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-lg font-bold hover:bg-rose-500/20 transition-all flex items-center justify-center gap-1.5 text-xs">
+                                        <Icons.ProjectTobacco size={14}/> PHÒNG CHỐNG THUỐC LÁ
                                     </button>
                                 </div>
                             </div>
                             
-                            {/* School Info Card - Updated TTC Group */}
-                            <div className="w-full md:w-80 bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
-                                <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><Icons.Home size={18} className="text-cyan-400"/> Về Trường Yersin</h3>
-                                <p className="text-sm text-slate-400 mb-4 leading-relaxed">
-                                    Thành lập năm 2005, trực thuộc <strong>Tập đoàn TTC (Thành Thành Công)</strong>. Tọa lạc tại 27 Tôn Thất Tùng, Đà Lạt. Trường nổi bật với triết lý "Ngôi trường hạnh phúc", cơ sở vật chất hiện đại và môi trường học tập xanh.
+                            {/* School Info - Mobile Compact */}
+                            <div className="w-full md:w-64 bg-white/5 border border-[var(--glass-border)] rounded-xl p-3 backdrop-blur-md mt-2 md:mt-0 mobile-hidden">
+                                <h3 className="text-xs font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2"><Icons.Home size={14} className="text-cyan-400"/> Về Trường Yersin</h3>
+                                <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
+                                    Thành lập năm 2005, trực thuộc <strong>Tập đoàn TTC</strong>. Tọa lạc tại 27 Tôn Thất Tùng, Đà Lạt.
                                 </p>
-                                <div className="flex items-center gap-2 text-xs text-slate-500">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Chất lượng cao
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -805,25 +632,25 @@
             const filtered = allData.leaderInMe.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
             return (
-                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
-                    <div className="mb-10">
-                        <h2 className="text-4xl font-black text-white flex items-center gap-3 font-math">
-                            <Icons.MenuLeader className="text-indigo-400" size={32}/> LEADER IN ME
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="mb-6 md:mb-8">
+                        <h2 className="text-2xl md:text-3xl font-black text-[var(--text-primary)] flex items-center gap-3 font-math">
+                            <Icons.MenuLeader className="text-indigo-400" size={28}/> LEADER IN ME
                         </h2>
-                        <p className="text-slate-400 mt-2">Phát triển năng lực lãnh đạo bản thân và thấu cảm.</p>
+                        <p className="text-[var(--text-secondary)] mt-1 text-xs md:text-sm">Phát triển năng lực lãnh đạo bản thân và thấu cảm.</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {filtered.map((item, i) => {
                             const ItemIcon = CustomIcons[item.iconType] || Icons.Gamepad2;
                             return (
-                                <div key={i} onClick={() => openViewer({...item, category: 'tool'})} className="glass-card p-10 rounded-[32px] flex flex-col gap-6 group cursor-pointer hover:bg-indigo-900/10 border border-indigo-500/20">
-                                    <div className={`icon-box w-20 h-20 bg-[#0b1121] ${item.color} border border-white/10 shadow-lg group-hover:border-current p-4`}>
-                                        <ItemIcon size={48} />
+                                <div key={i} onClick={() => openViewer({...item, category: 'tool'})} className="glass-card p-6 rounded-2xl flex flex-col gap-4 group cursor-pointer hover:bg-indigo-900/10 border border-indigo-500/20">
+                                    <div className={`icon-box w-14 h-14 bg-[var(--glass-bg)] ${item.color} border border-white/10 shadow-lg group-hover:border-current p-2`}>
+                                        <ItemIcon size={36} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">{item.title}</h3>
-                                        <p className="text-slate-400 text-sm mb-6 leading-relaxed font-medium">{item.desc}</p>
-                                        <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden group-hover:h-2 transition-all">
+                                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-indigo-300 transition-colors">{item.title}</h3>
+                                        <p className="text-[var(--text-secondary)] text-xs mb-4 leading-relaxed font-medium">{item.desc}</p>
+                                        <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
                                             <div className={`h-full w-1/3 bg-current ${item.color} group-hover:w-full transition-all duration-700`}></div>
                                         </div>
                                     </div>
@@ -841,26 +668,26 @@
                 : allData.projects;
 
             return (
-                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
-                    <div className="mb-12 text-center">
-                        <h2 className="text-4xl font-black text-white flex items-center justify-center gap-3 font-math mb-4">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="mb-8 text-center">
+                        <h2 className="text-2xl md:text-3xl font-black text-[var(--text-primary)] flex items-center justify-center gap-3 font-math mb-2">
                             <Icons.Target className="text-rose-500"/> DỰ ÁN KỸ NĂNG SỐNG
                         </h2>
-                        <p className="text-slate-400 text-lg">Các dự án và trò chơi giáo dục giúp trang bị kỹ năng cần thiết cho cuộc sống.</p>
+                        <p className="text-[var(--text-secondary)] text-xs md:text-sm">Các dự án và trò chơi giáo dục giúp trang bị kỹ năng cần thiết.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayProjects.map((proj, i) => {
                             const ProjIcon = CustomIcons[proj.iconType] || Icons.Gamepad2;
                             return (
-                                <div key={i} onClick={() => openViewer({...proj, category: 'project'})} className="glass-card p-6 rounded-[24px] flex items-center gap-6 group cursor-pointer hover:bg-rose-900/10 border border-rose-500/20">
-                                    <div className={`icon-box w-20 h-20 bg-[#0b1121] text-rose-500 border border-white/10 shadow-lg group-hover:scale-110 p-2`}>
-                                        <ProjIcon size={48} />
+                                <div key={i} onClick={() => openViewer({...proj, category: 'project'})} className="glass-card p-5 rounded-2xl flex items-center gap-5 group cursor-pointer hover:bg-rose-900/10 border border-rose-500/20">
+                                    <div className={`icon-box w-16 h-16 bg-[var(--glass-bg)] text-rose-500 border border-white/10 shadow-lg group-hover:scale-110 p-2`}>
+                                        <ProjIcon size={40} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-rose-400 transition-colors">{proj.title}</h3>
-                                        <p className="text-slate-400 text-sm font-medium">{proj.desc}</p>
-                                        <div className="mt-4 flex items-center gap-2 text-xs font-bold text-rose-500 uppercase tracking-widest group-hover:gap-3 transition-all">
-                                            KHÁM PHÁ <Icons.ArrowRight size={14}/>
+                                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-rose-400 transition-colors">{proj.title}</h3>
+                                        <p className="text-[var(--text-secondary)] text-xs font-medium">{proj.desc}</p>
+                                        <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest group-hover:gap-3 transition-all">
+                                            KHÁM PHÁ <Icons.ArrowRight size={12}/>
                                         </div>
                                     </div>
                                 </div>
@@ -877,26 +704,24 @@
                 : allData.infographics;
             
             return (
-                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
-                    <div className="mb-10">
-                        <h2 className="text-4xl font-black text-white flex items-center gap-3 font-math">
-                            <Icons.Infographic className="text-amber-400" size={32}/> INFOGRAPHIC TOÁN HỌC
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="mb-8">
+                        <h2 className="text-2xl md:text-3xl font-black text-[var(--text-primary)] flex items-center gap-3 font-math">
+                            <Icons.Infographic className="text-amber-400" size={28}/> INFOGRAPHIC TOÁN HỌC
                         </h2>
-                        <p className="text-slate-400 mt-2">Kiến thức Toán học được mô hình hóa trực quan và dễ nhớ.</p>
+                        <p className="text-[var(--text-secondary)] mt-1 text-xs md:text-sm">Kiến thức Toán học được mô hình hóa trực quan.</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayInfos.map((info, i) => (
-                            <div key={i} onClick={() => openViewer({...info, category: 'infographic'})} className="glass-card p-4 rounded-3xl cursor-pointer group hover:bg-amber-900/10 border-amber-500/10 hover:border-amber-500/30">
-                                <div className="aspect-w-16 aspect-h-9 bg-[#0b1121] rounded-2xl overflow-hidden mb-4 border border-white/5 group-hover:border-amber-500/30 relative">
-                                    {/* Placeholder for actual image, using icon for now if no image loads */}
-                                    <div className="absolute inset-0 flex items-center justify-center text-slate-700">
-                                        <Icons.Image size={48} />
+                            <div key={i} onClick={() => openViewer({...info, category: 'infographic'})} className="glass-card p-4 rounded-2xl cursor-pointer group hover:bg-amber-900/10 border-amber-500/10 hover:border-amber-500/30">
+                                <div className="aspect-w-16 aspect-h-9 bg-[var(--bg-deep)] rounded-xl overflow-hidden mb-3 border border-white/5 group-hover:border-amber-500/30 relative">
+                                    <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+                                        <Icons.Image size={40} />
                                     </div>
-                                     {/* Try to load image, fallback to placeholder handled by CSS/layout */}
                                     <img src={`infographic/${info.filename}`} alt={info.title} className="object-cover w-full h-full relative z-10 transition-transform duration-700 group-hover:scale-110" onError={(e) => e.target.style.opacity = 0} />
                                 </div>
-                                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">{info.title}</h3>
-                                <p className="text-xs text-slate-400">{info.desc}</p>
+                                <h3 className="text-base font-bold text-[var(--text-primary)] mb-1 group-hover:text-amber-400 transition-colors">{info.title}</h3>
+                                <p className="text-xs text-[var(--text-secondary)]">{info.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -907,26 +732,26 @@
         const DocumentsView = ({ searchQuery, openViewer, allData }) => {
             const filtered = allData.documents.filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()) || d.tag.toLowerCase().includes(searchQuery.toLowerCase()));
             return (
-                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
-                    <div className="glass-card rounded-[32px] p-1">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="glass-card rounded-2xl p-1">
                         <table className="w-full text-left">
-                            <thead className="bg-white/5 text-slate-300 uppercase font-bold text-xs tracking-wider border-b border-white/10">
-                                <tr><th className="px-8 py-6">Tài liệu</th><th className="px-8 py-6">Loại</th><th className="px-8 py-6">Tag</th><th className="px-8 py-6 text-right"></th></tr>
+                            <thead className="bg-white/5 text-[var(--text-secondary)] uppercase font-bold text-xs tracking-wider border-b border-white/10 hidden md:table-header-group">
+                                <tr><th className="px-6 py-4">Tài liệu</th><th className="px-6 py-4">Loại</th><th className="px-6 py-4">Tag</th><th className="px-6 py-4 text-right"></th></tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-white/5 block md:table-row-group">
                                 {filtered.length > 0 ? filtered.map((doc, i) => {
                                     const ext = doc.filename.split('.').pop().toUpperCase();
                                     return (
-                                        <tr key={i} className="hover:bg-white/5 transition-colors group cursor-pointer" onClick={() => openViewer({...doc, category: 'doc'})}>
-                                            <td className="px-8 py-6"><div className="flex items-center gap-4"><div className="icon-box w-14 h-14 bg-[#0b1121] text-cyan-400 border border-white/10 group-hover:border-cyan-500/50">
-                                                {ext === 'PDF' ? <Icons.DocPDF size={28}/> : <Icons.DocWord size={28}/>}
-                                            </div><span className="font-bold text-white text-lg group-hover:text-cyan-300 transition-colors">{doc.title}</span></div></td>
-                                            <td className="px-8 py-6"><span className="font-mono text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg text-sm font-bold">{ext}</span></td>
-                                            <td className="px-8 py-6"><span className={`px-3 py-1 rounded-full text-xs font-bold border ${doc.tag === 'Hot' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}>{doc.tag}</span></td>
-                                            <td className="px-8 py-6 text-right"><button className="p-3 hover:bg-cyan-500 hover:text-black rounded-xl transition-all text-slate-400"><Icons.BookOpen size={20} /></button></td>
+                                        <tr key={i} className="hover:bg-white/5 transition-colors group cursor-pointer block md:table-row p-4 md:p-0 border-b border-white/5 md:border-none" onClick={() => openViewer({...doc, category: 'doc'})}>
+                                            <td className="md:px-6 md:py-4 block md:table-cell mb-2 md:mb-0"><div className="flex items-center gap-3"><div className="icon-box w-10 h-10 bg-[var(--bg-deep)] text-cyan-400 border border-white/10 group-hover:border-cyan-500/50">
+                                                {ext === 'PDF' ? <Icons.DocPDF size={20}/> : <Icons.DocWord size={20}/>}
+                                            </div><span className="font-bold text-[var(--text-primary)] text-sm md:text-base group-hover:text-cyan-300 transition-colors">{doc.title}</span></div></td>
+                                            <td className="md:px-6 md:py-4 block md:table-cell text-xs md:text-sm mb-1 md:mb-0"><span className="font-mono text-[var(--text-secondary)] bg-white/5 px-2 py-1 rounded">{ext}</span></td>
+                                            <td className="md:px-6 md:py-4 block md:table-cell text-xs md:text-sm mb-2 md:mb-0"><span className={`px-2 py-1 rounded text-[10px] font-bold border ${doc.tag === 'Hot' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}>{doc.tag}</span></td>
+                                            <td className="md:px-6 md:py-4 text-right block md:table-cell"><button className="p-2 hover:bg-cyan-500 hover:text-black rounded-lg transition-all text-[var(--text-secondary)]"><Icons.BookOpen size={18} /></button></td>
                                         </tr>
                                     )
-                                }) : <tr><td colSpan="4" className="px-8 py-6 text-center text-slate-500">Không tìm thấy tài liệu.</td></tr>}
+                                }) : <tr><td colSpan="4" className="px-6 py-6 text-center text-slate-500">Không tìm thấy tài liệu.</td></tr>}
                             </tbody>
                         </table>
                     </div>
@@ -937,21 +762,21 @@
         const GamesView = ({ searchQuery, openViewer, allData }) => {
             const filtered = allData.games.filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase()));
             return (
-                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                         {filtered.length > 0 ? filtered.map((game, i) => {
                             const GameIcon = CustomIcons[game.iconType] || Icons.Gamepad2;
                             return (
-                                <div key={i} onClick={() => openViewer({...game, category: 'game'})} className="group relative rounded-[32px] p-1 overflow-hidden hover:-translate-y-3 transition-transform duration-500 cursor-pointer">
+                                <div key={i} onClick={() => openViewer({...game, category: 'game'})} className="group relative rounded-2xl p-1 overflow-hidden hover:-translate-y-2 transition-transform duration-500 cursor-pointer">
                                     <div className={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md`}></div>
-                                    <div className="relative h-full bg-[#0f172a] rounded-[30px] p-8 flex flex-col items-center text-center overflow-hidden border border-white/10 group-hover:border-transparent">
-                                        <div className="w-24 h-24 mb-6 relative flex items-center justify-center">
+                                    <div className="relative h-full bg-[var(--glass-bg)] rounded-xl p-4 md:p-6 flex flex-col items-center text-center overflow-hidden border border-white/10 group-hover:border-transparent">
+                                        <div className="w-12 h-12 md:w-20 md:h-20 mb-3 md:mb-4 relative flex items-center justify-center">
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-20 blur-xl rounded-full group-hover:opacity-40 transition-opacity`}></div>
-                                            <GameIcon size={80} className="relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"/>
+                                            <GameIcon size={48} className="relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] md:scale-125"/>
                                         </div>
-                                        <h3 className="text-2xl font-bold text-white mb-2 relative z-10">{game.title}</h3>
-                                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8 relative z-10 px-3 py-1 rounded-full border border-white/10">{game.category}</span>
-                                        <button className="mt-auto w-full py-4 rounded-xl bg-white/5 hover:bg-white text-white hover:text-black font-bold text-sm transition-all border border-white/10 flex items-center justify-center gap-3 relative z-10 shadow-lg"><Icons.Play size={18} fill="currentColor"/> CHƠI NGAY</button>
+                                        <h3 className="text-sm md:text-xl font-bold text-[var(--text-primary)] mb-1 relative z-10">{game.title}</h3>
+                                        <span className="text-[10px] md:text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-3 md:mb-6 relative z-10 px-2 py-0.5 rounded border border-white/10">{game.category}</span>
+                                        <button className="mt-auto w-full py-2 md:py-3 rounded-lg bg-white/5 hover:bg-white text-[var(--text-primary)] hover:text-black font-bold text-[10px] md:text-xs transition-all border border-white/10 flex items-center justify-center gap-2 relative z-10 shadow-lg"><Icons.Play size={12} fill="currentColor"/> CHƠI NGAY</button>
                                     </div>
                                 </div>
                             )
@@ -964,16 +789,22 @@
         const ToolsView = ({ searchQuery, openViewer, allData }) => {
             const filtered = allData.tools.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
             return (
-                <div className="p-6 md:p-10 max-w-7xl mx-auto w-full fade-in-up">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                         {filtered.length > 0 ? filtered.map((tool, i) => {
                             const ToolIcon = CustomIcons[tool.iconType] || Icons.Calculator;
                             return (
-                                <div key={i} onClick={() => openViewer({...tool, category: 'tool'})} className="glass-card p-10 rounded-[32px] flex flex-col gap-6 group cursor-pointer hover:bg-white/5 border border-white/10">
-                                    <div className={`icon-box w-20 h-20 bg-[#0b1121] ${tool.color} border border-white/10 shadow-lg group-hover:border-current p-4`}>
-                                        <ToolIcon size={48} />
+                                <div key={i} onClick={() => openViewer({...tool, category: 'tool'})} className="glass-card p-4 md:p-6 rounded-2xl flex flex-col gap-3 group cursor-pointer hover:bg-white/5 border border-white/10">
+                                    <div className={`icon-box w-10 h-10 md:w-16 md:h-16 bg-[var(--glass-bg)] ${tool.color} border border-white/10 shadow-lg group-hover:border-current p-2 md:p-3`}>
+                                        <ToolIcon size={32} />
                                     </div>
-                                    <div className="flex-1"><h3 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">{tool.title}</h3><p className="text-slate-400 text-sm mb-6 leading-relaxed font-medium">{tool.desc}</p><div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden group-hover:h-2 transition-all"><div className={`h-full w-1/3 bg-current ${tool.color} group-hover:w-full transition-all duration-700`}></div></div></div>
+                                    <div className="flex-1">
+                                        <h3 className="text-sm md:text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-purple-300 transition-colors">{tool.title}</h3>
+                                        <p className="text-[var(--text-secondary)] text-[10px] md:text-xs mb-2 md:mb-4 leading-relaxed font-medium line-clamp-2">{tool.desc}</p>
+                                        <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
+                                            <div className={`h-full w-1/3 bg-current ${tool.color} group-hover:w-full transition-all duration-700`}></div>
+                                        </div>
+                                    </div>
                                 </div>
                             )
                         }) : <div className="col-span-3 text-center text-slate-500">Không tìm thấy công cụ.</div>}
@@ -988,94 +819,15 @@
             const [mobileOpen, setMobileOpen] = useState(false);
             const [searchQuery, setSearchQuery] = useState('');
             const [viewingResource, setViewingResource] = useState(null);
+            const [theme, setTheme] = useState('dark');
 
-            // --- RESOURCE VIEWER ---
-            const ResourceViewer = ({ resource, onClose }) => {
-                const [loading, setLoading] = useState(true);
-                const [loadError, setLoadError] = useState(false);
+            // Set theme effect
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+            }, [theme]);
 
-                if (!resource) return null;
-
-                const getBasePath = () => {
-                    if (resource.path) return resource.path;
-                    switch(resource.category) {
-                        case 'doc': return 'tai-lieu/';
-                        case 'game': return 'game/';
-                        case 'tool': return 'app/';
-                        case 'project': return resource.path || '';
-                        case 'infographic': return 'infographic/';
-                        default: return '';
-                    }
-                };
-
-                const relativePath = getBasePath() + resource.filename;
-                // Lấy absolute URL để dùng cho Office Viewer
-                // Lưu ý: window.location.href có thể chứa index.html hoặc hash, cần xử lý cẩn thận
-                // Lấy base URL của site (ví dụ: https://username.github.io/repo/)
-                let baseUrl = window.location.origin + window.location.pathname;
-                // Xóa 'index.html' nếu có ở cuối
-                if (baseUrl.endsWith('index.html')) {
-                    baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
-                }
-                // Đảm bảo có dấu / ở cuối
-                if (!baseUrl.endsWith('/')) {
-                    baseUrl += '/';
-                }
-                
-                const absoluteUrl = baseUrl + relativePath;
-
-                const extension = resource.filename.split('.').pop().toLowerCase();
-                const isOffice = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension);
-                const isLocal = window.location.hostname === '' || window.location.hostname === 'localhost' || window.location.protocol === 'file:';
-
-                let viewerUrl = relativePath;
-                if (isOffice) {
-                    viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
-                } else {
-                     // Ensure PDF/HTML etc use encoded URI for iframe source to handle spaces
-                     viewerUrl = encodeURI(relativePath);
-                     if(extension === 'pdf') {
-                        viewerUrl += "#toolbar=0&navpanes=0&view=FitH";
-                     }
-                }
-
-                return (
-                    <div className="viewer-overlay" onClick={onClose}>
-                        <div className="viewer-container" onClick={e => e.stopPropagation()}>
-                            <div className="h-16 bg-[#0b1121] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
-                                        {resource.category === 'game' ? <Icons.Gamepad2 size={20}/> : 
-                                        resource.category === 'tool' ? <Icons.Calculator size={20}/> : <Icons.DocPDF size={20}/>}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white font-math tracking-wide text-lg">{resource.title}</h3>
-                                        <p className="text-xs text-slate-400 font-mono">{resource.filename}</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => window.open(encodeURI(relativePath), '_blank')} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors"><Icons.ExternalLink size={16}/> Mở tab mới</button>
-                                    <button onClick={onClose} className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors"><Icons.X size={24}/></button>
-                                </div>
-                            </div>
-                            <div className="flex-1 bg-[#1e293b] relative w-full h-full">
-                                {loading && !loadError && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0f172a]"><div className="loading-spinner mb-4"></div><p className="text-slate-400 animate-pulse">Đang tải tài nguyên...</p></div>
-                                )}
-                                {isOffice && isLocal ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a] text-center p-8 z-20">
-                                        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><Icons.DocWord size={40}/></div>
-                                        <h3 className="text-2xl font-bold text-white mb-2">Chế độ xem trước không khả dụng Offline</h3>
-                                        <p className="text-slate-400 mb-8 max-w-md">File Word/Excel cần được đưa lên GitHub Pages để xem online.</p>
-                                        <a href={encodeURI(relativePath)} download className="px-8 py-4 bg-cyan-600 text-white rounded-xl font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-1"><Icons.Download size={20}/> Tải về máy</a>
-                                    </div>
-                                ) : (
-                                    <iframe src={viewerUrl} className="w-full h-full border-0 block" title="Content Viewer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={() => setLoading(false)} onError={() => { setLoading(false); setLoadError(true); }} />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
+            const toggleTheme = () => {
+                setTheme(prev => prev === 'dark' ? 'light' : 'dark');
             };
 
             // Xử lý mở tài nguyên
@@ -1095,32 +847,27 @@
 
                 const relativePath = basePath + resource.filename;
                 
-                // Logic mở file Office trong tab mới bằng Viewer online
+                // Logic Office Viewer
                 const extension = resource.filename.split('.').pop().toLowerCase();
-                const isOffice = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension);
-                
                 let urlToOpen = relativePath;
-                
-                if (isOffice) {
+
+                if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(extension)) {
                      let baseUrl = window.location.origin + window.location.pathname;
-                    if (baseUrl.endsWith('index.html')) {
-                        baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
-                    }
-                    if (!baseUrl.endsWith('/')) {
-                        baseUrl += '/';
-                    }
-                    const absoluteUrl = baseUrl + relativePath;
-                    // Sử dụng view.aspx thay vì embed.aspx để có trải nghiệm xem tốt hơn trong tab mới
-                    urlToOpen = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}`;
+                    if (baseUrl.endsWith('index.html')) baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('index.html'));
+                    if (!baseUrl.endsWith('/')) baseUrl += '/';
+                    urlToOpen = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(baseUrl + relativePath)}`;
+                } else if (extension === 'pdf') {
+                    // For PDF, we want a clean viewer, but simply linking to it in a new tab is the most robust "full screen" experience
+                    // Users asked for "open directly"
                 }
 
-                window.open(urlToOpen, '_blank');
+                window.open(encodeURI(urlToOpen), '_blank');
             };
 
             const getTitle = () => {
                 switch(currentView) {
                     case 'dashboard': return 'Tổng Quan';
-                    case 'leaderinme': return 'Leader in me'; // THÊM CASE MỚI
+                    case 'leaderinme': return 'Leader in me'; 
                     case 'lifeskills': return 'Kỹ Năng Sống';
                     case 'infographics': return 'Infographic Toán';
                     case 'documents': return 'Tài Liệu';
@@ -1134,24 +881,16 @@
                 <div className="min-h-screen flex relative overflow-hidden">
                     <div className="math-universe">
                         <div className="grid-floor"></div>
-                        {/* Particles */}
-                        {[...Array(15)].map((_, i) => (
-                            <div key={i} className="particle" style={{
-                                left: `${Math.random()*100}%`, 
-                                width: `${Math.random()*3+1}px`, height: `${Math.random()*3+1}px`,
-                                animationDuration: `${10+Math.random()*20}s`, animationDelay: `${Math.random()*-20}s`
-                            }}></div>
-                        ))}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent"></div>
+                        <FloatingMathBackground />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-deep)] via-transparent to-transparent"></div>
                     </div>
                     
                     <Sidebar currentView={currentView} setView={setCurrentView} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
                     <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden backdrop-blur-[2px]">
-                        <Header title={getTitle()} setMobileOpen={setMobileOpen} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+                        <Header title={getTitle()} setMobileOpen={setMobileOpen} searchQuery={searchQuery} setSearchQuery={setSearchQuery} toggleTheme={toggleTheme} theme={theme} />
                         <main className="flex-1 overflow-y-auto scroll-smooth">
                             {currentView === 'dashboard' && <DashboardView setView={setCurrentView} openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />} 
-                            {/* THÊM DÒNG NÀY ĐỂ HIỂN THỊ VIEW MỚI */}
                             {currentView === 'leaderinme' && <LeaderInMeView openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />}
                             {currentView === 'lifeskills' && <LifeSkillsView openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />}
                             {currentView === 'infographics' && <InfographicsView openViewer={handleOpenResource} searchQuery={searchQuery} allData={DATA_CONFIG} />}
@@ -1161,9 +900,6 @@
                         </main>
                         <Footer />
                     </div>
-
-                    {/* VIEWER MODAL */}
-                    {viewingResource && <ResourceViewer resource={viewingResource} onClose={() => setViewingResource(null)} />}
                 </div>
             );
         };
