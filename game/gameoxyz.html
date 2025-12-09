@@ -20,10 +20,14 @@
         body {
             margin: 0; overflow: hidden; background: #000;
             font-family: 'Nunito', sans-serif;
-            touch-action: none; user-select: none;
-            -webkit-font-smoothing: antialiased;
+            touch-action: none; /* Vô hiệu hóa thao tác chạm mặc định toàn trang */
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             width: 100vw; height: 100vh;
-            position: fixed;
+            position: fixed; /* Cố định khung hình */
+            inset: 0;
+            overscroll-behavior: none; /* Ngăn chặn kéo nảy trang */
         }
 
         #game-container { 
@@ -37,6 +41,11 @@
             position: absolute; inset: 0; pointer-events: none;
             display: flex; flex-direction: column; justify-content: space-between;
             padding: 20px; z-index: 20;
+            /* Đảm bảo UI không bị che bởi notch trên điện thoại */
+            padding-top: env(safe-area-inset-top, 20px);
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+            padding-left: env(safe-area-inset-left, 20px);
+            padding-right: env(safe-area-inset-right, 20px);
         }
 
         /* TOP HUD */
@@ -80,6 +89,7 @@
             display: flex; align-items: center; justify-content: center;
             border: 2px solid white; box-shadow: 0 4px 0 #0056b3;
             transition: transform 0.1s; margin-left: 10px;
+            touch-action: manipulation; /* Tối ưu chạm */
         }
         .story-btn:active { transform: translateY(4px); box-shadow: none; }
 
@@ -130,7 +140,9 @@
             padding: 20px; color: white; width: 100%; box-sizing: border-box;
             box-shadow: 0 -10px 60px rgba(0,0,0,0.6); transform: translateY(100%);
             animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            max-height: 80vh; overflow-y: auto;
+            max-height: 80vh; overflow-y: auto; /* Cho phép cuộn nội dung */
+            -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
+            touch-action: pan-y; /* Cho phép cuộn dọc */
         }
         @keyframes slideUp { to { transform: translateY(0); } }
 
@@ -149,6 +161,9 @@
             box-shadow: 0 0 30px var(--secondary);
             animation: fadeIn 0.5s;
             position: relative;
+            max-height: 90vh; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
         }
         .story-card::before {
             content: "TOP SECRET // MISSION BRIEFING";
@@ -171,6 +186,7 @@
             border: none; padding: 15px 40px; font-size: 1.2rem;
             border-radius: 5px; cursor: pointer; width: 100%;
             transition: all 0.2s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            touch-action: manipulation;
         }
         .story-btn-start:hover { background: white; transform: scale(1.02); }
 
@@ -185,6 +201,7 @@
             background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2);
             padding: 12px; color: #bdc3c7; font-size: 0.95rem; font-weight: bold; cursor: pointer;
             border-radius: 12px; transition: all 0.2s; text-align: left;
+            touch-action: manipulation;
         }
         .opt-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--primary); }
         .opt-btn.correct { background: rgba(0, 184, 148, 0.2); border-color: var(--success); color: var(--success); }
@@ -203,6 +220,8 @@
             border: 4px solid var(--primary);
             box-shadow: 0 0 50px var(--primary);
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 80vh; overflow-y: auto;
+            touch-action: pan-y;
         }
         .fact-title { font-family: 'Bungee'; color: var(--primary); font-size: 1.3rem; margin-bottom: 10px; }
         .fact-content { font-family: 'Nunito'; font-size: 1.1rem; color: #2d3436; font-weight: 700; line-height: 1.5; margin-bottom: 20px; text-align: left; }
@@ -210,6 +229,7 @@
             background: var(--success); color: white; border: none; padding: 12px 30px;
             font-family: 'Bungee'; font-size: 1rem; border-radius: 50px; cursor: pointer;
             box-shadow: 0 5px 0 #008f73;
+            touch-action: manipulation;
         }
 
         /* TUTORIAL & FEEDBACK */
@@ -251,6 +271,7 @@
             background: white; border: none; padding: 12px; border-radius: 15px;
             font-family: 'Nunito'; font-weight: 900; font-size: 0.9rem; color: var(--dark);
             cursor: pointer; box-shadow: 0 4px 0 #bdc3c7; transition: transform 0.1s, box-shadow 0.1s;
+            touch-action: manipulation;
         }
         .topic-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #bdc3c7; }
         .topic-btn.full { grid-column: span 2; background: var(--primary); color: white; box-shadow: 0 4px 0 #e58e26; }
@@ -259,6 +280,7 @@
             background: var(--danger); border: none; padding: 12px 40px;
             border-radius: 50px; font-family: 'Bungee', cursive; font-size: 1.2rem;
             color: white; cursor: pointer; box-shadow: 0 6px 0 #c0392b; margin-top: 20px;
+            touch-action: manipulation;
         }
 
         @media(max-width: 700px) { 
@@ -368,7 +390,7 @@
 <script>
 /**
  * OXYZ JOYRIDE - LIBERATION EDITION
- * Update: Enhanced Boss Visuals, Correct Math Symbols, Liberation Sequence
+ * Update: Mobile Optimized Touch & Viewport
  */
 
 const STORY_DATA = {
@@ -484,20 +506,60 @@ const Game = {
         this.ctx = this.canvas.getContext('2d');
         this.logoImg.src = 'logo.png'; 
         this.resize();
-        window.addEventListener('resize', () => this.resize());
         
-        // Input Handling
+        // Handle Mobile Orientation Changes better
+        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 100));
+        
+        // --- INPUT HANDLING (OPTIMIZED FOR MOBILE) ---
+        
+        // Check if target is a button or UI element
+        const isInteractive = (target) => {
+            return target.tagName === 'BUTTON' || 
+                   target.classList.contains('opt-btn') || 
+                   target.closest('button') || 
+                   target.closest('.opt-btn');
+        };
+
         const fly = (e) => { 
             if(this.state !== 'PLAYING') return;
-            if (e && e.type === 'touchstart' && e.target.tagName === 'CANVAS') e.preventDefault();
-            if(!this.bossSpawned) { this.isFlying = true; document.getElementById('tutorialMsg').style.opacity = 0; }
+            
+            // Mobile specific checks
+            if (e && e.type === 'touchstart') {
+                // If touching a button, do NOT fly, let the button click happen
+                if (isInteractive(e.target)) return;
+                
+                // If touching background, FLY and prevent scrolling
+                e.preventDefault(); 
+                if(!this.bossSpawned) { 
+                    this.isFlying = true; 
+                    document.getElementById('tutorialMsg').style.opacity = 0; 
+                }
+            } else {
+                // Mouse logic
+                if (isInteractive(e.target)) return;
+                if(!this.bossSpawned) { 
+                    this.isFlying = true; 
+                    document.getElementById('tutorialMsg').style.opacity = 0; 
+                }
+            }
         };
-        const fall = () => { this.isFlying = false; };
         
+        const fall = (e) => { 
+            // If touching a button, don't interfere
+            if (e && e.type === 'touchend' && isInteractive(e.target)) return;
+            this.isFlying = false; 
+        };
+        
+        // Mouse Events
         window.addEventListener('mousedown', fly);
-        window.addEventListener('touchstart', fly, {passive: false});
         window.addEventListener('mouseup', fall);
+        
+        // Touch Events (passive: false is crucial for preventing default scrolling)
+        window.addEventListener('touchstart', fly, {passive: false});
         window.addEventListener('touchend', fall);
+        
+        // Keyboard
         window.addEventListener('keydown', (e) => { if(e.code==='Space') fly(e); });
         window.addEventListener('keyup', (e) => { if(e.code==='Space') fall(); });
         
@@ -519,8 +581,13 @@ const Game = {
     },
 
     resize() {
-        this.w = this.canvas.width = window.innerWidth;
-        this.h = this.canvas.height = window.innerHeight;
+        // Use Visual Viewport if available for more accurate sizing on mobile
+        const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+        const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        
+        this.w = this.canvas.width = width;
+        this.h = this.canvas.height = height;
+        
         this.floorY = this.h - 70; this.ceilY = 70;
         if(this.state === 'MENU') this.player.y = this.floorY - this.player.h;
         if(this.w < 600) { this.player.w = 35; this.player.h = 50; } else { this.player.w = 45; this.player.h = 65; }
