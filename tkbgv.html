@@ -30,11 +30,12 @@
                 extend: {
                     fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
                     colors: {
-                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985' },
+                        // TÔNG CAM YERSIN
+                        brand: { 50: '#fff7ed', 100: '#ffedd5', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412' },
                         slate: { 850: '#1e293b' }
                     },
                     boxShadow: {
-                        'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                        'soft': '0 4px 20px -2px rgba(234, 88, 12, 0.15), 0 2px 10px -2px rgba(0, 0, 0, 0.05)',
                         'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
                     },
                     animation: {
@@ -52,16 +53,19 @@
     </script>
 
     <style>
-        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #fff7ed; -webkit-tap-highlight-color: transparent; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Compact Grid Lines */
-        td, th { border-color: #e2e8f0; }
+        /* Custom Checkbox */
+        .custom-checkbox:checked {
+            background-color: #ea580c;
+            border-color: #ea580c;
+        }
 
         /* Empty Slot Hover Effect */
         .empty-slot-hover:hover {
-            background-image: linear-gradient(45deg, #f0f9ff 25%, transparent 25%, transparent 50%, #f0f9ff 50%, #f0f9ff 75%, transparent 75%, transparent);
+            background-image: linear-gradient(45deg, #fff7ed 25%, transparent 25%, transparent 50%, #fff7ed 50%, #fff7ed 75%, transparent 75%, transparent);
             background-size: 10px 10px;
         }
 
@@ -80,9 +84,9 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useMemo, useRef, memo } = React;
 
-        // --- ICONS (SVG from Original File) ---
+        // --- ICONS ---
         const Icons = {
             Sun: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
             Upload: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>,
@@ -95,77 +99,63 @@
             ArrowRight: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>,
             UserGroup: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
             Search: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
-            Reload: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            Reload: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
+            ChevronDown: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>,
+            ChevronUp: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>,
+            Bolt: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+            Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
         };
 
         const COLLECTIVE_KEYWORDS = ['CHÀO CỜ', 'CC', 'SINH HOẠT CỜ', 'LỄ', 'TẬP THỂ', 'TOÀN TRƯỜNG', 'SHDC', 'HỘI THAO', 'GOT TALENT'];
-        // Removed HĐTN from this list to prevent it from auto-appearing for Homeroom teachers
         const HOMEROOM_KEYWORDS = ['GVCN', 'SHTT', 'SHCN', 'SINH HOẠT LỚP', 'HĐTN', 'SHL', 'SHTT'].filter(k => k !== 'HĐTN');
 
-        // --- 1. THUẬT TOÁN CANONICAL V3.7 (FIX TÁCH THẦY BẢO) ---
+        // --- HELPER FUNCTIONS ---
         const getCanonicalName = (rawName) => {
             if (!rawName) return '';
-            
             let name = rawName.trim().toLowerCase();
-            const originalPrefix = rawName.trim().split(/\s+/)[0].toLowerCase(); // Lưu lại prefix gốc để check
-
-            // Xử lý đặc biệt cho trường hợp "Bảo": Tách "T Bảo" và "Thầy Bảo"
-            // Nếu tên chứa chữ "bảo"
             if (name.includes('bảo')) {
-                // Nếu bắt đầu bằng "t " hoặc "t." -> nhóm 1 (t bao)
-                if (/^t\s|^t\./.test(name)) {
-                    // Xử lý chuẩn hóa để lấy tên, nhưng thêm tiền tố để phân biệt
-                    return "t_" + name.replace(/^(t\.|t)\s*/, '').trim(); 
-                }
-                // Nếu bắt đầu bằng "thầy" -> nhóm 2 (thay bao)
-                if (/^thầy/.test(name)) {
-                    return "thay_" + name.replace(/^thầy\s*/, '').trim();
-                }
+                if (/^t\s|^t\./.test(name)) return "t_" + name.replace(/^(t\.|t)\s*/, '').trim(); 
+                if (/^thầy/.test(name)) return "thay_" + name.replace(/^thầy\s*/, '').trim();
             }
-
-            // --- Logic cũ cho các giáo viên khác ---
-            // Xử lý Tiền tố (Prefix)
             name = name.replace(/^(thầy|cô|g\.?v\.?|th\.|t\.|c\.)\s*/i, '');
-            // Xử lý T, C đứng đầu câu (t tuấn, c út) - KHÔNG xóa 'th '
-            name = name.replace(/^(t|c)\s+/i, '');
-
-            // Giữ nguyên dấu Tiếng Việt, chỉ xóa ký tự đặc biệt
+            name = name.replace(/^(t|c)\s+/i, ''); 
             name = name.replace(/[.,:;!@#$%^&*()_+\-=\[\]{}|\\<>\/?]/g, ' ');
-
             return name.replace(/\s+/g, ' ').trim();
         };
 
         function isTeacherNameLikely(str) {
             if (!str) return false;
             const s = str.trim();
-            // Regex bắt prefix
+            if (s.toUpperCase().startsWith("GVNN")) return false; 
             const strictPrefixRegex = /^(t\.|c\.|th\.|thầy|cô|gv|g\.v|t\s|c\s|th\s)\s*/i; 
             if (strictPrefixRegex.test(s)) return true;
             return false;
         }
 
-        // --- 2. PARSER V3.4 (XỬ LÝ DỮ LIỆU) ---
+        const getPeriodsForSession = (schedule, session) => {
+            const sessionItems = schedule.filter(d => d.session.toUpperCase() === session);
+            let periods = [1,2,3,4,5]; 
+            if (sessionItems.length > 0) {
+                    const ps = [...new Set(sessionItems.map(d => d.period))].sort((a,b)=>a-b);
+                    if (ps.length > 0) periods = ps; 
+            }
+            while(periods.length < 5) periods.push((periods[periods.length-1] || 0) + 1);
+            return periods.filter(p => p !== 16 && p !== 17);
+        };
+
         function parseMultiValueCell(cellText, baseMeta = {}){
             if(!cellText || typeof cellText !== 'string') return [];
-
             let raw = cellText.trim();
             raw = raw.replace(/^(ÔN THI\s*(TN)?|LỚP|HỌC|HỌC LẠI)\s*[-:]?\s*/i, '');
             raw = raw.replace(/[\n\r\/]+/g, ';');
-            
             const ph = [];
-            let protectedRaw = raw.replace(/\(([^)]+)\)/g, (m) => {
-                ph.push(m);
-                return `__P${ph.length-1}__`;
-            });
+            let protectedRaw = raw.replace(/\(([^)]+)\)/g, (m) => { ph.push(m); return `__P${ph.length-1}__`; });
             protectedRaw = protectedRaw.replace(/,/g, ';'); 
-
             let tokens = protectedRaw.split(';').map(t => t.trim()).filter(Boolean);
             const results = [];
 
             for (let token of tokens) {
                 token = token.replace(/__P(\d+)__/g, (m, i) => ph[i]);
-                
-                // Mẫu 1: Subject (Teacher - Room)
                 const parenMatch = token.match(/^([^\(\)]+?)\s*\(([^)]+)\)$/);
                 
                 if (parenMatch) {
@@ -173,13 +163,9 @@
                     const insideRaw = parenMatch[2].trim(); 
                     let teacherRaw = '', className = '';
                     const insideParts = insideRaw.split(/\s*[-–]\s*/);
-                    
                     if (insideParts.length === 1) {
-                         if (isTeacherNameLikely(insideParts[0]) || insideParts[0].length > 3) {
-                             teacherRaw = insideParts[0];
-                         } else {
-                             className = insideParts[0];
-                         }
+                         if (isTeacherNameLikely(insideParts[0]) || insideParts[0].length > 3) teacherRaw = insideParts[0];
+                         else className = insideParts[0];
                     } else {
                         const tIdx = insideParts.findIndex(p => isTeacherNameLikely(p));
                         if (tIdx !== -1) {
@@ -191,9 +177,7 @@
                         }
                     }
                     results.push({ subject: subjectRaw, teacherRaw, teacherCanonical: getCanonicalName(teacherRaw), className, raw: token, ...baseMeta });
-                } 
-                // Mẫu 2: Subject - Teacher
-                else {
+                } else {
                     const parts = token.split(/\s*[-–]\s*/);
                     if (parts.length >= 2) {
                         let tIdx = parts.findIndex(p => isTeacherNameLikely(p));
@@ -219,24 +203,326 @@
             return results;
         }
 
-        // --- COMPONENTS ---
+        // --- SUB-COMPONENTS (DEFINED BEFORE APP) ---
 
+        const PeriodCell = memo(({ matches, day, period, session, handleInspect, selectedHomeroom }) => {
+            const groups = {};
+            matches.forEach(m => {
+                const key = `${m.teacherCanonical}|${m.subject}`;
+                if (!groups[key]) groups[key] = { ...m, classes: [m.clazz] };
+                else if (!groups[key].classes.includes(m.clazz)) groups[key].classes.push(m.clazz);
+            });
+            const uniqueMatches = Object.values(groups);
+
+            if (uniqueMatches.length > 0) {
+                return (
+                    <div className="flex flex-col gap-1 h-full">
+                        {uniqueMatches.map((m, idx) => {
+                            let classListDisplay = "";
+                            const roomRegex = /\s*\(([^)]+)\)$/;
+                            const firstMatch = m.classes[0].match(roomRegex);
+                            const commonRoom = firstMatch ? firstMatch[1] : null;
+                            let allShareRoom = false;
+                            if (commonRoom) allShareRoom = m.classes.every(c => { const match = c.match(roomRegex); return match && match[1] === commonRoom; });
+                            if (allShareRoom) classListDisplay = `${m.classes.map(c => c.replace(roomRegex, '').trim()).join(', ')} (${commonRoom})`;
+                            else classListDisplay = m.classes.join(', ');
+
+                            const isCN = (selectedHomeroom && m.classes.some(c => c.includes(selectedHomeroom)) && HOMEROOM_KEYWORDS.some(k => m.raw.toUpperCase().includes(k)));
+                            const isCollective = m.isCollective;
+                            let bgClass = "bg-white border-l-4 border-brand-500 text-slate-800";
+                            if (isCollective) bgClass = "bg-red-50 border-l-4 border-red-500 text-red-800";
+                            else if (isCN) bgClass = "bg-amber-50 border-l-4 border-amber-500 text-amber-900";
+                            
+                            return (
+                                <div key={idx} className={`p-2 rounded-r border border-slate-200 ${bgClass} shadow-sm relative group text-left`}>
+                                    {isCN && <span className="absolute top-1 right-1 px-1 bg-amber-100 text-amber-700 text-[8px] font-bold rounded uppercase">CN</span>}
+                                    {isCollective ? <div className="text-center font-bold text-[10px] uppercase py-1">{m.raw}</div> : 
+                                        <>
+                                            <div className="font-bold text-sm leading-tight mb-0.5 break-words">{classListDisplay}</div>
+                                            <div className="text-[10px] font-semibold opacity-70 uppercase truncate">{m.subject}</div>
+                                        </>}
+                                </div>
+                            )
+                        })}
+                    </div>
+                )
+            }
+            return (
+                <div onClick={() => handleInspect(day, period, session)} className="w-full h-full min-h-[50px] bg-slate-50/50 rounded border border-dashed border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition-all cursor-pointer flex items-center justify-center group no-capture empty-slot-hover" title="Bấm để kiểm tra">
+                    <div className="opacity-0 group-hover:opacity-100 text-brand-400 transition-opacity"><Icons.Eye /></div>
+                </div>
+            );
+        });
+
+        const DesktopTable = memo(({ session, finalSchedule, handleInspect, selectedHomeroom }) => {
+            const periods = useMemo(() => getPeriodsForSession(finalSchedule, session), [finalSchedule, session]);
+            const days = ['2', '3', '4', '5', '6', '7'];
+            const headerClass = session === 'SÁNG' ? 'bg-sky-100 text-sky-800' : 'bg-orange-100 text-orange-800';
+            return (
+                <div className="bg-white rounded-xl shadow-card border border-slate-200 overflow-hidden mb-8">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm border-collapse min-w-[800px]">
+                            <thead>
+                                <tr>
+                                    <th className={`p-3 w-16 text-center font-bold border-b border-r border-slate-200 ${headerClass}`}>{session}</th>
+                                    {days.map(d => <th key={d} className="p-3 font-bold text-slate-600 text-xs uppercase border-b border-r border-slate-200 bg-slate-50">Thứ {d}</th>)}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {periods.map(p => (
+                                    <tr key={p} className="hover:bg-slate-50/50">
+                                        <td className="p-2 border-r border-b border-slate-200 text-center bg-slate-50 font-bold text-slate-500">{p}</td>
+                                        {days.map(d => {
+                                            const matches = finalSchedule.filter(s => (s.day === d || s.day.includes(d)) && s.period === p && s.session.toUpperCase() === session);
+                                            return <td key={d} className="p-1 border-r border-b border-slate-200 align-top h-auto min-h-[60px] w-[16.6%]"><PeriodCell matches={matches} day={d} period={p} session={session} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></td>
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        });
+
+        const MobileListView = memo(({ session, finalSchedule, activeMobileDay, setActiveMobileDay, handleInspect, selectedHomeroom }) => {
+            const periods = useMemo(() => getPeriodsForSession(finalSchedule, session), [finalSchedule, session]);
+            const activeColor = session === 'SÁNG' ? 'bg-sky-600' : 'bg-orange-600';
+            return (
+                <div className="pb-20">
+                    <div className="flex gap-2 overflow-x-auto pb-4 px-1 snap-x hide-scroll sticky top-0 bg-[#f8fafc]/95 backdrop-blur z-10 pt-2 no-capture">
+                        {['2', '3', '4', '5', '6', '7'].map(d => (
+                            <button key={d} onClick={() => setActiveMobileDay(d)} className={`flex-none w-14 h-16 rounded-xl flex flex-col items-center justify-center snap-start transition-all border ${activeMobileDay === d ? `${activeColor} text-white border-transparent shadow-lg` : 'bg-white text-slate-400 border-slate-200'}`}>
+                                <span className="text-[10px] font-bold opacity-80 uppercase">Thứ</span>
+                                <span className="text-xl font-bold">{d}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <div className="space-y-3 mt-2">
+                        {periods.map(p => {
+                            const matches = finalSchedule.filter(s => (s.day === activeMobileDay || s.day.includes(activeMobileDay)) && s.period === p && s.session.toUpperCase() === session);
+                            const hasContent = matches.length > 0;
+                            return (
+                                <div key={p} className="flex gap-3 items-stretch">
+                                    <div className={`w-10 flex-none flex items-center justify-center rounded-lg font-bold text-sm border ${hasContent ? 'bg-white border-slate-200 text-slate-700' : 'bg-transparent border-transparent text-slate-300'}`}>{p}</div>
+                                    <div className="flex-1 min-h-[60px]">
+                                        {hasContent ? <PeriodCell matches={matches} day={activeMobileDay} period={p} session={session} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /> : <div className="w-full h-full min-h-[50px] bg-slate-50/30 rounded border border-dashed border-slate-200"></div>}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            );
+        });
+
+        const AutoSelectionScreen = memo(({ teacherConfigs, onSelectTeacher, onBack, searchTerm, setSearchTerm }) => {
+            const sortedKeys = useMemo(() => {
+                return Object.keys(teacherConfigs).sort((a,b) => teacherConfigs[a].displayName.localeCompare(teacherConfigs[b].displayName));
+            }, [teacherConfigs]);
+
+            const filteredKeys = sortedKeys.filter(key => {
+                return teacherConfigs[key].displayName.toLowerCase().includes(searchTerm.toLowerCase());
+            });
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
+                    <div className="w-full max-w-lg bg-white rounded-[2rem] border border-white shadow-soft overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 bg-brand-600 text-white">
+                            <h2 className="text-2xl font-bold flex items-center gap-2"><Icons.Bolt /> <span className="ml-2">Chế độ Tự Động</span></h2>
+                            <p className="opacity-90 text-sm mt-1 ml-8">Chọn tên giáo viên để xem TKB ngay.</p>
+                        </div>
+                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex gap-4 items-center">
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
+                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 outline-none shadow-sm"
+                                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
+                            <div className="space-y-2">
+                                {filteredKeys.map(key => (
+                                    <button 
+                                        key={key} 
+                                        onClick={() => onSelectTeacher(key)}
+                                        className="w-full text-left p-4 rounded-xl border border-white bg-white hover:border-brand-300 hover:shadow-md transition-all flex items-center justify-between group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
+                                                {teacherConfigs[key].displayName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <span className="font-bold text-slate-700 text-lg group-hover:text-brand-700">{teacherConfigs[key].displayName}</span>
+                                        </div>
+                                        <div className="text-slate-300 group-hover:text-brand-500"><Icons.ArrowRight /></div>
+                                    </button>
+                                ))}
+                                {filteredKeys.length === 0 && <div className="text-center py-10 text-slate-400">Không tìm thấy kết quả.</div>}
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-slate-200 bg-white">
+                            <button onClick={onBack} className="w-full py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Quay lại</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+
+        const ConfigScreen = memo(({ teacherConfigs, selectedSignatures, handleToggleOption, handleSelectAll, searchTerm, setSearchTerm, expandedKey, setExpandedKey, onBack, onView }) => {
+            const sortedKeys = useMemo(() => {
+                const keys = Object.keys(teacherConfigs);
+                const isSelected = (key) => {
+                    const options = teacherConfigs[key].options;
+                    return Object.keys(options).some(sig => selectedSignatures.has(sig));
+                };
+                return keys.sort((a,b) => {
+                    const selA = isSelected(a);
+                    const selB = isSelected(b);
+                    if (selA && !selB) return -1;
+                    if (!selA && selB) return 1;
+                    return teacherConfigs[a].displayName.localeCompare(teacherConfigs[b].displayName);
+                });
+            }, [teacherConfigs, selectedSignatures]);
+            
+            const filteredKeys = sortedKeys.filter(key => {
+                const group = teacherConfigs[key];
+                const searchLower = searchTerm.toLowerCase();
+                if (group.displayName.toLowerCase().includes(searchLower)) return true;
+                return Object.values(group.options).some(opt => opt.label.toLowerCase().includes(searchLower));
+            });
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
+                    <div className="w-full max-w-4xl bg-white rounded-[2rem] border border-white shadow-soft overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 bg-brand-600 text-white">
+                            <h2 className="text-2xl font-bold flex items-center gap-2"><Icons.Cog /> <span className="ml-2">Cấu hình Thủ Công</span></h2>
+                            <p className="opacity-90 text-sm mt-1 ml-9">Chọn chính xác các lớp bạn dạy để loại bỏ trùng tên.</p>
+                        </div>
+                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex gap-4 items-center">
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
+                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 outline-none shadow-sm"
+                                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            </div>
+                            <div className="text-sm text-slate-500 font-bold">Đã chọn: <span className="text-brand-600 text-lg">{selectedSignatures.size}</span> mục</div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
+                            <div className="space-y-3">
+                                {filteredKeys.map(key => {
+                                    const group = teacherConfigs[key];
+                                    const isExpanded = expandedKey === key;
+                                    const options = Object.entries(group.options);
+                                    const isAnySelected = options.some(([sig]) => selectedSignatures.has(sig));
+
+                                    return (
+                                        <div key={key} className={`bg-white rounded-xl border transition-all overflow-hidden ${isAnySelected ? 'border-brand-500 ring-1 ring-brand-200' : 'border-slate-200 hover:border-brand-300'}`}>
+                                            <div 
+                                                className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50"
+                                                onClick={() => setExpandedKey(isExpanded ? null : key)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors ${isAnySelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                                                        {group.displayName.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-slate-800">{group.displayName} {isAnySelected && <span className="text-brand-600 text-xs ml-2">(Đã chọn)</span>}</div>
+                                                        <div className="text-xs text-slate-500">{options.length} nhóm môn học</div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-slate-400">
+                                                    {isExpanded ? <Icons.ChevronUp /> : <Icons.ChevronDown />}
+                                                </div>
+                                            </div>
+                                            
+                                            {isExpanded && (
+                                                <div className="border-t border-slate-100 bg-slate-50/50 p-4 animate-fade-in" onClick={e => e.stopPropagation()}>
+                                                    <div className="flex justify-end mb-2">
+                                                        <button onClick={() => handleSelectAll(key)} className="text-xs font-bold text-brand-600 hover:underline">Chọn tất cả</button>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                        {options.map(([sig, data]) => (
+                                                            <label key={sig} className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-brand-300 transition-all select-none">
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    className="custom-checkbox w-5 h-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 mt-0.5"
+                                                                    checked={selectedSignatures.has(sig)}
+                                                                    onChange={(e) => handleToggleOption(sig, e.target.checked, key)}
+                                                                />
+                                                                <div className="flex-1">
+                                                                    <div className="font-bold text-slate-700 text-sm">{data.label}</div>
+                                                                    <div className="text-xs text-slate-500 mt-1">Xuất hiện: {data.count} lần</div>
+                                                                </div>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                                {filteredKeys.length === 0 && <div className="text-center py-10 text-slate-400">Không tìm thấy giáo viên nào khớp với từ khóa.</div>}
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-slate-200 bg-white flex justify-between items-center">
+                            <button onClick={onBack} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Quay lại</button>
+                            <button onClick={onView} disabled={selectedSignatures.size === 0} className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg flex items-center gap-2 ${selectedSignatures.size === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all'}`}>Xem TKB <Icons.ArrowRight /></button>
+                        </div>
+                    </div>
+                </div>
+            )
+        });
+
+        const ModeSelectionScreen = memo(({ onSelectMode, onBack }) => {
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+                    <div className="w-full max-w-lg text-center">
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-black text-slate-800 mb-2">Chọn Chế Độ</h1>
+                            <p className="text-slate-500">Bạn muốn xem thời khóa biểu theo cách nào?</p>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <button onClick={() => onSelectMode('auto')} className="w-full p-6 bg-white rounded-2xl border-2 border-transparent hover:border-brand-500 shadow-soft hover:shadow-xl transition-all group text-left flex items-center gap-4 relative overflow-hidden">
+                                <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-2xl group-hover:scale-110 transition-transform">
+                                    <Icons.Bolt />
+                                </div>
+                                <div className="flex-1 relative z-10">
+                                    <h3 className="text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors">Tự Động (Nhanh)</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Chỉ cần chọn tên giáo viên. Hệ thống tự động gom tất cả lớp.</p>
+                                </div>
+                            </button>
+
+                            <button onClick={() => onSelectMode('manual')} className="w-full p-6 bg-white rounded-2xl border-2 border-transparent hover:border-brand-500 shadow-soft hover:shadow-xl transition-all group text-left flex items-center gap-4 relative overflow-hidden">
+                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 text-2xl group-hover:scale-110 transition-transform">
+                                    <Icons.Cog />
+                                </div>
+                                <div className="flex-1 relative z-10">
+                                    <h3 className="text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors">Thủ Công (Chi tiết)</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Tự chọn từng môn/lớp dạy. Phù hợp nếu dạy thay hoặc trùng tên.</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <button onClick={onBack} className="mt-8 text-slate-400 font-bold hover:text-slate-600 transition-colors">Quay lại tải file</button>
+                    </div>
+                </div>
+            );
+        });
+
+        // --- MAIN APP ---
         const App = () => {
             const [stage, setStage] = useState('upload'); 
             const [file, setFile] = useState(null);
-            
             const [allRawData, setAllRawData] = useState([]); 
-            const [teacherGroups, setTeacherGroups] = useState({}); 
-            const [selectedTeacherIds, setSelectedTeacherIds] = useState([]);
-            
+            const [teacherConfigs, setTeacherConfigs] = useState({}); 
+            const [selectedSignatures, setSelectedSignatures] = useState(new Set()); 
+            const [currentTeacherKey, setCurrentTeacherKey] = useState(null); 
+            const [expandedKey, setExpandedKey] = useState(null);
             const [classes, setClasses] = useState([]);
             const [selectedHomeroom, setSelectedHomeroom] = useState('');
-            
             const [activeSession, setActiveSession] = useState('SÁNG');
             const [activeMobileDay, setActiveMobileDay] = useState('2');
             const [inspectData, setInspectData] = useState(null);
             const [isCapturing, setIsCapturing] = useState(false);
-            
             const [loading, setLoading] = useState(false);
             const [status, setStatus] = useState('');
             const [error, setError] = useState('');
@@ -273,7 +559,6 @@
 
                     setStatus('Đang phân tích dữ liệu...');
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-                    
                     let headerRowIndex = -1;
                     for (let i = 0; i < Math.min(jsonData.length, 30); i++) {
                         const rowStr = jsonData[i].join(' ').toUpperCase();
@@ -297,7 +582,7 @@
                     });
 
                     const extracted = [];
-                    const groups = {}; 
+                    const configs = {};
                     let currentDay = '', currentSession = '';
 
                     for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
@@ -306,7 +591,6 @@
                         const rawPeriod = row[periodCol]?.toString().trim();
                         if (!rawPeriod || isNaN(parseInt(rawPeriod))) continue;
                         const period = parseInt(rawPeriod);
-
                         if (sessionCol !== -1 && row[sessionCol]) currentSession = row[sessionCol].toString().trim();
                         else currentSession = period <= 5 ? 'SÁNG' : 'CHIỀU';
 
@@ -318,38 +602,56 @@
                                 parsedItems.forEach(item => {
                                     if (item.teacherCanonical && !['gvcn','gvtg'].includes(item.teacherCanonical)) {
                                         const key = item.teacherCanonical;
-                                        if (!groups[key]) groups[key] = { display: item.teacherRaw, variations: new Set() };
-                                        groups[key].variations.add(item.teacherRaw);
-                                        if (item.teacherRaw.length > groups[key].display.length && item.teacherRaw.length < 30) {
-                                            groups[key].display = item.teacherRaw;
-                                        }
+                                        if (!configs[key]) configs[key] = { displayName: item.teacherRaw, options: {} };
+                                        if (item.teacherRaw.length > configs[key].displayName.length && item.teacherRaw.length < 30) configs[key].displayName = item.teacherRaw;
+                                        const sig = `${item.subject}|${item.teacherRaw}`;
+                                        if (!configs[key].options[sig]) configs[key].options[sig] = { label: `${item.subject} - ${item.teacherRaw}`, count: 0, raw: item.teacherRaw, subj: item.subject };
+                                        configs[key].options[sig].count++;
                                     }
                                     let displayClass = classMap[colIdx];
                                     if (item.className && item.className !== displayClass) displayClass = `${displayClass} (${item.className})`;
-                                    extracted.push({ ...item, clazz: displayClass, isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)) });
+                                    extracted.push({ ...item, clazz: displayClass, isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)), signature: `${item.subject}|${item.teacherRaw}` });
                                 });
                             }
                         });
                     }
 
-                    const finalGroups = {};
-                    Object.keys(groups).forEach(key => {
-                        finalGroups[key] = { display: groups[key].display, variations: Array.from(groups[key].variations) };
-                    });
-
                     setAllRawData(extracted);
-                    setTeacherGroups(finalGroups);
+                    setTeacherConfigs(configs);
                     setClasses(Array.from(foundClasses).sort());
-                    setStage('mapping');
+                    setStage('mode_select'); // Go to mode selection
                     setStatus('');
                 } catch (err) { setError(err.message || 'Lỗi xử lý file.'); } finally { setLoading(false); }
             };
 
+            const handleToggleOption = (sig, isChecked, teacherKey) => {
+                const newSet = new Set(selectedSignatures);
+                if (isChecked) newSet.add(sig);
+                else newSet.delete(sig);
+                setSelectedSignatures(newSet);
+                setCurrentTeacherKey(teacherKey); 
+            };
+
+            const handleSelectAll = (key) => {
+                const newSet = new Set(selectedSignatures);
+                Object.keys(teacherConfigs[key].options).forEach(sig => newSet.add(sig));
+                setSelectedSignatures(newSet);
+                setCurrentTeacherKey(key);
+            };
+
+            const handleAutoSelectTeacher = (key) => {
+                const newSet = new Set();
+                Object.keys(teacherConfigs[key].options).forEach(sig => newSet.add(sig));
+                setSelectedSignatures(newSet);
+                setCurrentTeacherKey(key);
+                setStage('view');
+            };
+
             const finalSchedule = useMemo(() => {
-                if (selectedTeacherIds.length === 0) return [];
+                if (selectedSignatures.size === 0) return [];
                 const candidates = allRawData.filter(item => {
                     if (item.isCollective) return true;
-                    if (selectedTeacherIds.includes(item.teacherCanonical)) return true;
+                    if (selectedSignatures.has(item.signature)) return true;
                     if (selectedHomeroom && item.clazz.includes(selectedHomeroom) && HOMEROOM_KEYWORDS.some(k => item.raw.toUpperCase().includes(k))) return true;
                     return false;
                 });
@@ -357,11 +659,11 @@
                 const uniqueItems = [];
                 const seen = new Set();
                 candidates.forEach(item => {
-                    const signature = `${item.day}-${item.session}-${item.period}-${item.clazz}-${item.subject}-${item.teacherCanonical}`;
-                    if (!seen.has(signature)) { seen.add(signature); uniqueItems.push(item); }
+                    const id = `${item.day}-${item.session}-${item.period}-${item.clazz}-${item.subject}-${item.teacherCanonical}`;
+                    if (!seen.has(id)) { seen.add(id); uniqueItems.push(item); }
                 });
                 return uniqueItems;
-            }, [allRawData, selectedTeacherIds, selectedHomeroom]);
+            }, [allRawData, selectedSignatures, selectedHomeroom]);
 
             const getPeriodsForSession = (session) => {
                 const sessionItems = finalSchedule.filter(d => d.session.toUpperCase() === session);
@@ -389,7 +691,7 @@
                     setIsCapturing(true); 
                     await new Promise(resolve => setTimeout(resolve, 100));
                     try {
-                        const displayNames = selectedTeacherIds.map(id => teacherGroups[id]?.display).join(', ');
+                        const displayNames = currentTeacherKey ? teacherConfigs[currentTeacherKey]?.displayName : 'TKB';
                         const canvas = await html2canvas(captureRef.current, { scale: 2, backgroundColor: '#ffffff', useCORS: true, ignoreElements: (el) => el.classList.contains('no-capture') });
                         const link = document.createElement('a');
                         link.download = `TKB-${displayNames}.png`;
@@ -399,258 +701,7 @@
                 }
             };
 
-            // --- COMPONENT: PeriodCell (Smart Grouping) ---
-            const PeriodCell = ({ matches, day, period, session }) => {
-                const groups = {};
-                matches.forEach(m => {
-                    const key = `${m.teacherCanonical}|${m.subject}`;
-                    if (!groups[key]) groups[key] = { ...m, classes: [m.clazz] };
-                    else if (!groups[key].classes.includes(m.clazz)) groups[key].classes.push(m.clazz);
-                });
-                const uniqueMatches = Object.values(groups);
-
-                if (uniqueMatches.length > 0) {
-                    return (
-                        <div className="flex flex-col gap-1 h-full">
-                            {uniqueMatches.map((m, idx) => {
-                                let classListDisplay = "";
-                                const roomRegex = /\s*\(([^)]+)\)$/;
-                                const firstMatch = m.classes[0].match(roomRegex);
-                                const commonRoom = firstMatch ? firstMatch[1] : null;
-                                let allShareRoom = false;
-                                if (commonRoom) allShareRoom = m.classes.every(c => { const match = c.match(roomRegex); return match && match[1] === commonRoom; });
-                                if (allShareRoom) classListDisplay = `${m.classes.map(c => c.replace(roomRegex, '').trim()).join(', ')} (${commonRoom})`;
-                                else classListDisplay = m.classes.join(', ');
-
-                                const isCN = (selectedHomeroom && m.classes.some(c => c.includes(selectedHomeroom)) && HOMEROOM_KEYWORDS.some(k => m.raw.toUpperCase().includes(k)));
-                                const isCollective = m.isCollective;
-                                let bgClass = "bg-white border-l-4 border-brand-500 text-slate-800";
-                                if (isCollective) bgClass = "bg-red-50 border-l-4 border-red-500 text-red-800";
-                                else if (isCN) bgClass = "bg-amber-50 border-l-4 border-amber-500 text-amber-900";
-                                
-                                return (
-                                    <div key={idx} className={`p-2 rounded-r border border-slate-200 ${bgClass} shadow-sm relative group text-left`}>
-                                        {isCN && <span className="absolute top-1 right-1 px-1 bg-amber-100 text-amber-700 text-[8px] font-bold rounded uppercase">CN</span>}
-                                        {isCollective ? <div className="text-center font-bold text-[10px] uppercase py-1">{m.raw}</div> : 
-                                            <>
-                                                <div className="font-bold text-sm leading-tight mb-0.5 break-words">{classListDisplay}</div>
-                                                <div className="text-[10px] font-semibold opacity-70 uppercase truncate">{m.subject}</div>
-                                            </>}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    )
-                }
-                
-                return (
-                    <div onClick={() => handleInspect(day, period, session)} className="w-full h-full min-h-[50px] bg-slate-50/50 rounded border border-dashed border-slate-200 hover:border-brand-300 hover:bg-brand-50 transition-all cursor-pointer flex items-center justify-center group no-capture empty-slot-hover" title="Bấm để kiểm tra">
-                        <div className="opacity-0 group-hover:opacity-100 text-brand-400 transition-opacity"><Icons.Eye /></div>
-                    </div>
-                );
-            };
-
-            // --- UI SUB-COMPONENTS ---
-            const MappingScreen = () => {
-                const sortedKeys = Object.keys(teacherGroups).sort((a,b) => teacherGroups[a].display.localeCompare(teacherGroups[b].display));
-                const filteredKeys = sortedKeys.filter(key => {
-                    const group = teacherGroups[key];
-                    const searchLower = searchTerm.toLowerCase();
-                    return group.display.toLowerCase().includes(searchLower) || group.variations.some(v => v.toLowerCase().includes(searchLower));
-                });
-                const toggleSelection = (key) => {
-                    if (selectedTeacherIds.includes(key)) setSelectedTeacherIds(selectedTeacherIds.filter(id => id !== key));
-                    else setSelectedTeacherIds([...selectedTeacherIds, key]);
-                };
-
-                return (
-                    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
-                        <div className="w-full max-w-4xl bg-white rounded-[2rem] border border-white shadow-soft overflow-hidden flex flex-col max-h-[90vh]">
-                            <div className="p-6 bg-brand-600 text-white">
-                                <h2 className="text-2xl font-bold flex items-center gap-2"><Icons.UserGroup /> <span className="ml-2">Xác thực Giáo Viên</span></h2>
-                                <p className="opacity-90 text-sm mt-1 ml-9">Chọn nhóm tên đúng của bạn. Có thể chọn nhiều nhóm nếu hệ thống tách nhầm.</p>
-                            </div>
-                            <div className="p-4 border-b border-slate-200 bg-slate-50 flex gap-4 items-center">
-                                <div className="relative flex-1">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
-                                    <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 outline-none shadow-sm"
-                                        value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                                </div>
-                                <div className="text-sm text-slate-500 font-bold">Đã chọn: <span className="text-brand-600 text-lg">{selectedTeacherIds.length}</span></div>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {filteredKeys.map(key => {
-                                        const group = teacherGroups[key];
-                                        const isSelected = selectedTeacherIds.includes(key);
-                                        return (
-                                            <div key={key} onClick={() => toggleSelection(key)} className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${isSelected ? 'border-brand-500 bg-brand-50 shadow-md' : 'border-white bg-white shadow-sm hover:border-brand-200'}`}>
-                                                <div className={`w-6 h-6 rounded flex items-center justify-center border transition-colors mt-1 ${isSelected ? 'bg-brand-500 border-brand-500 text-white' : 'border-slate-300 bg-white'}`}>{isSelected && <Icons.Check />}</div>
-                                                <div className="flex-1">
-                                                    <div className="font-bold text-slate-800 text-lg">{group.display}</div>
-                                                    <div className="flex flex-wrap gap-1 mt-2">
-                                                        {group.variations.map((v, i) => <span key={i} className="px-2 py-1 bg-slate-200 text-slate-600 text-xs rounded font-medium">{v}</span>)}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                                {filteredKeys.length === 0 && <div className="text-center py-10 text-slate-400">Không tìm thấy giáo viên nào khớp với từ khóa.</div>}
-                            </div>
-                            <div className="p-4 border-t border-slate-200 bg-white flex justify-between items-center">
-                                <button onClick={() => { setFile(null); setStage('upload'); setAllRawData([]); }} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Quay lại</button>
-                                <button onClick={() => setStage('view')} disabled={selectedTeacherIds.length === 0} className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg flex items-center gap-2 ${selectedTeacherIds.length === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all'}`}>Xem TKB <Icons.ArrowRight /></button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            };
-
-            const ScheduleScreen = () => {
-                return (
-                    <div className="min-h-screen pb-10 bg-[#f8fafc]">
-                        {inspectData && (
-                            <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm" onClick={() => setInspectData(null)}>
-                                <div className="bg-white w-full max-w-2xl md:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up" onClick={e => e.stopPropagation()}>
-                                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                        <div>
-                                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><Icons.Eye /> X-Ray Scanner</h3>
-                                            <div className="text-xs text-slate-500 font-medium">Thứ {inspectData.day} &bull; Tiết {inspectData.period}</div>
-                                        </div>
-                                        <button onClick={() => setInspectData(null)} className="p-2 hover:bg-slate-200 rounded-full"><Icons.X /></button>
-                                    </div>
-                                    <div className="p-4 overflow-y-auto flex-1 bg-white">
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                            {inspectData.data.map((item, i) => {
-                                                const isMine = selectedTeacherIds.includes(item.teacherCanonical);
-                                                return (
-                                                    <div key={i} className={`p-2 rounded border text-sm ${isMine ? 'bg-brand-50 border-brand-200 shadow-sm ring-1 ring-brand-100' : 'bg-slate-50 border-slate-100'}`}>
-                                                        <div className="font-bold text-slate-800">{item.clazz}</div>
-                                                        <div className="text-xs text-slate-500 truncate">{item.subject} - {item.teacherRaw || "---"}</div>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                        {inspectData.data.length === 0 && <div className="text-center py-8 text-slate-400">Trống tiết toàn trường</div>}
-                                    </div>
-                                    <div className="p-4 border-t border-slate-100"><button onClick={() => setInspectData(null)} className="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">Đóng</button></div>
-                                </div>
-                            </div>
-                        )}
-                        <div className="bg-white sticky top-0 z-30 shadow-sm border-b border-slate-200 no-print">
-                            <div className="max-w-6xl mx-auto px-4 py-2">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                    <div className="flex-1 flex gap-2">
-                                        <button onClick={() => setStage('mapping')} className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-sm whitespace-nowrap transition-colors border border-slate-200"><Icons.Filter /> Chọn lại GV</button>
-                                        <div className="w-32 md:w-40 relative group">
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Home /></div>
-                                            <select value={selectedHomeroom} onChange={e => setSelectedHomeroom(e.target.value)} className="w-full pl-9 pr-8 py-2 bg-slate-50 rounded-lg font-bold text-slate-700 text-sm outline-none border border-slate-200 focus:border-brand-500 appearance-none cursor-pointer">
-                                                <option value="">Lớp CN...</option>
-                                                {classes.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <div className="flex bg-slate-100 p-1 rounded-lg">
-                                            <button onClick={() => setActiveSession('SÁNG')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'SÁNG' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-400'}`}>Sáng</button>
-                                            <button onClick={() => setActiveSession('CHIỀU')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'CHIỀU' ? 'bg-white text-orange-700 shadow-sm' : 'text-slate-400'}`}>Chiều</button>
-                                        </div>
-                                        <button onClick={() => { setFile(null); setStage('upload'); setAllRawData([]); }} className="p-2 bg-white border border-slate-200 text-slate-500 hover:text-red-500 rounded-lg" title="Tải lại file"><Icons.Reload /></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="max-w-6xl mx-auto px-4 py-6">
-                            <div ref={captureRef} className={`p-4 bg-white md:bg-transparent rounded-xl border border-slate-200 md:border-none shadow-sm md:shadow-none ${isCapturing ? 'w-[1280px] mx-auto bg-white p-8' : ''}`}>
-                                <div className="text-center mb-6 flex flex-col md:flex-row items-center justify-center gap-4 relative">
-                                    <div>
-                                        <h1 className="text-2xl font-black uppercase text-slate-800">Thời Khóa Biểu</h1>
-                                        <div className="text-sm text-slate-500 font-bold mt-1">
-                                            GV: {selectedTeacherIds.map(id => teacherGroups[id]?.display).join(', ')}
-                                            {selectedHomeroom && <span className="ml-2 text-amber-600">★ CN: {selectedHomeroom}</span>}
-                                        </div>
-                                    </div>
-                                    <div className="md:absolute md:right-0 no-capture">
-                                         <button onClick={handleExportImage} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all shadow-lg active:scale-95"><Icons.Camera /> Lưu Ảnh</button>
-                                    </div>
-                                </div>
-                                <div className={`tab-content ${(activeSession === 'SÁNG' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}>
-                                    <div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="SÁNG" /></div>
-                                    <div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="SÁNG" /></div>
-                                </div>
-                                <div className={`tab-content ${(activeSession === 'CHIỀU' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}>
-                                    <div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="CHIỀU" /></div>
-                                    <div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="CHIỀU" /></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            const DesktopTable = ({ session }) => {
-                const periods = getPeriodsForSession(session);
-                const days = ['2', '3', '4', '5', '6', '7'];
-                const headerClass = session === 'SÁNG' ? 'bg-sky-100 text-sky-800' : 'bg-orange-100 text-orange-800';
-                return (
-                    <div className="bg-white rounded-xl shadow-card border border-slate-200 overflow-hidden mb-8">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm border-collapse min-w-[800px]">
-                                <thead>
-                                    <tr>
-                                        <th className={`p-3 w-16 text-center font-bold border-b border-r border-slate-200 ${headerClass}`}>{session}</th>
-                                        {days.map(d => <th key={d} className="p-3 font-bold text-slate-600 text-xs uppercase border-b border-r border-slate-200 bg-slate-50">Thứ {d}</th>)}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {periods.map(p => (
-                                        <tr key={p} className="hover:bg-slate-50/50">
-                                            <td className="p-2 border-r border-b border-slate-200 text-center bg-slate-50 font-bold text-slate-500">{p}</td>
-                                            {days.map(d => {
-                                                const matches = finalSchedule.filter(s => (s.day === d || s.day.includes(d)) && s.period === p && s.session.toUpperCase() === session);
-                                                return <td key={d} className="p-1 border-r border-b border-slate-200 align-top h-auto min-h-[60px] w-[16.6%]"><PeriodCell matches={matches} day={d} period={p} session={session} /></td>
-                                            })}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                );
-            };
-
-            const MobileListView = ({ session }) => {
-                const periods = getPeriodsForSession(session);
-                const activeColor = session === 'SÁNG' ? 'bg-sky-600' : 'bg-orange-600';
-                return (
-                    <div className="pb-20">
-                        <div className="flex gap-2 overflow-x-auto pb-4 px-1 snap-x hide-scroll sticky top-0 bg-[#f8fafc]/95 backdrop-blur z-10 pt-2 no-capture">
-                            {['2', '3', '4', '5', '6', '7'].map(d => (
-                                <button key={d} onClick={() => setActiveMobileDay(d)} className={`flex-none w-14 h-16 rounded-xl flex flex-col items-center justify-center snap-start transition-all border ${activeMobileDay === d ? `${activeColor} text-white border-transparent shadow-lg` : 'bg-white text-slate-400 border-slate-200'}`}>
-                                    <span className="text-[10px] font-bold opacity-80 uppercase">Thứ</span>
-                                    <span className="text-xl font-bold">{d}</span>
-                                </button>
-                            ))}
-                        </div>
-                        <div className="space-y-3 mt-2">
-                            {periods.map(p => {
-                                const matches = finalSchedule.filter(s => (s.day === activeMobileDay || s.day.includes(activeMobileDay)) && s.period === p && s.session.toUpperCase() === session);
-                                const hasContent = matches.length > 0;
-                                return (
-                                    <div key={p} className="flex gap-3 items-stretch">
-                                        <div className={`w-10 flex-none flex items-center justify-center rounded-lg font-bold text-sm border ${hasContent ? 'bg-white border-slate-200 text-slate-700' : 'bg-transparent border-transparent text-slate-300'}`}>{p}</div>
-                                        <div className="flex-1 min-h-[60px]">
-                                            {hasContent ? <PeriodCell matches={matches} day={activeMobileDay} period={p} session={session} /> : <div className="w-full h-full min-h-[50px] bg-slate-50/30 rounded border border-dashed border-slate-200"></div>}
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-                );
-            };
-
+            // RENDER LOGIC
             if (stage === 'upload') {
                 return (
                     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 to-slate-200">
@@ -666,13 +717,137 @@
                             </label>
                             {error && <div className="mt-4 text-red-600 bg-red-50 px-4 py-2 rounded-xl text-xs font-bold w-full">{error}</div>}
                             {loading && <div className="mt-4 text-brand-600 font-bold animate-pulse text-sm">{status}</div>}
+                            
+                            <div className="mt-8 pt-4 border-t border-slate-200 w-full text-center">
+                                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Tác giả</p>
+                                <p className="text-sm font-bold text-slate-600">Thầy Thái Minh Nguyên</p>
+                                <p className="text-xs text-slate-500">Trường TH, THCS & THPT Yersin Đà Lạt</p>
+                            </div>
                         </div>
                     </div>
                 );
             }
-            if (stage === 'mapping') return <MappingScreen />;
-            if (stage === 'view') return <ScheduleScreen />;
-            return null;
+
+            if (stage === 'mode_select') {
+                return (
+                    <ModeSelectionScreen 
+                        onSelectMode={(mode) => {
+                            if (mode === 'auto') setStage('auto_select');
+                            else setStage('config');
+                        }}
+                        onBack={() => { setFile(null); setStage('upload'); setAllRawData([]); }}
+                    />
+                )
+            }
+
+            if (stage === 'auto_select') {
+                return (
+                    <AutoSelectionScreen 
+                        teacherConfigs={teacherConfigs}
+                        onSelectTeacher={handleAutoSelectTeacher}
+                        onBack={() => setStage('mode_select')}
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                    />
+                )
+            }
+
+            if (stage === 'config') {
+                return (
+                    <ConfigScreen 
+                        teacherConfigs={teacherConfigs}
+                        selectedSignatures={selectedSignatures}
+                        handleToggleOption={handleToggleOption}
+                        handleSelectAll={handleSelectAll}
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        expandedKey={expandedKey}
+                        setExpandedKey={setExpandedKey}
+                        onBack={() => setStage('mode_select')}
+                        onView={() => setStage('view')}
+                    />
+                );
+            }
+
+            return (
+                <div className="min-h-screen pb-10 bg-[#f8fafc]">
+                    {inspectData && (
+                        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm" onClick={() => setInspectData(null)}>
+                            <div className="bg-white w-full max-w-2xl md:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up" onClick={e => e.stopPropagation()}>
+                                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2"><Icons.Eye /> X-Ray Scanner</h3>
+                                        <div className="text-xs text-slate-500 font-medium">Thứ {inspectData.day} &bull; Tiết {inspectData.period}</div>
+                                    </div>
+                                    <button onClick={() => setInspectData(null)} className="p-2 hover:bg-slate-200 rounded-full"><Icons.X /></button>
+                                </div>
+                                <div className="p-4 overflow-y-auto flex-1 bg-white">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        {inspectData.data.map((item, i) => {
+                                            const isMine = selectedSignatures.has(item.signature);
+                                            return (
+                                                <div key={i} className={`p-2 rounded border text-sm ${isMine ? 'bg-brand-50 border-brand-200 shadow-sm ring-1 ring-brand-100' : 'bg-slate-50 border-slate-100'}`}>
+                                                    <div className="font-bold text-slate-800">{item.clazz}</div>
+                                                    <div className="text-xs text-slate-500 truncate">{item.subject} - {item.teacherRaw || "---"}</div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                    {inspectData.data.length === 0 && <div className="text-center py-8 text-slate-400">Trống tiết toàn trường</div>}
+                                </div>
+                                <div className="p-4 border-t border-slate-100"><button onClick={() => setInspectData(null)} className="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">Đóng</button></div>
+                            </div>
+                        </div>
+                    )}
+                    <div className="bg-white sticky top-0 z-30 shadow-sm border-b border-slate-200 no-print">
+                        <div className="max-w-6xl mx-auto px-4 py-2">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div className="flex-1 flex gap-2">
+                                    <button onClick={() => { setStage('mode_select'); setSelectedSignatures(new Set()); setSearchTerm(''); }} className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-sm whitespace-nowrap transition-colors border border-slate-200"><Icons.Filter /> Chọn lại GV</button>
+                                    <div className="w-32 md:w-40 relative group">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Home /></div>
+                                        <select value={selectedHomeroom} onChange={e => setSelectedHomeroom(e.target.value)} className="w-full pl-9 pr-8 py-2 bg-slate-50 rounded-lg font-bold text-slate-700 text-sm outline-none border border-slate-200 focus:border-brand-500 appearance-none cursor-pointer">
+                                            <option value="">Lớp CN...</option>
+                                            {classes.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                        <button onClick={() => setActiveSession('SÁNG')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'SÁNG' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-400'}`}>Sáng</button>
+                                        <button onClick={() => setActiveSession('CHIỀU')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'CHIỀU' ? 'bg-white text-orange-700 shadow-sm' : 'text-slate-400'}`}>Chiều</button>
+                                    </div>
+                                    <button onClick={() => { setFile(null); setStage('upload'); setAllRawData([]); }} className="p-2 bg-white border border-slate-200 text-slate-500 hover:text-red-500 rounded-lg" title="Tải lại file"><Icons.Reload /></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="max-w-6xl mx-auto px-4 py-6">
+                        <div ref={captureRef} className={`p-4 bg-white md:bg-transparent rounded-xl border border-slate-200 md:border-none shadow-sm md:shadow-none ${isCapturing ? 'w-[1280px] mx-auto bg-white p-8' : ''}`}>
+                            <div className="text-center mb-6 flex flex-col md:flex-row items-center justify-center gap-4 relative">
+                                <div>
+                                    <h1 className="text-2xl font-black uppercase text-slate-800">Thời Khóa Biểu</h1>
+                                    <div className="text-sm text-slate-500 font-bold mt-1">
+                                        GV: {currentTeacherKey && teacherConfigs[currentTeacherKey] ? teacherConfigs[currentTeacherKey].displayName : (selectedSignatures.size > 0 ? 'Đã chọn nhiều GV' : 'Tùy chỉnh')}
+                                        {selectedHomeroom && <span className="ml-2 text-amber-600">★ CN: {selectedHomeroom}</span>}
+                                    </div>
+                                </div>
+                                <div className="md:absolute md:right-0 no-capture">
+                                        <button onClick={handleExportImage} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all shadow-lg active:scale-95"><Icons.Camera /> Lưu Ảnh</button>
+                                </div>
+                            </div>
+                            <div className={`tab-content ${(activeSession === 'SÁNG' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}>
+                                <div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="SÁNG" finalSchedule={finalSchedule} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                                <div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="SÁNG" finalSchedule={finalSchedule} activeMobileDay={activeMobileDay} setActiveMobileDay={setActiveMobileDay} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                            </div>
+                            <div className={`tab-content ${(activeSession === 'CHIỀU' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}>
+                                <div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="CHIỀU" finalSchedule={finalSchedule} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                                <div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="CHIỀU" finalSchedule={finalSchedule} activeMobileDay={activeMobileDay} setActiveMobileDay={setActiveMobileDay} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
