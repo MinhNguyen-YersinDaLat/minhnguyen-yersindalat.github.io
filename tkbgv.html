@@ -102,12 +102,28 @@
         // Removed HĐTN from this list to prevent it from auto-appearing for Homeroom teachers
         const HOMEROOM_KEYWORDS = ['GVCN', 'SHTT', 'SHCN', 'SINH HOẠT LỚP', 'HĐTN', 'SHL', 'SHTT'].filter(k => k !== 'HĐTN');
 
-        // --- 1. THUẬT TOÁN CANONICAL V3.6 (ĐỊNH DANH & GỘP NHÓM) ---
+        // --- 1. THUẬT TOÁN CANONICAL V3.7 (FIX TÁCH THẦY BẢO) ---
         const getCanonicalName = (rawName) => {
             if (!rawName) return '';
             
             let name = rawName.trim().toLowerCase();
+            const originalPrefix = rawName.trim().split(/\s+/)[0].toLowerCase(); // Lưu lại prefix gốc để check
 
+            // Xử lý đặc biệt cho trường hợp "Bảo": Tách "T Bảo" và "Thầy Bảo"
+            // Nếu tên chứa chữ "bảo"
+            if (name.includes('bảo')) {
+                // Nếu bắt đầu bằng "t " hoặc "t." -> nhóm 1 (t bao)
+                if (/^t\s|^t\./.test(name)) {
+                    // Xử lý chuẩn hóa để lấy tên, nhưng thêm tiền tố để phân biệt
+                    return "t_" + name.replace(/^(t\.|t)\s*/, '').trim(); 
+                }
+                // Nếu bắt đầu bằng "thầy" -> nhóm 2 (thay bao)
+                if (/^thầy/.test(name)) {
+                    return "thay_" + name.replace(/^thầy\s*/, '').trim();
+                }
+            }
+
+            // --- Logic cũ cho các giáo viên khác ---
             // Xử lý Tiền tố (Prefix)
             name = name.replace(/^(thầy|cô|g\.?v\.?|th\.|t\.|c\.)\s*/i, '');
             // Xử lý T, C đứng đầu câu (t tuấn, c út) - KHÔNG xóa 'th '
