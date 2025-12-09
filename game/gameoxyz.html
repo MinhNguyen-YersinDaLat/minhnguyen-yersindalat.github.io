@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Oxyz Joyride: Yersin Edition</title>
+    <title>Oxyz Joyride: Yersin Liberation</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -15,14 +15,21 @@
             --light: #c8d6e5;
         }
 
+        * { box-sizing: border-box; }
+
         body {
             margin: 0; overflow: hidden; background: #000;
             font-family: 'Nunito', sans-serif;
             touch-action: none; user-select: none;
             -webkit-font-smoothing: antialiased;
+            width: 100vw; height: 100vh;
+            position: fixed;
         }
 
-        #game-container { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+        #game-container { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            overflow: hidden; 
+        }
         canvas { display: block; width: 100%; height: 100%; }
 
         /* --- UI LAYER --- */
@@ -33,15 +40,19 @@
         }
 
         /* TOP HUD */
-        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+        .hud-top { 
+            display: flex; justify-content: space-between; align-items: flex-start; 
+            width: 100%; gap: 10px; pointer-events: none;
+        }
         
         .score-box {
             background: rgba(255, 255, 255, 0.95);
             padding: 8px 20px; border-radius: 50px;
             border: 3px solid var(--primary);
-            font-family: 'Bungee', cursive; font-size: 1.4rem; color: var(--dark);
+            font-family: 'Bungee', cursive; font-size: 1.2rem; color: var(--dark);
             box-shadow: 0 6px 0 rgba(0,0,0,0.2);
             display: flex; align-items: center; gap: 10px;
+            white-space: nowrap; pointer-events: auto;
         }
         
         .life-container { display: flex; gap: 5px; margin-top: 10px; }
@@ -58,26 +69,43 @@
             font-weight: 900; font-size: 1.2rem;
             border: 2px solid rgba(255,255,255,0.2);
             font-family: 'Bungee', cursive;
+            white-space: nowrap;
+        }
+
+        /* STORY BUTTON */
+        .story-btn {
+            background: #0984e3; color: white; border: none; 
+            width: 45px; height: 45px; border-radius: 50%;
+            font-size: 1.5rem; cursor: pointer; pointer-events: auto;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid white; box-shadow: 0 4px 0 #0056b3;
+            transition: transform 0.1s; margin-left: 10px;
+        }
+        .story-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        .right-hud {
+            display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
         }
 
         /* BOSS PROGRESS BAR */
         .boss-progress-container {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 300px; text-align: center; display: none;
+            position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            width: 40%; min-width: 200px; text-align: center; display: none;
+            z-index: 25;
         }
         .boss-progress-container.active { display: block; animation: slideDown 0.5s; }
         @keyframes slideDown { from { transform: translate(-50%, -100%); } to { transform: translate(-50%, 0); } }
 
         .boss-name {
-            color: var(--danger); font-family: 'Bungee'; font-size: 1rem; 
+            color: var(--danger); font-family: 'Bungee'; font-size: 0.9rem; 
             text-transform: uppercase; margin-bottom: 2px; text-shadow: 0 0 5px rgba(0,0,0,0.8);
         }
         .boss-progress-bar {
-            width: 100%; height: 15px; background: rgba(0,0,0,0.5);
+            width: 100%; height: 10px; background: rgba(0,0,0,0.5);
             border-radius: 10px; border: 2px solid white; overflow: hidden; margin-bottom: 5px;
         }
         .boss-progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--danger)); transition: width 0.2s; }
-        .boss-label { color: white; font-family: 'Bungee'; font-size: 0.7rem; text-shadow: 1px 1px 0 #000; opacity: 0.8; }
+        .boss-label { color: white; font-family: 'Bungee'; font-size: 0.6rem; text-shadow: 1px 1px 0 #000; opacity: 0.8; }
 
         /* CINEMATIC BARS */
         .cine-bar {
@@ -86,96 +114,118 @@
         }
         .cine-top { top: 0; }
         .cine-bot { bottom: 0; }
-        .cinematic-active .cine-top, .cinematic-active .cine-bot { height: 12vh; }
+        .cinematic-active .cine-top, .cinematic-active .cine-bot { height: 10vh; }
 
-        /* QUIZ MODAL */
-        .quiz-overlay {
+        /* MODALS */
+        .overlay-base {
             position: fixed; inset: 0; z-index: 100;
-            display: none; flex-direction: column; justify-content: flex-end; padding-bottom: 10vh;
+            display: none; flex-direction: column; justify-content: flex-end; padding-bottom: 5vh;
             background: rgba(0,0,0,0.4); pointer-events: auto;
             backdrop-filter: blur(5px);
         }
-        .quiz-overlay.active { display: flex; }
+        .overlay-base.active { display: flex; }
 
-        .quiz-box {
-            background: rgba(20, 25, 40, 0.95); border-top: 5px solid var(--primary);
-            padding: 25px; color: white; width: 100%; box-sizing: border-box;
+        .modal-box {
+            background: rgba(20, 25, 40, 0.98); border-top: 5px solid var(--primary);
+            padding: 20px; color: white; width: 100%; box-sizing: border-box;
             box-shadow: 0 -10px 60px rgba(0,0,0,0.6); transform: translateY(100%);
             animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            max-height: 80vh; overflow-y: auto;
         }
         @keyframes slideUp { to { transform: translateY(0); } }
 
-        .q-header { 
-            color: var(--primary); font-family: 'Bungee'; font-size: 1rem; margin-bottom: 15px; 
-            text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between;
+        /* STORY MODAL SPECIFIC */
+        .story-overlay {
+            position: fixed; inset: 0; z-index: 120;
+            background: rgba(0,0,0,0.9);
+            display: none; align-items: center; justify-content: center;
+            padding: 20px;
         }
-        .q-text { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; line-height: 1.4; color: #ecf0f1; }
+        .story-card {
+            background: linear-gradient(135deg, #222f3e, #000);
+            border: 2px solid var(--secondary);
+            border-radius: 10px; width: 100%; max-width: 600px;
+            padding: 30px; text-align: left;
+            box-shadow: 0 0 30px var(--secondary);
+            animation: fadeIn 0.5s;
+            position: relative;
+        }
+        .story-card::before {
+            content: "TOP SECRET // MISSION BRIEFING";
+            position: absolute; top: -12px; left: 20px;
+            background: black; color: var(--secondary);
+            padding: 0 10px; font-family: 'Bungee'; font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
         
-        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .story-title {
+            color: var(--primary); font-family: 'Bungee'; font-size: 1.5rem; margin-bottom: 15px;
+            text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px;
+        }
+        .story-text {
+            color: #dfe6e9; font-family: 'Nunito'; font-size: 1.1rem; line-height: 1.6;
+            margin-bottom: 30px; text-align: justify;
+        }
+        .story-btn-start {
+            background: var(--primary); color: #000; font-family: 'Bungee';
+            border: none; padding: 15px 40px; font-size: 1.2rem;
+            border-radius: 5px; cursor: pointer; width: 100%;
+            transition: all 0.2s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .story-btn-start:hover { background: white; transform: scale(1.02); }
+
+        /* QUIZ STYLES */
+        .q-header { 
+            color: var(--primary); font-family: 'Bungee'; font-size: 0.9rem; margin-bottom: 10px; 
+            text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; flex-wrap: wrap;
+        }
+        .q-text { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; line-height: 1.4; color: #ecf0f1; }
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .opt-btn {
             background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2);
-            padding: 15px; color: #bdc3c7; font-size: 1rem; font-weight: bold; cursor: pointer;
-            border-radius: 12px; transition: all 0.2s; text-align: left; position: relative; overflow: hidden;
+            padding: 12px; color: #bdc3c7; font-size: 0.95rem; font-weight: bold; cursor: pointer;
+            border-radius: 12px; transition: all 0.2s; text-align: left;
         }
-        .opt-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--primary); color: white; transform: translateY(-2px); }
-        .opt-btn:active { transform: translateY(1px); }
+        .opt-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--primary); }
         .opt-btn.correct { background: rgba(0, 184, 148, 0.2); border-color: var(--success); color: var(--success); }
         .opt-btn.wrong { background: rgba(214, 48, 49, 0.2); border-color: var(--danger); color: var(--danger); }
 
-        /* FACT OVERLAY */
+        /* FACT STYLES */
         .fact-overlay {
             position: fixed; inset: 0; z-index: 110;
             background: rgba(0,0,0,0.85);
             display: none; align-items: center; justify-content: center;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px); padding: 20px;
         }
         .fact-card {
-            background: #fff; width: 90%; max-width: 600px;
-            padding: 30px; border-radius: 20px; text-align: center;
+            background: #fff; width: 100%; max-width: 500px;
+            padding: 25px; border-radius: 20px; text-align: center;
             border: 4px solid var(--primary);
             box-shadow: 0 0 50px var(--primary);
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; }}
-        
-        .fact-title { font-family: 'Bungee'; color: var(--primary); font-size: 1.5rem; margin-bottom: 10px; }
-        .fact-content { font-family: 'Nunito'; font-size: 1.3rem; color: #2d3436; font-weight: 700; line-height: 1.6; margin-bottom: 25px; text-align: left; }
-        .fact-content sub { font-size: 0.8em; }
-        .fact-content sup { font-size: 0.8em; }
+        .fact-title { font-family: 'Bungee'; color: var(--primary); font-size: 1.3rem; margin-bottom: 10px; }
+        .fact-content { font-family: 'Nunito'; font-size: 1.1rem; color: #2d3436; font-weight: 700; line-height: 1.5; margin-bottom: 20px; text-align: left; }
         .fact-btn {
-            background: var(--success); color: white; border: none; padding: 15px 40px;
-            font-family: 'Bungee'; font-size: 1.2rem; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 5px 0 #008f73; transition: all 0.1s;
-        }
-        .fact-btn:active { transform: translateY(5px); box-shadow: none; }
-
-        /* ROTATE NOTICE */
-        #rotate-notice {
-            display: none; position: fixed; inset: 0; background: #2d3436; z-index: 999;
-            color: white; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; font-family: 'Bungee'; font-size: 1.5rem;
-        }
-        @media (max-width: 600px) and (orientation: portrait) {
-            #rotate-notice { display: flex; }
+            background: var(--success); color: white; border: none; padding: 12px 30px;
+            font-family: 'Bungee'; font-size: 1rem; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 5px 0 #008f73;
         }
 
         /* TUTORIAL & FEEDBACK */
         .tutorial {
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            color: white; font-family: 'Bungee'; font-size: 2rem; text-align: center;
+            color: white; font-family: 'Bungee'; font-size: 1.5rem; text-align: center;
             text-shadow: 4px 4px 0 rgba(0,0,0,0.5); pointer-events: none;
-            opacity: 0; transition: opacity 0.5s; width: 100%;
+            opacity: 0; transition: opacity 0.5s; width: 90%;
         }
-        
         .feedback {
             position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            font-family: 'Bungee'; font-size: 3.5rem; text-shadow: 0 8px 0 rgba(0,0,0,0.2);
-            pointer-events: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            font-family: 'Bungee'; font-size: 2.5rem; text-shadow: 0 8px 0 rgba(0,0,0,0.2);
+            pointer-events: none; transition: transform 0.3s, opacity 0.3s;
             opacity: 0; z-index: 200; white-space: nowrap;
         }
         .feedback.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        .feedback.correct { color: var(--success); -webkit-text-stroke: 2px white; }
-        .feedback.wrong { color: var(--danger); -webkit-text-stroke: 2px white; }
 
         /* SCREENS */
         .screen {
@@ -183,75 +233,54 @@
             background: linear-gradient(135deg, #222f3e 0%, #000 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            padding: 20px; text-align: center;
         }
         .screen.active { opacity: 1; pointer-events: auto; }
-
         .menu-title {
-            font-family: 'Bungee', cursive; font-size: 4rem; color: var(--primary);
-            text-shadow: 6px 6px 0 #e58e26; margin-bottom: 5px;
-            text-align: center; line-height: 1; transform: rotate(-3deg);
+            font-family: 'Bungee', cursive; font-size: 3.5rem; color: var(--primary);
+            text-shadow: 4px 4px 0 #e58e26; margin-bottom: 5px;
+            transform: rotate(-3deg);
         }
-        .menu-sub { color: #fff; font-size: 1rem; margin-bottom: 30px; font-weight: 800; background: rgba(255,255,255,0.1); padding: 5px 20px; border-radius: 20px; }
+        .menu-sub { color: #fff; font-size: 0.9rem; margin-bottom: 20px; font-weight: 800; background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; }
         
-        /* TOPIC GRID */
         .topic-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; 
-            width: 90%; max-width: 700px; 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; 
+            width: 100%; max-width: 600px; 
         }
         .topic-btn {
-            background: white; border: none; padding: 15px; border-radius: 18px;
-            font-family: 'Nunito'; font-weight: 900; font-size: 1rem; color: var(--dark);
-            cursor: pointer; box-shadow: 0 6px 0 #bdc3c7; transition: transform 0.1s, box-shadow 0.1s;
-            position: relative; overflow: hidden;
+            background: white; border: none; padding: 12px; border-radius: 15px;
+            font-family: 'Nunito'; font-weight: 900; font-size: 0.9rem; color: var(--dark);
+            cursor: pointer; box-shadow: 0 4px 0 #bdc3c7; transition: transform 0.1s, box-shadow 0.1s;
         }
-        .topic-btn:hover { transform: translateY(-3px); box-shadow: 0 9px 0 #bdc3c7; background: #fffde7; }
-        .topic-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #bdc3c7; }
-        .topic-btn.full { 
-            grid-column: span 2; background: var(--primary); color: white; 
-            box-shadow: 0 6px 0 #e58e26; font-size: 1.2rem; 
-        }
-        .topic-btn.full:hover { background: #ffa502; box-shadow: 0 9px 0 #e58e26; }
+        .topic-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #bdc3c7; }
+        .topic-btn.full { grid-column: span 2; background: var(--primary); color: white; box-shadow: 0 4px 0 #e58e26; }
 
         .btn-restart {
-            background: var(--danger); border: none; padding: 15px 50px;
-            border-radius: 50px; font-family: 'Bungee', cursive; font-size: 1.5rem;
-            color: white; cursor: pointer; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
-            box-shadow: 0 10px 0 #c0392b; transition: transform 0.1s; margin-top: 20px;
-        }
-        .btn-restart:active { transform: translateY(10px); box-shadow: none; }
-
-        /* FX */
-        .flash {
-            position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 150; transition: opacity 0.1s;
+            background: var(--danger); border: none; padding: 12px 40px;
+            border-radius: 50px; font-family: 'Bungee', cursive; font-size: 1.2rem;
+            color: white; cursor: pointer; box-shadow: 0 6px 0 #c0392b; margin-top: 20px;
         }
 
-        /* Mobile Responsive */
-        @media(max-width: 600px) { 
-            .menu-title { font-size: 2.5rem; } 
-            .topic-grid { grid-template-columns: 1fr; width: 85%; }
-            .topic-btn.full { grid-column: span 1; }
-            .q-text { font-size: 1rem; }
-            .fact-card { width: 95%; padding: 20px; }
-            .fact-title { font-size: 1.2rem; }
-            .fact-content { font-size: 1rem; }
-            .score-box { font-size: 1rem; padding: 5px 15px; }
-            .distance-box { font-size: 1rem; }
-            .life-container .heart { width: 24px; height: 24px; }
+        @media(max-width: 700px) { 
+            .menu-title { font-size: 2.2rem; } 
+            .score-box { font-size: 0.9rem; padding: 5px 10px; }
+            .distance-box { font-size: 0.9rem; padding: 5px 10px; }
+            .opt-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-<div id="rotate-notice">
-    <div>📱</div>
-    <div style="margin-top:20px">VUI LÒNG XOAY NGANG<br>ĐỂ TRẢI NGHIỆM TỐT NHẤT</div>
+<div id="rotate-notice" style="display:none; position:fixed; inset:0; background:#2d3436; z-index:999; color:white; align-items:center; justify-content:center; flex-direction:column; text-align:center;">
+    <div style="font-size:3rem">📱</div>
+    <div style="margin-top:20px; font-family:'Bungee'">VUI LÒNG XOAY NGANG<br>ĐỂ TRẢI NGHIỆM TỐT NHẤT</div>
 </div>
 
 <div id="game-container">
     <canvas id="gameCanvas"></canvas>
     <div class="cine-bar cine-top"></div>
     <div class="cine-bar cine-bot"></div>
-    <div class="flash" id="flash"></div>
+    <div class="flash" id="flash" style="position:fixed;inset:0;background:white;opacity:0;pointer-events:none;z-index:150;"></div>
     
     <div class="ui-layer" id="gameUI" style="display:none;">
         <div class="hud-top">
@@ -265,22 +294,37 @@
             <div class="boss-progress-container" id="bossHUD">
                 <div class="boss-name" id="bossNameDisplay">BOSS NAME</div>
                 <div class="boss-progress-bar"><div class="boss-progress-fill" id="bossFill"></div></div>
-                <div class="boss-label">KHOẢNG CÁCH TỚI BOSS</div>
+                <div class="boss-label">ĐỘ BỀN XIỀNG XÍCH</div>
             </div>
 
-            <div class="distance-box"><span id="distVal">0</span>m</div>
+            <div class="right-hud">
+                <div class="distance-box"><span id="distVal">0</span>m</div>
+                <!-- NÚT XEM LẠI CỐT TRUYỆN -->
+                <button class="story-btn" onclick="Game.showStory(null, true)" title="Xem nhiệm vụ">📁</button>
+            </div>
         </div>
         
-        <div class="tutorial" id="tutorialMsg">NHẤN GIỮ ĐỂ BAY</div>
+        <div class="tutorial" id="tutorialMsg">CHẠM ĐỂ BAY</div>
         <div class="feedback" id="feedbackTxt">TUYỆT VỜI!</div>
     </div>
 
+    <!-- Story Overlay (New) -->
+    <div class="story-overlay" id="storyOverlay">
+        <div class="story-card">
+            <div class="story-title" id="storyTitle">NHIỆM VỤ KHỞI ĐẦU</div>
+            <div class="story-text" id="storyText">
+                Nội dung cốt truyện sẽ hiện ở đây...
+            </div>
+            <button class="story-btn-start" onclick="Game.closeStory()">BẮT ĐẦU GIẢI CỨU</button>
+        </div>
+    </div>
+
     <!-- Quiz Modal -->
-    <div class="quiz-overlay" id="quizOverlay">
-        <div class="quiz-box">
+    <div class="overlay-base" id="quizOverlay">
+        <div class="modal-box">
             <div class="q-header">
-                <span>⚠️ CẢNH BÁO BOSS</span>
-                <span style="color: var(--danger)">TRẢ LỜI ĐỂ TẤN CÔNG</span>
+                <span>⚠️ PHÁT HIỆN BOSS BỊ GIAM CẦM</span>
+                <span style="color: var(--success)">TRẢ LỜI ĐÚNG ĐỂ PHÁ XÍCH</span>
             </div>
             <div class="q-text" id="qText">...</div>
             <div class="opt-grid" id="qOptions"></div>
@@ -290,7 +334,7 @@
     <!-- Fact Overlay -->
     <div class="fact-overlay" id="factOverlay">
         <div class="fact-card">
-            <div class="fact-title">🌟 KHAI MỞ TRI THỨC!</div>
+            <div class="fact-title">🌟 GIẢI PHÓNG THÀNH CÔNG!</div>
             <div class="fact-content" id="factText">...</div>
             <button class="fact-btn" onclick="Game.closeFact()">TIẾP TỤC</button>
         </div>
@@ -303,22 +347,19 @@
         
         <div class="topic-grid">
             <button class="topic-btn" onclick="Game.start('coord')">1. HỆ TỌA ĐỘ OXYZ</button>
-            <button class="topic-btn" onclick="Game.start('plane')">2. PHƯƠNG TRÌNH MẶT PHẲNG</button>
-            <button class="topic-btn" onclick="Game.start('line')">3. PHƯƠNG TRÌNH ĐƯỜNG THẲNG</button>
-            <button class="topic-btn" onclick="Game.start('sphere')">4. PHƯƠNG TRÌNH MẶT CẦU</button>
+            <button class="topic-btn" onclick="Game.start('plane')">2. PT MẶT PHẲNG</button>
+            <button class="topic-btn" onclick="Game.start('line')">3. PT ĐƯỜNG THẲNG</button>
+            <button class="topic-btn" onclick="Game.start('sphere')">4. PT MẶT CẦU</button>
             <button class="topic-btn full" onclick="Game.start('mixed')">⚡ CHIẾN DỊCH TỔNG HỢP ⚡</button>
         </div>
     </div>
 
     <!-- Game Over Screen -->
     <div class="screen" id="gameOverScreen">
-        <div class="menu-title" style="color:var(--danger); transform: rotate(3deg); font-size: 3rem;">GAME OVER</div>
+        <div class="menu-title" style="color:var(--danger); transform: rotate(3deg); font-size: 2.5rem;">GAME OVER</div>
         <div style="background: rgba(255,255,255,0.1); padding: 20px 40px; border-radius: 20px; text-align: center; border: 2px solid rgba(255,255,255,0.2);">
-            <div style="color:#aaa; font-size: 1rem; font-weight: 700;">TỔNG ĐIỂM</div>
-            <div style="color:white; font-size: 3rem; font-family: 'Bungee'; line-height: 1;" id="finalScore">0</div>
-            <div style="width: 100%; height: 2px; background: rgba(255,255,255,0.2); margin: 15px 0;"></div>
-            <div style="color:#aaa; font-size: 1rem; font-weight: 700;">QUÃNG ĐƯỜNG</div>
-            <div style="color:white; font-size: 1.5rem; font-family: 'Bungee';" id="finalDist">0m</div>
+            <div style="color:#aaa; font-size: 0.9rem; font-weight: 700;">TỔNG ĐIỂM</div>
+            <div style="color:white; font-size: 2.5rem; font-family: 'Bungee'; line-height: 1;" id="finalScore">0</div>
         </div>
         <button class="btn-restart" onclick="Game.toMenu()">MENU CHÍNH</button>
     </div>
@@ -326,123 +367,82 @@
 
 <script>
 /**
- * OXYZ JOYRIDE - YERSIN EDITION (2025)
- * Engine: Canvas API
- * Features: Mobile Optimized, Homing Bullets, Standard Math Notation
+ * OXYZ JOYRIDE - LIBERATION EDITION
+ * Update: Enhanced Boss Visuals, Correct Math Symbols, Liberation Sequence
  */
 
-// --- KIẾN THỨC BỔ ÍCH (Formatted HTML) ---
+const STORY_DATA = {
+    coord: {
+        title: "NGỤC TÙ TỌA ĐỘ",
+        text: "Gốc tọa độ O - trái tim của không gian đang bị giam cầm bởi 'Xiềng Xích Vô Minh'. Không có nó, vũ trụ mất đi phương hướng, các chiều không gian va đập vào nhau.<br><br><b>NHIỆM VỤ CỦA BẠN:</b><br>Sử dụng kiến thức về <b>Hệ Tọa Độ</b> như những chiếc chìa khóa vạn năng. Mỗi câu trả lời đúng sẽ cắt đứt một mắt xích, định vị lại trật tự cho không gian Oxyz."
+    },
+    plane: {
+        title: "XIỀNG XÍCH MẶT PHẲNG",
+        text: "Thế lực Hỗn Mang đã dùng những sợi xích khổng lồ để trói buộc các Mặt Phẳng, ngăn cách sự giao thoa của tri thức. Không gian bị chia cắt thành những mảnh vỡ cô lập.<br><br><b>NHIỆM VỤ CỦA BẠN:</b><br>Tìm ra <b>Vectơ Pháp Tuyến</b> - điểm yếu chí mạng của xiềng xích. Hãy xuyên thủng các rào cản vô hình và kết nối lại các mặt phẳng của thực tại!"
+    },
+    line: {
+        title: "DÒNG CHẢY BỊ PHONG ẤN",
+        text: "Các Đường Thẳng Ánh Sáng - nơi dẫn lối chân lý - đang bị bẻ cong và trói chặt bởi xích đen. Chúng không thể vươn dài vô tận như bản chất vốn có, khiến thế giới chìm trong tăm tối.<br><br><b>NHIỆM VỤ CỦA BẠN:</b><br>Kích hoạt <b>Vectơ Chỉ Phương</b> để nắn thẳng lại các dòng chảy. Đừng để bất kỳ sai sót nào trong phương trình tham số làm chệch hướng ánh sáng!"
+    },
+    sphere: {
+        title: "TRÁI TIM HÌNH CẦU",
+        text: "Sự hoàn hảo tuyệt đối của các Mặt Cầu đang bị xiềng xích bóp nghẹt, biến chúng thành những khối méo mó đầy đau đớn. Năng lượng thuần khiết bên trong đang chực chờ bùng nổ.<br><br><b>NHIỆM VỤ CỦA BẠN:</b><br>Xác định chính xác <b>Tâm và Bán Kính</b> để tháo gỡ áp lực. Hãy giải phóng hình hài hoàn mỹ của chúng trước khi tất cả sụp đổ!"
+    },
+    mixed: {
+        title: "CUỘC GIẢI CỨU VĨ ĐẠI",
+        text: "BÁO ĐỘNG! Các Đại Vệ Thần Tri Thức (Integral, Sigma, Vô Cực...) đang gào thét trong đau đớn. Xiềng xích của sự ngu dốt đã trói buộc họ quá lâu, biến họ thành những thực thể cuồng nộ.<br><br><b>NHIỆM VỤ CỦA BẠN:</b><br>Đây không phải cuộc chiến tiêu diệt, mà là cuộc chiến <b>GIẢI PHÓNG</b>. Hãy dùng toàn bộ kiến thức Oxyz để cắt đứt mọi xiềng xích, trả lại tự do cho Toán Học!"
+    }
+};
+
 const MATH_FACTS = [
-    "Thể tích khối cầu bán kính R là <b>V = <sup>4</sup>/<sub>3</sub> πR<sup>3</sup></b>. Đừng quên mũ 3!",
-    "Diện tích mặt cầu bán kính R là <b>S = 4πR<sup>2</sup></b>. Nhớ là 4 lần diện tích hình tròn lớn.",
-    "Phương trình mặt phẳng đoạn chắn qua A(a,0,0), B(0,b,0), C(0,0,c) là <b><sup>x</sup>/<sub>a</sub> + <sup>y</sup>/<sub>b</sub> + <sup>z</sup>/<sub>c</sub> = 1</b>.",
-    "Khoảng cách từ M(x₀,y₀,z₀) đến (P): Ax+By+Cz+D=0 là <b>d = <sup>|Ax₀+By₀+Cz₀+D|</sup> / <sub>√(A²+B²+C²)</sub></b>.",
-    "Hai vectơ u và v vuông góc với nhau khi và chỉ khi tích vô hướng <b>u • v = 0</b>.",
-    "Nguyên hàm của <sup>1</sup>/<sub>x</sub> là <b>ln|x| + C</b>. Đừng quên dấu giá trị tuyệt đối!",
-    "Thể tích khối chóp = <sup>1</sup>/<sub>3</sub> S<sub>đáy</sub> × h. Lăng trụ thì không có <sup>1</sup>/<sub>3</sub>.",
-    "Mặt cầu tâm I(a,b,c) bán kính R: <b>(x-a)<sup>2</sup> + (y-b)<sup>2</sup> + (z-c)<sup>2</sup> = R<sup>2</sup></b>.",
-    "Vectơ pháp tuyến của mặt phẳng Oxyz (z=0) là <b>k(0; 0; 1)</b>.",
-    "Diện tích tam giác ABC trong không gian: <b>S = <sup>1</sup>/<sub>2</sub> |[AB, AC]|</b>.",
-    "Phương trình đường thẳng đi qua M(x₀,y₀,z₀) có VTCP u(a,b,c): <b>x=x₀+at, y=y₀+bt, z=z₀+ct</b>."
+    "Chúc mừng! Bạn đã nhớ: Thể tích khối cầu bán kính R là <b>V = <sup>4</sup>/<sub>3</sub> πR<sup>3</sup></b>.",
+    "Tuyệt vời! Diện tích mặt cầu bán kính R là <b>S = 4πR<sup>2</sup></b>.",
+    "Chính xác! Phương trình mặt phẳng đoạn chắn là <b><sup>x</sup>/<sub>a</sub> + <sup>y</sup>/<sub>b</sub> + <sup>z</sup>/<sub>c</sub> = 1</b>.",
+    "Hay lắm! Hai vectơ vuông góc khi tích vô hướng <b>u • v = 0</b>.",
+    "Đúng rồi! Nguyên hàm của <sup>1</sup>/<sub>x</sub> là <b>ln|x| + C</b>.",
+    "Xuất sắc! Mặt cầu tâm I(a,b,c) bán kính R: <b>(x-a)<sup>2</sup> + (y-b)<sup>2</sup> + (z-c)<sup>2</sup> = R<sup>2</sup></b>.",
+    "Bạn là thiên tài! Vectơ pháp tuyến của mặt phẳng Oxyz (z=0) là <b>k(0; 0; 1)</b>."
 ];
 
-const BOSS_NAMES = [
-    "TÍCH PHÂN BÓNG TỐI", 
-    "MA TRẬN HƯ KHÔNG", 
-    "VÔ CỰC GIẢ KIM", 
-    "ĐẠI SỐ HỦY DIỆT", 
-    "HÌNH HỌC VĨNH CỬU"
+// UPDATED BOSS DATA: Correct names and symbols
+const BOSS_TYPES = [
+    { name: "TÍCH PHÂN BỊ XÍCH", symbol: "∫", color: "#e84393" },
+    { name: "VÔ CỰC HỖN LOẠN", symbol: "∞", color: "#00cec9" },
+    { name: "TỔNG HỢP CUỒNG NỘ", symbol: "∑", color: "#fdcb6e" },
+    { name: "CĂN BẬC GIAM CẦM", symbol: "√", color: "#6c5ce7" },
+    { name: "DELTA LẠC LỐI", symbol: "Δ", color: "#e17055" },
+    { name: "PI THẤT LẠC", symbol: "π", color: "#00b894" }
 ];
 
-// --- NGÂN HÀNG CÂU HỎI ---
+// --- NGÂN HÀNG CÂU HỎI (GIỮ NGUYÊN) ---
 const DB = {
     coord: [
         {q: "Trong Oxyz, cho A(1; 1; -2), B(2; -1; 0). Tọa độ vectơ AB?", a: "(1; -2; 2)", b: "(1; 2; 2)", correct: 'a'},
         {q: "Hình chiếu của A(3; -2; 5) trên trục Ox?", a: "M(0; -2; 5)", b: "M(3; 0; 0)", correct: 'b'},
         {q: "Vectơ u = 2i - j + 3k. Tọa độ u?", a: "(2; -1; 3)", b: "(2; 1; 3)", correct: 'a'},
         {q: "Trung điểm I của AB với A(2; 0; 0), B(0; 4; 6)?", a: "(2; 4; 6)", b: "(1; 2; 3)", correct: 'b'},
-        {q: "Trọng tâm G của ΔABC: A(1;0;0), B(0;2;0), C(0;0;3)?", a: "(1/3; 2/3; 1)", b: "(1; 2; 3)", correct: 'a'},
-        {q: "Độ dài của vectơ u = (2; -1; 2)?", a: "3", b: "5", correct: 'a'},
-        {q: "Điểm đối xứng của A(1; 2; 3) qua (Oxy)?", a: "(1; 2; -3)", b: "(-1; -2; 3)", correct: 'a'},
-        {q: "Tích vô hướng a=(1; -2; 1) và b=(2; -4; -2)?", a: "8", b: "-8", correct: 'a'}, 
-        {q: "Góc giữa hai vectơ đơn vị i và j?", a: "90°", b: "0°", correct: 'a'},
-        {q: "Tìm m để a=(1; m; -2) ⊥ b=(2; 1; 3)?", a: "m = 4", b: "m = -4", correct: 'a'},
-        {q: "Tìm x biết x + 2a = b với a=(2; 1; -1), b=(1; -1; 0)?", a: "(-3; -3; 2)", b: "(5; 1; -2)", correct: 'a'},
-        {q: "Thể tích tứ diện OABC với A(1;0;0), B(0;2;0), C(0;0;3)?", a: "1", b: "6", correct: 'a'},
-        {q: "Tích có hướng [i, j] bằng?", a: "k", b: "-k", correct: 'a'},
-        {q: "Hình chiếu của M(1; 2; 3) lên (Oxz)?", a: "(1; 0; 3)", b: "(1; 2; 0)", correct: 'a'},
-        {q: "Khoảng cách OA với A(1; 2; 3)?", a: "√14", b: "6", correct: 'a'},
-        {q: "Vectơ nào cùng phương u=(1; -2; 3)?", a: "(-2; 4; -6)", b: "(2; 4; 6)", correct: 'a'},
-        {q: "Điểm M chia đoạn AB theo tỉ số k=-2?", a: "MA = -2MB (vectơ)", b: "MA = 2MB (vectơ)", correct: 'a'},
-        {q: "Tọa độ vectơ 0?", a: "(0; 0; 0)", b: "(1; 1; 1)", correct: 'a'},
-        {q: "Cho u=(2; -3; 1). Tọa độ -2u?", a: "(-4; 6; -2)", b: "(4; -6; 2)", correct: 'a'},
-        {q: "Điểm nào thuộc (Oxy)?", a: "M(1; 2; 0)", b: "N(0; 0; 3)", correct: 'a'}
+        {q: "Trọng tâm G của ΔABC: A(1;0;0), B(0;2;0), C(0;0;3)?", a: "(1/3; 2/3; 1)", b: "(1; 2; 3)", correct: 'a'}
     ],
     plane: [
         {q: "VTPT của mp (P): 2x - y + 3z - 1 = 0?", a: "(2; -1; 3)", b: "(2; 1; 3)", correct: 'a'},
         {q: "Phương trình mặt phẳng (Oxz)?", a: "y = 0", b: "z = 0", correct: 'a'},
         {q: "Khoảng cách từ O đến (P): 2x + 2y - z + 3 = 0?", a: "1", b: "3", correct: 'a'},
         {q: "Mp qua A(1;0;0), B(0;2;0), C(0;0;3)?", a: "x/1 + y/2 + z/3 = 1", b: "x + y + z = 1", correct: 'a'},
-        {q: "Vị trí tương đối của x+y+z-1=0 và 2x+2y+2z+3=0?", a: "Song song", b: "Cắt nhau", correct: 'a'},
-        {q: "Góc giữa hai mp x=0 và y=0?", a: "90°", b: "0°", correct: 'a'},
-        {q: "Mp qua M(1; -2; 3) vuông góc Oy?", a: "y + 2 = 0", b: "y - 2 = 0", correct: 'a'},
-        {q: "Mp trung trực đoạn AB: A(0;0;2), B(0;0;4)?", a: "z = 3", b: "z = 1", correct: 'a'},
-        {q: "Khoảng cách giữa x+2y-2z+1=0 và x+2y-2z+4=0?", a: "1", b: "3", correct: 'a'},
-        {q: "Mp (P) chứa Oz thì:", a: "D = 0 và C = 0", b: "A = 0", correct: 'a'},
-        {q: "Mp (P) // (Q): x-y+z-1=0 có VTPT?", a: "(1; -1; 1)", b: "(1; 1; 1)", correct: 'a'},
-        {q: "Mp qua A(1;0;0), B(0;1;0), C(0;0;1) có VTPT?", a: "(1; 1; 1)", b: "(1; 0; 0)", correct: 'a'},
-        {q: "Điều kiện để (P) ⊥ (Q)?", a: "nP . nQ = 0", b: "nP = k.nQ", correct: 'a'},
-        {q: "Mp (P): x - 2 = 0 song song mp nào?", a: "(Oyz)", b: "(Oxy)", correct: 'a'},
-        {q: "Điểm nào thuộc (P): 2x - y + z - 2 = 0?", a: "M(1; 1; 1)", b: "N(1; 0; 0)", correct: 'a'},
-        {q: "Góc giữa (P): x+y=0 và (Q): x=0?", a: "45°", b: "90°", correct: 'a'},
-        {q: "Khoảng cách từ A(1; 2; 3) đến (Oxy)?", a: "3", b: "1", correct: 'a'},
-        {q: "Mp chắn các trục tại A(a;0;0), B(0;b;0), C(0;0;c)?", a: "x/a + y/b + z/c = 1", b: "ax + by + cz = 1", correct: 'a'},
-        {q: "Mp đi qua A(1;1;1) song song (Oxy)?", a: "z - 1 = 0", b: "x - 1 = 0", correct: 'a'},
-        {q: "VTPT của mp (P): x = 0?", a: "(1; 0; 0)", b: "(0; 1; 0)", correct: 'a'}
+        {q: "Vị trí tương đối của x+y+z-1=0 và 2x+2y+2z+3=0?", a: "Song song", b: "Cắt nhau", correct: 'a'}
     ],
     line: [
         {q: "VTCP của d: x=1+2t; y=2-t; z=3t?", a: "(2; -1; 3)", b: "(1; 2; 3)", correct: 'a'},
         {q: "Trục Oy có phương trình tham số?", a: "x=0; y=t; z=0", b: "x=t; y=0; z=0", correct: 'a'},
         {q: "Điểm nào thuộc d: (x-1)/2 = (y+1)/1 = z/-1?", a: "M(1; -1; 0)", b: "N(2; 1; -1)", correct: 'a'},
         {q: "Góc giữa d và mp (P) ⊥ d?", a: "90°", b: "0°", correct: 'a'},
-        {q: "Đường thẳng d ⊥ (P) thì VTCP của d là:", a: "VTPT của (P)", b: "VTCP của (P)", correct: 'a'},
-        {q: "Khoảng cách từ A(1;0;0) đến Oz?", a: "1", b: "0", correct: 'a'},
-        {q: "PT tham số d qua A(1; 2; 3), B(2; 4; 6)?", a: "x=1+t; y=2+2t; z=3+3t", b: "x=1+t; y=2+t; z=3+t", correct: 'a'},
-        {q: "Số điểm chung của d: x=1+t... và (P): x=0?", a: "1", b: "0", correct: 'a'},
-        {q: "Góc giữa d1: x=t... và d2: x=0; y=t...?", a: "90°", b: "0°", correct: 'a'},
-        {q: "Vị trí tương đối d1: x=t... và d2: x=1+2t...?", a: "Song song", b: "Trùng nhau", correct: 'a'},
-        {q: "Đường thẳng d // Oz có VTCP:", a: "k=(0; 0; 1)", b: "i=(1; 0; 0)", correct: 'a'},
-        {q: "Khoảng cách giữa 2 đường chéo nhau?", a: "Độ dài đoạn vuông góc chung", b: "Khoảng cách 2 điểm bất kỳ", correct: 'a'},
-        {q: "PT chính tắc d qua A(1;2;3), u=(2;-1;1)?", a: "(x-1)/2 = (y-2)/-1 = (z-3)/1", b: "(x-2)/1 = (y+1)/2 = (z-1)/3", correct: 'a'},
-        {q: "Đường thẳng d ⊂ (P) thì:", a: "d ⊥ nP và có điểm chung", b: "d // nP", correct: 'a'},
-        {q: "Giao điểm của d: x=t... và mặt cầu tâm O, R=0?", a: "O(0;0;0)", b: "Không có", correct: 'a'},
-        {q: "Đường thẳng qua O và G(1;1;1)?", a: "x=y=z", b: "x=1; y=1; z=t", correct: 'a'},
-        {q: "VTCP giao tuyến x=0 và y=0?", a: "(0; 0; 1)", b: "(1; 0; 0)", correct: 'a'},
-        {q: "Điều kiện để d1 ⊥ d2?", a: "u1 . u2 = 0", b: "u1 = k.u2", correct: 'a'},
-        {q: "Khoảng cách từ A(1; 2; 3) đến Ox?", a: "√13", b: "3", correct: 'a'},
-        {q: "Số đường thẳng qua A và // d?", a: "1", b: "0", correct: 'a'}
+        {q: "Đường thẳng d ⊥ (P) thì VTCP của d là:", a: "VTPT của (P)", b: "VTCP của (P)", correct: 'a'}
     ],
     sphere: [
         {q: "R của (S): (x-1)² + (y+2)² + z² = 25?", a: "5", b: "25", correct: 'a'},
         {q: "Tâm I của (S): x² + y² + z² - 2x + 4y - 6z = 0?", a: "I(1; -2; 3)", b: "I(-1; 2; -3)", correct: 'a'},
         {q: "PT mặt cầu tâm O(0;0;0) bán kính R=1?", a: "x² + y² + z² = 1", b: "x² + y² + z² = 0", correct: 'a'},
         {q: "Điều kiện x² + y² + z² - 2ax... = 0 là mặt cầu?", a: "a² + b² + c² - d > 0", b: "a² + b² + c² - d < 0", correct: 'a'},
-        {q: "Mặt cầu tâm I(1; 1; 1) tiếp xúc (Oxy) có R?", a: "1", b: "√3", correct: 'a'},
-        {q: "PT mặt cầu đường kính AB với A(1;0;0), B(-1;0;0)?", a: "x² + y² + z² = 1", b: "(x-1)² + y² + z² = 1", correct: 'a'},
-        {q: "Vị trí I(0;0;0) với (S): (x-3)² + y² + z² = 4?", a: "Nằm ngoài", b: "Nằm trong", correct: 'a'},
-        {q: "Số mặt cầu qua 4 điểm không đồng phẳng?", a: "1", b: "0", correct: 'a'},
-        {q: "Bán kính mặt cầu ngoại tiếp lập phương cạnh a?", a: "a√3/2", b: "a√2/2", correct: 'a'},
-        {q: "Tâm của (S): x² + y² + z² - 2x = 0?", a: "I(1; 0; 0)", b: "I(0; 0; 0)", correct: 'a'},
-        {q: "Mặt cầu (S) tâm I tiếp xúc (P) khi:", a: "d(I, P) = R", b: "d(I, P) > R", correct: 'a'},
-        {q: "PT nào KHÔNG phải mặt cầu?", a: "x² + y² + z² + 10 = 0", b: "x² + y² + z² - 2x = 0", correct: 'a'},
-        {q: "Diện tích mặt cầu bán kính R?", a: "S = 4πR²", b: "S = 4/3πR³", correct: 'a'},
-        {q: "Thể tích khối cầu bán kính R?", a: "V = 4/3πR³", b: "V = 4πR²", correct: 'a'},
-        {q: "Mặt cầu tâm O bán kính 1 cắt Ox tại?", a: "2 điểm", b: "1 điểm", correct: 'a'},
-        {q: "Bán kính của (S): x² + y² + z² - 2x + 4y + 2z - 3 = 0?", a: "3", b: "9", correct: 'a'},
-        {q: "Mặt cầu tâm I(1; 2; 3) tiếp xúc Ox có R?", a: "√13", b: "1", correct: 'a'},
-        {q: "2 mặt cầu tiếp xúc ngoài thì khoảng cách tâm?", a: "R1 + R2", b: "|R1 - R2|", correct: 'a'},
-        {q: "PT mặt cầu tâm I(1; -2; 1) R=3?", a: "(x-1)²+(y+2)²+(z-1)²=9", b: "(x+1)²+(y-2)²+(z+1)²=9", correct: 'a'},
-        {q: "PT mặt cầu đường kính AB với A(2; 0; 0), B(0; 2; 0)?", a: "(x-1)²+(y-1)²+z²=2", b: "(x-1)²+(y-1)²+z²=4", correct: 'a'}
+        {q: "Mặt cầu tâm I(1; 1; 1) tiếp xúc (Oxy) có R?", a: "1", b: "√3", correct: 'a'}
     ]
 };
 
@@ -451,98 +451,83 @@ const Game = {
     ctx: null,
     w: 0, h: 0, lastTime: 0,
     
-    // Assets
     logoImg: new Image(),
 
-    // State
-    state: 'MENU',
-    score: 0, distance: 0, speed: 0, speedBase: 450,
+    // Game States: MENU, PLAYING, PAUSED, GAMEOVER, STORY
+    state: 'MENU', 
+    prevState: 'MENU', // To resume after story replay
+    
+    score: 0, distance: 0, 
+    speed: 0, speedBase: 300, 
     lives: 3,
     isFlying: false,
     
+    // Logic
+    currentTopic: '',
+    seenStories: {}, 
+    currentPool: [],
+    
     // Entities
     player: { x: 150, y: 0, w: 45, h: 65, vy: 0, frame: 0, rotation: 0 },
-    obstacles: [], 
-    knowledge: [], 
-    bullets: [],
-    gate: null,
-    particles: [],
-    mathSymbols: [], 
-    bgX: 0,
+    obstacles: [], knowledge: [], bullets: [], particles: [], mathSymbols: [], bgX: 0,
     
-    // Boss State
-    bossSpawned: false,
-    bossProgress: 0, // 0 to 100
+    bossSpawned: false, bossProgress: 0,
     boss: { 
         x: 0, y: 0, w: 150, h: 150, 
         active: false, state: 'idle', 
-        symbol: '∫', chains: 3, maxChains: 3,
-        dying: false, name: ''
+        symbol: '∫', color: '#fff',
+        chains: 3, maxChains: 3,
+        dying: false, liberated: false, name: '' 
     },
-    
-    // Logic
-    currentPool: [],
 
     init() {
         this.ctx = this.canvas.getContext('2d');
-        this.logoImg.src = 'logo.png'; // Load logo
-
+        this.logoImg.src = 'logo.png'; 
         this.resize();
         window.addEventListener('resize', () => this.resize());
         
-        // Input
+        // Input Handling
         const fly = (e) => { 
-            // Prevent default touch actions (scrolling)
-            if (e && e.type === 'touchstart') e.preventDefault();
-            
-            if(this.state === 'PLAYING' && !this.bossSpawned) {
-                this.isFlying = true;
-                document.getElementById('tutorialMsg').style.opacity = 0;
-            }
+            if(this.state !== 'PLAYING') return;
+            if (e && e.type === 'touchstart' && e.target.tagName === 'CANVAS') e.preventDefault();
+            if(!this.bossSpawned) { this.isFlying = true; document.getElementById('tutorialMsg').style.opacity = 0; }
         };
-        const fall = (e) => { this.isFlying = false; };
+        const fall = () => { this.isFlying = false; };
         
         window.addEventListener('mousedown', fly);
         window.addEventListener('touchstart', fly, {passive: false});
         window.addEventListener('mouseup', fall);
         window.addEventListener('touchend', fall);
-        window.addEventListener('keydown', (e) => { if(e.code==='Space') fly(e); }); // Fixed: passed e
+        window.addEventListener('keydown', (e) => { if(e.code==='Space') fly(e); });
         window.addEventListener('keyup', (e) => { if(e.code==='Space') fall(); });
         
-        // Spawn MORE background math symbols
+        // Background FX
         for(let i=0; i<35; i++) {
             this.mathSymbols.push({
-                x: Math.random() * this.w,
-                y: Math.random() * this.h,
-                char: ['π', '∫', '∑', '√', '∞', 'α', 'β', 'Ω', 'Δ', 'θ'][Math.floor(Math.random()*10)],
-                size: 20 + Math.random() * 50,
-                speed: 30 + Math.random() * 80,
+                x: Math.random() * this.w, y: Math.random() * this.h,
+                char: ['π', '∫', '∑', '√', '∞', 'α', 'β'][Math.floor(Math.random()*7)],
+                size: 20 + Math.random() * 50, speed: 30 + Math.random() * 80,
                 opacity: 0.15 + Math.random() * 0.35 
             });
         }
         
+        // Check rotate
+        if(window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches) 
+            document.getElementById('rotate-notice').style.display = 'flex';
+            
         requestAnimationFrame(t => this.loop(t));
     },
 
     resize() {
         this.w = this.canvas.width = window.innerWidth;
         this.h = this.canvas.height = window.innerHeight;
-        this.floorY = this.h - 70;
-        this.ceilY = 70;
-        // On Mobile, adjust player position relative to new height
+        this.floorY = this.h - 70; this.ceilY = 70;
         if(this.state === 'MENU') this.player.y = this.floorY - this.player.h;
-        
-        // Mobile scaling adjustment if needed
-        if (this.w < 600) {
-            this.player.w = 35; this.player.h = 50;
-        } else {
-            this.player.w = 45; this.player.h = 65;
-        }
+        if(this.w < 600) { this.player.w = 35; this.player.h = 50; } else { this.player.w = 45; this.player.h = 65; }
     },
 
     start(topic) {
-        document.getElementById('menuScreen').style.display = 'none';
-        document.getElementById('gameUI').style.display = 'block';
+        this.currentTopic = topic;
         
         // Set Question Pool
         if (topic === 'mixed') {
@@ -551,99 +536,115 @@ const Game = {
             this.currentPool = DB[topic];
         }
         
+        if (!this.seenStories[topic]) {
+            this.showStory(topic, false);
+        } else {
+            this.launchGame();
+        }
+    },
+
+    showStory(topic, isReplay) {
+        const t = topic || this.currentTopic;
+        const data = STORY_DATA[t];
+        
+        document.getElementById('storyTitle').innerText = data.title;
+        document.getElementById('storyText').innerHTML = data.text;
+        document.getElementById('storyOverlay').style.display = 'flex';
+        
+        if (isReplay) {
+            this.prevState = this.state;
+            this.state = 'PAUSED'; 
+        } else {
+            document.getElementById('menuScreen').style.display = 'none';
+        }
+    },
+
+    closeStory() {
+        document.getElementById('storyOverlay').style.display = 'none';
+        
+        if (this.state === 'PAUSED') {
+            this.state = this.prevState;
+        } else {
+            this.seenStories[this.currentTopic] = true;
+            this.launchGame();
+        }
+    },
+
+    launchGame() {
+        document.getElementById('menuScreen').style.display = 'none';
+        document.getElementById('gameUI').style.display = 'block';
         this.resetGame();
         this.state = 'PLAYING';
     },
 
     resetGame() {
-        this.score = 0;
-        this.lives = 3;
-        this.distance = 0;
-        this.speed = this.speedBase;
-        
-        this.player.y = this.floorY - this.player.h;
-        this.player.vy = 0;
-        this.player.rotation = 0;
-        
-        this.obstacles = [];
-        this.knowledge = [];
-        this.bullets = [];
-        this.gate = null;
-        this.particles = [];
-        
-        this.bossSpawned = false;
-        this.bossProgress = 0;
-        this.boss.active = false;
-        this.boss.dying = false;
-        
+        this.score = 0; this.lives = 3; this.distance = 0; this.speed = this.speedBase;
+        this.player.y = this.floorY - this.player.h; this.player.vy = 0;
+        this.obstacles = []; this.knowledge = []; this.bullets = []; this.particles = [];
+        this.bossSpawned = false; this.bossProgress = 0; this.boss.active = false;
         document.getElementById('tutorialMsg').style.opacity = 1;
         document.getElementById('bossHUD').classList.remove('active');
+        document.body.classList.remove('cinematic-active');
         this.updateHUD();
         
-        // FORCE SPAWN IMMEDIATELY
-        this.spawnObjects();
-        // Extra spawn to fill screen
-        setTimeout(() => this.spawnObjects(), 300);
+        // --- IMMEDIATE ACTION ---
+        this.spawnZapper(this.w * 0.5); 
+        this.spawnKnowledge(this.w * 0.8);
+        this.spawnZapper(this.w * 1.2);
+        
+        setTimeout(() => this.spawnObjects(), 1500);
     },
 
     updateHUD() {
         document.getElementById('scoreVal').innerText = Math.floor(this.score);
         document.getElementById('distVal').innerText = Math.floor(this.distance) + 'm';
         document.getElementById('bossFill').style.width = Math.min(100, this.bossProgress) + '%';
-        
-        const hearts = document.querySelectorAll('.heart');
-        hearts.forEach((h, i) => {
-            if (i < this.lives) h.classList.remove('lost');
-            else h.classList.add('lost');
+        document.querySelectorAll('.heart').forEach((h, i) => {
+            if (i < this.lives) h.classList.remove('lost'); else h.classList.add('lost');
         });
     },
 
     spawnObjects() {
-        // Stop if not playing or boss active
-        if(this.state !== 'PLAYING' || (this.bossSpawned && !this.boss.dying)) return;
+        if(this.state !== 'PLAYING' || (this.bossSpawned && !this.boss.dying && !this.boss.liberated)) return;
         
-        // Spawn Logic
-        const rand = Math.random();
-        // 50% Obstacle, 50% Knowledge
-        if (rand < 0.5) this.spawnZapper();
+        if (Math.random() < 0.5) this.spawnZapper();
         else this.spawnKnowledge();
 
-        // Schedule next spawn - FASTER NOW
-        const time = 500 + Math.random() * 600; 
-        setTimeout(() => this.spawnObjects(), time);
+        setTimeout(() => this.spawnObjects(), 1200 + Math.random() * 1000);
     },
 
-    spawnZapper() {
+    spawnZapper(customX) {
         const type = Math.random();
-        let y, h;
-        // Adjust for mobile safe area
-        const safeCeil = this.ceilY + 20;
-        const safeFloor = this.floorY - 20;
+        let y, h = 200; // Increased Height
+        const safeCeil = this.ceilY + 20; const safeFloor = this.floorY - 20;
         
-        if (type < 0.33) { y = safeCeil; h = 150; } // Top
-        else if (type < 0.66) { h = 150; y = safeFloor - h; } // Bot
-        else { h = 120; y = (this.h - h) / 2; } // Mid
+        if (type < 0.33) y = safeCeil; 
+        else if (type < 0.66) y = safeFloor - h;
+        else { h = 150; y = (this.h - h) / 2; }
         
-        this.obstacles.push({ x: this.w + 50, y, w: 40, h, active: true, frame: 0 });
+        const finalX = customX !== undefined ? customX : this.w + 50;
+        const obsTypes = ['GRID', 'POLY', 'SINE', 'VECTOR'];
+        const selectedType = obsTypes[Math.floor(Math.random() * obsTypes.length)];
+        
+        this.obstacles.push({ 
+            x: finalX, y, w: 60, h, // Increased Width
+            active: true, frame: 0, 
+            obsType: selectedType 
+        });
     },
 
-    spawnKnowledge() {
+    spawnKnowledge(customX) {
         const pattern = Math.floor(Math.random()*3);
         const startY = this.ceilY + 100 + Math.random() * (this.floorY - this.ceilY - 200);
-        const symbols = ['π', '∞', '∑', '∫', 'Δ', 'Ω', 'λ'];
+        const finalX = customX !== undefined ? customX : this.w + 50;
         
         for(let i=0; i<3; i++) {
             let y = startY;
             if(pattern === 1) y += (i%2==0?-40:40);
             if(pattern === 2) y += Math.sin(i)*50;
-            
             this.knowledge.push({ 
-                x: this.w + 50 + i*70, 
-                y, 
-                r: 18, 
-                active: true, 
-                frame: i,
-                char: symbols[Math.floor(Math.random() * symbols.length)],
+                x: finalX + i*70, y, r: 18, active: true, frame: i,
+                char: ['π','∞','∑','∫'][Math.floor(Math.random()*4)],
                 type: Math.random() > 0.6 ? 'GOLD' : 'DIAMOND'
             });
         }
@@ -652,35 +653,33 @@ const Game = {
     loop(t) {
         const dt = Math.min((t - this.lastTime) / 1000, 0.1);
         this.lastTime = t;
-        if (this.state === 'PLAYING') this.update(dt);
+        if (this.state === 'PLAYING' || this.state === 'GAMEOVER') this.update(dt);
         this.draw(dt);
         requestAnimationFrame(t => this.loop(t));
     },
 
     update(dt) {
-        // --- 1. MOVEMENT ---
+        if (this.state === 'GAMEOVER') return;
+
         let currentSpeed = this.bossSpawned ? 0 : this.speed;
         this.bgX += currentSpeed * dt * 0.5;
         
         if (!this.bossSpawned) {
-             this.speed = Math.min(800, this.speedBase + this.distance * 0.15); // Faster acceleration
+             this.speed = Math.min(800, this.speedBase + this.distance * 0.08);
              this.distance += currentSpeed * dt * 0.05;
         }
 
-        // Player Physics
+        // Player
         if (this.isFlying) {
-            this.player.vy -= 2200 * dt;
-            this.spawnParticle(this.player.x + 5, this.player.y + this.player.h - 10, 2, '#FF9F43', 4); // Orange particles
+            this.player.vy -= 1800 * dt;
+            this.spawnParticle(this.player.x + 5, this.player.y + this.player.h - 10, 1, '#fab1a0', 3);
         } else {
-            this.player.vy += 1500 * dt;
+            this.player.vy += 1200 * dt;
         }
         
-        // Hover mode if boss
         if (this.bossSpawned) {
              this.player.vy = Math.sin(Date.now()*0.005) * 50; 
-             // Smoothly move player to combat pos (20% of screen width)
-             const targetX = this.w * 0.2;
-             this.player.x += (targetX - this.player.x) * 0.1;
+             this.player.x += (this.w * 0.2 - this.player.x) * 0.1;
         }
 
         this.player.vy *= 0.96;
@@ -689,152 +688,126 @@ const Game = {
         
         // Bounds
         if (this.player.y > this.floorY - this.player.h) {
-            this.player.y = this.floorY - this.player.h;
-            this.player.vy = 0;
-            this.player.rotation = 0;
-            if(!this.isFlying && !this.bossSpawned) this.spawnParticle(this.player.x+20, this.player.y+this.player.h, 1, '#fff', 3);
+            this.player.y = this.floorY - this.player.h; this.player.vy = 0;
         }
         if (this.player.y < this.ceilY) {
-            this.player.y = this.ceilY;
-            this.player.vy = 0;
+            this.player.y = this.ceilY; this.player.vy = 0;
         }
 
-        // --- 2. PROGRESS & BOSS ---
+        // Boss & Objects
         if (!this.bossSpawned) {
-            this.bossProgress += dt * 7; 
+            this.bossProgress += dt * 5;
             if (this.bossProgress >= 100) this.spawnBoss();
 
-            // Obstacles
             this.obstacles.forEach(o => {
-                o.x -= currentSpeed * dt;
-                o.frame += dt * 10;
+                o.x -= currentSpeed * dt; o.frame += dt * 10;
+                
+                // Add minor movement difficulty
+                if(o.obsType === 'SINE' || o.obsType === 'POLY') {
+                    o.y += Math.sin(o.frame * 2) * 0.5; 
+                }
+
                 if (o.active && this.checkRectCollide(this.player, o)) {
-                    o.active = false;
-                    this.hitPlayer();
+                    o.active = false; this.hitPlayer();
                 }
             });
             this.obstacles = this.obstacles.filter(o => o.x > -100);
 
-            // Knowledge
             this.knowledge.forEach(c => {
-                c.x -= currentSpeed * dt;
-                c.frame += dt*10;
-                if (c.active && Math.abs(c.x - (this.player.x + this.player.w/2)) < 45 && Math.abs(c.y - (this.player.y + this.player.h/2)) < 45) {
-                    c.active = false;
-                    this.score += 20; 
-                    const color = c.type === 'GOLD' ? '#FFD700' : '#00E5FF';
-                    this.spawnParticle(c.x, c.y, 8, color, 4);
+                c.x -= currentSpeed * dt; c.frame += dt*10;
+                if (c.active && Math.abs(c.x-(this.player.x+20)) < 45 && Math.abs(c.y-(this.player.y+30)) < 45) {
+                    c.active = false; this.score += 20; 
+                    this.spawnParticle(c.x, c.y, 8, c.type === 'GOLD' ? '#FFD700' : '#00E5FF', 4);
                 }
             });
             this.knowledge = this.knowledge.filter(c => c.x > -50);
-
         } else {
-            // Boss Logic
             if (this.boss.active) {
-                const targetX = this.w - 250; // Keep boss on right side
-                this.boss.x += (targetX - this.boss.x) * 0.05;
-                this.boss.y = (this.h - this.boss.h)/2 + Math.sin(Date.now()*0.002)*50;
-
-                if (this.boss.dying) {
-                    if (this.bullets.length === 0 && Math.random() < 0.1) {
-                         this.shootBoss(); 
-                    }
+                if (this.boss.liberated) {
+                    // LIBERATION MOVEMENT: Go to center
+                    const targetX = this.w / 2 - this.boss.w/2;
+                    const targetY = this.h / 2 - this.boss.h/2;
+                    this.boss.x += (targetX - this.boss.x) * 0.05;
+                    this.boss.y += (targetY - this.boss.y) * 0.05;
+                } else {
+                    // FIGHT MOVEMENT
+                    this.boss.x += (this.w - 250 - this.boss.x) * 0.05;
+                    this.boss.y = (this.h - this.boss.h)/2 + Math.sin(Date.now()*0.002)*50;
+                    if (this.boss.dying && this.bullets.length === 0 && Math.random() < 0.1) this.shootBoss();
                 }
             }
         }
 
-        // Bullets (HOMING LOGIC FIX)
         this.bullets.forEach(b => {
-            if (b.active && this.boss.active) {
-                // Calculate angle to boss center
-                const bossCX = this.boss.x + this.boss.w/2;
-                const bossCY = this.boss.y + this.boss.h/2;
-                const dx = bossCX - b.x;
-                const dy = bossCY - b.y;
+            if (b.active && this.boss.active && !this.boss.liberated) {
+                const dx = (this.boss.x + this.boss.w/2) - b.x;
+                const dy = (this.boss.y + this.boss.h/2) - b.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                
-                // Move towards boss
-                b.x += (dx / dist) * b.speed * dt;
-                b.y += (dy / dist) * b.speed * dt;
-                
-                // Hit check
-                if (dist < 50) {
-                    b.active = false;
-                    this.bossHit();
-                }
+                b.x += (dx/dist) * b.speed * dt; b.y += (dy/dist) * b.speed * dt;
+                if (dist < 50) { b.active = false; this.bossHit(); }
             }
             this.spawnParticle(b.x, b.y, 1, b.color, 2);
         });
         this.bullets = this.bullets.filter(b => b.active);
 
-        // Background Symbols
         this.mathSymbols.forEach(s => {
             s.x -= s.speed * dt * (this.bossSpawned ? 0.2 : 1);
             if (s.x < -50) s.x = this.w + 50;
         });
 
-        // Particles
-        this.particles.forEach(p => {
-            p.x += p.vx; p.y += p.vy; p.life -= dt * 1.5;
-        });
+        this.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= dt * 1.5; });
         this.particles = this.particles.filter(p => p.life > 0);
 
         this.updateHUD();
     },
 
     spawnBoss() {
-        this.bossSpawned = true;
-        this.boss.active = true;
-        this.boss.dying = false;
+        this.bossSpawned = true; this.boss.active = true; 
+        this.boss.dying = false; this.boss.liberated = false;
+        
         this.boss.x = this.w + 200; 
-        const bossSymbols = ['∫', 'Σ', '∞', '√', 'lim', 'log'];
-        this.boss.symbol = bossSymbols[Math.floor(Math.random()*bossSymbols.length)];
-        this.boss.name = BOSS_NAMES[Math.floor(Math.random()*BOSS_NAMES.length)];
+        // Pick random boss type
+        const type = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
+        this.boss.symbol = type.symbol;
+        this.boss.name = type.name;
+        this.boss.color = type.color;
         this.boss.chains = 3;
-        this.boss.maxChains = 3;
         
         document.body.classList.add('cinematic-active');
         document.getElementById('bossNameDisplay').innerText = this.boss.name;
         document.getElementById('bossHUD').classList.add('active');
         
-        setTimeout(() => {
-            this.showBossQuiz();
-        }, 2500);
+        setTimeout(() => this.showBossQuiz(), 2500);
     },
 
     showBossQuiz() {
+        if(!this.currentPool || this.currentPool.length === 0) this.currentPool = DB.coord;
         const q = this.currentPool[Math.floor(Math.random() * this.currentPool.length)];
         
         document.getElementById('qText').innerText = q.q;
         const grid = document.getElementById('qOptions');
         grid.innerHTML = '';
         
-        const options = [
-            { text: q.a, correct: q.correct === 'a' },
-            { text: q.b, correct: q.correct === 'b' }
-        ];
-        
+        const options = [ { text: q.a, correct: q.correct === 'a' }, { text: q.b, correct: q.correct === 'b' } ];
         options.sort(() => Math.random() - 0.5);
         
         options.forEach((opt) => {
             const btn = document.createElement('div');
-            btn.className = 'opt-btn';
-            btn.innerHTML = opt.text;
+            btn.className = 'opt-btn'; btn.innerHTML = opt.text;
             btn.onclick = () => this.answerBoss(opt.correct, btn);
             grid.appendChild(btn);
         });
-
         document.getElementById('quizOverlay').classList.add('active');
     },
 
     answerBoss(isCorrect, btn) {
         document.querySelectorAll('.opt-btn').forEach(b => b.style.pointerEvents = 'none');
-        
         if (isCorrect) {
             btn.classList.add('correct');
             setTimeout(() => {
                 document.getElementById('quizOverlay').classList.remove('active');
-                this.startBossDefeatSequence();
+                this.boss.dying = true; // Allow shooting
+                for(let i=0; i<3; i++) setTimeout(() => this.shootBoss(), i * 300);
             }, 1000);
         } else {
             btn.classList.add('wrong');
@@ -845,93 +818,79 @@ const Game = {
         }
     },
 
-    startBossDefeatSequence() {
-        this.boss.dying = true;
-        for(let i=0; i<3; i++) {
-            setTimeout(() => this.shootBoss(), i * 300);
-        }
-    },
-
     shootBoss() {
-        // Homing bullet spawn
-        this.bullets.push({
-            x: this.player.x + 30, y: this.player.y + 25,
-            speed: 1200, // Very fast homing speed
-            active: true, color: '#00b894'
-        });
+        this.bullets.push({ x: this.player.x + 30, y: this.player.y + 25, speed: 1200, active: true, color: '#00b894' });
     },
 
     bossHit() {
         this.boss.chains--;
-        for(let i=0; i<20; i++) this.spawnParticle(this.boss.x + Math.random()*this.boss.w, this.boss.y + Math.random()*this.boss.h, 1, '#fab1a0', 5);
+        // Chain Break Effect
+        for(let i=0; i<20; i++) this.spawnParticle(this.boss.x + Math.random()*this.boss.w, this.boss.y + Math.random()*this.boss.h, 1, '#b2bec3', 5);
         
         if (this.boss.chains <= 0) {
-            this.bossFinalExplosion();
+            this.startLiberation();
         }
     },
 
-    bossFinalExplosion() {
-        for(let i=0; i<100; i++) this.spawnParticle(this.boss.x + this.boss.w/2, this.boss.y + this.boss.h/2, 1, '#ff9f43', 10);
+    startLiberation() {
         this.score += 1000;
-        this.boss.active = false;
+        this.boss.liberated = true; // Trigger liberation animation
+        document.getElementById('bossHUD').classList.remove('active'); // Hide HP bar
         
+        // Wait for animation then show fact
         setTimeout(() => {
             const fact = MATH_FACTS[Math.floor(Math.random() * MATH_FACTS.length)];
-            document.getElementById('factText').innerHTML = fact; // Use innerHTML for formatting
+            document.getElementById('factText').innerHTML = fact;
             document.getElementById('factOverlay').style.display = 'flex';
-        }, 500);
-    },
-
-    closeFact() {
-        document.getElementById('factOverlay').style.display = 'none';
-        this.bossProgress = 0;
-        this.bossSpawned = false;
-        document.getElementById('bossHUD').classList.remove('active');
-        document.body.classList.remove('cinematic-active');
-        this.spawnObjects();
+        }, 2500);
     },
 
     bossAttack() {
         this.spawnLaser(this.boss, this.player, '#ff7675');
         setTimeout(() => {
-            this.hitPlayer();
-            this.bossProgress = 0;
-            this.bossSpawned = false;
-            this.boss.active = false;
-            document.getElementById('bossHUD').classList.remove('active');
-            document.body.classList.remove('cinematic-active');
-            this.spawnObjects();
+            this.lives--; this.updateHUD();
+            document.getElementById('flash').style.opacity = 0.8;
+            setTimeout(() => document.getElementById('flash').style.opacity = 0, 100);
+            
+            if (this.lives <= 0) {
+                document.getElementById('finalScore').innerText = Math.floor(this.score);
+                document.getElementById('gameOverScreen').classList.add('active');
+                this.state = 'GAMEOVER';
+            } else {
+                this.bossProgress = 0; this.bossSpawned = false; this.boss.active = false;
+                document.getElementById('bossHUD').classList.remove('active');
+                document.body.classList.remove('cinematic-active');
+                this.spawnObjects();
+            }
         }, 800);
     },
 
     spawnLaser(from, to, color) {
-        this.laserBeam = { 
-            sx: from.x + from.w/2, sy: from.y + from.h/2, 
-            ex: to.x + to.w/2, ey: to.y + to.h/2,
-            color: color, life: 30 
-        };
+        this.laserBeam = { sx: from.x + from.w/2, sy: from.y + from.h/2, ex: to.x + to.w/2, ey: to.y + to.h/2, color: color, life: 30 };
+    },
+
+    closeFact() {
+        document.getElementById('factOverlay').style.display = 'none';
+        this.bossProgress = 0; this.bossSpawned = false; this.boss.liberated = false;
+        document.body.classList.remove('cinematic-active');
+        this.spawnObjects();
     },
 
     hitPlayer() {
-        this.lives--;
-        this.updateHUD();
-        const f = document.getElementById('flash');
-        f.style.opacity = 0.8;
-        setTimeout(() => f.style.opacity = 0, 100);
-        document.body.style.transform = `translate(${Math.random()*10-5}px, ${Math.random()*10-5}px)`;
-        setTimeout(() => document.body.style.transform = 'none', 200);
-
+        this.lives--; this.updateHUD();
+        document.getElementById('flash').style.opacity = 0.8;
+        setTimeout(() => document.getElementById('flash').style.opacity = 0, 100);
+        
         if (this.lives <= 0) {
             document.getElementById('finalScore').innerText = Math.floor(this.score);
-            document.getElementById('finalDist').innerText = Math.floor(this.distance) + 'm';
             document.getElementById('gameOverScreen').classList.add('active');
-            document.getElementById('quizOverlay').classList.remove('active');
             this.state = 'GAMEOVER';
         }
     },
 
     toMenu() {
         document.getElementById('gameOverScreen').classList.remove('active');
+        document.getElementById('gameUI').style.display = 'none';
         document.getElementById('menuScreen').style.display = 'flex';
         this.state = 'MENU';
     },
@@ -940,21 +899,17 @@ const Game = {
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.w, this.h);
         
-        // --- Background ---
+        // Background
         const grd = ctx.createLinearGradient(0, 0, 0, this.h);
         grd.addColorStop(0, '#1a1a2e'); grd.addColorStop(1, '#16213e');
         ctx.fillStyle = grd; ctx.fillRect(0, 0, this.w, this.h);
 
-        // Math Symbols
         this.mathSymbols.forEach(s => {
-            ctx.globalAlpha = s.opacity; 
-            ctx.fillStyle = '#ffffff';
-            ctx.font = `${s.size}px Nunito`;
-            ctx.fillText(s.char, s.x, s.y);
+            ctx.globalAlpha = s.opacity; ctx.fillStyle = '#ffffff';
+            ctx.font = `${s.size}px Nunito`; ctx.fillText(s.char, s.x, s.y);
         });
         ctx.globalAlpha = 1;
 
-        // Parallax
         this.drawParallax(0.2, '#30336b', 200, 100); 
         this.drawParallax(0.5, '#130f40', 100, 50); 
 
@@ -962,183 +917,266 @@ const Game = {
         ctx.fillStyle = '#2d3436';
         ctx.fillRect(0, 0, this.w, this.ceilY);
         ctx.fillRect(0, this.floorY, this.w, this.h - this.floorY);
-        // Stripes
         ctx.fillStyle = '#FF9F43';
-        const off = (this.bgX * 2) % 60;
         for(let i=-60; i<this.w; i+=60) {
-            ctx.beginPath();
-            ctx.moveTo(i - off, this.ceilY-10); ctx.lineTo(i+30-off, this.ceilY-10);
-            ctx.lineTo(i+10-off, this.ceilY+10); ctx.lineTo(i-20-off, this.ceilY+10);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.moveTo(i-off, this.floorY); ctx.lineTo(i+30-off, this.floorY);
-            ctx.lineTo(i+10-off, this.floorY+20); ctx.lineTo(i-20-off, this.floorY+20);
-            ctx.fill();
+            const off = (this.bgX * 2) % 60;
+            ctx.beginPath(); ctx.moveTo(i-off, this.floorY); ctx.lineTo(i+30-off, this.floorY); ctx.lineTo(i-20-off, this.floorY+20); ctx.fill();
         }
 
-        // --- Objects ---
-        // Zappers (VOID GATE DESIGN)
+        // Entities
         this.obstacles.forEach(o => {
             if(!o.active) return;
-            
             const cx = o.x + o.w/2;
             const cy = o.y + o.h/2;
-            
-            // Spinning Void Core
             ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(o.frame * 0.5);
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h);
-            
-            // Energy Rings
-            ctx.strokeStyle = '#00CEC9'; ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(0, 0, 15 + Math.sin(o.frame*2)*5, 0, Math.PI*2); ctx.stroke();
-            
-            // Lightning Spikes
-            ctx.beginPath();
-            for(let i=0; i<4; i++) {
-                ctx.rotate(Math.PI/2);
-                ctx.moveTo(0, 20); ctx.lineTo(0, o.h/2);
+
+            if (o.obsType === 'GRID') {
+                // VISUAL 2.0: DIGITAL LASER FENCE
+                // Draw glow
+                ctx.shadowBlur = 15; ctx.shadowColor = '#00CEC9';
+                ctx.strokeStyle = '#00CEC9'; ctx.lineWidth = 2;
+                
+                // Vertical Laser Lines
+                for(let i=0; i<=o.w; i+=10) {
+                    const alpha = 0.3 + Math.sin(o.frame * 10 + i)*0.3;
+                    ctx.globalAlpha = alpha;
+                    ctx.beginPath(); ctx.moveTo(o.x+i, o.y); ctx.lineTo(o.x+i, o.y+o.h); ctx.stroke();
+                }
+                
+                // Horizontal Scanning Line
+                const scanY = o.y + (o.frame * 50) % o.h;
+                ctx.globalAlpha = 0.8; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(o.x, scanY); ctx.lineTo(o.x+o.w, scanY); ctx.stroke();
+                
+                ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+                
+                // Frame
+                ctx.strokeRect(o.x, o.y, o.w, o.h);
+            } 
+            else if (o.obsType === 'POLY') {
+                // VISUAL 2.0: TESSERACT CUBE
+                ctx.translate(cx, cy); 
+                
+                // Outer Cube
+                ctx.save();
+                ctx.rotate(o.frame * 2);
+                ctx.strokeStyle = '#e17055'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = '#e17055';
+                ctx.strokeRect(-20, -20, 40, 40);
+                ctx.restore();
+
+                // Inner Cube (Counter rotate)
+                ctx.save();
+                ctx.rotate(-o.frame * 2);
+                ctx.strokeStyle = '#ffeaa7'; ctx.lineWidth = 2;
+                ctx.strokeRect(-12, -12, 24, 24);
+                ctx.restore();
+                
+                // Core
+                ctx.fillStyle = '#fab1a0'; ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
             }
-            ctx.stroke();
+            else if (o.obsType === 'SINE') {
+                // VISUAL 2.0: DOUBLE HELIX DNA
+                ctx.lineWidth = 3; ctx.lineCap = 'round';
+                
+                // Strand 1
+                ctx.strokeStyle = '#fdcb6e'; ctx.beginPath();
+                for(let i=0; i<=o.h; i+=5) {
+                    const xOff = Math.sin(i*0.1 + o.frame*5) * 15;
+                    if(i===0) ctx.moveTo(cx+xOff, o.y+i); else ctx.lineTo(cx+xOff, o.y+i);
+                }
+                ctx.stroke();
+                
+                // Strand 2
+                ctx.strokeStyle = '#e84393'; ctx.beginPath();
+                for(let i=0; i<=o.h; i+=5) {
+                    const xOff = Math.sin(i*0.1 + o.frame*5 + Math.PI) * 15;
+                    if(i===0) ctx.moveTo(cx+xOff, o.y+i); else ctx.lineTo(cx+xOff, o.y+i);
+                }
+                ctx.stroke();
+                
+                // Connecting rungs
+                ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                for(let i=0; i<=o.h; i+=20) {
+                    const x1 = Math.sin(i*0.1 + o.frame*5) * 15;
+                    const x2 = Math.sin(i*0.1 + o.frame*5 + Math.PI) * 15;
+                    ctx.beginPath(); ctx.moveTo(cx+x1, o.y+i); ctx.lineTo(cx+x2, o.y+i); ctx.stroke();
+                }
+            }
+            else if (o.obsType === 'VECTOR') {
+                // VISUAL 2.0: SPACE MINE (Pulsing Spikes)
+                ctx.translate(cx, cy); 
+                const scale = 1 + Math.sin(o.frame * 5) * 0.1;
+                ctx.scale(scale, scale);
+                ctx.rotate(o.frame * 2);
+                
+                // Core
+                ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ff7675'; ctx.beginPath(); ctx.arc(0,0,6,0,Math.PI*2); ctx.fill(); // Red eye
+                
+                // Spikes
+                ctx.strokeStyle = '#636e72'; ctx.lineWidth = 3;
+                for(let i=0; i<8; i++) {
+                    ctx.rotate(Math.PI/4); 
+                    ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(35, 0); ctx.stroke();
+                    // Arrow head
+                    ctx.fillStyle = '#a29bfe';
+                    ctx.beginPath(); ctx.moveTo(35, 0); ctx.lineTo(28, -6); ctx.lineTo(28, 6); ctx.fill();
+                }
+            }
+            else {
+                // Fallback
+                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(o.x, o.y, o.w, o.h);
+            }
             ctx.restore();
-            
-            // Frame Glow
-            ctx.shadowBlur = 15; ctx.shadowColor = '#00CEC9';
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-            ctx.strokeRect(o.x, o.y, o.w, o.h);
-            ctx.shadowBlur = 0;
         });
 
-        // Knowledge Symbols
         this.knowledge.forEach(c => {
             if(!c.active) return;
-            const bob = Math.sin(c.frame * 0.5) * 5;
-            
-            ctx.font = 'bold 36px Nunito';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            
-            if (c.type === 'GOLD') { ctx.fillStyle = '#FFD700'; ctx.shadowColor = '#FFA500'; } 
-            else { ctx.fillStyle = '#00E5FF'; ctx.shadowColor = '#00BCD4'; }
-            ctx.shadowBlur = 15;
-            
-            ctx.fillText(c.char, c.x, c.y + bob);
-            ctx.shadowBlur = 0; 
+            ctx.font = 'bold 36px Nunito'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = c.type === 'GOLD' ? '#FFD700' : '#00E5FF';
+            ctx.fillText(c.char, c.x, c.y + Math.sin(c.frame*0.5)*5);
         });
 
-        // Boss (Chained Symbol)
         if (this.bossSpawned && this.boss.active) {
             const b = this.boss;
-            // Halo Effect
-            ctx.fillStyle = 'rgba(255, 118, 117, 0.2)';
-            ctx.beginPath(); ctx.arc(b.x+b.w/2, b.y+b.h/2, 100 + Math.sin(Date.now()*0.005)*20, 0, Math.PI*2); ctx.fill();
+            const cx = b.x + b.w/2;
+            const cy = b.y + b.h/2;
 
-            // Main Symbol
-            ctx.font = 'bold 120px Nunito'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillStyle = this.boss.dying ? '#ff7675' : '#a29bfe';
-            ctx.shadowColor = this.boss.dying ? 'red' : '#6c5ce7'; ctx.shadowBlur = 30;
-            const shakeX = this.boss.dying ? (Math.random()-0.5)*15 : 0;
-            const shakeY = this.boss.dying ? (Math.random()-0.5)*15 : 0;
-            ctx.fillText(b.symbol, b.x + b.w/2 + shakeX, b.y + b.h/2 + shakeY);
-            ctx.shadowBlur = 0;
+            if (b.liberated) {
+                // --- LIBERATION VISUALS ---
+                // Holy Rays
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(Date.now() * 0.001);
+                ctx.strokeStyle = '#fdcb6e'; ctx.lineWidth = 2;
+                for(let i=0; i<12; i++) {
+                    ctx.rotate(Math.PI/6);
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, 300); ctx.stroke();
+                }
+                ctx.restore();
 
-            // FANCY Energy Chains
-            ctx.lineWidth = 4; ctx.strokeStyle = '#74b9ff';
-            for(let i=0; i<b.chains; i++) {
-                 const yOff = (i - 1) * 50;
-                 const startX = b.x - 80; 
-                 const startY = b.y + b.h/2 + yOff;
-                 const endX = b.x + b.w + 80;
-                 
-                 // Chain Vibrations
-                 const vib = this.boss.dying ? Math.sin(Date.now()*0.1)*10 : 0;
+                // Glowing Halo
+                ctx.fillStyle = 'rgba(255, 234, 167, 0.4)';
+                ctx.beginPath(); ctx.arc(cx, cy, 120 + Math.sin(Date.now()*0.01)*20, 0, Math.PI*2); ctx.fill();
+                
+                // Pure Symbol
+                ctx.font = 'bold 150px Nunito'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 40; ctx.shadowColor = '#fdcb6e';
+                ctx.fillText(b.symbol, cx, cy);
+                ctx.shadowBlur = 0;
 
-                 // Draw Chain Links
-                 const links = 12;
-                 const dx = (endX - startX) / links;
-                 for(let j=0; j<links; j++) {
-                     const lx = startX + j*dx;
-                     ctx.beginPath();
-                     ctx.ellipse(lx + dx/2, startY + (j%2==0?vib:-vib), dx/2, 6, 0, 0, Math.PI*2);
-                     ctx.stroke();
-                 }
-                 
-                 // Lock icon glowing
-                 ctx.fillStyle = '#0984e3'; 
-                 ctx.shadowColor = '#74b9ff'; ctx.shadowBlur = 15;
-                 ctx.fillRect(b.x + b.w/2 - 15, startY - 15 + vib, 30, 30);
-                 ctx.shadowBlur = 0;
+                // Thank you text
+                ctx.font = 'bold 40px Bungee'; ctx.fillStyle = '#00b894';
+                ctx.fillText("CẢM ƠN!", cx, cy - 100);
+
+            } else {
+                // --- IMPRISONED VISUALS ---
+                // Dark Aura
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                ctx.beginPath(); ctx.arc(cx, cy, 100 + Math.sin(Date.now()*0.005)*10, 0, Math.PI*2); ctx.fill();
+
+                // Struggling Symbol
+                ctx.font = 'bold 120px Nunito'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                const shakeX = Math.random() * 5 - 2.5;
+                const shakeY = Math.random() * 5 - 2.5;
+                ctx.fillStyle = b.color;
+                ctx.shadowBlur = 20; ctx.shadowColor = b.color;
+                ctx.fillText(b.symbol, cx + shakeX, cy + shakeY);
+                ctx.shadowBlur = 0;
+
+                // --- ENERGY CHAINS ---
+                ctx.lineWidth = 6;
+                const time = Date.now() * 0.005;
+                
+                // Draw 3 Chains crossing over
+                for(let i=0; i<b.chains; i++) {
+                    ctx.strokeStyle = '#636e72'; // Dark metal
+                    ctx.shadowBlur = 10; ctx.shadowColor = '#000';
+                    
+                    ctx.beginPath();
+                    if (i === 0) { // Horizontal
+                        ctx.moveTo(b.x - 50, cy); 
+                        ctx.bezierCurveTo(cx - 50, cy - 50, cx + 50, cy + 50, b.x + b.w + 50, cy);
+                    } else if (i === 1) { // Diagonal 1
+                        ctx.moveTo(b.x, b.y); 
+                        ctx.lineTo(b.x + b.w, b.y + b.h);
+                    } else { // Diagonal 2
+                        ctx.moveTo(b.x + b.w, b.y); 
+                        ctx.lineTo(b.x, b.y + b.h);
+                    }
+                    ctx.stroke();
+                    
+                    // Energy pulses on chains
+                    ctx.strokeStyle = '#ff7675'; ctx.lineWidth = 2; ctx.shadowBlur = 10; ctx.shadowColor = 'red';
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
             }
         }
 
-        // Bullets
         this.bullets.forEach(b => {
-             ctx.fillStyle = b.color;
-             ctx.shadowBlur = 10; ctx.shadowColor = b.color;
-             ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
-             ctx.shadowBlur = 0;
+             ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
         });
 
-        // Player (Improved Design with Logo)
+        // --- NEW CHARACTER DESIGN DRAWING ---
         ctx.save();
         ctx.translate(this.player.x, this.player.y);
         ctx.rotate(this.player.rotation * Math.PI/180);
-        
-        // Jet Fire
+
+        // 1. Dynamic Jetpack Flames
         if(this.isFlying) {
-            ctx.fillStyle = '#FF9F43';
-            ctx.beginPath(); ctx.moveTo(10, 40); ctx.lineTo(20, 60+Math.random()*15); ctx.lineTo(30, 40); ctx.fill();
-        }
-        
-        // Backpack (Tech style)
-        ctx.fillStyle = '#dfe6e9'; 
-        ctx.beginPath(); ctx.roundRect(-15, 10, 20, 40, 5); ctx.fill();
-        ctx.fillStyle = '#FF9F43'; ctx.fillRect(-15, 15, 20, 5); // Stripe
-        
-        // Draw Logo on Backpack
-        if (this.logoImg.complete && this.logoImg.naturalWidth > 0) {
-            ctx.drawImage(this.logoImg, -12, 25, 14, 16); 
+            const flicker = Math.random() * 10;
+            ctx.fillStyle = '#e55039'; 
+            ctx.beginPath(); ctx.moveTo(5, 45); ctx.lineTo(15, 75 + flicker); ctx.lineTo(25, 45); ctx.fill();
+            ctx.fillStyle = '#f6b93b'; 
+            ctx.beginPath(); ctx.moveTo(8, 45); ctx.lineTo(15, 60 + flicker); ctx.lineTo(22, 45); ctx.fill();
         }
 
-        // Body Suit
-        ctx.fillStyle = '#f5f6fa'; ctx.beginPath(); ctx.roundRect(0, 0, 40, 55, 10); ctx.fill();
-        ctx.strokeStyle = '#b2bec3'; ctx.lineWidth = 2; ctx.stroke();
-        
-        // Helmet (More detailed)
-        ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.roundRect(2, 2, 36, 30, 10); ctx.fill();
-        ctx.fillStyle = '#74b9ff'; ctx.beginPath(); ctx.ellipse(28, 15, 6, 10, Math.PI/6, 0, Math.PI*2); ctx.fill(); // Glare
-        
-        // Antenna
+        // 2. Backpack (Jetpack Unit)
+        ctx.fillStyle = '#b2bec3'; ctx.beginPath(); ctx.roundRect(-18, 15, 25, 40, 6); ctx.fill();
+        ctx.fillStyle = '#FF9F43'; ctx.fillRect(-18, 25, 25, 8); 
+        if (this.logoImg.complete && this.logoImg.naturalWidth > 0) ctx.drawImage(this.logoImg, -14, 35, 16, 16);
+
+        // 3. Body Suit
+        ctx.fillStyle = '#dfe6e9'; ctx.beginPath(); ctx.roundRect(0, 0, 40, 55, 12); ctx.fill();
+        ctx.fillStyle = '#74b9ff'; ctx.fillRect(10, 35, 20, 5); 
+
+        // 4. Legs Animation
+        ctx.fillStyle = '#636e72'; 
+        if (this.isFlying) {
+            ctx.beginPath(); ctx.roundRect(5, 50, 12, 18, 5); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(23, 52, 12, 18, 5); ctx.fill();
+        } else {
+            const runCycle = Math.sin(Date.now() * 0.015) * 10;
+            ctx.beginPath(); ctx.roundRect(5, 50 + runCycle, 12, 18, 5); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(23, 50 - runCycle, 12, 18, 5); ctx.fill();
+        }
+
+        // 5. Helmet & Visor
+        ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.roundRect(0, -5, 40, 38, 14); ctx.fill();
+        ctx.fillStyle = this.bossSpawned ? '#ff7675' : '#74b9ff'; 
+        ctx.beginPath(); ctx.ellipse(25, 12, 12, 8, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.beginPath(); ctx.ellipse(28, 9, 4, 2, Math.PI/4, 0, Math.PI*2); ctx.fill();
+
+        // 6. Antenna & Blinking Light
         ctx.strokeStyle = '#b2bec3'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(20, 2); ctx.lineTo(20, -10); ctx.stroke();
-        ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(20, -10, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(20, -5); ctx.lineTo(20, -18); ctx.stroke();
+        ctx.fillStyle = (Math.floor(Date.now() / 200) % 2 === 0) ? '#ff6b6b' : '#ff0000';
+        ctx.beginPath(); ctx.arc(20, -18, 3, 0, Math.PI*2); ctx.fill();
 
-        // Legs
-        ctx.fillStyle = '#636e72';
-        if(this.player.vy > 100) { 
-            ctx.beginPath(); ctx.roundRect(5, 50, 12, 18, 5); ctx.fill(); // Left leg back
-            ctx.beginPath(); ctx.roundRect(23, 45, 12, 20, 5); ctx.fill(); // Right leg fwd
-        }
-        else { 
-            const run = Math.sin(Date.now()*0.02)*5;
-            ctx.beginPath(); ctx.roundRect(5, 50, 12, 15+run, 5); ctx.fill();
-            ctx.beginPath(); ctx.roundRect(23, 50, 12, 15-run, 5); ctx.fill();
-        }
-        
+        // 7. Arm
+        ctx.fillStyle = '#dfe6e9'; ctx.beginPath(); ctx.ellipse(25, 35, 8, 20, -Math.PI/6, 0, Math.PI*2); ctx.fill();
+
         ctx.restore();
+        // --- END CHARACTER DRAWING ---
 
-        // Laser
         if (this.laserBeam && this.laserBeam.life > 0) {
-            const l = this.laserBeam;
-            ctx.strokeStyle = l.color; ctx.lineWidth = 15; ctx.lineCap = 'round';
-            ctx.shadowColor = l.color; ctx.shadowBlur = 20;
-            ctx.beginPath(); ctx.moveTo(l.sx, l.sy); ctx.lineTo(l.ex, l.ey); ctx.stroke();
-            ctx.shadowBlur = 0;
-            l.life--;
+            ctx.strokeStyle = this.laserBeam.color; ctx.lineWidth = 15;
+            ctx.beginPath(); ctx.moveTo(this.laserBeam.sx, this.laserBeam.sy); ctx.lineTo(this.laserBeam.ex, this.laserBeam.ey); ctx.stroke();
+            this.laserBeam.life--;
         }
 
-        // Particles
         this.particles.forEach(p => {
             ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
@@ -1147,13 +1185,11 @@ const Game = {
     },
 
     drawParallax(speed, color, yOff, waveAmp) {
-        const ctx = this.ctx;
-        ctx.fillStyle = color;
+        const ctx = this.ctx; ctx.fillStyle = color;
         ctx.beginPath(); ctx.moveTo(0, this.h);
         for(let x=0; x<=this.w; x+=20) {
             const wx = x + this.bgX * speed;
-            const y = this.h - yOff + Math.sin(wx * 0.005) * waveAmp;
-            ctx.lineTo(x, y);
+            ctx.lineTo(x, this.h - yOff + Math.sin(wx * 0.005) * waveAmp);
         }
         ctx.lineTo(this.w, this.h); ctx.fill();
     },
@@ -1165,11 +1201,6 @@ const Game = {
         for(let i=0; i<count; i++) this.particles.push({
             x, y, vx:(Math.random()-.5)*12, vy:(Math.random()-.5)*12, life:1, color, size:Math.random()*sizeBase+2
         });
-    },
-    showFeedback(text, type) {
-        const el = document.getElementById('feedbackTxt');
-        el.innerText = text; el.className = `feedback ${type} show`;
-        setTimeout(() => el.classList.remove('show'), 1000);
     }
 };
 
