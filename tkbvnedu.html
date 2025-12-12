@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHẦN MỀM CHUYỂN ĐỔI TKB SANG ĐỊNH DẠNG VNEDU - YERSIN DALAT</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Font: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    colors: {
+                        yersin: {
+                            50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
+                            400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412',
+                        }
+                    },
+                    animation: {
+                        'float-slow': 'float 10s ease-in-out infinite',
+                        'float-medium': 'float 8s ease-in-out infinite',
+                        'float-fast': 'float 6s ease-in-out infinite',
+                        'breathe': 'breathe 4s ease-in-out infinite',
+                        'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'spin-slow': 'spin 15s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-20px) rotate(5deg)' },
+                        },
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px rgba(249, 115, 22, 0.2))' },
+                            '50%': { transform: 'scale(1.05)', filter: 'drop-shadow(0 0 30px rgba(249, 115, 22, 0.6))' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px) scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                        },
+                        spin: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { 
+            background: radial-gradient(circle at top left, #fff7ed, #ffedd5, #fed7aa);
+            height: 100vh;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        body.dark {
+            background: radial-gradient(circle at bottom right, #020617, #0f172a, #1e293b);
+            color: #f8fafc;
+        }
+        
+        /* HIỆU ỨNG CHỮ SÓNG CAM */
+        @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .text-wave {
+            background-image: linear-gradient(
+                -225deg,
+                #ea580c 0%, #f97316 29%, #fed7aa 50%, #f97316 71%, #ea580c 100%
+            );
+            background-size: 200% auto;
+            color: #ea580c;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 3s linear infinite;
+            padding: 0.15em 0;
+            line-height: 1.4;
+            display: inline-block;
+        }
+
+        .dark .text-wave {
+            background-image: linear-gradient(
+                -225deg, #f97316 0%, #fb923c 29%, #ffffff 50%, #fb923c 71%, #f97316 100%
+            );
+            color: #fb923c;
+            text-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
+        }
+
+        /* NÚT BẤM TACTILE */
+        .glass-button {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 6px rgba(194, 65, 12, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-button:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 8px 15px rgba(194, 65, 12, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+        .glass-button:active { transform: translateY(2px) scale(0.98); box-shadow: 0 1px 2px rgba(194, 65, 12, 0.4), inset 0 2px 5px rgba(0, 0, 0, 0.2); filter: brightness(0.95); }
+        .glass-button::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); transition: 0.5s; transform: skewX(-20deg); }
+        .glass-button:hover::after { left: 150%; transition: 0.7s ease-in-out; }
+
+        /* GIAO DIỆN KÍNH */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 50px -12px rgba(249, 115, 22, 0.2);
+            transition: all 0.5s ease;
+        }
+
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .dark .glass-inner {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* HOLOGRAM FOOTER */
+        .holo-card { transition: transform 0.1s ease; transform-style: preserve-3d; position: relative; }
+        .holo-card::before { content: ""; position: absolute; inset: -2px; border-radius: 12px; background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%); opacity: 0; transition: opacity 0.3s; pointer-events: none; mix-blend-mode: overlay; }
+        .holo-card:hover::before { opacity: 1; }
+        
+        .table-container { max-height: 55vh; overflow-y: auto; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.4); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(249, 115, 22, 0.7); }
+        .dark ::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.6); }
+
+        .floating-icon { position: absolute; color: #f97316; opacity: 0.12; z-index: 0; pointer-events: none; user-select: none; filter: drop-shadow(0 2px 4px rgba(249, 115, 22, 0.1)); transition: transform 0.1s linear; }
+        .dark .floating-icon { color: #fb923c; opacity: 0.15; filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.3)); }
+        .btn-icon-spin:hover svg { animation: spin-fast 0.5s linear; }
+        @keyframes spin-fast { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ICONS ---
+        const Icon = ({ path, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>{path}</svg>
+        );
+        const paths = {
+            school: <><path d="M2 22h20"/><path d="M12 2l10 9v11"/><path d="M2 11l10-9"/><path d="M6 11v11"/><path d="M18 11v11"/><path d="M10 22v-5a2 2 0 1 1 4 0v5"/></>,
+            notebook: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 2v20"/><path d="M12 7h4"/><path d="M12 12h4"/></>,
+            pen: <><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></>,
+            ruler: <><path d="M2 12h20"/><path d="M4 12v3"/><path d="M8 12v3"/><path d="M12 12v5"/><path d="M16 12v3"/><path d="M20 12v3"/></>,
+            upload: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>,
+            file: <><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></>,
+            arrowRight: <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+            download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
+            refresh: <><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></>,
+            check: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>,
+            alert: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+            settings: <><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>,
+            trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></>,
+            zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+            math: <><path d="M4 19l6-14h4l6 14"/><path d="M19 19h-5"/><path d="M10 19h-5"/></>,
+            book: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></>,
+            edit: <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
+            save: <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>,
+            sun: <><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>,
+            moon: <><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></>,
+            list: <><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>,
+            up: <><polyline points="18 15 12 9 6 15"/></>,
+            down: <><polyline points="6 9 12 15 18 9"/></>,
+            sort: <><path d="M11 5h10"/><path d="M11 9h7"/><path d="M11 13h4"/><path d="M3 17l3 3 3-3"/><path d="M6 18V4"/></>
+        };
+
+        const STANDARD_SUBJECTS = ["Toán học", "Vật lý", "Hóa học", "Sinh học", "Tin học", "Ngữ văn", "Lịch sử", "Địa lí", "Ngoại ngữ", "Giáo dục thể chất", "Giáo dục quốc phòng và an ninh", "Công nghệ", "Nội dung giáo dục của địa phương", "Hoạt động trải nghiệm, hướng nghiệp", "Giáo dục kinh tế và pháp luật", "Chào cờ", "Sinh hoạt lớp", "Tự chọn", "KT/Tự học", "Đọc sách"];
+        const VNEDU_SUGGESTIONS = ["KT/Tự học", "Hoạt động trải nghiệm, hướng nghiệp", "Sinh hoạt lớp", "Chào cờ", "Ngoại khóa", "Tự chọn", "Toán học", "Ngữ văn", "Đọc sách"];
+
+        const PREFERRED_ORDER = [
+            "10H", "10A1", "10A2", "10A3", "10H'", 
+            "11H", "11B1", "11B2", "11B3", "11B4", "11B5", "11H'", "11B5'",
+            "12C1", "12C2", "12C3", "12C4", "12C5"
+        ];
+
+        // --- GLOBAL HELPER FUNCTIONS ---
+        
+        async function processFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+                        if (worksheet['!merges']) {
+                            worksheet['!merges'].forEach(range => {
+                                const startRow = range.s.r; const startCol = range.s.c; const endRow = range.e.r; const endCol = range.e.c;
+                                let cellValue = null;
+                                if (rawData[startRow] && rawData[startRow][startCol] !== undefined) cellValue = rawData[startRow][startCol];
+                                for (let r = startRow; r <= endRow; r++) {
+                                    if (!rawData[r]) rawData[r] = []; 
+                                    for (let c = startCol; c <= endCol; c++) rawData[r][c] = cellValue;
+                                }
+                            });
+                        }
+                        resolve(rawData);
+                    } catch (error) { reject(error); }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function stripTeacherName(rawSubject) {
+            if (!rawSubject) return null;
+            let s = String(rawSubject).trim();
+            if (!s) return null;
+            const upperS = s.toUpperCase();
+            const junkKeywords = ["HIỆU TRƯỞNG", "PHÓ HIỆU TRƯỞNG", "P. HIỆU TRƯỞNG", "P.HT", "BGH", "NGƯỜI LẬP", "LẬP BẢNG", "DUYỆT", "KÝ TÊN", "ĐÓNG DẤU", "NGÀY", "THÁNG", "NĂM"];
+            if (junkKeywords.some(kw => upperS.includes(kw))) return null; 
+            const separators = ['-', '–', '\n', '('];
+            let splitIndex = -1;
+            for (let sep of separators) {
+                const idx = s.indexOf(sep);
+                if (idx !== -1 && (splitIndex === -1 || idx < splitIndex)) splitIndex = idx;
+            }
+            if (splitIndex !== -1) s = s.substring(0, splitIndex).trim();
+            return s;
+        }
+
+        function predictVnEduName(cleanSubject) {
+            const s = cleanSubject;
+            const upperS = s.toUpperCase();
+            if (upperS === 'TOÁN') return { name: 'Toán học', category: 'standard' };
+            if (upperS === 'LÝ' || upperS === 'VẬT LÝ') return { name: 'Vật lý', category: 'standard' };
+            if (upperS === 'HÓA' || upperS === 'HÓA HỌC') return { name: 'Hóa học', category: 'standard' };
+            if (upperS === 'SINH' || upperS === 'SINH HỌC') return { name: 'Sinh học', category: 'standard' };
+            if (upperS === 'TIN' || upperS === 'TIN HỌC') return { name: 'Tin học', category: 'standard' };
+            if (upperS === 'VĂN' || upperS === 'NGỮ VĂN') return { name: 'Ngữ văn', category: 'standard' };
+            if (upperS === 'SỬ' || upperS === 'LỊCH SỬ') return { name: 'Lịch sử', category: 'standard' };
+            if (upperS === 'ĐỊA' || upperS === 'ĐỊA LÍ' || upperS === 'ĐỊA LÝ') return { name: 'Địa lí', category: 'standard' };
+            if (upperS === 'ANH' || upperS === 'TIẾNG ANH' || upperS === 'NGOẠI NGỮ') return { name: 'Ngoại ngữ', category: 'standard' };
+            if (upperS === 'TD' || upperS === 'THỂ DỤC' || upperS === 'GDTC') return { name: 'Giáo dục thể chất', category: 'standard' };
+            if (upperS === 'QP' || upperS === 'QPAN' || upperS === 'GDQP') return { name: 'Giáo dục quốc phòng và an ninh', category: 'standard' };
+            if (upperS === 'CN' || upperS === 'CÔNG NGHỆ') return { name: 'Công nghệ', category: 'standard' };
+            if (upperS === 'GDĐP') return { name: 'Nội dung giáo dục của địa phương', category: 'standard' };
+            if (upperS === 'CC' || upperS === 'CHÀO CỜ') return { name: 'Chào cờ', category: 'standard' };
+            if (upperS === 'SH' || upperS === 'SHL') return { name: 'Sinh hoạt lớp', category: 'standard' };
+            if (upperS === 'ĐS' || upperS === 'ĐỌC SÁCH') return { name: 'Đọc sách', category: 'standard' };
+            
+            // Updates here:
+            if (upperS.includes("SHTT") || upperS.includes("TNHN") || upperS.includes("HĐTN")) return { name: "Hoạt động trải nghiệm, hướng nghiệp", category: 'exception' };
+            if (upperS.includes("GDKTPL")) return { name: "Giáo dục kinh tế và pháp luật", category: 'standard' }; 
+            
+            if (upperS.includes("KTTX")) return { name: "KT/Tự học", category: 'exception' };
+            if (upperS.includes("TƯ VẤN") || upperS.includes("HƯỚNG NGHIỆP")) return { name: "KT/Tự học", category: 'exception' };
+            if (upperS.includes("ÔN THI TN") || upperS.includes("ÔN TN") || /-\s*C\d/.test(upperS) || /-\s*TN/.test(upperS) || (upperS.includes("KTPL") && upperS.includes("C5"))) return { name: "Ôn TN", category: 'exception' };
+            if (upperS.includes("NGOẠI KHÓA") || upperS.includes("20/11") || upperS.includes("HỘI THAO")) return { name: "Hoạt động trải nghiệm, hướng nghiệp", category: 'exception' };
+            return { name: s, category: 'exception' };
+        }
+
+        function customClassSort(a, b) {
+            // Priority order for specific classes
+            const indexA = PREFERRED_ORDER.indexOf(a);
+            const indexB = PREFERRED_ORDER.indexOf(b);
+
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+
+            // Fallback: Smart alphanumeric sort
+            return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+        }
+
+        // --- HELPER FOR SPLIT CLASSES ---
+        const processCellContent = (rawContent, isClone) => {
+            if (!rawContent) return null;
+            const parts = String(rawContent).split(/\r?\n/);
+            if (parts.length > 1) {
+                const part = isClone ? parts[1] : parts[0];
+                return part ? part.trim() : null;
+            } else {
+                return String(rawContent).trim();
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        const FloatingIcons = () => {
+            const [offset, setOffset] = useState({ x: 0, y: 0 });
+            useEffect(() => {
+                const handleMouseMove = (e) => {
+                    const x = (e.clientX - window.innerWidth / 2) / 30; 
+                    const y = (e.clientY - window.innerHeight / 2) / 30;
+                    setOffset({ x, y });
+                };
+                window.addEventListener('mousemove', handleMouseMove);
+                return () => window.removeEventListener('mousemove', handleMouseMove);
+            }, []);
+
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="floating-icon animate-float-slow" style={{ top: '15%', left: '10%', transform: `translate(${offset.x * -1}px, ${offset.y * -1}px)` }}><Icon path={paths.math} size={64} /></div>
+                    <div className="floating-icon animate-float-medium" style={{ top: '25%', right: '12%', transform: `translate(${offset.x}px, ${offset.y}px)` }}><Icon path={paths.book} size={48} /></div>
+                    <div className="floating-icon animate-float-fast" style={{ bottom: '20%', left: '20%', transform: `translate(${offset.x * 0.5}px, ${offset.y * 0.5}px)` }}><Icon path={paths.file} size={72} /></div>
+                    <div className="floating-icon animate-float-slow" style={{ bottom: '30%', right: '10%', transform: `translate(${offset.x * -0.8}px, ${offset.y * -0.8}px)` }}><Icon path={paths.zap} size={56} /></div>
+                    <div className="floating-icon animate-float-medium" style={{ top: '60%', left: '50%', transform: `translate(${offset.x * 0.2}px, ${offset.y * 0.2}px)` }}><Icon path={paths.settings} size={40} /></div>
+                </div>
+            );
+        };
+
+        const HologramFooter = () => {
+            const cardRef = useRef(null);
+            const handleMouseMove = (e) => {
+                if (!cardRef.current) return;
+                const rect = cardRef.current.getBoundingClientRect();
+                const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+                const centerX = rect.width / 2; const centerY = rect.height / 2;
+                const rotateX = (centerY - y) / 10; const rotateY = (x - centerX) / 10;
+                cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+            };
+            const handleMouseLeave = () => { if (cardRef.current) cardRef.current.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)'; };
+            return (
+                <footer className="py-6 flex justify-center z-10 relative flex-shrink-0">
+                    <div ref={cardRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className="holo-card px-8 py-3 bg-white/30 dark:bg-black/30 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 shadow-lg text-center cursor-default transition-transform duration-200">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">
+                            Phát triển bởi <span className="text-yersin-600 dark:text-yersin-400 font-bold uppercase">Thầy Thái Minh Nguyên</span> - TRƯỜNG TH, THCS & THPT YERSIN ĐÀ LẠT
+                        </p>
+                    </div>
+                </footer>
+            );
+        };
+
+        const StepIndicator = ({ currentStep }) => {
+            const steps = [ { num: 1, label: 'Tải File' }, { num: 2, label: 'Định Chuẩn' }, { num: 3, label: 'Sắp Lớp' }, { num: 4, label: 'Xem & Sửa' }, { num: 5, label: 'Hoàn Tất' } ];
+            let activeStepIdx = 0;
+            if (currentStep === 1.5) activeStepIdx = 1;
+            if (currentStep === 1.8) activeStepIdx = 2; 
+            if (currentStep === 2) activeStepIdx = 3; 
+            if (currentStep === 3) activeStepIdx = 4; 
+
+            return (
+                <div className="w-full max-w-4xl mx-auto mb-6 px-4 relative z-20 flex-shrink-0">
+                    <div className="flex items-center justify-between relative">
+                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-white/30 dark:bg-white/10 -z-10 rounded-full"></div>
+                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-yersin-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${(activeStepIdx / 4) * 100}%` }}></div>
+                        {steps.map((s, idx) => (
+                            <div key={idx} className="flex flex-col items-center bg-transparent">
+                                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-xs md:text-sm transition-all duration-500 border-2 ${idx <= activeStepIdx ? 'bg-yersin-500 border-yersin-500 text-white shadow-lg shadow-yersin-200 scale-110' : 'bg-white/80 dark:bg-slate-800 dark:border-slate-600 border-gray-300 text-gray-400'}`}>{s.num}</div>
+                                <span className={`mt-2 text-[9px] md:text-xs font-medium transition-colors duration-500 ${idx <= activeStepIdx ? 'text-yersin-700 dark:text-yersin-400' : 'text-gray-400 dark:text-slate-500'}`}>{s.label}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [darkMode, setDarkMode] = useState(false);
+            const [step, setStep] = useState(0); 
+            const [sourceFile, setSourceFile] = useState(null);
+            const [rawData, setRawData] = useState(null);
+            const [resultData, setResultData] = useState(null);
+            const [previewData, setPreviewData] = useState(null);
+            const [isLoading, setIsLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [mappingTable, setMappingTable] = useState({});
+            const [subjectCategories, setSubjectCategories] = useState({});
+            const [activeTab, setActiveTab] = useState('standard');
+            const [config, setConfig] = useState({ stripTeacher: true, outputFileName: 'vnedu_import_final.xls' });
+            
+            // New State for Class Ordering and Splitting
+            const [classList, setClassList] = useState([]);
+            const [colMapGlobal, setColMapGlobal] = useState({});
+            const [splitClasses, setSplitClasses] = useState(new Set()); // To track which classes are split
+
+            useEffect(() => {
+                if (darkMode) document.body.classList.add('dark');
+                else document.body.classList.remove('dark');
+            }, [darkMode]);
+
+            useEffect(() => {
+                const savedMappings = localStorage.getItem('vnedu_mappings');
+                if (savedMappings) { try { setMappingTable(JSON.parse(savedMappings)); } catch (e) {} }
+            }, []);
+
+            const fireConfetti = () => {
+                var count = 200;
+                var defaults = { origin: { y: 0.7 } };
+                function fire(particleRatio, opts) {
+                    confetti(Object.assign({}, defaults, opts, {
+                        particleCount: Math.floor(count * particleRatio)
+                    }));
+                }
+                fire(0.25, { spread: 26, startVelocity: 55, colors: ['#f97316', '#ffffff'] });
+                fire(0.2, { spread: 60, colors: ['#ea580c', '#fbbf24'] });
+                fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#ffffff', '#f97316'] });
+                fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ['#f97316'] });
+                fire(0.1, { spread: 120, startVelocity: 45, colors: ['#fbbf24'] });
+            };
+
+            const handleFileDrop = (e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) setSourceFile(file); };
+            const handleFileSelect = (e) => { const file = e.target.files[0]; if (file) setSourceFile(file); };
+
+            const handleAnalyze = async () => {
+                if (!sourceFile) return;
+                setIsLoading(true); setError(null);
+                
+                const originalName = sourceFile.name;
+                let newFileName = 'vnedu_import.xls';
+                const match = originalName.match(/tu[^\d]*(\d+)/i);
+                if (match) newFileName = `VnEdu_Import_Tuan${match[1]}_Yersin.xls`;
+                else { const baseName = originalName.split('.').slice(0, -1).join('.'); newFileName = `VnEdu_Import_${baseName}.xls`; }
+                setConfig(prev => ({ ...prev, outputFileName: newFileName }));
+
+                try {
+                    const data = await processFile(sourceFile);
+                    setRawData(data);
+                    
+                    const uniqueSubjects = new Set();
+                    let headerRowIndex = -1; let colMap = {};
+                    for (let i = 0; i < data.length; i++) {
+                        const row = data[i];
+                        if (row && row.some(cell => cell && typeof cell === 'string' && cell.toLowerCase().includes('thứ'))) {
+                            headerRowIndex = i;
+                            for (let j = 0; j < row.length; j++) {
+                                const cellVal = row[j];
+                                if (cellVal && typeof cellVal === 'string' && /^\d+[A-Z]/.test(cellVal)) colMap[cellVal] = j;
+                            }
+                            break;
+                        }
+                    }
+                    if (headerRowIndex === -1) throw new Error("Không tìm thấy tiêu đề (Thứ, Buổi, Tiết...).");
+
+                    const foundClasses = Object.keys(colMap);
+                    
+                    // --- SPLIT LOGIC START ---
+                    const foundSplitClasses = new Set();
+                    
+                    for (let i = headerRowIndex + 1; i < data.length; i++) {
+                        const row = data[i];
+                        if (!row || row.length === 0) continue;
+                        
+                        foundClasses.forEach(className => {
+                            const rawContent = row[colMap[className]];
+                            if (rawContent && String(rawContent).includes('\n')) {
+                                foundSplitClasses.add(className);
+                            }
+                            if (rawContent) {
+                                const parts = String(rawContent).split(/\r?\n/);
+                                parts.forEach(part => {
+                                    const strippedName = stripTeacherName(part);
+                                    if (strippedName) uniqueSubjects.add(strippedName);
+                                });
+                            }
+                        });
+                    }
+                    
+                    setSplitClasses(foundSplitClasses);
+                    setColMapGlobal(colMap);
+
+                    let expandedClassList = [];
+                    foundClasses.forEach(cls => {
+                        expandedClassList.push(cls);
+                        if (foundSplitClasses.has(cls)) {
+                            expandedClassList.push(cls + "'");
+                        }
+                    });
+                    
+                    expandedClassList.sort(customClassSort);
+                    setClassList(expandedClassList);
+                    // --- SPLIT LOGIC END ---
+
+                    const initialMapping = { ...mappingTable }; 
+                    const initialCategories = {};
+                    uniqueSubjects.forEach(subj => {
+                        const prediction = predictVnEduName(subj);
+                        
+                        // Logic mới: Nếu là môn chuẩn đã được định nghĩa trong code, luôn ưu tiên dùng tên chuẩn
+                        if (prediction.category === 'standard') {
+                            initialMapping[subj] = prediction.name;
+                        } 
+                        // Nếu chưa có trong cache thì dùng dự đoán (cho môn ngoại lệ)
+                        else if (!initialMapping[subj]) {
+                            initialMapping[subj] = prediction.name;
+                        }
+                        
+                        initialCategories[subj] = prediction.category;
+                    });
+                    setMappingTable(initialMapping);
+                    setSubjectCategories(initialCategories);
+                    setStep(1.5);
+                } catch (err) { console.error(err); setError(err.message || "Lỗi xử lý file."); } finally { setIsLoading(false); }
+            };
+
+            const autoSortClasses = () => {
+                const sorted = [...classList].sort(customClassSort);
+                setClassList(sorted);
+            };
+
+            const moveClass = (index, direction) => {
+                if ((direction === -1 && index === 0) || (direction === 1 && index === classList.length - 1)) return;
+                const newList = [...classList];
+                const temp = newList[index];
+                newList[index] = newList[index + direction];
+                newList[index + direction] = temp;
+                setClassList(newList);
+            };
+
+            const removeClass = (index) => {
+                 const newList = classList.filter((_, i) => i !== index);
+                 setClassList(newList);
+            };
+
+            const generatePreview = () => {
+                try {
+                    localStorage.setItem('vnedu_mappings', JSON.stringify(mappingTable));
+                    let headerRowIndex = -1;
+                    for (let i = 0; i < rawData.length; i++) {
+                        const row = rawData[i];
+                        if (row && row.some(cell => cell && typeof cell === 'string' && cell.toLowerCase().includes('thứ'))) {
+                            headerRowIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    const extractedData = {}; 
+                    classList.forEach(cls => { extractedData[cls] = {}; });
+                    
+                    let currentDay = ''; let currentSession = '';
+                    
+                    for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+                        const row = rawData[i];
+                        if (!row || row.length === 0) continue;
+                        const dayCell = row[0]; if (dayCell) currentDay = String(dayCell).trim();
+                        const sessionCell = row[1]; if (sessionCell) currentSession = String(sessionCell).trim();
+                        let periodRaw = row[2]; if (periodRaw === undefined || periodRaw === null) continue;
+                        let periodNum = parseInt(periodRaw); if (isNaN(periodNum)) continue;
+                        
+                        let normalizedSession = 'S'; let normalizedPeriod = periodNum;
+                        if (periodNum >= 6) { normalizedSession = 'C'; normalizedPeriod = periodNum - 5; }
+                        else { if (currentSession && currentSession.toUpperCase().includes('CHIỀU')) normalizedSession = 'C'; else normalizedSession = 'S'; }
+                        
+                        classList.forEach(className => {
+                            const isClone = className.endsWith("'");
+                            const originalClassName = isClone ? className.slice(0, -1) : className;
+
+                            const colIdx = colMapGlobal[originalClassName]; 
+                            if (colIdx !== undefined) {
+                                let rawContent = row[colIdx];
+                                if (rawContent) {
+                                    const processedContent = processCellContent(rawContent, isClone);
+                                    
+                                    if (processedContent) {
+                                        const strippedName = stripTeacherName(processedContent);
+                                        if (strippedName) {
+                                            const finalSubject = mappingTable[strippedName] || strippedName;
+                                            if (!extractedData[className][normalizedSession]) extractedData[className][normalizedSession] = {};
+                                            if (!extractedData[className][normalizedSession][normalizedPeriod]) extractedData[className][normalizedSession][normalizedPeriod] = {};
+                                            extractedData[className][normalizedSession][normalizedPeriod][currentDay] = finalSubject;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    const vnEduRows = [];
+                    vnEduRows.push(['Lớp học', 'Buổi', 'Tiết thứ', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']);
+                    const dayKeys = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+                    const mapDayToKey = (d) => {
+                        if (!d) return null; const dStr = String(d).toLowerCase();
+                        if (dStr.includes('2')) return 'Thứ 2'; if (dStr.includes('3')) return 'Thứ 3'; if (dStr.includes('4')) return 'Thứ 4';
+                        if (dStr.includes('5')) return 'Thứ 5'; if (dStr.includes('6')) return 'Thứ 6'; if (dStr.includes('7')) return 'Thứ 7';
+                        if (dStr.includes('nhật') || dStr.includes('cn')) return 'Chủ nhật'; return null;
+                    };
+
+                    classList.forEach(className => {
+                        ['S', 'C'].forEach(session => {
+                            for (let p = 1; p <= 5; p++) {
+                                // IMPORTANT: Use integer 'p' instead of 'p.0'
+                                const rowData = [className, session, p];
+                                dayKeys.forEach(dayHeader => {
+                                    let subj = '';
+                                    if (extractedData[className][session] && extractedData[className][session][p]) {
+                                        const dayMap = extractedData[className][session][p];
+                                        for (let storedDay in dayMap) { if (mapDayToKey(storedDay) === dayHeader) { subj = dayMap[storedDay]; break; } }
+                                    }
+                                    rowData.push(subj);
+                                });
+                                vnEduRows.push(rowData);
+                            }
+                        });
+                    });
+                    
+                    setPreviewData(vnEduRows);
+                    setStep(2); // Go to Preview
+                } catch (err) { setError(err.message); }
+            };
+
+            const handlePreviewEdit = (rowIndex, colIndex, value) => {
+                const newData = [...previewData];
+                newData[rowIndex][colIndex] = value;
+                setPreviewData(newData);
+            };
+
+            const confirmAndExport = () => {
+                setResultData(previewData);
+                setStep(3);
+                setTimeout(fireConfetti, 300);
+            };
+
+            const handleDownload = () => {
+                if (!resultData) return;
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(resultData);
+                ws['!cols'] = [{ wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+                XLSX.utils.book_append_sheet(wb, ws, "TKB_VnEdu");
+                XLSX.writeFile(wb, config.outputFileName, { bookType: 'xls' });
+            };
+
+            const reset = () => { setStep(1); setSourceFile(null); setResultData(null); setError(null); };
+
+            return (
+                <div className="flex flex-col h-full relative font-sans text-slate-800 dark:text-slate-100 selection:bg-yersin-200 selection:text-yersin-900 overflow-hidden">
+                    <FloatingIcons />
+                    <button onClick={() => setDarkMode(!darkMode)} className="absolute top-4 right-4 z-50 p-3 rounded-full bg-white/20 dark:bg-black/20 hover:bg-white/40 backdrop-blur-md transition-all text-yersin-600 dark:text-yersin-400 border border-white/30 btn-icon-spin" title={darkMode ? "Chuyển sang Giao diện Sáng" : "Chuyển sang Giao diện Tối"}><Icon path={darkMode ? paths.sun : paths.moon} size={20} /></button>
+                    <main className="flex-grow relative z-10 container mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-0">
+                        {step === 0 && (
+                            <div className="text-center animate-fade-in-up flex flex-col items-center w-full max-w-3xl relative z-20"> 
+                                <div className="mb-8 relative"><div className="absolute inset-0 bg-yersin-400/20 blur-3xl rounded-full animate-pulse"></div><img src="logo.png" alt="Yersin Logo" className="w-32 h-32 md:w-48 md:h-48 object-contain animate-breathe filter drop-shadow-2xl relative z-10 mx-auto" /></div>
+                                <h1 className="text-3xl md:text-5xl font-extrabold text-wave mb-6 drop-shadow-md tracking-tight leading-normal uppercase py-4 px-4 relative z-30 font-sans">PHẦN MỀM CHUYỂN ĐỔI TKB<br/>SANG ĐỊNH DẠNG VNEDU</h1>
+                                <p className="text-lg text-gray-600 dark:text-slate-400 mb-10 max-w-xl mx-auto font-light">Công cụ hỗ trợ giáo viên trường Yersin Đà Lạt.<br/><strong>Chính xác - Nhanh chóng - Chuẩn hoá</strong></p>
+                                <button onClick={() => setStep(1)} className="glass-button px-12 py-4 rounded-full text-white text-xl font-bold flex items-center gap-3 transform transition hover:scale-105 active:scale-95 group shadow-2xl">BẮT ĐẦU NGAY <span className="bg-white/20 rounded-full p-1 group-hover:translate-x-1 transition-transform"><Icon path={paths.arrowRight} size={24} /></span></button>
+                            </div>
+                        )}
+                        {step > 0 && (
+                            <div className="w-full max-w-6xl animate-fade-in-up flex flex-col h-full max-h-[90vh]">
+                                <StepIndicator currentStep={step} />
+                                <div className="glass-panel rounded-3xl p-1 md:p-2 shadow-2xl relative z-20 flex-grow min-h-0 flex flex-col">
+                                    <div className="bg-white/60 dark:bg-slate-900/60 glass-inner rounded-[20px] p-6 md:p-8 flex flex-col relative overflow-hidden backdrop-blur-sm h-full w-full transition-colors duration-500"> 
+                                        {error && (<div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4 mb-4 rounded-r shadow-md flex items-start gap-3 flex-shrink-0"><Icon path={paths.alert} className="mt-0.5" /><div className="flex-1 text-sm font-medium">{error}</div><button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 font-bold">✕</button></div>)}
+                                        {step === 1 && (
+                                            <div className="flex-1 flex flex-col items-center justify-center space-y-8 overflow-y-auto">
+                                                <div className={`w-full max-w-xl border-3 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all duration-300 group relative flex-shrink-0 ${sourceFile ? 'border-yersin-400 bg-yersin-50/50 dark:bg-yersin-900/20' : 'border-gray-300 dark:border-slate-600 hover:border-yersin-300 hover:bg-white/60 dark:hover:bg-slate-800/60'}`} onDragOver={handleFileDrop} onDragLeave={(e) => e.target.classList.remove('bg-blue-50')} onDrop={handleFileDrop} onClick={() => document.getElementById('fileInput').click()}>
+                                                    <input type="file" id="fileInput" className="hidden" accept=".xlsx, .xls" onChange={handleFileSelect} />
+                                                    {sourceFile ? (<div className="animate-fade-in-up relative z-20"><div className="w-20 h-20 bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-4 mx-auto shadow-inner"><Icon path={paths.file} size={40} /></div><h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 px-4 break-words whitespace-normal leading-snug max-w-full">{sourceFile.name}</h3><p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{(sourceFile.size / 1024).toFixed(2)} KB</p><div className="absolute top-2 right-2"><button onClick={(e) => { e.stopPropagation(); setSourceFile(null); }} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Icon path={paths.trash} size={18} /></button></div></div>) : (<div className="group-hover:scale-105 transition-transform duration-300"><div className="w-20 h-20 bg-yersin-100 dark:bg-yersin-900/40 text-yersin-500 rounded-full flex items-center justify-center mb-4 mx-auto shadow-inner"><Icon path={paths.upload} size={40} /></div><h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Tải lên TKB Gốc</h3><p className="text-sm text-gray-500 dark:text-gray-400">Kéo thả hoặc click để chọn file Excel</p></div>)}
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-800/60 px-5 py-3 rounded-full border border-gray-200 dark:border-slate-700 shadow-sm w-full max-w-xl justify-between flex-shrink-0"><span className="text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2"><Icon path={paths.settings} size={16} className="text-yersin-500"/> Tự động tách tên GV</span><div className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors duration-300 ${config.stripTeacher ? 'bg-yersin-500' : 'bg-gray-300 dark:bg-gray-600'}`} onClick={() => setConfig({...config, stripTeacher: !config.stripTeacher})}><div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ${config.stripTeacher ? 'translate-x-6' : ''}`}></div></div></div>
+                                                <button onClick={handleAnalyze} disabled={!sourceFile || isLoading} className={`w-full max-w-md py-4 rounded-2xl font-bold text-lg text-white shadow-xl transition-all flex items-center justify-center gap-3 flex-shrink-0 ${!sourceFile ? 'bg-gray-300 dark:bg-slate-700 cursor-not-allowed' : 'glass-button hover:shadow-yersin-300/50 hover:-translate-y-1'}`}>{isLoading ? <div className="loading-spinner border-white border-t-transparent"></div> : <><Icon path={paths.refresh} size={22}/> PHÂN TÍCH DỮ LIỆU</>}</button>
+                                            </div>
+                                        )}
+                                        {step === 1.5 && (
+                                            <div className="flex-1 flex flex-col h-full min-h-0">
+                                                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4 flex-shrink-0">
+                                                    <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2"><div className="p-2 bg-yersin-100 dark:bg-yersin-900 rounded-lg text-yersin-600 dark:text-yersin-400"><Icon path={paths.check} size={20} /></div> Định chuẩn Tên Môn</h2>
+                                                    <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-xl self-start md:self-auto">
+                                                        <button onClick={() => setActiveTab('standard')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'standard' ? 'bg-white dark:bg-slate-700 text-yersin-600 dark:text-yersin-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>Môn Chuẩn <span className="bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded text-xs">{Object.values(subjectCategories).filter(c => c === 'standard').length}</span></button>
+                                                        <button onClick={() => setActiveTab('exception')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'exception' ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>Môn Khác <span className={`px-1.5 py-0.5 rounded text-xs ${Object.values(subjectCategories).filter(c => c === 'exception').length > 0 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300' : 'bg-gray-200 dark:bg-slate-600 text-gray-600'}`}>{Object.values(subjectCategories).filter(c => c === 'exception').length}</span></button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 flex flex-col bg-white/40 dark:bg-slate-800/40 rounded-xl border border-white/50 dark:border-white/5 shadow-inner overflow-hidden min-h-0">
+                                                    <div className="bg-yersin-50/80 dark:bg-slate-700/50 px-6 py-3 border-b border-gray-200 dark:border-slate-700 grid grid-cols-2 gap-4 font-bold text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider flex-shrink-0"><div>Tên gốc (Từ File)</div><div>Tên chuẩn (VnEdu)</div></div>
+                                                    <div className="flex-1 overflow-y-auto custom-scroll p-0">
+                                                        {Object.keys(mappingTable).filter(s => subjectCategories[s] === activeTab).length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-gray-400 italic p-8"><Icon path={paths.check} size={32} className="mb-2 opacity-50"/>Không có môn nào trong danh mục này.</div>) : (<div className="divide-y divide-gray-100 dark:divide-slate-700">{Object.keys(mappingTable).filter(s => subjectCategories[s] === activeTab).map((subj, idx) => (<div key={idx} className="grid grid-cols-2 gap-4 px-6 py-3 hover:bg-white/60 dark:hover:bg-slate-700/50 transition-colors items-center"><div className="text-sm font-semibold text-gray-800 dark:text-gray-200 break-words pr-2">{subj}</div><div className="relative group"><input type="text" list={`sugg-${activeTab}-${idx}`} className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yersin-400 outline-none transition-all shadow-sm ${!mappingTable[subj] ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800'} dark:text-white`} value={mappingTable[subj] || ''} placeholder="Nhập tên chuẩn..." onChange={(e) => { const newVal = e.target.value; setMappingTable(prev => ({...prev, [subj]: newVal})); }} /><datalist id={`sugg-${activeTab}-${idx}`}>{VNEDU_SUGGESTIONS.map((s, i) => <option key={i} value={s} />)}{STANDARD_SUBJECTS.map((s, i) => <option key={`std-${i}`} value={s} />)}</datalist></div></div>))}</div>)}
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-4 mt-6 pt-2 flex-shrink-0"><button onClick={() => setStep(1)} className="px-6 py-3 rounded-xl border border-gray-300 dark:border-slate-600 font-bold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">Quay lại</button><button onClick={() => setStep(1.8)} className="flex-1 glass-button py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-orange-300/50 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5">TIẾP TỤC <Icon path={paths.arrowRight} size={18}/></button></div>
+                                            </div>
+                                        )}
+                                        {step === 1.8 && (
+                                            <div className="flex-1 flex flex-col h-full min-h-0">
+                                                <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                                                    <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2"><div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg text-purple-600 dark:text-purple-400"><Icon path={paths.list} size={20} /></div> Sắp xếp Lớp</h2>
+                                                    <button onClick={autoSortClasses} className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition flex items-center gap-1"><Icon path={paths.sort} size={14} /> Tự động (Yersin Sort)</button>
+                                                </div>
+                                                {/* Smart Alert for Split Classes */}
+                                                {splitClasses.size > 0 && (
+                                                    <div className="mb-4 bg-orange-50 border-l-4 border-orange-400 p-3 rounded-r flex items-start gap-3 animate-fade-in-up">
+                                                        <Icon path={paths.alert} className="text-orange-500 mt-0.5 flex-shrink-0" size={18} />
+                                                        <div className="text-sm text-orange-800">
+                                                            <strong>Phát hiện lớp phân nhóm:</strong> Hệ thống đã tự động tách các lớp có tiết học đôi ({Array.from(splitClasses).join(', ')}) thành lớp thường và lớp phẩy (') tương ứng.
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex-1 bg-white/40 dark:bg-slate-800/40 rounded-xl border border-white/50 dark:border-white/5 shadow-inner overflow-hidden flex flex-col min-h-0">
+                                                    <div className="bg-yersin-50/80 dark:bg-slate-700/50 px-6 py-3 border-b border-gray-200 dark:border-slate-700 grid grid-cols-12 gap-4 font-bold text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider flex-shrink-0"><div className="col-span-1">STT</div><div className="col-span-8">Tên Lớp</div><div className="col-span-3 text-center">Thao tác</div></div>
+                                                    <div className="flex-1 overflow-y-auto custom-scroll p-0">
+                                                        {classList.map((cls, idx) => (
+                                                            <div key={cls} className="grid grid-cols-12 gap-4 px-6 py-3 hover:bg-white/60 dark:hover:bg-slate-700/50 transition-colors items-center border-b border-gray-100 dark:border-slate-700 last:border-0">
+                                                                <div className="col-span-1 text-gray-500 font-mono text-xs">{idx + 1}</div>
+                                                                <div className="col-span-8 font-bold text-gray-800 dark:text-white flex items-center">
+                                                                    {cls} 
+                                                                    {splitClasses.has(cls.replace("'", "")) && !cls.includes("'") && <span className="ml-2 text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold tracking-wider">GỐC</span>}
+                                                                    {cls.includes("'") && <span className="ml-2 text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-bold tracking-wider">TÁCH</span>}
+                                                                </div>
+                                                                <div className="col-span-3 flex justify-center gap-2">
+                                                                    <button onClick={() => moveClass(idx, -1)} disabled={idx === 0} className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-slate-600 disabled:opacity-30 text-gray-600 dark:text-gray-300"><Icon path={paths.up} size={16}/></button>
+                                                                    <button onClick={() => moveClass(idx, 1)} disabled={idx === classList.length - 1} className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-slate-600 disabled:opacity-30 text-gray-600 dark:text-gray-300"><Icon path={paths.down} size={16}/></button>
+                                                                    <button onClick={() => removeClass(idx)} className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 text-red-500"><Icon path={paths.trash} size={16}/></button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-4 mt-6 pt-2 flex-shrink-0"><button onClick={() => setStep(1.5)} className="px-6 py-3 rounded-xl border border-gray-300 dark:border-slate-600 font-bold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">Quay lại</button><button onClick={generatePreview} className="flex-1 glass-button py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-orange-300/50 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5">XEM TRƯỚC KẾT QUẢ <Icon path={paths.arrowRight} size={18}/></button></div>
+                                            </div>
+                                        )}
+                                        {step === 2 && previewData && (
+                                            <div className="flex-1 flex flex-col h-full min-h-0 animate-fade-in-up">
+                                                <div className="flex justify-between items-center mb-4 flex-shrink-0"><h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2"><div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg text-blue-600 dark:text-blue-400"><Icon path={paths.edit} size={20} /></div> Xem trước & Chỉnh sửa</h2><div className="text-xs text-gray-500 dark:text-gray-400 italic bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-gray-200 dark:border-slate-700">* Click vào ô tên môn học để sửa trực tiếp</div></div>
+                                                <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-800 rounded-xl border border-gray-300 dark:border-slate-600 shadow-md">
+                                                    <div className="flex-1 overflow-auto custom-scroll relative">
+                                                        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700 border-collapse text-sm"><thead className="bg-gray-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm"><tr>{previewData[0].map((header, i) => (<th key={i} className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-300 dark:border-slate-600 whitespace-nowrap bg-gray-100 dark:bg-slate-900">{header}</th>))}</tr></thead><tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">{previewData.slice(1).map((row, rIdx) => (<tr key={rIdx} className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">{row.map((cell, cIdx) => (<td key={cIdx} className={`px-4 py-2 border-r border-gray-100 dark:border-slate-700 whitespace-nowrap ${cIdx > 2 ? 'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 font-medium text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-900/50'}`}>{cIdx > 2 ? <input type="text" className="w-full bg-transparent outline-none focus:text-blue-600 dark:focus:text-blue-400 focus:font-bold" value={cell || ''} onChange={(e) => handlePreviewEdit(rIdx + 1, cIdx, e.target.value)} /> : (cell || '-')}</td>))}</tr>))}</tbody></table>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-4 mt-6 pt-2 flex-shrink-0"><button onClick={() => setStep(1.8)} className="px-6 py-3 rounded-xl border border-gray-300 dark:border-slate-600 font-bold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">Quay lại</button><button onClick={confirmAndExport} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-green-200 dark:shadow-none hover:shadow-green-300 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5"><Icon path={paths.save} size={20} /> XÁC NHẬN & XUẤT FILE</button></div>
+                                            </div>
+                                        )}
+                                        {step === 3 && (
+                                            <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in-up py-8">
+                                                <div className="w-24 h-24 bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-green-100 dark:shadow-none ring-4 ring-white dark:ring-slate-700"><Icon path={paths.check} size={48} className="animate-pulse" /></div>
+                                                <h2 className="text-3xl font-extrabold text-gray-800 dark:text-white mb-2">Chuyển đổi thành công!</h2>
+                                                <p className="text-gray-500 dark:text-gray-400 mb-10 max-w-md mx-auto leading-relaxed">File <strong>.xls</strong> đã được tạo chuẩn 100% cho hệ thống VnEdu. Thầy có thể tải về và upload ngay.</p>
+                                                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md"><button onClick={handleDownload} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-green-200 dark:shadow-none hover:shadow-green-300 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-1"><Icon path={paths.download} size={20} /> TẢI VỀ MÁY</button><button onClick={reset} className="flex-1 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 py-4 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2"><Icon path={paths.refresh} size={20} /> Làm file mới</button></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                    <HologramFooter />
+                </div>
+            );
+        };
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
