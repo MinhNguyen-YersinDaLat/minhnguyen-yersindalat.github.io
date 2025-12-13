@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PHẦN MỀM CHUYỂN ĐỔI TKB SANG ĐỊNH DẠNG VNEDU - YERSIN DALAT</title>
     
     <!-- Core Libraries -->
@@ -36,8 +36,6 @@
                     },
                     animation: {
                         'float-slow': 'float 10s ease-in-out infinite',
-                        'float-medium': 'float 8s ease-in-out infinite',
-                        'float-fast': 'float 6s ease-in-out infinite',
                         'breathe': 'breathe 4s ease-in-out infinite',
                         'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'spin-slow': 'spin 15s linear infinite',
@@ -66,13 +64,16 @@
     </script>
     
     <style>
+        /* Responsive Base */
         body { 
             background: radial-gradient(circle at top left, #fff7ed, #ffedd5, #fed7aa);
-            height: 100vh;
-            overflow: hidden; 
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             transition: background 0.5s ease, color 0.5s ease;
+            overflow-x: hidden; /* Chỉ ẩn cuộn ngang */
+            /* Cho phép cuộn dọc tự nhiên trên màn hình nhỏ */
+            overflow-y: auto; 
         }
 
         body.dark {
@@ -80,7 +81,7 @@
             color: #f8fafc;
         }
         
-        /* HIỆU ỨNG CHỮ SÓNG CAM */
+        /* Hiệu ứng Text Wave */
         @keyframes textShimmer {
             0% { background-position: 0% 50%; }
             100% { background-position: 200% 50%; }
@@ -110,21 +111,7 @@
             text-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
         }
 
-        /* NÚT BẤM TACTILE */
-        .glass-button {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 6px rgba(194, 65, 12, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        .glass-button:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 8px 15px rgba(194, 65, 12, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
-        .glass-button:active { transform: translateY(2px) scale(0.98); box-shadow: 0 1px 2px rgba(194, 65, 12, 0.4), inset 0 2px 5px rgba(0, 0, 0, 0.2); filter: brightness(0.95); }
-        .glass-button::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); transition: 0.5s; transform: skewX(-20deg); }
-        .glass-button:hover::after { left: 150%; transition: 0.7s ease-in-out; }
-
-        /* GIAO DIỆN KÍNH */
+        /* Glass Components */
         .glass-panel {
             background: rgba(255, 255, 255, 0.65);
             backdrop-filter: blur(24px) saturate(180%);
@@ -132,6 +119,8 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
             box-shadow: 0 20px 50px -12px rgba(249, 115, 22, 0.2);
             transition: all 0.5s ease;
+            /* Đảm bảo panel không bao giờ lớn hơn màn hình quá mức, nhưng co giãn tốt */
+            width: 100%;
         }
 
         .dark .glass-panel {
@@ -145,12 +134,44 @@
             border-color: rgba(255, 255, 255, 0.05);
         }
 
-        /* HOLOGRAM FOOTER */
+        /* Tactile Button */
+        .glass-button {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 6px rgba(194, 65, 12, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            /* Đảm bảo nút không bị co lại quá nhỏ */
+            flex-shrink: 0; 
+        }
+        .glass-button:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 8px 15px rgba(194, 65, 12, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+        .glass-button:active { transform: translateY(2px) scale(0.98); box-shadow: 0 1px 2px rgba(194, 65, 12, 0.4), inset 0 2px 5px rgba(0, 0, 0, 0.2); filter: brightness(0.95); }
+        .glass-button::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); transition: 0.5s; transform: skewX(-20deg); }
+        .glass-button:hover::after { left: 150%; transition: 0.7s ease-in-out; }
+
         .holo-card { transition: transform 0.1s ease; transform-style: preserve-3d; position: relative; }
         .holo-card::before { content: ""; position: absolute; inset: -2px; border-radius: 12px; background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%); opacity: 0; transition: opacity 0.3s; pointer-events: none; mix-blend-mode: overlay; }
         .holo-card:hover::before { opacity: 1; }
         
-        .table-container { max-height: 55vh; overflow-y: auto; }
+        /* Table Scroll Area */
+        .table-scroll-area {
+            /* Tự động tính toán chiều cao, nhưng có giới hạn để không đẩy trang quá dài */
+            height: 100%;
+            min-height: 300px;
+            max-height: 60vh; /* Giới hạn chiều cao trên màn hình lớn */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Mượt mà trên iOS */
+        }
+        
+        /* Media query cho màn hình nhỏ */
+        @media (max-height: 700px) {
+            .table-scroll-area {
+                max-height: 45vh;
+            }
+        }
+
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.4); border-radius: 10px; }
@@ -164,7 +185,7 @@
     </style>
 </head>
 <body>
-    <div id="root" class="h-full w-full"></div>
+    <div id="root" class="w-full flex-grow flex flex-col"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
@@ -689,7 +710,7 @@
                                                 </div>
                                                 <div className="flex-1 flex flex-col bg-white/40 dark:bg-slate-800/40 rounded-xl border border-white/50 dark:border-white/5 shadow-inner overflow-hidden min-h-0">
                                                     <div className="bg-yersin-50/80 dark:bg-slate-700/50 px-6 py-3 border-b border-gray-200 dark:border-slate-700 grid grid-cols-2 gap-4 font-bold text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider flex-shrink-0"><div>Tên gốc (Từ File)</div><div>Tên chuẩn (VnEdu)</div></div>
-                                                    <div className="flex-1 overflow-y-auto custom-scroll p-0">
+                                                    <div className="flex-1 overflow-y-auto custom-scroll p-0 table-scroll-area">
                                                         {Object.keys(mappingTable).filter(s => subjectCategories[s] === activeTab).length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-gray-400 italic p-8"><Icon path={paths.check} size={32} className="mb-2 opacity-50"/>Không có môn nào trong danh mục này.</div>) : (<div className="divide-y divide-gray-100 dark:divide-slate-700">{Object.keys(mappingTable).filter(s => subjectCategories[s] === activeTab).map((subj, idx) => (<div key={idx} className="grid grid-cols-2 gap-4 px-6 py-3 hover:bg-white/60 dark:hover:bg-slate-700/50 transition-colors items-center"><div className="text-sm font-semibold text-gray-800 dark:text-gray-200 break-words pr-2">{subj}</div><div className="relative group"><input type="text" list={`sugg-${activeTab}-${idx}`} className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yersin-400 outline-none transition-all shadow-sm ${!mappingTable[subj] ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800'} dark:text-white`} value={mappingTable[subj] || ''} placeholder="Nhập tên chuẩn..." onChange={(e) => { const newVal = e.target.value; setMappingTable(prev => ({...prev, [subj]: newVal})); }} /><datalist id={`sugg-${activeTab}-${idx}`}>{VNEDU_SUGGESTIONS.map((s, i) => <option key={i} value={s} />)}{STANDARD_SUBJECTS.map((s, i) => <option key={`std-${i}`} value={s} />)}</datalist></div></div>))}</div>)}
                                                     </div>
                                                 </div>
@@ -714,7 +735,7 @@
 
                                                 <div className="flex-1 bg-white/40 dark:bg-slate-800/40 rounded-xl border border-white/50 dark:border-white/5 shadow-inner overflow-hidden flex flex-col min-h-0">
                                                     <div className="bg-yersin-50/80 dark:bg-slate-700/50 px-6 py-3 border-b border-gray-200 dark:border-slate-700 grid grid-cols-12 gap-4 font-bold text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider flex-shrink-0"><div className="col-span-1">STT</div><div className="col-span-8">Tên Lớp</div><div className="col-span-3 text-center">Thao tác</div></div>
-                                                    <div className="flex-1 overflow-y-auto custom-scroll p-0">
+                                                    <div className="flex-1 overflow-y-auto custom-scroll p-0 table-scroll-area">
                                                         {classList.map((cls, idx) => (
                                                             <div key={cls} className="grid grid-cols-12 gap-4 px-6 py-3 hover:bg-white/60 dark:hover:bg-slate-700/50 transition-colors items-center border-b border-gray-100 dark:border-slate-700 last:border-0">
                                                                 <div className="col-span-1 text-gray-500 font-mono text-xs">{idx + 1}</div>
@@ -739,7 +760,7 @@
                                             <div className="flex-1 flex flex-col h-full min-h-0 animate-fade-in-up">
                                                 <div className="flex justify-between items-center mb-4 flex-shrink-0"><h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2"><div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg text-blue-600 dark:text-blue-400"><Icon path={paths.edit} size={20} /></div> Xem trước & Chỉnh sửa</h2><div className="text-xs text-gray-500 dark:text-gray-400 italic bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-gray-200 dark:border-slate-700">* Click vào ô tên môn học để sửa trực tiếp</div></div>
                                                 <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-800 rounded-xl border border-gray-300 dark:border-slate-600 shadow-md">
-                                                    <div className="flex-1 overflow-auto custom-scroll relative">
+                                                    <div className="flex-1 overflow-auto custom-scroll relative table-scroll-area">
                                                         <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700 border-collapse text-sm"><thead className="bg-gray-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm"><tr>{previewData[0].map((header, i) => (<th key={i} className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-300 dark:border-slate-600 whitespace-nowrap bg-gray-100 dark:bg-slate-900">{header}</th>))}</tr></thead><tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">{previewData.slice(1).map((row, rIdx) => (<tr key={rIdx} className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">{row.map((cell, cIdx) => (<td key={cIdx} className={`px-4 py-2 border-r border-gray-100 dark:border-slate-700 whitespace-nowrap ${cIdx > 2 ? 'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 font-medium text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-900/50'}`}>{cIdx > 2 ? <input type="text" className="w-full bg-transparent outline-none focus:text-blue-600 dark:focus:text-blue-400 focus:font-bold" value={cell || ''} onChange={(e) => handlePreviewEdit(rIdx + 1, cIdx, e.target.value)} /> : (cell || '-')}</td>))}</tr>))}</tbody></table>
                                                     </div>
                                                 </div>
