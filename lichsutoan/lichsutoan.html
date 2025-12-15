@@ -7,8 +7,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fonts -->
-    <!-- Cormorant Garamond: Giống font sách toán cổ điển/LaTeX, hỗ trợ Tiếng Việt tuyệt đối -->
-    <!-- Be Vietnam Pro: Font hiện đại, dễ đọc cho mô tả -->
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,9 +15,9 @@
             theme: {
                 extend: {
                     colors: {
-                        deep: '#0B0F19', // Darker math background
+                        deep: '#0B0F19',
                         gold: '#F59E0B',
-                        paper: '#FDFBF7', // Old paper color hint
+                        paper: '#FDFBF7',
                         glass: 'rgba(20, 30, 48, 0.7)',
                         glassBorder: 'rgba(255, 255, 255, 0.08)',
                         vietnam: '#da251d',
@@ -27,14 +25,13 @@
                     fontFamily: {
                         serif: ['"Cormorant Garamond"', 'serif'],
                         sans: ['"Be Vietnam Pro"', 'sans-serif'],
-                        math: ['"Times New Roman"', 'serif'], // For symbols
+                        math: ['"Times New Roman"', 'serif'], 
                     },
                     animation: {
                         'float-slow': 'float 10s ease-in-out infinite',
                         'float-medium': 'float 7s ease-in-out infinite',
                         'float-fast': 'float 5s ease-in-out infinite',
                         'pulse-glow': 'pulseGlow 3s infinite',
-                        'spin-slow': 'spin 15s linear infinite',
                     },
                     keyframes: {
                         float: {
@@ -52,9 +49,11 @@
     </script>
 
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
         body { background-color: #0B0F19; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         
-        /* GRAPH PAPER BACKGROUND EFFECT */
         .grid-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
@@ -66,7 +65,6 @@
             -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
         }
 
-        /* Math Symbols Background */
         .math-symbol {
             position: fixed;
             color: rgba(255, 255, 255, 0.04);
@@ -79,7 +77,6 @@
             text-shadow: 0 0 5px rgba(255,255,255,0.1);
         }
 
-        /* Timeline Line */
         .timeline-track {
             position: absolute; left: 28px; top: 0; bottom: 0; width: 1px;
             background: linear-gradient(to bottom, transparent, #fbbf24, #ef4444, #38bdf8, #a855f7, transparent);
@@ -91,13 +88,12 @@
             .timeline-track { left: 50%; transform: translateX(-50%); }
         }
 
-        /* Glassmorphism Card with Math Border */
         .milestone-card {
             background: var(--glass);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glassBorder);
-            border-left: 2px solid rgba(251, 191, 36, 0.3); /* Math definition style border */
+            border-left: 2px solid rgba(251, 191, 36, 0.3);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
@@ -123,7 +119,6 @@
             }
         }
 
-        /* Navigation Menu */
         .nav-overlay {
             position: fixed; inset: 0; background: rgba(5, 10, 20, 0.95); backdrop-filter: blur(15px);
             z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
@@ -136,7 +131,6 @@
         }
         .nav-overlay.active .nav-content { transform: scale(1); }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0B0F19; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
@@ -145,16 +139,11 @@
 </head>
 <body class="relative min-h-screen font-sans selection:bg-amber-500/30 selection:text-amber-200">
 
-    <!-- Grid Background -->
     <div class="grid-bg"></div>
-
-    <!-- Dynamic Background Symbols (Injected via JS) -->
     <div id="math-bg-container"></div>
 
-    <!-- Header -->
     <header class="relative z-20 pt-20 pb-12 text-center px-4">
         <div class="inline-block relative">
-            <!-- Decorative Sigma -->
             <div class="absolute -left-8 -top-8 text-6xl text-white/5 font-serif font-bold animate-float-slow">∑</div>
             <div class="absolute -right-8 -bottom-4 text-6xl text-white/5 font-serif font-bold animate-float-medium">∫</div>
 
@@ -168,40 +157,30 @@
         </div>
     </header>
 
-    <!-- SEARCH / NAVIGATION FAB -->
     <button onclick="toggleNav()" class="fixed bottom-8 right-6 z-50 w-14 h-14 bg-slate-800 border border-amber-500/30 rounded-full shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center justify-center text-amber-400 hover:text-white hover:bg-amber-600 hover:border-amber-400 hover:scale-110 active:scale-95 transition-all duration-300 group">
         <i class="fas fa-compass text-2xl group-hover:rotate-90 transition-transform duration-500"></i>
     </button>
 
-    <!-- NAVIGATION OVERLAY -->
     <div id="nav-overlay" class="nav-overlay" onclick="toggleNav()">
         <div class="nav-content bg-slate-900 border border-amber-500/20 p-8 rounded-2xl w-[90%] max-w-lg shadow-2xl relative" onclick="event.stopPropagation()">
             <button onclick="toggleNav()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
-            
             <div class="text-center mb-8">
                 <i class="fas fa-history text-4xl text-amber-500 mb-3 block"></i>
                 <h3 class="text-2xl font-serif font-bold text-white tracking-wide">Mục Lục Thời Đại</h3>
                 <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Chọn kỷ nguyên để du hành</p>
             </div>
-
-            <div id="nav-list" class="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-                <!-- Injected via JS -->
-            </div>
+            <div id="nav-list" class="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar"></div>
         </div>
     </div>
 
-    <!-- Main Timeline -->
     <main class="relative z-10 container mx-auto px-4 pb-40 overflow-hidden">
         <div class="timeline-track"></div>
-        <div id="timeline-container" class="space-y-20 md:space-y-32 relative pt-8">
-            <!-- Content injected by JS -->
-        </div>
+        <div id="timeline-container" class="space-y-20 md:space-y-32 relative pt-8"></div>
     </main>
 
-    <!-- STORY VIEWER (IFRAME MODAL) -->
-    <div id="story-viewer" class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl transition-all duration-500 opacity-0 pointer-events-none transform flex flex-col">
-        <!-- Control Bar -->
-        <div class="h-16 bg-slate-900 border-b border-white/10 flex items-center justify-between px-4 md:px-8 flex-shrink-0 shadow-lg z-10">
+    <!-- STORY VIEWER -->
+    <div id="story-viewer" class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl transition-all duration-500 opacity-0 pointer-events-none transform flex flex-col scale-95" onclick="closeViewer()">
+        <div class="h-16 bg-slate-900 border-b border-white/10 flex items-center justify-between px-4 md:px-8 flex-shrink-0 shadow-lg z-10" onclick="event.stopPropagation()">
             <div class="flex items-center gap-4 overflow-hidden">
                 <div class="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/30">
                     <i class="fas fa-book-open text-amber-400 text-sm"></i>
@@ -217,8 +196,7 @@
             </button>
         </div>
         
-        <!-- Iframe -->
-        <div class="flex-1 relative w-full h-full bg-[#0B0F19]">
+        <div class="flex-1 relative w-full h-full bg-[#0B0F19]" onclick="event.stopPropagation()">
             <div id="loader" class="absolute inset-0 flex flex-col items-center justify-center text-amber-500 gap-4">
                 <div class="relative w-16 h-16">
                     <div class="absolute inset-0 border-t-2 border-amber-500 rounded-full animate-spin"></div>
@@ -231,10 +209,7 @@
     </div>
 
     <script>
-        // --- DỮ LIỆU TIMELINE ---
         const timelineData = [
-            
-            // --- 1. THỜI KỲ CỔ ĐẠI ---
             { type: 'era', label: 'Cổ Đại (3000 TCN - 500)', color: 'text-amber-500', id: 'era-ancient' },
             {
                 year: '3000 TCN', title: 'Bình Minh Số Học', figure: 'Ai Cập & Lưỡng Hà',
@@ -266,8 +241,6 @@
                 desc: 'Người đầu tiên tính được chu vi Trái Đất chỉ bằng một cái cọc và bóng nắng.',
                 icon: 'fas fa-globe-africa', file: 'eratosthenes.html', ready: true
             },
-
-            // --- 2. TRUNG CỔ & PHƯƠNG ĐÔNG ---
             { type: 'era', label: 'Phương Đông & Trung Cổ', color: 'text-emerald-400', id: 'era-middle' },
             {
                 year: 'Năm 263', title: 'Cửu Chương Toán Thuật', figure: 'Lưu Huy (Liu Hui)',
@@ -299,8 +272,6 @@
                 desc: 'Mang hệ số Ả Rập vào châu Âu và phát hiện dãy số Fibonacci trong tự nhiên.',
                 icon: 'fas fa-leaf', file: 'fibonacci.html', ready: true
             },
-
-            // --- 3. TOÁN HỌC VIỆT NAM (GIAI ĐOẠN ĐẦU) ---
             { type: 'era', label: 'Tinh Hoa Việt Nam', color: 'text-red-500', bg: 'bg-red-900/10', border: 'border-red-500/50', id: 'era-vn-early' },
             {
                 year: 'Thế kỷ 15', title: 'Trạng Lường', figure: 'Lương Thế Vinh',
@@ -314,8 +285,6 @@
                 icon: 'fas fa-star', file: 'lequydon.html', ready: true,
                 special: true
             },
-
-            // --- 4. PHỤC HƯNG & KHAI SÁNG ---
             { type: 'era', label: 'Phục Hưng & Khai Sáng', color: 'text-purple-400', id: 'era-renaissance' },
             {
                 year: 'Năm 1545', title: 'Số Phức', figure: 'Gerolamo Cardano',
@@ -357,8 +326,6 @@
                 desc: 'Viết lại cơ học Newton hoàn toàn bằng giải tích mà không cần hình vẽ.',
                 icon: 'fas fa-cogs', file: 'lagrange.html', ready: true
             },
-
-            // --- 5. THẾ KỶ 19: SỰ CHẶT CHẼ ---
             { type: 'era', label: 'Thế Kỷ 19: Kỷ Nguyên Vàng', color: 'text-rose-400', id: 'era-19th' },
             {
                 year: 'Năm 1801', title: 'Hoàng Tử Toán Học', figure: 'Carl Friedrich Gauss',
@@ -390,8 +357,6 @@
                 desc: 'Người phụ nữ đầu tiên giành học vị Tiến sĩ toán học và Giáo sư đại học ở châu Âu.',
                 icon: 'fas fa-female', file: 'kovalevskaya.html', ready: true
             },
-
-            // --- 6. HIỆN ĐẠI & MÁY TÍNH ---
             { type: 'era', label: 'Thế Kỷ 20 & Hiện Đại', color: 'text-cyan-400', id: 'era-modern' },
             {
                 year: 'Năm 1900', title: '23 Bài Toán', figure: 'David Hilbert',
@@ -455,10 +420,8 @@
             }
         ];
 
-        // --- BACKGROUND EFFECT: FLOATING MATH ---
         function initBackground() {
             const container = document.getElementById('math-bg-container');
-            // Ký hiệu toán học đẹp (LaTeX style chars)
             const symbols = ['π', '∞', '∑', '∫', '√', '∂', 'ƒ', '∆', 'e', 'i', 'sin', 'log', 'φ', 'Ω', 'λ', '∀', '∃', '∇'];
             const count = 30; 
 
@@ -466,24 +429,18 @@
                 const el = document.createElement('div');
                 el.classList.add('math-symbol');
                 el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                
-                // Randomize
                 el.style.left = Math.random() * 100 + 'vw';
                 el.style.top = Math.random() * 100 + 'vh';
-                const size = Math.random() * 3 + 1; // 1rem to 4rem equivalent
+                const size = Math.random() * 3 + 1; 
                 el.style.fontSize = size + 'rem';
-                el.style.opacity = Math.random() * 0.1 + 0.02; // Very subtle
+                el.style.opacity = Math.random() * 0.1 + 0.02; 
                 el.style.transform = `rotate(${Math.random() * 360}deg)`;
-                
-                // Animation
                 const anims = ['animate-float-slow', 'animate-float-medium', 'animate-float-fast'];
                 el.classList.add(anims[Math.floor(Math.random() * anims.length)]);
-                
                 container.appendChild(el);
             }
         }
 
-        // --- RENDER TIMELINE ---
         function renderTimeline() {
             const container = document.getElementById('timeline-container');
             const navList = document.getElementById('nav-list');
@@ -491,7 +448,6 @@
 
             timelineData.forEach((item, index) => {
                 if (item.type === 'era') {
-                    // 1. Render ERA Divider
                     const div = document.createElement('div');
                     div.id = item.id;
                     div.className = "flex justify-center items-center py-12 relative z-10 scroll-mt-32";
@@ -509,7 +465,6 @@
                     `;
                     container.appendChild(div);
 
-                    // 2. Add to Navigation Menu
                     const navItem = document.createElement('button');
                     navItem.className = "w-full text-left px-4 py-4 rounded-xl hover:bg-white/5 transition flex items-center justify-between group border-b border-white/5 last:border-0";
                     navItem.onclick = () => scrollToEra(item.id);
@@ -520,16 +475,13 @@
                     navList.appendChild(navItem);
 
                 } else {
-                    // 3. Render MILESTONE (Card)
                     const isEven = counter % 2 === 0;
                     const wrapper = document.createElement('div');
                     
-                    // Layout classes
                     const desktopClasses = isEven ? 'md:flex-row' : 'md:flex-row-reverse';
                     const paddingClasses = isEven ? 'md:pr-20 md:text-right' : 'md:pl-20 md:text-left';
                     const alignClasses = isEven ? 'md:items-end' : 'md:items-start';
 
-                    // Styling
                     const cardBorder = item.special ? 'border-red-500/40' : 'border-white/10';
                     const iconBg = item.special ? 'bg-red-900/40 border-red-500' : 'bg-[#0B0F19] border-slate-700';
                     const iconColor = item.special ? 'text-red-400' : 'text-slate-400';
@@ -538,7 +490,6 @@
                     wrapper.className = `flex flex-row ${desktopClasses} items-start md:items-center w-full group pl-12 md:pl-0 relative`;
                     
                     wrapper.innerHTML = `
-                        <!-- Content Side -->
                         <div class="w-full md:w-1/2 ${paddingClasses} mb-2 md:mb-0 relative z-10">
                             <div class="milestone-card p-6 md:p-8 rounded-lg relative overflow-hidden ${cardBorder} flex flex-col ${alignClasses}">
                                 
@@ -559,14 +510,12 @@
                             </div>
                         </div>
 
-                        <!-- Center Icon -->
                         <div class="absolute left-[28px] md:left-1/2 top-10 md:top-1/2 transform -translate-x-1/2 md:-translate-y-1/2 z-20 
                                     w-12 h-12 md:w-16 md:h-16 flex-shrink-0 ${iconBg} border-2 md:border-4 rounded-full flex items-center justify-center 
                                     shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:border-amber-400 transition-all duration-500 bg-[#0B0F19]">
                             <i class="${item.icon} ${iconColor} text-lg md:text-2xl group-hover:text-amber-400 transition-colors"></i>
                         </div>
 
-                        <!-- Empty Balance Side -->
                         <div class="w-full md:w-1/2 hidden md:block"></div>
                     `;
                     container.appendChild(wrapper);
@@ -575,7 +524,6 @@
             });
         }
 
-        // --- INTERACTION LOGIC (KEEP EXISTING) ---
         function toggleNav() {
             document.getElementById('nav-overlay').classList.toggle('active');
         }
@@ -597,11 +545,20 @@
             viewer.title.textContent = title;
             viewer.loader.style.display = 'flex';
             viewer.frame.style.opacity = '0';
+            
+            // Fix: Add timestamp to force reload if needed, though simple src set is usually enough
             viewer.frame.src = file;
             
             viewer.modal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
             viewer.modal.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
             document.body.style.overflow = 'hidden';
+
+            // FALLBACK TIMEOUT: Nếu iframe load thất bại sự kiện, tự động hiện sau 2s
+            setTimeout(() => {
+                if(viewer.frame.style.opacity === '0') {
+                    onFrameLoad();
+                }
+            }, 2000);
         }
 
         function onFrameLoad() {
