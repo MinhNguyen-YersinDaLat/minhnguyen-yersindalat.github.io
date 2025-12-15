@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-MKT7N9PGCX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-MKT7N9PGCX');
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TMN Math Lab - Thầy Thái Minh Nguyên</title>
@@ -298,6 +289,8 @@
                 { filename: "sodiem.html", title: "Sổ Điểm Điện Tử", desc: "Quản lý điểm số học sinh", iconType: "ToolGradebook", color: "text-green-500" },
                 { filename: "tkbgv.html", title: "Trích xuất TKB GV", desc: "Xem TKB Giáo Viên", iconType: "ToolCalendar", color: "text-purple-500" },
                 { filename: "3D.html", title: "Hình Học Tương Tác", desc: "Mô hình 3D trực quan", iconType: "Tool3D", color: "text-blue-400" },
+                // NEW TOOL ADDED
+                { filename: "tkbvnedu.html", path: "./", title: "Chuyển đổi TKB sang VNEDU", desc: "Đồng bộ TKB định dạng VNEDU", iconType: "ToolConvert", color: "text-orange-500" },
             ],
             projects: [
                 { 
@@ -337,7 +330,7 @@
                     delay: Math.random() * -30,
                     size: Math.random() * 2 + 1, 
                     blur: Math.random() * 3,
-                    opacity: Math.random() * 0.4 + 0.1
+                    opacity: p.opacity
                 }));
             }, []);
 
@@ -413,6 +406,18 @@
                     </circle>
                 </svg>
             ),
+            // NEW ICON: ToolConvert (Data conversion)
+            ToolConvert: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <rect x="15" y="20" width="30" height="40" rx="3" stroke="#f97316" strokeWidth="3" fill="none" />
+                    <rect x="55" y="20" width="30" height="40" rx="3" stroke="#f97316" strokeWidth="3" fill="none" />
+                    <path d="M45 40 L55 40 M52 37 L55 40 L52 43" stroke="#f97316" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M55 50 L45 50 M48 53 L45 50 L48 47" stroke="#f97316" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="20" y="75" width="60" height="10" rx="2" fill="#f97316" opacity="0.3">
+                         <animate attributeName="width" values="0;60" dur="1.5s" repeatCount="indefinite" />
+                    </rect>
+                </svg>
+            ),
             // NEW ICON: GameJoyride (Rocket/Jetpack)
             GameJoyride: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
@@ -474,6 +479,7 @@
             ToolGradebook: (p) => <CustomIcons.ToolGradebook {...p} />,
             ToolCalendar: (p) => <CustomIcons.ToolCalendar {...p} />, 
             Tool3D: (p) => <CustomIcons.Tool3D {...p} />,
+            ToolConvert: (p) => <CustomIcons.ToolConvert {...p} />,
             GameJoyride: (p) => <CustomIcons.GameJoyride {...p} />,
             Sun: (p) => <CustomIcons.Sun {...p} />,
             Moon: (p) => <CustomIcons.Moon {...p} />,
