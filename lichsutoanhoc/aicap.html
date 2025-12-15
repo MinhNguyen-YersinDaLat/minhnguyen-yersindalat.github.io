@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ai Cập & Lưỡng Hà - Đại Sử Thi Số Học</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500;1,700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX: Toán học -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        egypt: {
+                            gold: '#FFD700',
+                            dark: '#050a14',
+                            accent: '#F59E0B',
+                            panel: 'rgba(8, 12, 20, 0.95)'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'breathe': 'breathe 4s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'draw': 'drawStroke 2s ease-out forwards',
+                        'appear': 'appear 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.02)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.6, transform: 'scale(1)' },
+                            '50%': { opacity: 0.8, transform: 'scale(1.05)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        drawStroke: {
+                            to: { strokeDashoffset: 0 }
+                        },
+                        appear: {
+                            from: { opacity: 0, transform: 'scale(0.5)' },
+                            to: { opacity: 1, transform: 'scale(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #050a14; 
+            color: #e2e8f0; 
+            font-family: 'Be Vietnam Pro', sans-serif; 
+            overflow: hidden; 
+            touch-action: pan-y;
+            background-image: radial-gradient(circle at 50% 50%, #1a1f2e 0%, #050a14 100%);
+        }
+
+        .bg-pattern {
+            position: fixed; inset: 0; pointer-events: none; opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 40h2v40h-2zM40 0h2v40h-2zM0 40h40v2H0zM40 40h40v2H40z' fill='%23DBA11C'/%3E%3Ccircle cx='41' cy='41' r='3' fill='%23F59E0B'/%3E%3C/svg%3E");
+            z-index: 0;
+            mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+        }
+
+        /* Character Effects */
+        .char-container { perspective: 1000px; }
+        .char-img-effect {
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.1));
+            transition: all 0.5s ease-out;
+        }
+        .char-img-effect.active {
+            animation: breathe 5s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.3));
+        }
+        
+        .aura-glow { 
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(0,0,0,0) 70%);
+            animation: pulseGlow 4s infinite alternate;
+        }
+
+        .dialog-box {
+            background: rgba(8, 12, 20, 0.9);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            border-top: 2px solid #F59E0B;
+            border-bottom: 4px solid #B45309;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 0 80px rgba(0,0,0,0.3);
+            position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+        .btn-action {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, rgba(120, 53, 15, 0.95) 0%, rgba(180, 83, 9, 0.95) 100%);
+            color: #fef3c7;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            padding: 14px 24px;
+            min-height: 60px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            line-height: 1.2;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+        .btn-action:active { transform: scale(0.96); }
+        .btn-action::after {
+            content: ''; position: absolute; top: 0; left: -150%; width: 150%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.2), transparent);
+            transition: left 0.5s ease-in-out; transform: skewX(-20deg);
+        }
+        .btn-action:hover { 
+            border-color: #fbbf24; 
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.3); 
+            background: linear-gradient(135deg, rgba(146, 64, 14, 1) 0%, rgba(217, 119, 6, 1) 100%);
+        }
+        .btn-action:hover::after { left: 150%; }
+
+        .btn-wrong { border-color: #ef4444 !important; background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important; animation: shake 0.5s; }
+        .btn-correct { border-color: #22c55e !important; background: linear-gradient(135deg, #14532d 0%, #15803d 100%) !important; box-shadow: 0 0 30px rgba(34, 197, 94, 0.4); }
+
+        .text-gold { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.4); font-weight: 700; }
+        .font-title { font-family: 'Cormorant Garamond', serif; letter-spacing: 0.02em; }
+        
+        .katex { font-size: 1.2em !important; line-height: 1.4 !important; color: #e2e8f0; }
+        .katex-display { margin: 1em 0 !important; overflow-x: auto; overflow-y: hidden; }
+
+        .media-box {
+            width: 100%; max-width: 500px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            margin: 0 auto 25px auto; /* Margin bottom only to push text down */
+            overflow: visible; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            position: relative;
+            min-height: 100px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 10px; 
+        }
+        .media-box img { 
+            width: 100%; 
+            height: auto; 
+            max-height: 300px;
+            object-fit: contain; 
+            transform: scale(0.98); 
+            transition: transform 0.5s; 
+        }
+        .media-box img:hover { transform: scale(1); }
+        .media-box img.loaded { opacity: 1; }
+        
+        .svg-container {
+            width: 100%; max-width: 500px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            margin: 0 auto 25px auto; /* Margin bottom to separate from text */
+            overflow: visible; 
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .svg-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .img-loading {
+            position: absolute; inset: 0; display: flex; flex-col; align-items: center; justify-content: center;
+            color: #fbbf24; font-family: serif; font-style: italic; z-index: -1; font-size: 0.9rem;
+        }
+        
+        /* Math Visualization Styles */
+        .math-line { stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .math-text { font-family: 'Cormorant Garamond', serif; font-weight: bold; text-anchor: middle; dominant-baseline: middle; fill: #fbbf24; text-shadow: 2px 2px 4px #000; font-size: 20px; }
+        .math-knot { fill: #000; stroke: #fbbf24; stroke-width: 2px; }
+        .math-grid { stroke: rgba(255,255,255,0.1); stroke-width: 1; }
+    </style>
+</head>
+<body class="h-screen w-full relative flex flex-col md:flex-row overflow-hidden">
+
+    <div class="bg-pattern"></div>
+
+    <!-- LEFT: CHARACTER PORTRAIT -->
+    <div class="w-full md:w-[40%] h-[35vh] md:h-full flex items-end md:items-center justify-center relative z-10 p-0 md:p-4 order-1 pointer-events-none">
+        <div class="char-container w-full h-full flex items-center justify-center relative">
+            <div class="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full blur-[90px] aura-glow transition-colors duration-1000"></div>
+            
+            <img id="char-img" src="ahmes.png" 
+                 onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmes&skinColor=brown&top=turban&clothing=collarAndSweater&clothesColor=blue03'" 
+                 class="char-img-effect max-h-[110%] md:max-h-[95%] object-contain transform translate-y-8 md:translate-y-0 opacity-0" 
+                 alt="Character">
+            
+            <div class="absolute bottom-4 md:bottom-16 bg-black/80 backdrop-blur-xl border border-amber-500/50 px-10 py-4 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-20 animate-float">
+                <h2 id="char-name" class="text-amber-400 font-title font-bold text-2xl md:text-4xl tracking-[0.2em] text-center drop-shadow-lg transition-all duration-300">AHMES</h2>
+                <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-amber-500 to-transparent my-1.5"></div>
+                <p id="char-role" class="text-slate-300 text-xs md:text-sm text-center uppercase tracking-widest font-sans font-medium transition-all duration-300">Hoàng Gia Thư Lại</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: DIALOGUE BOX -->
+    <div class="w-full md:w-[60%] h-[65vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-12 z-20 order-2 relative">
+        <div class="dialog-box w-full h-full md:h-auto md:min-h-[650px] md:rounded-2xl p-6 md:p-12 transition-all duration-500">
+            
+            <!-- Corners -->
+            <div class="absolute top-4 left-4 w-10 h-10 border-t-2 border-l-2 border-amber-500/40"></div>
+            <div class="absolute top-4 right-4 w-10 h-10 border-t-2 border-r-2 border-amber-500/40"></div>
+            <div class="absolute bottom-4 left-4 w-10 h-10 border-b-2 border-l-2 border-amber-500/40"></div>
+            <div class="absolute bottom-4 right-4 w-10 h-10 border-b-2 border-r-2 border-amber-500/40"></div>
+            
+            <!-- Content Scroller -->
+            <div class="flex-1 overflow-y-auto scrollbar-hide mb-6 relative flex flex-col" id="content-scroller">
+                <!-- Visuals (Image/SVG) - DISPLAYED FIRST -->
+                <div id="visual-content" class="media-box empty:hidden transition-all duration-700 opacity-0 transform translate-y-4"></div>
+
+                <!-- Text - DISPLAYED SECOND -->
+                <div id="story-content" class="text-xl md:text-2xl leading-loose text-slate-100 font-serif font-medium mb-8 select-none pr-2 text-justify drop-shadow-md tracking-wide"></div>
+            </div>
+
+            <!-- Controls -->
+            <div id="controls" class="flex flex-col md:flex-row gap-4 justify-end items-center flex-shrink-0 pt-6 border-t border-white/10 pb-4 md:pb-0"></div>
+        </div>
+    </div>
+
+    <!-- REWARD OVERLAY -->
+    <div id="reward-overlay" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center hidden backdrop-blur-xl p-8 text-center transition-opacity duration-1000">
+        <div class="mb-12 transform scale-110 md:scale-125 relative">
+            <div class="absolute inset-0 bg-amber-500/30 blur-[60px] rounded-full animate-pulse"></div>
+            <img src="img_reward_seal.png" onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=M&backgroundColor=FFD700'" class="w-72 h-72 object-contain relative z-10 drop-shadow-[0_0_50px_rgba(251,191,36,0.8)] animate-float" alt="Royal Seal">
+        </div>
+        <h2 class="text-5xl md:text-7xl font-title font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 mb-8 tracking-widest drop-shadow-2xl">DANH HIỆU CAO QUÝ</h2>
+        <p class="text-slate-200 font-sans max-w-2xl mb-14 text-2xl md:text-3xl font-light leading-relaxed">
+            Bạn đã thấu hiểu trí tuệ ngàn năm của các <br><strong class="text-amber-400">Đại Kiến Trúc Sư Cổ Đại</strong>
+        </p>
+        <button onclick="goHome()" class="btn-action px-20 py-6 rounded-full shadow-[0_0_60px_rgba(245,158,11,0.6)] border-2 border-amber-400/50 text-2xl hover:scale-110 transition-transform duration-300">
+            Trở Về Bảo Tàng
+        </button>
+    </div>
+
+    <script>
+        // --- 1. CONFIG & ASSETS ---
+        const CHARACTERS = {
+            ahmes: { name: "AHMES", role: "Hoàng Gia Thư Lại", img: "ahmes.png" },
+            kash: { name: "KASHSHAPTU", role: "Thương Nhân Babylon", img: "kashshaptu.png" },
+            thoth: { name: "THOTH", role: "Vị Thần Tri Thức", img: "img_thoth.png" },
+            seshat: { name: "SESHAT", role: "Nữ Thần Đo Đạc", img: "seshat.png" },
+            imhotep: { name: "IMHOTEP", role: "Đại Kiến Trúc Sư", img: "imhotep.png" },
+            osiris: { name: "OSIRIS", role: "Thần Cai Quản Cõi Âm", img: "osiris.png" },
+            enheduanna: { name: "ENHEDUANNA", role: "Nữ Tư Tế Thành Ur", img: "enheduanna.png" }
+        };
+
+        // --- 2. DYNAMIC SVG GENERATION (FIXED VIEWBOX & PADDING) ---
+        
+        // Draw standard Right Triangle with Rope Knots
+        function drawRopeTriangle(a, b, c) {
+            const scale = 40;
+            // Tính toán kích thước thực tế của hình
+            const shapeWidth = b * scale;
+            const shapeHeight = a * scale;
+            
+            // Padding vừa phải để chứa nhãn và nét vẽ đậm
+            const padding = 60;
+            
+            // Kích thước viewBox dựa trên hình vẽ + padding
+            const viewBoxWidth = shapeWidth + padding * 2;
+            const viewBoxHeight = shapeHeight + padding * 2;
+            
+            const x0 = padding, y0 = viewBoxHeight - padding; // Góc vuông (trái dưới)
+            const x1 = x0 + shapeWidth, y1 = y0;
+            const x2 = x0, y2 = y0 - shapeHeight;
+
+            const pathA = `M${x0},${y0} L${x2},${y2}`; 
+            const pathB = `M${x0},${y0} L${x1},${y1}`; 
+            const pathC = `M${x2},${y2} L${x1},${y1}`; 
+
+            const createKnots = (startX, startY, endX, endY, count, color) => {
+                let knots = '';
+                for (let i = 0; i <= count; i++) {
+                    const t = i / count;
+                    const cx = startX + (endX - startX) * t;
+                    const cy = startY + (endY - startY) * t;
+                    knots += `<circle cx="${cx}" cy="${cy}" r="5" class="math-knot animate-appear" style="animation-delay: ${i*0.1}s"/>`;
+                }
+                return knots;
+            };
+
+            return `
+            <div class="svg-container">
+                <svg viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <pattern id="grid" width="${scale}" height="${scale}" patternUnits="userSpaceOnUse"><path d="M ${scale} 0 L 0 0 0 ${scale}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+
+                    <path d="${pathA}" stroke="#fbbf24" stroke-width="5" class="math-line animate-draw"/>
+                    <path d="${pathB}" stroke="#fbbf24" stroke-width="5" class="math-line animate-draw" style="animation-delay:0.5s"/>
+                    <path d="${pathC}" stroke="#ef4444" stroke-width="5" class="math-line animate-draw" style="animation-delay:1s"/>
+                    
+                    <path d="M${x0},${y0-30} L${x0+30},${y0-30} L${x0+30},${y0}" fill="rgba(251,191,36,0.2)" stroke="#fbbf24" stroke-width="2"/>
+
+                    <text x="${x0 - 35}" y="${(y0+y2)/2}" class="math-text animate-appear" style="animation-delay:1.5s">${a}</text>
+                    <text x="${(x0+x1)/2}" y="${y0 + 35}" class="math-text animate-appear" style="animation-delay:1.5s">${b}</text>
+                    <text x="${(x1+x2)/2 + 25}" y="${(y1+y2)/2 - 15}" class="math-text animate-appear" fill="#ef4444" style="animation-delay:1.5s">${c}</text>
+
+                    ${createKnots(x0, y0, x2, y2, a, '#fbbf24')}
+                    ${createKnots(x0, y0, x1, y1, b, '#fbbf24')}
+                    ${createKnots(x2, y2, x1, y1, c, '#ef4444')}
+                </svg>
+            </div>`;
+        }
+
+        function drawSekedDiagram(rise, run) {
+             const scale = 50;
+             const numericRun = isNaN(run) ? 5.5 : parseFloat(run);
+             const displayRun = run;
+             
+             // Tính toán kích thước động
+             const shapeWidth = numericRun * scale;
+             const shapeHeight = rise * scale * 2; // Phóng đại chiều cao để dễ nhìn
+             const padding = 60;
+             const bottomLabelSpace = 40;
+
+             const viewBoxWidth = shapeWidth + padding * 2;
+             const viewBoxHeight = shapeHeight + padding * 2 + bottomLabelSpace;
+
+             const x0 = padding, y0 = viewBoxHeight - padding - bottomLabelSpace; 
+             const x1 = x0 + shapeWidth, y1 = y0;
+             const x2 = x0, y2 = y0 - shapeHeight;
+
+             return `
+             <div class="svg-container">
+                <svg viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" preserveAspectRatio="xMidYMid meet">
+                    <path d="M${x0},${y0} L${x1},${y1} L${x2},${y2} Z" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="3" />
+                    
+                    <line x1="${x0}" y1="${y0+20}" x2="${x1}" y2="${y0+20}" stroke="#fbbf24" stroke-width="2" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+                    <text x="${(x0+x1)/2}" y="${y0+50}" class="math-text">Seked: ${displayRun}</text>
+
+                    <line x1="${x0-20}" y1="${y0}" x2="${x0-20}" y2="${y2}" stroke="#fbbf24" stroke-width="2" />
+                    <text x="${x0-50}" y="${(y0+y2)/2}" class="math-text" transform="rotate(-90, ${x0-50}, ${(y0+y2)/2})">Height: ${rise}</text>
+
+                    <text x="${viewBoxWidth/2}" y="40" class="math-text" style="font-size: 22px; fill: #ef4444">Tỷ lệ xây dựng</text>
+                </svg>
+             </div>`;
+        }
+
+        function drawCircleApproximation() {
+            // Hình này kích thước cố định nên dùng viewBox cố định nhưng tối ưu padding
+            return `
+            <div class="svg-container">
+                <svg viewBox="0 0 400 450" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <pattern id="grid_small" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid_small)" />
+                    
+                    <circle cx="200" cy="225" r="160" fill="rgba(6, 182, 212, 0.1)" stroke="#06b6d4" stroke-width="3" stroke-dasharray="10,10"/>
+                    <text x="200" y="225" class="math-text" fill="#06b6d4" style="font-size:30px">d = 9</text>
+
+                    <!-- Hình vuông cạnh 8 (tỉ lệ tương đối với d=9) -->
+                    <!-- 9 units = 320px => 1 unit = 35.5px => 8 units = 284px -->
+                    <rect x="58" y="83" width="284" height="284" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="4"/>
+                    <text x="200" y="410" class="math-text">Square Side = 8</text>
+                    
+                    <text x="200" y="40" class="math-text" style="font-size: 22px">Diện tích xấp xỉ nhau</text>
+                </svg>
+            </div>
+            `;
+        }
+
+
+        // --- 3. STORYLINE ENGINE (UPDATED LOGIC) ---
+        const scenes = {
+            // === PHẦN MỞ ĐẦU ===
+            'intro_0': { char: 'thoth', text: "<span class='text-gold font-title text-3xl block mb-2 border-b border-amber-500/30 pb-2'>KHÚC DẠO ĐẦU</span>Ta là Thoth, người cai quản Mặt Trăng và Tri thức. Con người thường hỏi ta: Tại sao lại cần những con số? Tại sao lại cần hình học?", options: [{ label: "Tại sao thưa thần?", next: 'intro_1' }] },
+            'intro_1': { char: 'thoth', text: "Vì vũ trụ này được dệt nên từ những con số. Ngôi sao di chuyển theo chu kỳ, sông Nile dâng nước theo mùa, và Kim Tự Tháp đứng vững nhờ tỉ lệ vàng.", options: [{ label: "Con muốn hiểu rõ hơn", next: 'intro_2' }] },
+            'intro_2': { char: 'thoth', text: "Hôm nay, ta sẽ đưa con về cội nguồn. Nơi toán học không phải là lý thuyết khô khan trên giấy, mà là công cụ sinh tồn giữa sự sống và cái chết. Hãy đến Ai Cập năm 1650 TCN.", options: [{ label: "Đến Sông Nile", next: 'ahmes_1' }] },
+
+            // === AHMES: ĐO ĐẠC SÔNG NILE ===
+            'ahmes_1': { char: 'ahmes', text: "Kính chào! Ta là Ahmes, thư lại hoàng gia. Ta đang đứng trước một thảm họa. Mùa lụt <i>Akhet</i> năm nay nước dâng quá cao.", options: [{ label: "Có chuyện gì xảy ra?", next: 'ahmes_2' }] },
+            'ahmes_2': { char: 'ahmes', text: "Phù sa đen đã về, đó là điều tốt cho mùa màng. Nhưng dòng nước hung dữ đã cuốn trôi mọi cột mốc ranh giới ruộng đất! Các nông dân đang tranh cãi kịch liệt.", options: [{ label: "Họ tranh cãi gì?", next: 'ahmes_3' }] },
+            'ahmes_3': { char: 'ahmes', text: "'Đất tôi ở đây!', 'Không, ranh giới phải ở gốc cây kia!'. Nếu không phân xử công bằng, bạo loạn sẽ nổ ra, không ai trồng cấy, và kho lương của Pharaoh sẽ trống rỗng.", options: [{ label: "Ngài sẽ làm gì?", next: 'ahmes_4' }] },
+            'ahmes_4': { char: 'ahmes', text: "Trách nhiệm này thuộc về ta và các <strong>Harpedonaptai</strong> - những 'Người Căng Dây'. Chúng ta không có máy kinh vĩ hay tia laser như thời đại của ngươi. Chúng ta chỉ có một sợi dây thừng.", img: "img_rope_triangle.png", options: [{ label: "Chỉ dây thừng thôi sao?", next: 'ahmes_5' }] },
+            'ahmes_5': { char: 'ahmes', text: "Đừng coi thường sự đơn giản. Sợi dây này được tẩm sáp ong kỹ càng để không bị co giãn khi thấm nước. Trên dây, ta thắt chính xác 13 nút, tạo thành 12 khoảng cách đều nhau.", options: [{ label: "Nó hoạt động thế nào?", next: 'ahmes_6' }] },
+            'ahmes_6': { char: 'ahmes', text: "Hãy xem nhé. Ta gọi 3 người đàn ông khỏe mạnh. Người thứ nhất giữ nút số 1 và nút số 13 chập lại. Người thứ hai giữ nút số 4. Người thứ ba giữ nút số 8.", options: [{ label: "Rồi sao nữa?", next: 'ahmes_7' }] },
+            'ahmes_7': { char: 'ahmes', text: "Khi họ căng dây ra hết cỡ về ba phía, nó tạo thành một hình tam giác có các cạnh là \\(3 - 4 - 5\\) khoảng cách. Tại điểm nối giữa cạnh 3 và cạnh 4, một phép màu xuất hiện.", options: [{ label: "Phép màu gì?", next: 'ahmes_8' }] },
+            'ahmes_8': { char: 'ahmes', text: "Đó là <strong class='text-gold'>Góc Vuông</strong> (\\(90^\\circ\\)) hoàn hảo! Nhờ nó, ta có thể kẻ lại các thửa ruộng hình chữ nhật vuông vức ngay trên nền bùn lầy.", svg: drawRopeTriangle(3,4,5), options: [{ label: "Thật tài tình!", next: 'ahmes_9' }] },
+            'ahmes_9': { char: 'ahmes', text: "Hàng ngàn năm sau, một người Hy Lạp tên là Pythagoras đã chứng minh điều này bằng công thức: \\[3^2 + 4^2 = 5^2\\] (tức là \\(9 + 16 = 25\\)). Nhưng người Ai Cập chúng ta đã biết và dùng nó để xây đền đài từ rất lâu rồi.", options: [{ label: "Ta muốn biết thêm", next: 'seshat_intro' }] },
+            
+            // === SESHAT: LỄ CĂNG DÂY ===
+            'seshat_intro': { char: 'seshat', text: "Khoan đã. Sợi dây của Ahmes không chỉ để đo đất bùn. Ta là <strong>Seshat</strong>, Nữ thần Đo đạc và Văn tự. Trong lễ 'Căng Dây' (Pedj-shes) xây đền thờ, ta dùng sợi dây này để gióng thẳng với các vì sao.", img: "seshat.png", options: [{ label: "Gióng với ngôi sao nào?", next: 'seshat_2' }] },
+            'seshat_2': { char: 'seshat', text: "Ta quan sát chòm sao <i>Meskhetyw</i> (Bắc Đẩu) ngay khi nó chạm đường chân trời. Sợi dây của ta, kết hợp với thước ngắm <i>Merchet</i>, tạo ra trục Bắc-Nam vĩnh cửu. Nhờ đó, Kim Tự Tháp không bao giờ lệch hướng.", options: [{ label: "Thật vĩ đại", next: 'quiz_1_intro' }] },
+
+            // QUIZ 1
+            'quiz_1_intro': { char: 'ahmes', text: "Quay lại với công việc. Ta cần xây móng cho một ngôi đền lớn hơn. Ta dùng dây tạo thành tam giác có cạnh <strong>5, 12, 13</strong>. Liệu nó có tạo ra góc vuông không?", options: [{ label: "Để ta tính thử", next: 'quiz_1' }] },
+            'quiz_1': { 
+                char: 'ahmes', type: 'quiz', 
+                text: "<span class='text-gold'>CÂU ĐỐ 1:</span> Tam giác \\(5 - 12 - 13\\) có vuông không? (Gợi ý: Bình phương cạnh dài nhất có bằng tổng bình phương hai cạnh kia?)", 
+                options: [
+                    { label: "Có, chắc chắn vuông!", correct: true, next: 'quiz_1_correct' }, 
+                    { label: "Không, số lạ quá.", correct: false, next: 'quiz_1_wrong' }
+                ] 
+            },
+            'quiz_1_wrong': { char: 'ahmes', type: 'feedback', text: "Hãy tính toán lại nào!<br>\\[5^2 = 25\\]\\[12^2 = 144\\]Tổng lại: \\(25 + 144 = 169\\).<br>Bây giờ hãy tính cạnh dài nhất: \\(13^2 = 13 \\times 13 = ?\\)", options: [{ label: "À, ta hiểu rồi!", next: 'quiz_1' }] },
+            'quiz_1_correct': { char: 'ahmes', text: "Chính xác! \\(13^2 = 169\\). Hai bên bằng nhau. Tam giác 5-12-13 cũng là một bộ ba thiêng liêng. Ngươi có tố chất của Đại Kiến Trúc Sư đấy.", svg: drawRopeTriangle(5,12,13), options: [{ label: "Cảm ơn ngài", next: 'imhotep_intro' }] },
+
+            // === IMHOTEP: KIẾN TRÚC & SEKED ===
+            'imhotep_intro': { char: 'imhotep', text: "Khá lắm. Ta là <strong>Imhotep</strong>. Ahmes đo đất, Seshat định hướng, còn ta là người dựng đá thành núi. Để ngọn núi đá hàng triệu tấn này không sụp đổ, ngươi phải hiểu về Seked.", img: "imhotep.png", options: [{ label: "Seked là gì?", next: 'seked_2' }] },
+            'seked_2': { char: 'ahmes', text: "Như ngài Imhotep nói. Người đời sau dùng 'độ' để đo góc. Chúng ta dùng tỉ lệ. Seked là số đo độ lùi vào (run) trên mỗi đơn vị chiều cao (rise). Đơn vị chuẩn là 1 Cubit cao (khoảng 52cm).", options: [{ label: "Đơn vị đo là gì?", next: 'seked_3' }] },
+            'seked_3': { char: 'ahmes', text: "1 Cubit Hoàng Gia = 7 Palms (Lòng bàn tay). 1 Palm = 4 Fingers (Ngón tay). Đại Kim Tự Tháp Giza có Seked là <strong>5 palms 2 fingers</strong>.", img: "img_pyramid_seked.png", options: [{ label: "Nó nghĩa là sao?", next: 'seked_4' }] },
+            'seked_4': { char: 'ahmes', text: "Nghĩa là cứ mỗi khi xây cao lên 1 Cubit (7 palms), bức tường đá sẽ lùi vào 5 palms và 2 fingers. Tỉ lệ này tạo nên góc nghiêng huyền thoại \\(51.84^\\circ\\). Chỉ cần sai lệch một ngón tay, đỉnh tháp sẽ không bao giờ khép lại được.", options: [{ label: "Thật phi thường!", next: 'imhotep_challenge' }] },
+
+            // THỬ THÁCH SEKED
+            'imhotep_challenge': { char: 'imhotep', text: "Nghe thì dễ đấy. Nhưng hãy thử tính xem. Nếu ta xây Kim Tự Tháp cao 280 cubit, cạnh đáy 440 cubit. Hãy tính Seked của nó. (Gợi ý: Seked = Nửa cạnh đáy / Chiều cao).", svg: drawSekedDiagram(1, "?"), options: [{ label: "Thử tính", next: 'imhotep_quiz' }] },
+            'imhotep_quiz': { 
+                char: 'imhotep', type: 'quiz', 
+                text: "<span class='text-gold'>CÂU ĐỐ SEKED:</span><br>Nửa cạnh đáy = \\(220\\). Chiều cao = \\(280\\).<br>Tỷ lệ là bao nhiêu?",
+                options: [
+                    { label: "220 / 280 = 11/14", correct: true, next: 'imhotep_correct' },
+                    { label: "280 / 220 = 14/11", correct: false, next: 'imhotep_wrong' }
+                ]
+            },
+            'imhotep_wrong': { char: 'imhotep', type: 'feedback', text: "Sai rồi. Seked là độ lùi (run) trên độ cao (rise). Đừng nhầm lẫn với độ dốc (tangent).", options: [{ label: "Thử lại", next: 'imhotep_quiz' }] },
+            'imhotep_correct': { char: 'imhotep', text: "Chính xác. \\[ \\frac{220}{280} = \\frac{11}{14} \\] đơn vị cubit, tương đương 5 palms 2 fingers. Đó là con số thần thánh giữ vững bầu trời.", svg: drawSekedDiagram(1, 5.5), options: [{ label: "Tiếp tục nào", next: 'circle_1' }] },
+
+            // DIỆN TÍCH HÌNH TRÒN
+            'circle_1': { char: 'ahmes', text: "Không chỉ đo đường thẳng, ta còn phải tính diện tích các kho thóc hình tròn để ước lượng lúa mì. Làm sao tính diện tích hình tròn khi ta chỉ có thước thẳng?", options: [{ label: "Đó là một câu hỏi khó", next: 'circle_2' }] },
+            'circle_2': { char: 'ahmes', text: "Trong cuộn giấy Rhind (Bài toán số 50), ta có một bí quyết: 'Cắt bỏ \\(\\frac{1}{9}\\) đường kính'. Hãy tưởng tượng hình tròn có đường kính là 9 khet.", options: [{ label: "Rồi sao nữa?", next: 'circle_3' }] },
+            'circle_3': { char: 'ahmes', text: "Ta trừ đi 1 phần 9 của nó (tức là trừ đi 1). Còn lại 8. Sau đó bình phương số đó lên: \\(8 \\times 8 = 64\\). Diện tích hình tròn đường kính 9 tương đương với hình vuông cạnh 8.", img: "img_circle_math.png", options: [{ label: "Công thức tổng quát?", next: 'circle_4' }] },
+            'circle_4': { char: 'ahmes', text: "Công thức là: \\[ A \\approx (d - \\frac{1}{9}d)^2 \\]<br>Nếu tính theo ngôn ngữ hiện đại của các ngươi, điều này tương đương với số \\(\\pi \\approx 3.1605\\). Sai số chưa đến 1% so với \\(3.14159...\\). Đủ chính xác để xây dựng mọi thứ!", svg: drawCircleApproximation(), options: [{ label: "Quá ấn tượng!", next: 'chap_2_start' }] },
+
+            // === CHƯƠNG 2: SỐ HỌC ===
+            'chap_2_start': { char: 'ahmes', text: "<span class='text-gold font-title text-3xl block mb-2'>CHƯƠNG 2: KÝ TỰ CỦA CÁC VỊ THẦN</span>Đo đạc xong, giờ ta phải ghi chép lại số lượng lúa mì để thu thuế. Ngươi có biết người Ai Cập viết số <strong>1,234</strong> thế nào không?", options: [{ label: "Dùng ký hiệu đặc biệt?", next: '202' }] },
+            '202': { char: 'ahmes', text: "Chúng ta lấy cảm hứng từ thế giới xung quanh:<br>- 1 là cái Gậy.<br>- 10 là cái Gót chân bò (hoặc cái ách).<br>- 100 là Cuộn dây thừng.<br>- 1,000 là Hoa sen bên sông Nile.", options: [{ label: "Còn số lớn hơn?", next: '203' }] },
+            '203': { char: 'ahmes', text: "- 10,000 là Ngón tay chỉ đường.<br>- 100,000 là con Nòng nọc (vì chúng sinh sôi rất nhiều).<br>- 1,000,000 là thần Heh đang giơ hai tay lên trời kinh ngạc trước sự vô tận!", img: "img_egypt_numerals.png", options: [{ label: "Rất trực quan!", next: '204' }] },
+            '204': { char: 'ahmes', text: "Đây là <strong>Hệ Đếm Cộng</strong> (Additive System). Để viết 1,234, ta không quan tâm thứ tự. Ta cứ vẽ đủ: 1 Hoa sen, 2 Cuộn dây, 3 Gót chân và 4 Gậy. Cộng tất cả lại là ra kết quả.", options: [{ label: "Ta muốn thử viết", next: 'quiz_2_intro' }] },
+
+            // QUIZ 2
+            'quiz_2_intro': { char: 'ahmes', text: "Được thôi. Năm nay, Pharaoh ra lệnh khắc số năm hiện tại lên bia đá kỷ niệm. Giả sử đó là năm <strong>2025</strong>.", options: [{ label: "Sẵn sàng", next: 'quiz_2' }] },
+            'quiz_2': { 
+                char: 'ahmes', type: 'quiz', text: "<span class='text-gold'>CÂU ĐỐ 2:</span> Để khắc số <strong>2025</strong>, ngươi chọn gì?", 
+                options: [
+                    { label: "2 Hoa Sen, 2 Gót Chân, 5 Gậy", correct: true, next: 'quiz_2_correct' }, 
+                    { label: "2 Cuộn Dây, 2 Gót Chân, 5 Gậy", correct: false, next: 'quiz_2_wrong' },
+                    { label: "20 Hoa Sen, 25 Gậy", correct: false, next: 'quiz_2_wrong' }
+                ] 
+            },
+            'quiz_2_wrong': { char: 'ahmes', type: 'feedback', text: "Sai rồi! Hoa sen là 1000. Cuộn dây là 100. Số 2025 không có hàng trăm (số 0), nên không vẽ cuộn dây.", options: [{ label: "Thử lại", next: 'quiz_2' }] },
+            'quiz_2_correct': { char: 'ahmes', text: "Chính xác! \\[1000+1000 + 10+10 + 1+1+1+1+1 = 2025\\] Ngươi đã nắm được cách viết của các thư lại hoàng gia.", options: [{ label: "Còn phép nhân thì sao?", next: 'mult_1' }] },
+
+            // PHÉP NHÂN
+            'mult_1': { char: 'ahmes', text: "Đây là điều thú vị nhất. Chúng ta không học thuộc lòng bảng cửu chương như các ngươi. Chúng ta chỉ cần biết cộng và nhân đôi. Phương pháp này gọi là <strong>Gấp đôi</strong> (Doubling).", options: [{ label: "Ví dụ đi ạ", next: 'mult_2' }] },
+            'mult_2': { char: 'ahmes', text: "Giả sử ta cần tính \\(13 \\times 12\\). Ta sẽ lập hai cột. Cột trái bắt đầu từ 1, cột phải bắt đầu từ 12. Sau đó cứ gấp đôi lên.", options: [{ label: "Xem bảng tính", next: 'mult_3' }] },
+            'mult_3': { char: 'ahmes', text: "Bảng tính như sau:<br>\\(1 \\to 12\\)<br>\\(2 \\to 24\\)<br>\\(4 \\to 48\\)<br>\\(8 \\to 96\\)<br>Ta dừng lại vì nếu gấp đôi tiếp (16) sẽ lớn hơn 13.", options: [{ label: "Rồi làm sao ra kết quả?", next: 'mult_4' }] },
+            'mult_4': { char: 'ahmes', text: "Ta tìm những số ở cột trái cộng lại bằng 13. Đó là \\(8 + 4 + 1 = 13\\).<br>Sau đó, ta cộng các số tương ứng ở cột phải: \\(96 + 48 + 12\\).<br>Kết quả là <strong>156</strong>.", options: [{ label: "Rất giống hệ nhị phân!", next: 'mult_5' }] },
+            'mult_5': { char: 'ahmes', text: "Đúng vậy! Về bản chất, chúng ta đang phân tích số 13 thành tổng các lũy thừa của 2 (\\(13 = 1101_2\\)). Máy tính điện tử hiện đại của các ngươi hoạt động hệt như cách người Ai Cập tính toán 3000 năm trước!", options: [{ label: "Thật đáng kinh ngạc", next: 'frac_intro' }] },
+
+            // PHÂN SỐ & AHA
+            'frac_intro': { char: 'thoth', text: "Nhưng bí mật lớn nhất là Phân số. Trong trận chiến với ác thần Seth, mắt trái của thần Horus đã bị xé nát thành 6 mảnh. Ta đã nhặt lại từng mảnh và chữa lành nó.", img: "img_eye_horus.png", options: [{ label: "Mắt thần liên quan gì?", next: 'frac_explain' }] },
+            'frac_explain': { char: 'thoth', text: "Mỗi mảnh vỡ đại diện cho một phân số nhị phân: \\[\\frac{1}{2}, \\frac{1}{4}, \\frac{1}{8}, \\frac{1}{16}, \\frac{1}{32}, \\frac{1}{64}\\]<br>Khi cộng tất cả lại: \\(\\frac{63}{64}\\). Vẫn thiếu một chút để hoàn hảo.", options: [{ label: "Phần thiếu đi đâu?", next: 'frac_magic' }] },
+            'frac_magic': { char: 'thoth', text: "Phần \\(\\frac{1}{64}\\) còn thiếu đó là phép màu ta bù đắp. Người Ai Cập dùng nó để đong lúa mì và thuốc men.", options: [{ label: "Còn các phân số khác?", next: 'frac_unit' }] },
+            'frac_unit': { char: 'ahmes', text: "Người Ai Cập chúng ta ghét các phân số như \\(\\frac{2}{5}\\) hay \\(\\frac{3}{7}\\). Chúng ta luôn quy đổi mọi thứ về <strong>Phân số Đơn vị</strong> (tử số là 1).<br>Ví dụ: \\[\\frac{2}{3} = \\frac{1}{2} + \\frac{1}{6}\\] Chúng ta có cả một bảng tra cứu để quy đổi nhanh.", options: [{ label: "Rất phức tạp nhưng thú vị", next: 'aha_intro' }] },
+
+            'aha_intro': { char: 'ahmes', text: "Cuối cùng là bài toán <strong>'Aha'</strong>. 'Aha' nghĩa là 'một số lượng chưa biết' (giống x trong đại số hiện đại). Bài toán số 24 trong Rhind Papyrus viết: 'Aha, cộng với \\(\\frac{1}{7}\\) của nó, bằng 19. Hỏi Aha là bao nhiêu?'.", img: "img_aha_math.png", options: [{ label: "Giải thế nào?", next: 'aha_sol' }] },
+            'aha_sol': { char: 'ahmes', text: "Chúng ta dùng phương pháp 'Giả thiết tạm' (False Position). Ta đoán thử Aha là 7. Khi đó \\(7 + 1 = 8\\). Nhưng đề bài cần 19. Ta lấy \\(\\frac{19}{8}\\) rồi nhân với 7 để ra kết quả thật. Đó là khởi nguồn của Đại số!", options: [{ label: "Còn hình học không gian?", next: 'moscow_pyramid' }] },
+            'moscow_pyramid': { char: 'ahmes', text: "Đỉnh cao nhất nằm ở cuộn giấy Moscow. Bài toán số 14: Tính thể tích một hình chóp cụt (Frustum). Công thức chính xác tuyệt đối: \\[V = \\frac{h}{3}(a^2 + ab + b^2)\\] Đây là kiệt tác vĩ đại nhất của toán học Ai Cập, chứng tỏ tư duy trừu tượng cực cao.", img: "img_moscow_papyrus.png", options: [{ label: "Kết thúc Ai Cập", next: 'osiris_intro' }] },
+
+            // === OSIRIS: MA'AT ===
+            'osiris_intro': { char: 'osiris', text: "Khoan đã, nhà lữ hành. Trước khi rời đi, ngươi phải biết mục đích cuối cùng của toán học. Ta là <strong>Osiris</strong>. Tại Đại Sảnh Ma'at, trái tim ngươi sẽ được đặt lên bàn cân.", img: "osiris.png", options: [{ label: "Cân với cái gì?", next: 'osiris_2' }] },
+            'osiris_2': { char: 'osiris', text: "Với chiếc lông vũ Sự Thật. Phép toán cuối cùng là bất đẳng thức: \\[Weight(Tim) \\le Weight(LôngVũ)\\] Nếu sai, Ammit sẽ nuốt chửng linh hồn. Toán học không chỉ là đếm, nó là đạo đức.", options: [{ label: "Thật sâu sắc", next: '301' }] },
+
+            // === CHƯƠNG 3: LƯỠNG HÀ ===
+            '301': { char: 'thoth', text: "Ta để Ahmes và các vị thần Ai Cập ở lại. Bây giờ, hãy theo ta vượt qua sa mạc, đi về phía Đông, đến vùng đất giữa hai dòng sông Tigris và Euphrates - cái nôi của văn minh Lưỡng Hà.", options: [{ label: "Đến Babylon", next: '302' }] },
+            '302': { char: 'kash', text: "Chào! Ta là <strong>Kashshaptu</strong>, thương nhân thành Ur. Ở đây nóng hơn Ai Cập, và chúng ta không dùng giấy cói dễ rách. Chúng ta viết lên đất sét.", img: "img_babylon_tablet.png", options: [{ label: "Đất sét ư?", next: '303' }] },
+            '303': { char: 'kash', text: "Đúng vậy. Đất sét ở đây rất nhiều. Ta dùng cây sậy vót nhọn ấn lên đất sét mềm tạo thành hình cái nêm. Chúng ta gọi là chữ Hình nêm (Cuneiform). Khi nung lên, nó cứng như đá, bền vững ngàn năm.", options: [{ label: "Còn hệ đếm?", next: 'enheduanna_intro' }] },
+            
+            // === ENHEDUANNA: SỐ 60 ===
+            'enheduanna_intro': { char: 'enheduanna', text: "Kashshaptu chỉ quan tâm đến tiền. Còn ta, <strong>Enheduanna</strong>, Đại Tư Tế, ta quan tâm đến thời gian. Tại sao chúng ta dùng cơ số 60? Vì Mặt Trăng và Mặt Trời.", img: "enheduanna.png", options: [{ label: "Tại sao vậy?", next: 'enhe_2' }] },
+            'enhe_2': { char: 'enheduanna', text: "Một năm có 360 ngày (làm tròn). Mặt Trăng chu kỳ 30 ngày. \\(12 \\text{ tháng} \\times 30 \\text{ ngày} = 360\\). Số 60 là con số hòa hợp giữa thần thánh và con người.", options: [{ label: "Và nó cũng tiện lợi?", next: '304' }] },
+
+            // HỆ ĐẾM 60
+            '304': { char: 'kash', text: "Đúng như Đại Tư Tế nói. Nhưng với thương nhân, 60 là con số 'Vua' vì tính chia chác. Người Ai Cập dùng cơ số 10, nhưng 60 mới là ưu việt.", options: [{ label: "Tại sao lại là 60?", next: '305' }] },
+            '305': { char: 'kash', text: "Hãy nghĩ về việc chia chác. Số 10 chỉ chia hết cho 2 và 5. Nhưng số 60 chia hết cho 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30. Tưởng tượng ngươi có 60 bao lúa, ngươi có thể chia đều cho rất nhiều đối tác mà không bị lẻ!", options: [{ label: "Thật thực dụng!", next: 'quiz_3_intro' }] },
+
+            // QUIZ 3
+            'quiz_3_intro': { char: 'kash', text: "Để xem ngươi có hiểu tư duy thương nhân Babylon không. Hãy trả lời câu hỏi này.", options: [{ label: "Sẵn sàng", next: 'quiz_3' }] },
+            'quiz_3': { char: 'kash', type: 'quiz', text: "<span class='text-gold'>CÂU ĐỐ 3:</span> Tại sao hệ đếm cơ số 60 lại ưu việt hơn cơ số 10 trong việc chia chác?", options: [{ label: "Vì nó có nhiều ước số hơn", correct: true, next: 'quiz_3_correct' }, { label: "Vì số 60 to hơn số 10", correct: false, next: 'quiz_3_wrong' }] },
+            'quiz_3_wrong': { char: 'kash', type: 'feedback', text: "Không phải vì lớn. Số 100 cũng lớn nhưng không chia hết cho 3. Sức mạnh của 60 nằm ở khả năng chia nhỏ linh hoạt (cho 3, 4, 6...). Thử lại đi!", options: [{ label: "Ta hiểu rồi", next: 'quiz_3' }] },
+            'quiz_3_correct': { char: 'kash', text: "Chính xác! Di sản này vĩ đại đến mức hàng ngàn năm sau, thế giới của các ngươi vẫn dùng nó: 1 giờ có 60 phút, 1 phút có 60 giây, và 1 vòng tròn có 360 độ. Đó là quà tặng của Babylon.", options: [{ label: "Còn gì đặc biệt?", next: '306' }] },
+
+            // PLACE VALUE
+            '306': { char: 'kash', text: "Chúng ta còn phát minh ra <strong>Hệ Vị Trí</strong> (Place Value). Ký hiệu '1' (cái đinh) nếu đứng ở vị trí thứ hai sẽ có giá trị là 60. Điều này cho phép tính toán những con số thiên văn khổng lồ chỉ với 2 ký hiệu đơn giản.", options: [{ label: "Nghe nói về Plimpton 322?", next: '307' }] },
+            '307': { char: 'kash', text: "À, tấm bảng đất sét nổi tiếng! Nó chứa danh sách 15 bộ ba số Pitago (như 119, 120, 169). Điều này chứng minh chúng ta đã biết về tam giác vuông và lượng giác cả ngàn năm trước khi Pitago ra đời!", img: "img_babylon_tablet.png", options: [{ label: "Thật không ngờ!", next: '308' }] },
+
+            // YBC 7289
+            '308': { char: 'kash', text: "Và tấm bảng <strong>YBC 7289</strong> nữa. Chúng ta đã tính được căn bậc hai của 2 chính xác tới 6 chữ số thập phân: \\[\\sqrt{2} \\approx 1.414213...\\] Toán học của chúng ta không chỉ là đếm cừu, đó là chìa khóa giải mã vũ trụ.", img: "img_ybc_7289.png", options: [{ label: "Còn thiên văn học?", next: '309' }] },
+            '309': { char: 'kash', text: "Các tư tế Babylon quan sát bầu trời mỗi đêm từ các tháp Ziggurat. Chúng ta dùng hình học hình thang để tính vị trí sao Mộc (Jupiter). Chúng ta biết quy luật của các vì sao trước cả phương Tây.", img: "img_jupiter_tablet.png", options: [{ label: "Kết thúc hành trình", next: 'finish' }] }
+        };
+
+        // --- ENGINE ---
+        const storyEl = document.getElementById('story-content');
+        const visualEl = document.getElementById('visual-content');
+        const controlsEl = document.getElementById('controls');
+        const charImg = document.getElementById('char-img');
+        const charName = document.getElementById('char-name');
+        const charRole = document.getElementById('char-role');
+
+        function renderScene(sceneId) {
+            if (sceneId === 'finish') { showReward(); return; }
+
+            const scene = scenes[sceneId];
+            if (!scene) { console.error("Scene missing:", sceneId); return; }
+
+            const character = CHARACTERS[scene.char || 'ahmes'];
+
+            // Character Effect Transition
+            if (charName.innerText !== character.name) {
+                // Fade out old
+                charImg.classList.remove('active', 'char-img-effect');
+                charImg.style.opacity = '0';
+                charImg.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    // Update content
+                    charImg.src = character.img;
+                    charName.innerText = character.name;
+                    charRole.innerText = character.role;
+                    
+                    // Fade in new
+                    charImg.onload = () => {
+                         charImg.style.opacity = '1';
+                         charImg.style.transform = 'translateY(0)';
+                         charImg.classList.add('char-img-effect', 'active');
+                    };
+                    // Fallback if cached
+                    if (charImg.complete) {
+                         charImg.style.opacity = '1';
+                         charImg.style.transform = 'translateY(0)';
+                         charImg.classList.add('char-img-effect', 'active');
+                    }
+                }, 400);
+            } else {
+                // Ensure active class is present even if same char
+                charImg.classList.add('active');
+            }
+
+            // Content Transition
+            storyEl.style.opacity = '0';
+            visualEl.style.opacity = '0';
+            visualEl.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                storyEl.innerHTML = scene.text;
+                renderMathInElement(storyEl, {
+                    delimiters: [
+                        {left: "\\[", right: "\\]", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ],
+                    throwOnError: false
+                });
+                
+                visualEl.innerHTML = '';
+                
+                // --- MODIFIED LOGIC START ---
+                // Only show image if it is NOT the same as the current character
+                let showImage = false;
+                if (scene.img) {
+                    if (scene.img !== character.img) {
+                        showImage = true;
+                        visualEl.innerHTML = `<div class="media-box"><div class="img-loading"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><br>Đang tải minh họa...</div><img src="${scene.img}" onload="this.classList.add('loaded')" class="img-content"></div>`;
+                    } else {
+                        // Image matches character, so don't show in dialog box
+                        showImage = false;
+                    }
+                } else if (scene.svg) {
+                    showImage = true;
+                    visualEl.innerHTML = scene.svg;
+                }
+
+                if (showImage) {
+                    visualEl.style.display = 'flex';
+                } else {
+                    visualEl.style.display = 'none';
+                }
+                // --- MODIFIED LOGIC END ---
+
+                setTimeout(() => {
+                    storyEl.style.opacity = '1';
+                    visualEl.style.opacity = '1';
+                    visualEl.style.transform = 'translateY(0)';
+                }, 50);
+            }, 300);
+
+            // Controls
+            controlsEl.innerHTML = '';
+            const btnClass = scene.type === 'quiz' ? 
+                "btn-action w-full md:w-auto flex-1 mx-1 rounded-lg text-sm md:text-base mb-2 md:mb-0" : 
+                "btn-action w-full md:w-auto min-w-[180px] rounded-lg text-sm md:text-base";
+
+            scene.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = btnClass;
+                btn.innerText = opt.label;
+                
+                // Add hover sound effect logic here if needed
+                
+                btn.onclick = () => {
+                    if (scene.type === 'quiz') {
+                        if (opt.correct) {
+                            btn.classList.add('btn-correct');
+                            // Add success sound here
+                            setTimeout(() => renderScene(opt.next), 1000);
+                        } else {
+                            btn.classList.add('btn-wrong');
+                            // Add error sound here
+                            setTimeout(() => renderScene(opt.next), 1000);
+                        }
+                    } else {
+                        renderScene(opt.next);
+                    }
+                };
+                controlsEl.appendChild(btn);
+            });
+        }
+
+        function showReward() { 
+            const overlay = document.getElementById('reward-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+            }, 50);
+        }
+        function goHome() { try { window.parent.closeViewer(); } catch(e) { window.location.href = 'lichsutoan.html'; } }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderScene('intro_0');
+            // Init KaTeX globally
+            renderMathInElement(document.body);
+        });
+    </script>
+</body>
+</html>
