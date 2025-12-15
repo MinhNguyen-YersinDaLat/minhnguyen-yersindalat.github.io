@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ai Cập Cổ Đại - Bí Mật Sợi Dây Thần Thánh</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts đồng bộ với trang chủ -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        egypt: {
+                            gold: '#FFD700',
+                            dark: '#0B0F19',
+                            sand: '#1c1917',
+                            accent: '#F59E0B'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #0B0F19; 
+            color: #e2e8f0; 
+            font-family: 'Be Vietnam Pro', sans-serif; 
+            overflow: hidden; 
+            touch-action: pan-y; /* Cho phép cuộn dọc, chặn cuộn ngang để xử lý swipe */
+        }
+
+        /* Scrollbar ẩn nhưng vẫn cuộn được */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+            -webkit-overflow-scrolling: touch; /* Smooth scroll iOS */
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Họa tiết nền Ai Cập mờ ảo */
+        .bg-pattern {
+            position: fixed; inset: 0; pointer-events: none; opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: 0;
+        }
+
+        /* Hiệu ứng nhân vật nổi */
+        .char-container {
+            position: relative;
+            transition: transform 0.5s ease-out;
+        }
+        .char-float { 
+            animation: float 6s ease-in-out infinite; 
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.1));
+        }
+        @keyframes float { 
+            0%, 100% { transform: translateY(0px); } 
+            50% { transform: translateY(-10px); } 
+        }
+
+        /* Hộp thoại phong cách Hoàng gia */
+        .dialog-box {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 4px solid #F59E0B;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* Nút bấm phong cách cổ điển */
+        .btn-action {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+            color: #fff;
+            border: 1px solid #fbbf24;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-action:active { transform: scale(0.95); } /* Feedback khi chạm */
+        
+        .btn-action::after {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent);
+            transform: translateY(-100%);
+            transition: transform 0.3s;
+        }
+        .btn-action:hover::after { transform: translateY(0); }
+
+        /* Typography */
+        .text-gold { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+        .font-title { font-family: 'Cormorant Garamond', serif; }
+
+        /* Hiệu ứng Mộc đỏ */
+        .seal-animate { animation: sealStamp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: scale(3); }
+        @keyframes sealStamp { to { opacity: 1; transform: scale(1); } }
+
+        /* SVG Animation */
+        .draw-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 3s ease-in-out forwards;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Hint Swipe */
+        .swipe-hint {
+            animation: swipeAnim 2s infinite;
+        }
+        @keyframes swipeAnim {
+            0%, 100% { opacity: 0; transform: translateX(0); }
+            50% { opacity: 1; transform: translateX(-10px); }
+        }
+    </style>
+</head>
+<body class="h-screen w-full relative flex flex-col md:flex-row overflow-hidden">
+
+    <div class="bg-pattern"></div>
+
+    <!-- KHU VỰC NHÂN VẬT (Bên trái/Trên) -->
+    <div class="w-full md:w-[45%] h-[35%] md:h-full flex items-center justify-center relative z-10 p-4 order-1 transition-all duration-500 select-none">
+        <div class="char-container char-float w-full h-full flex items-center justify-center relative">
+            <!-- Hào quang phía sau -->
+            <div class="absolute w-[300px] h-[300px] bg-amber-500/10 rounded-full blur-[80px]"></div>
+            
+            <!-- ẢNH NHÂN VẬT -->
+            <img src="ahmes.png" 
+                 onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmes&skinColor=brown&top=turban&clothing=collarAndSweater&clothesColor=blue03'" 
+                 class="max-h-full max-w-full object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-105 pointer-events-none" 
+                 alt="Ahmes the Scribe">
+            
+            <!-- Thẻ tên nhân vật -->
+            <div class="absolute bottom-2 md:bottom-10 bg-black/60 backdrop-blur-md border border-amber-500/50 px-6 py-2 rounded-full shadow-xl">
+                <h2 class="text-amber-400 font-title font-bold text-xl md:text-2xl tracking-widest text-center">AHMES</h2>
+                <p class="text-slate-400 text-[10px] md:text-xs text-center uppercase tracking-wider">Hoàng Gia Thư Lại - 1650 TCN</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHU VỰC HỘI THOẠI (Bên phải/Dưới) -->
+    <!-- Thêm ID swipe-area để bắt sự kiện vuốt -->
+    <div id="swipe-area" class="w-full md:w-[55%] h-[65%] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-8 z-20 order-2 relative">
+        
+        <!-- Hộp thoại chính -->
+        <div class="dialog-box w-full h-full md:h-auto md:min-h-[500px] md:rounded-2xl flex flex-col p-6 md:p-10 transition-all">
+            
+            <!-- Trang trí góc -->
+            <div class="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-amber-500/50"></div>
+            <div class="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-amber-500/50"></div>
+            <div class="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-amber-500/50"></div>
+            <div class="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-amber-500/50"></div>
+
+            <!-- Khu vực nội dung cuộn -->
+            <div class="flex-1 overflow-y-auto scrollbar-hide mb-4 md:mb-6 relative flex flex-col" id="content-scroller">
+                
+                <!-- Văn bản truyện -->
+                <div id="story-content" class="text-lg md:text-2xl leading-relaxed text-slate-200 font-serif font-medium mb-6 select-none">
+                    <!-- Text will be typed here -->
+                </div>
+
+                <!-- Khu vực hiển thị ảnh minh họa (SVG) -->
+                <div id="visual-content" class="w-full flex justify-center items-center py-4 empty:hidden transition-all duration-500">
+                    <!-- SVG injected here -->
+                </div>
+            </div>
+
+            <!-- Khu vực nút bấm -->
+            <div id="controls" class="flex flex-col md:flex-row gap-3 justify-end items-center flex-shrink-0 min-h-[60px] pt-4 border-t border-white/10 relative">
+                <!-- Hint swipe text (mobile only) -->
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 uppercase tracking-widest md:hidden flex items-center gap-1 opacity-50">
+                    <i class="fas fa-chevron-left swipe-hint"></i> Vuốt
+                </div>
+                <!-- Buttons injected by JS -->
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PHẦN THƯỞNG (Overlay) -->
+    <div id="reward-overlay" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center hidden backdrop-blur-lg p-4">
+        <div id="seal-container" class="mb-8 transform scale-150 md:scale-100"></div>
+        <h2 class="text-3xl md:text-5xl font-title font-bold text-amber-500 mb-4 tracking-widest text-center animate-pulse">DANH HIỆU CAO QUÝ</h2>
+        <p class="text-slate-300 font-sans text-center max-w-lg mb-10 text-lg">
+            Bạn đã được công nhận là một <span class="text-amber-400 font-bold">Harpedonaptai</span> (Người căng dây) hoàng gia!
+        </p>
+        <button onclick="goHome()" class="btn-action px-10 py-4 rounded-full text-lg shadow-[0_0_30px_rgba(245,158,11,0.4)]">
+            Trở Về Bảo Tàng
+        </button>
+    </div>
+
+    <script>
+        // --- SVG HELPER ---
+        const getTriangle345 = () => `
+            <svg width="300" height="250" viewBox="0 0 300 250" class="bg-black/30 rounded-lg p-4 border border-amber-500/30">
+                <defs>
+                    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L9,3 z" fill="#fbbf24" />
+                    </marker>
+                </defs>
+                <line x1="50" y1="200" x2="250" y2="200" stroke="#fbbf24" stroke-width="4" />
+                <text x="150" y="230" fill="#fbbf24" font-family="serif" font-size="20" text-anchor="middle">4 (Đáy)</text>
+                <line x1="50" y1="200" x2="50" y2="50" stroke="#fbbf24" stroke-width="4" />
+                <text x="30" y="125" fill="#fbbf24" font-family="serif" font-size="20" text-anchor="end" transform="rotate(-90 30,125)">3 (Cao)</text>
+                <line x1="50" y1="50" x2="250" y2="200" stroke="#ef4444" stroke-width="4" class="draw-path" />
+                <text x="160" y="110" fill="#ef4444" font-family="serif" font-size="20" text-anchor="middle" font-weight="bold">5 (Huyền)</text>
+                <path d="M50 180 L70 180 L70 200" fill="none" stroke="#fbbf24" stroke-width="2" />
+                <circle cx="60" cy="190" r="2" fill="#fbbf24" />
+                <circle cx="50" cy="200" r="6" fill="#fff" />
+                <circle cx="100" cy="200" r="4" fill="#fbbf24" />
+                <circle cx="150" cy="200" r="4" fill="#fbbf24" />
+                <circle cx="200" cy="200" r="4" fill="#fbbf24" />
+                <circle cx="250" cy="200" r="6" fill="#fff" />
+                <circle cx="50" cy="50" r="6" fill="#fff" />
+            </svg>
+        `;
+
+        const getTriangle51213 = () => `
+            <svg width="320" height="200" viewBox="0 0 320 200" class="bg-black/30 rounded-lg p-4 border border-amber-500/30">
+                <line x1="20" y1="180" x2="260" y2="180" stroke="#94a3b8" stroke-width="3" stroke-dasharray="5,5" />
+                <text x="140" y="195" fill="#94a3b8" font-family="sans-serif" font-size="14">12</text>
+                <line x1="20" y1="180" x2="20" y2="80" stroke="#94a3b8" stroke-width="3" stroke-dasharray="5,5" />
+                <text x="10" y="130" fill="#94a3b8" font-family="sans-serif" font-size="14" text-anchor="end">5</text>
+                <line x1="20" y1="80" x2="260" y2="180" stroke="#ef4444" stroke-width="4" />
+                <text x="150" y="120" fill="#ef4444" font-family="sans-serif" font-size="16" font-weight="bold">13 ?</text>
+                <text x="35" y="165" fill="#fbbf24" font-size="24" font-weight="bold">?</text>
+            </svg>
+        `;
+
+        // --- DỮ LIỆU CỐT TRUYỆN ---
+        const storyData = [
+            {
+                text: "<span class='text-gold font-bold text-3xl font-title uppercase tracking-widest block mb-4 border-b border-white/20 pb-2'>BỐI CẢNH LỊCH SỬ</span>Chào mừng đến với Ai Cập cổ đại, cái nôi của nền văn minh nhân loại khoảng 3000 năm trước Công nguyên. Tại đây, bên dòng sông Nile hùng vĩ, Toán học không sinh ra từ những tháp ngà học thuật, mà từ bùn đất và mồ hôi.<br><br>Người Ai Cập cần Toán học để đo lại ruộng đất sau mỗi mùa lũ, để tính toán hàng triệu khối đá xây Kim Tự Tháp, và để phân chia lương thực. Đây là kỷ nguyên của <strong>Toán học Thực hành</strong> - nơi con số phục vụ cuộc sống.",
+                options: [{ label: "Gặp gỡ nhân vật chính", next: 1 }]
+            },
+            {
+                text: "Chào mừng, hỡi người lữ khách đến từ tương lai xa xôi. Ta là <span class='text-gold font-bold'>Ahmes</span>. Ngươi đến thật đúng lúc! Hãy nhìn ra ngoài kia...",
+                options: [{ label: "Ngài đang nhìn gì vậy?", next: 2 }]
+            },
+            {
+                text: "Dòng sông Nile vĩ đại vừa rút nước sau mùa lũ. Nàng để lại lớp phù sa đen nhánh quý giá cho mùa màng bội thu. Nhưng hỡi ôi, Nàng cũng đã cuốn trôi mọi cột mốc ranh giới của các thửa ruộng!",
+                options: [{ label: "Đó hẳn là một thảm họa!", next: 3 }]
+            },
+            {
+                text: "Đúng vậy! Nông dân đang tranh cãi kịch liệt. Người thì nói đất mình rộng hơn, kẻ thì bảo ranh giới phải ở đằng kia. Pharaoh đã lệnh cho ta phải đo đạc lại tất cả một cách công bằng nhất.",
+                options: [{ label: "Ngài sẽ làm thế nào?", next: 4 }]
+            },
+            {
+                text: "Ta không có những cỗ máy đo đạc tinh xảo như thời đại của ngươi. Ta chỉ có một thứ vũ khí bí mật: <span class='text-gold font-bold text-xl'>Một sợi dây thừng</span>.",
+                options: [{ label: "Chỉ một sợi dây ư?", next: 5 }, { label: "Dây thừng thì làm được gì?", next: 5 }]
+            },
+            {
+                text: "Đừng vội coi thường! Trên sợi dây này, ta đã thắt <span class='text-gold font-bold'>13 nút thắt</span> cách đều nhau, tạo thành <span class='text-gold font-bold'>12 khoảng cách</span> bằng nhau. Đây là bảo vật của các 'Harpedonaptai' (Người căng dây).",
+                options: [{ label: "Nó hoạt động ra sao?", next: 6 }]
+            },
+            {
+                text: "Hãy quan sát kỹ nhé. Ta nhờ ba người nô lệ giữ ba nút thắt tại các vị trí số 1, số 4 và số 8. Khi họ căng dây ra, nó tạo thành một tam giác có các cạnh là <span class='text-gold text-2xl'>3</span>, <span class='text-gold text-2xl'>4</span> và <span class='text-gold text-2xl'>5</span> đơn vị.",
+                svg: getTriangle345(),
+                options: [{ label: "Ồ! Nó tạo thành Góc Vuông!", next: 7 }]
+            },
+            {
+                text: "Ngươi rất tinh mắt! Chính xác là một góc vuông hoàn hảo $$90^\\circ$$. Nhờ nó, ta có thể kẻ lại các góc ruộng hình chữ nhật, và thậm chí các kiến trúc sư đã dùng nó để xây móng cho Đại Kim Tự Tháp Giza sừng sững kia.<br><br>Bí mật nằm ở chỗ: $$3^2 + 4^2 = 9 + 16 = 25 = 5^2$$.",
+                options: [{ label: "Thật đơn giản mà vĩ đại!", next: 8 }]
+            },
+            {
+                type: "quiz",
+                text: "Giờ hãy để ta thử thách trí tuệ của ngươi một chút. Giả sử ta muốn đo một mảnh đất lớn hơn, và ta dùng một sợi dây dài hơn tạo thành tam giác có ba cạnh là: <span class='text-gold font-bold text-2xl'>5, 12, 13</span>.<br>Theo ngươi, tam giác này có tạo ra góc vuông không?",
+                svg: getTriangle51213(),
+                options: [
+                    { label: "Có, chắc chắn vuông!", correct: true }, 
+                    { label: "Không, nhìn nó méo lắm.", correct: false }
+                ]
+            },
+            {
+                type: "feedback_wrong",
+                text: "Hãy bình tĩnh và tính toán lại nào người bạn trẻ! <br><br> $$5^2 = 25$$ <br> $$12^2 = 144$$ <br> Tổng cộng: $$25 + 144 = 169$$. <br><br> Mà cạnh dài nhất: $$13^2$$ cũng chính bằng $$169$$. <br> Vậy nó phải là tam giác vuông chứ!",
+                options: [{ label: "À, tôi hiểu rồi! Thử lại nhé.", next: 8 }]
+            }
+        ];
+
+        let currentIndex = 0;
+        const storyEl = document.getElementById('story-content');
+        const visualEl = document.getElementById('visual-content');
+        const controlsEl = document.getElementById('controls');
+
+        // --- HÀM RENDER ---
+        function renderScene(index) {
+            const scene = storyData[index];
+            
+            storyEl.style.opacity = '0';
+            storyEl.style.transform = 'translateY(10px)';
+            visualEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                storyEl.innerHTML = scene.text;
+                renderMathInElement(storyEl, {
+                    delimiters: [{left: "$$", right: "$$", display: true}],
+                    throwOnError: false
+                });
+                
+                if (scene.svg) {
+                    visualEl.innerHTML = scene.svg;
+                    visualEl.style.display = 'flex';
+                    setTimeout(() => visualEl.style.opacity = '1', 100);
+                } else {
+                    visualEl.style.display = 'none';
+                    visualEl.innerHTML = '';
+                }
+
+                storyEl.style.opacity = '1';
+                storyEl.style.transform = 'translateY(0)';
+            }, 200);
+
+            controlsEl.innerHTML = `
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 uppercase tracking-widest md:hidden flex items-center gap-1 opacity-50">
+                    <i class="fas fa-chevron-left swipe-hint"></i> Vuốt
+                </div>
+            `;
+            
+            if (scene.type === 'quiz') {
+                scene.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "btn-action px-6 py-4 w-full md:w-auto rounded-lg text-sm md:text-lg shadow-lg flex-1 mx-1";
+                    btn.innerText = opt.label;
+                    btn.onclick = () => handleQuiz(opt.correct);
+                    controlsEl.appendChild(btn);
+                });
+            } else {
+                scene.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "btn-action px-8 py-3 rounded-full text-sm md:text-lg min-w-[120px]";
+                    btn.innerHTML = `${opt.label} <i class="fas fa-arrow-right ml-2 text-xs"></i>`;
+                    btn.onclick = () => {
+                        currentIndex = opt.next;
+                        renderScene(currentIndex);
+                    };
+                    controlsEl.appendChild(btn);
+                });
+            }
+        }
+
+        function handleQuiz(isCorrect) {
+            if (isCorrect) {
+                showReward();
+            } else {
+                renderScene(storyData.length - 1); // Jump to feedback
+            }
+        }
+
+        // --- SWIPE LOGIC (Nâng cấp) ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        const swipeArea = document.getElementById('swipe-area');
+
+        swipeArea.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        swipeArea.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const SWIPE_THRESHOLD = 50;
+            if (touchStartX - touchEndX > SWIPE_THRESHOLD) {
+                // Swipe Left -> Next
+                const scene = storyData[currentIndex];
+                if (scene.type !== 'quiz' && scene.options.length > 0) {
+                    currentIndex = scene.options[0].next;
+                    renderScene(currentIndex);
+                }
+            }
+            // Optional: Swipe Right -> Back (nếu cần)
+        }
+
+        // --- SMART HOME BUTTON ---
+        function goHome() {
+            try {
+                // Nếu đang trong Iframe (được mở từ lichsutoan.html)
+                if (window.parent && window.parent.closeViewer && window.self !== window.parent) {
+                    window.parent.closeViewer();
+                } else {
+                    // Nếu mở file độc lập
+                    window.location.href = 'lichsutoan.html';
+                }
+            } catch (e) {
+                // Fallback nếu bị chặn cross-origin
+                window.location.href = 'lichsutoan.html';
+            }
+        }
+
+        function showReward() {
+            const overlay = document.getElementById('reward-overlay');
+            const container = document.getElementById('seal-container');
+            
+            const svgSeal = `
+                <svg width="220" height="220" viewBox="0 0 200 200" class="seal-animate mx-auto filter drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+                    <circle cx="100" cy="100" r="95" fill="none" stroke="#FFD700" stroke-width="2" />
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="#B45309" stroke-width="8" />
+                    <circle cx="100" cy="100" r="82" fill="#0F172A" />
+                    <path d="M100 40 L155 140 H45 Z" fill="none" stroke="#FFD700" stroke-width="3" />
+                    <circle cx="45" cy="140" r="4" fill="#F59E0B" />
+                    <circle cx="155" cy="140" r="4" fill="#F59E0B" />
+                    <circle cx="100" cy="40" r="4" fill="#F59E0B" />
+                    <path id="curveTop" d="M 30,100 A 70,70 0 0,1 170,100" fill="none" />
+                    <text font-family="serif" font-size="16" font-weight="bold" fill="#FFD700" text-anchor="middle" letter-spacing="2">
+                        <textPath href="#curveTop" startOffset="50%">HARPEDONAPTAI</textPath>
+                    </text>
+                    <text x="100" y="170" font-family="serif" font-size="12" fill="#94A3B8" text-anchor="middle" letter-spacing="1">MASTER ARCHITECT</text>
+                    <path d="M100 80 Q120 80 120 90 Q100 105 80 90 Q80 80 100 80 Z" fill="none" stroke="#F59E0B" stroke-width="2"/>
+                    <circle cx="100" cy="90" r="5" fill="#FFD700"/>
+                </svg>
+            `;
+            
+            container.innerHTML = svgSeal;
+            overlay.classList.remove('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const storyContent = document.getElementById('story-content');
+            storyContent.style.transition = 'all 0.5s ease-out';
+            renderScene(0);
+        });
+    </script>
+</body>
+</html>
