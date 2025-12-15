@@ -7,7 +7,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <!-- Cormorant Garamond: Giống font sách toán cổ điển/LaTeX, hỗ trợ Tiếng Việt tuyệt đối -->
+    <!-- Be Vietnam Pro: Font hiện đại, dễ đọc cho mô tả -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -15,22 +17,24 @@
             theme: {
                 extend: {
                     colors: {
-                        deep: '#020617',
-                        gold: '#fbbf24',
-                        glass: 'rgba(15, 23, 42, 0.6)',
+                        deep: '#0B0F19', // Darker math background
+                        gold: '#F59E0B',
+                        paper: '#FDFBF7', // Old paper color hint
+                        glass: 'rgba(20, 30, 48, 0.7)',
                         glassBorder: 'rgba(255, 255, 255, 0.08)',
                         vietnam: '#da251d',
                     },
                     fontFamily: {
-                        serif: ['Cinzel', 'serif'],
-                        sans: ['Inter', 'sans-serif'],
-                        script: ['Dancing Script', 'cursive'],
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                        math: ['"Times New Roman"', 'serif'], // For symbols
                     },
                     animation: {
-                        'float-slow': 'float 8s ease-in-out infinite',
-                        'float-medium': 'float 5s ease-in-out infinite',
-                        'float-fast': 'float 3s ease-in-out infinite',
+                        'float-slow': 'float 10s ease-in-out infinite',
+                        'float-medium': 'float 7s ease-in-out infinite',
+                        'float-fast': 'float 5s ease-in-out infinite',
                         'pulse-glow': 'pulseGlow 3s infinite',
+                        'spin-slow': 'spin 15s linear infinite',
                     },
                     keyframes: {
                         float: {
@@ -38,8 +42,8 @@
                             '50%': { transform: 'translateY(-20px) rotate(5deg)' },
                         },
                         pulseGlow: {
-                            '0%, 100%': { opacity: 0.6, transform: 'scale(1)' },
-                            '50%': { opacity: 1, transform: 'scale(1.1)' },
+                            '0%, 100%': { opacity: 0.6, boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)' },
+                            '50%': { opacity: 1, boxShadow: '0 0 25px rgba(245, 158, 11, 0.6)' },
                         }
                     }
                 }
@@ -48,134 +52,190 @@
     </script>
 
     <style>
-        body { background-color: #020617; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #0B0F19; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         
+        /* GRAPH PAPER BACKGROUND EFFECT */
+        .grid-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none; z-index: 0;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
         /* Math Symbols Background */
         .math-symbol {
             position: fixed;
-            color: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.04);
             font-family: 'Times New Roman', serif;
             font-style: italic;
+            font-weight: bold;
             user-select: none;
             pointer-events: none;
             z-index: 0;
+            text-shadow: 0 0 5px rgba(255,255,255,0.1);
         }
 
         /* Timeline Line */
         .timeline-track {
-            position: absolute; left: 24px; top: 0; bottom: 0; width: 2px;
+            position: absolute; left: 28px; top: 0; bottom: 0; width: 1px;
             background: linear-gradient(to bottom, transparent, #fbbf24, #ef4444, #38bdf8, #a855f7, transparent);
             z-index: 1;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
         }
         
         @media (min-width: 768px) {
             .timeline-track { left: 50%; transform: translateX(-50%); }
         }
 
-        /* Glassmorphism Card */
+        /* Glassmorphism Card with Math Border */
         .milestone-card {
             background: var(--glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glassBorder);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            border-left: 2px solid rgba(251, 191, 36, 0.3); /* Math definition style border */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .milestone-card:active { transform: scale(0.98); }
+        
+        .milestone-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .milestone-card:hover::before {
+            transform: translateX(100%);
+        }
+
         @media (hover: hover) {
             .milestone-card:hover {
-                transform: translateY(-5px);
+                transform: translateY(-5px) scale(1.01);
                 border-color: #fbbf24;
-                box-shadow: 0 10px 40px -10px rgba(251, 191, 36, 0.15);
+                box-shadow: 0 15px 50px -10px rgba(0, 0, 0, 0.5);
             }
         }
 
         /* Navigation Menu */
         .nav-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            position: fixed; inset: 0; background: rgba(5, 10, 20, 0.95); backdrop-filter: blur(15px);
             z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
             display: flex; align-items: center; justify-content: center;
         }
         .nav-overlay.active { opacity: 1; pointer-events: auto; }
         
         .nav-content {
-            transform: translateY(20px); transition: transform 0.3s ease;
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .nav-overlay.active .nav-content { transform: translateY(0); }
+        .nav-overlay.active .nav-content { transform: scale(1); }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0B0F19; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #fbbf24; }
     </style>
 </head>
-<body class="relative min-h-screen">
+<body class="relative min-h-screen font-sans selection:bg-amber-500/30 selection:text-amber-200">
+
+    <!-- Grid Background -->
+    <div class="grid-bg"></div>
 
     <!-- Dynamic Background Symbols (Injected via JS) -->
     <div id="math-bg-container"></div>
 
     <!-- Header -->
-    <header class="relative z-20 pt-16 pb-8 text-center px-4">
-        <h1 class="text-3xl md:text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 mb-2 tracking-wider drop-shadow-lg">
-            SỬ KÝ TOÁN HỌC
-        </h1>
-        <p class="text-slate-400 font-light text-xs md:text-sm tracking-[0.3em] uppercase opacity-80">
-            Từ Bình Minh Cổ Đại Đến Kỷ Nguyên Số
-        </p>
+    <header class="relative z-20 pt-20 pb-12 text-center px-4">
+        <div class="inline-block relative">
+            <!-- Decorative Sigma -->
+            <div class="absolute -left-8 -top-8 text-6xl text-white/5 font-serif font-bold animate-float-slow">∑</div>
+            <div class="absolute -right-8 -bottom-4 text-6xl text-white/5 font-serif font-bold animate-float-medium">∫</div>
+
+            <h1 class="text-4xl md:text-7xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-500 mb-4 tracking-wide drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)] leading-tight py-2">
+                Sử Ký Toán Học
+            </h1>
+            <div class="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-amber-500 to-transparent mb-4"></div>
+            <p class="text-slate-400 font-light text-sm md:text-base tracking-[0.2em] uppercase opacity-90 font-serif italic">
+                <span class="text-amber-500">f(x)</span> = Hành trình từ Cổ đại đến Tương lai
+            </p>
+        </div>
     </header>
 
-    <!-- SEARCH / NAVIGATION FAB (Floating Action Button) -->
-    <button onclick="toggleNav()" class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.5)] flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-300 animate-pulse-glow">
-        <i class="fas fa-compass text-2xl"></i>
+    <!-- SEARCH / NAVIGATION FAB -->
+    <button onclick="toggleNav()" class="fixed bottom-8 right-6 z-50 w-14 h-14 bg-slate-800 border border-amber-500/30 rounded-full shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center justify-center text-amber-400 hover:text-white hover:bg-amber-600 hover:border-amber-400 hover:scale-110 active:scale-95 transition-all duration-300 group">
+        <i class="fas fa-compass text-2xl group-hover:rotate-90 transition-transform duration-500"></i>
     </button>
 
     <!-- NAVIGATION OVERLAY -->
     <div id="nav-overlay" class="nav-overlay" onclick="toggleNav()">
-        <div class="nav-content bg-slate-900/90 border border-white/10 p-6 rounded-2xl w-[90%] max-w-md shadow-2xl relative" onclick="event.stopPropagation()">
-            <button onclick="toggleNav()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
-            <h3 class="text-amber-400 font-serif font-bold text-xl mb-6 text-center border-b border-white/10 pb-3">MỤC LỤC THỜI ĐẠI</h3>
-            <div id="nav-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+        <div class="nav-content bg-slate-900 border border-amber-500/20 p-8 rounded-2xl w-[90%] max-w-lg shadow-2xl relative" onclick="event.stopPropagation()">
+            <button onclick="toggleNav()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+            
+            <div class="text-center mb-8">
+                <i class="fas fa-history text-4xl text-amber-500 mb-3 block"></i>
+                <h3 class="text-2xl font-serif font-bold text-white tracking-wide">Mục Lục Thời Đại</h3>
+                <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Chọn kỷ nguyên để du hành</p>
+            </div>
+
+            <div id="nav-list" class="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                 <!-- Injected via JS -->
             </div>
         </div>
     </div>
 
     <!-- Main Timeline -->
-    <main class="relative z-10 container mx-auto px-4 pb-32 overflow-hidden">
+    <main class="relative z-10 container mx-auto px-4 pb-40 overflow-hidden">
         <div class="timeline-track"></div>
-        <div id="timeline-container" class="space-y-16 md:space-y-24 relative pt-8">
+        <div id="timeline-container" class="space-y-20 md:space-y-32 relative pt-8">
             <!-- Content injected by JS -->
         </div>
     </main>
 
     <!-- STORY VIEWER (IFRAME MODAL) -->
-    <div id="story-viewer" class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl transition-all duration-300 opacity-0 pointer-events-none transform scale-95 flex flex-col">
+    <div id="story-viewer" class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl transition-all duration-500 opacity-0 pointer-events-none transform flex flex-col">
         <!-- Control Bar -->
-        <div class="h-14 bg-slate-900/90 border-b border-white/10 flex items-center justify-between px-4 flex-shrink-0">
-            <div class="flex items-center gap-3 overflow-hidden">
-                <i class="fas fa-book-open text-amber-400 flex-shrink-0"></i>
-                <span id="viewer-title" class="font-serif font-bold text-slate-200 text-sm md:text-base truncate">Đang tải...</span>
+        <div class="h-16 bg-slate-900 border-b border-white/10 flex items-center justify-between px-4 md:px-8 flex-shrink-0 shadow-lg z-10">
+            <div class="flex items-center gap-4 overflow-hidden">
+                <div class="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/30">
+                    <i class="fas fa-book-open text-amber-400 text-sm"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Đang đọc hồ sơ</span>
+                    <span id="viewer-title" class="font-serif font-bold text-slate-100 text-base md:text-lg truncate tracking-wide">Đang tải...</span>
+                </div>
             </div>
-            <button onclick="closeViewer()" class="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 text-amber-400 rounded-full hover:bg-amber-500 hover:text-white transition-colors">
-                <i class="fas fa-home"></i> <span class="text-xs font-bold hidden md:inline">Đóng</span>
+            <button onclick="closeViewer()" class="group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg transition-all duration-300 border border-white/5 hover:border-amber-500">
+                <span class="text-xs font-bold uppercase tracking-wider hidden md:inline group-hover:pr-1 transition-all">Đóng</span> 
+                <i class="fas fa-times"></i>
             </button>
         </div>
+        
         <!-- Iframe -->
-        <div class="flex-1 relative w-full h-full bg-black">
-            <div id="loader" class="absolute inset-0 flex flex-col items-center justify-center text-amber-500 gap-2">
-                <i class="fas fa-circle-notch fa-spin text-3xl"></i>
-                <span class="text-xs tracking-widest">ĐANG MỞ CỔNG TRI THỨC...</span>
+        <div class="flex-1 relative w-full h-full bg-[#0B0F19]">
+            <div id="loader" class="absolute inset-0 flex flex-col items-center justify-center text-amber-500 gap-4">
+                <div class="relative w-16 h-16">
+                    <div class="absolute inset-0 border-t-2 border-amber-500 rounded-full animate-spin"></div>
+                    <div class="absolute inset-2 border-b-2 border-amber-300 rounded-full animate-spin-slow"></div>
+                </div>
+                <span class="text-xs tracking-[0.3em] font-serif animate-pulse text-amber-200">ĐANG GIẢI MÃ...</span>
             </div>
-            <iframe id="content-frame" class="w-full h-full border-none opacity-0 transition-opacity duration-500"></iframe>
+            <iframe id="content-frame" class="w-full h-full border-none opacity-0 transition-opacity duration-700"></iframe>
         </div>
     </div>
 
     <script>
-        // --- DỮ LIỆU TIMELINE TOÀN DIỆN (CHI TIẾT NHẤT) ---
-        // Bao gồm: Cổ đại, Trung đại, Phục Hưng, Cận đại, Hiện đại, Toán Việt Nam.
+        // --- DỮ LIỆU TIMELINE ---
         const timelineData = [
             
             // --- 1. THỜI KỲ CỔ ĐẠI ---
-            { type: 'era', label: 'THỜI CỔ ĐẠI (3000 TCN - 500)', color: 'text-amber-500', id: 'era-ancient' },
+            { type: 'era', label: 'Cổ Đại (3000 TCN - 500)', color: 'text-amber-500', id: 'era-ancient' },
             {
                 year: '3000 TCN', title: 'Bình Minh Số Học', figure: 'Ai Cập & Lưỡng Hà',
                 desc: 'Khởi nguồn của phép đo đạc ruộng đất bên sông Nile và hệ đếm cơ số 60 của người Babylon.',
@@ -208,7 +268,7 @@
             },
 
             // --- 2. TRUNG CỔ & PHƯƠNG ĐÔNG ---
-            { type: 'era', label: 'PHƯƠNG ĐÔNG & TRUNG CỔ', color: 'text-emerald-400', id: 'era-middle' },
+            { type: 'era', label: 'Phương Đông & Trung Cổ', color: 'text-emerald-400', id: 'era-middle' },
             {
                 year: 'Năm 263', title: 'Cửu Chương Toán Thuật', figure: 'Lưu Huy (Liu Hui)',
                 desc: 'Đỉnh cao toán học Trung Hoa, tính số Pi chính xác và giải phương trình bằng ma trận.',
@@ -241,7 +301,7 @@
             },
 
             // --- 3. TOÁN HỌC VIỆT NAM (GIAI ĐOẠN ĐẦU) ---
-            { type: 'era', label: 'TINH HOA VIỆT NAM', color: 'text-red-500', bg: 'bg-red-900/30', border: 'border-red-500/50', id: 'era-vn-early' },
+            { type: 'era', label: 'Tinh Hoa Việt Nam', color: 'text-red-500', bg: 'bg-red-900/10', border: 'border-red-500/50', id: 'era-vn-early' },
             {
                 year: 'Thế kỷ 15', title: 'Trạng Lường', figure: 'Lương Thế Vinh',
                 desc: 'Tác giả "Đại thành toán pháp", người cân voi đo giấy và dạy toán cho triều đình.',
@@ -256,7 +316,7 @@
             },
 
             // --- 4. PHỤC HƯNG & KHAI SÁNG ---
-            { type: 'era', label: 'PHỤC HƯNG & KHAI SÁNG', color: 'text-purple-400', id: 'era-renaissance' },
+            { type: 'era', label: 'Phục Hưng & Khai Sáng', color: 'text-purple-400', id: 'era-renaissance' },
             {
                 year: 'Năm 1545', title: 'Số Phức', figure: 'Gerolamo Cardano',
                 desc: 'Công bố cách giải phương trình bậc 3, 4 và chấp nhận những con số "tưởng tượng" (số phức).',
@@ -299,7 +359,7 @@
             },
 
             // --- 5. THẾ KỶ 19: SỰ CHẶT CHẼ ---
-            { type: 'era', label: 'THẾ KỶ 19: KỶ NGUYÊN VÀNG', color: 'text-rose-400', id: 'era-19th' },
+            { type: 'era', label: 'Thế Kỷ 19: Kỷ Nguyên Vàng', color: 'text-rose-400', id: 'era-19th' },
             {
                 year: 'Năm 1801', title: 'Hoàng Tử Toán Học', figure: 'Carl Friedrich Gauss',
                 desc: 'Thiên tài toàn năng, thống trị hầu hết các lĩnh vực toán học đương thời.',
@@ -332,7 +392,7 @@
             },
 
             // --- 6. HIỆN ĐẠI & MÁY TÍNH ---
-            { type: 'era', label: 'THẾ KỶ 20 & HIỆN ĐẠI', color: 'text-cyan-400', id: 'era-modern' },
+            { type: 'era', label: 'Thế Kỷ 20 & Hiện Đại', color: 'text-cyan-400', id: 'era-modern' },
             {
                 year: 'Năm 1900', title: '23 Bài Toán', figure: 'David Hilbert',
                 desc: 'Người định hướng cho sự phát triển của toán học toàn cầu trong thế kỷ 20.',
@@ -398,21 +458,24 @@
         // --- BACKGROUND EFFECT: FLOATING MATH ---
         function initBackground() {
             const container = document.getElementById('math-bg-container');
-            const symbols = ['π', '∞', '∑', '∫', '√', '∂', 'ƒ', '∆', 'e', 'i', 'sin', 'log', 'φ', 'Ω', 'λ'];
-            const count = 25; // Số lượng ký hiệu
+            // Ký hiệu toán học đẹp (LaTeX style chars)
+            const symbols = ['π', '∞', '∑', '∫', '√', '∂', 'ƒ', '∆', 'e', 'i', 'sin', 'log', 'φ', 'Ω', 'λ', '∀', '∃', '∇'];
+            const count = 30; 
 
             for(let i=0; i<count; i++) {
                 const el = document.createElement('div');
                 el.classList.add('math-symbol');
                 el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
                 
-                // Random position & animation
+                // Randomize
                 el.style.left = Math.random() * 100 + 'vw';
                 el.style.top = Math.random() * 100 + 'vh';
-                el.style.fontSize = (Math.random() * 40 + 20) + 'px';
-                el.style.opacity = Math.random() * 0.15 + 0.05;
+                const size = Math.random() * 3 + 1; // 1rem to 4rem equivalent
+                el.style.fontSize = size + 'rem';
+                el.style.opacity = Math.random() * 0.1 + 0.02; // Very subtle
+                el.style.transform = `rotate(${Math.random() * 360}deg)`;
                 
-                // Random animation duration
+                // Animation
                 const anims = ['animate-float-slow', 'animate-float-medium', 'animate-float-fast'];
                 el.classList.add(anims[Math.floor(Math.random() * anims.length)]);
                 
@@ -424,22 +487,23 @@
         function renderTimeline() {
             const container = document.getElementById('timeline-container');
             const navList = document.getElementById('nav-list');
-            let counter = 0; // Để đếm chẵn lẻ cho layout zigzag
+            let counter = 0; 
 
             timelineData.forEach((item, index) => {
                 if (item.type === 'era') {
                     // 1. Render ERA Divider
                     const div = document.createElement('div');
-                    div.id = item.id; // Neo cho tìm kiếm
-                    div.className = "flex justify-center items-center py-10 relative z-10 scroll-mt-24";
+                    div.id = item.id;
+                    div.className = "flex justify-center items-center py-12 relative z-10 scroll-mt-32";
                     
-                    const bgClass = item.bg || 'bg-slate-900/80';
-                    const borderClass = item.border || 'border-white/10';
+                    const bgClass = item.bg || 'bg-slate-900';
+                    const borderClass = item.border || 'border-amber-500/30';
                     
                     div.innerHTML = `
-                        <div class="px-8 py-3 rounded-full border ${borderClass} ${bgClass} backdrop-blur shadow-2xl transform hover:scale-105 transition duration-500">
-                            <span class="${item.color} font-serif font-bold tracking-[0.2em] text-sm md:text-xl text-center block uppercase">
-                                <i class="fas fa-bookmark mr-2 text-xs opacity-50"></i>${item.label}
+                        <div class="px-8 py-3 rounded-full border ${borderClass} ${bgClass} shadow-[0_0_30px_rgba(0,0,0,0.5)] transform hover:scale-105 transition duration-500 relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                            <span class="${item.color} font-serif font-bold tracking-[0.2em] text-sm md:text-xl text-center block uppercase flex items-center gap-3">
+                                <i class="fas fa-bookmark text-xs opacity-70"></i> ${item.label} <i class="fas fa-bookmark text-xs opacity-70"></i>
                             </span>
                         </div>
                     `;
@@ -447,11 +511,11 @@
 
                     // 2. Add to Navigation Menu
                     const navItem = document.createElement('button');
-                    navItem.className = "w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group border-b border-white/5 last:border-0";
+                    navItem.className = "w-full text-left px-4 py-4 rounded-xl hover:bg-white/5 transition flex items-center justify-between group border-b border-white/5 last:border-0";
                     navItem.onclick = () => scrollToEra(item.id);
                     navItem.innerHTML = `
-                        <span class="${item.color} font-bold text-sm">${item.label}</span>
-                        <i class="fas fa-chevron-right text-slate-600 group-hover:text-white transition"></i>
+                        <span class="${item.color} font-serif font-bold text-sm tracking-wider uppercase">${item.label}</span>
+                        <i class="fas fa-chevron-right text-slate-600 group-hover:text-white transition text-xs"></i>
                     `;
                     navList.appendChild(navItem);
 
@@ -460,44 +524,49 @@
                     const isEven = counter % 2 === 0;
                     const wrapper = document.createElement('div');
                     
-                    // Desktop layout logic
+                    // Layout classes
                     const desktopClasses = isEven ? 'md:flex-row' : 'md:flex-row-reverse';
-                    const paddingClasses = isEven ? 'md:pr-16 md:text-right' : 'md:pl-16 md:text-left';
+                    const paddingClasses = isEven ? 'md:pr-20 md:text-right' : 'md:pl-20 md:text-left';
                     const alignClasses = isEven ? 'md:items-end' : 'md:items-start';
 
-                    // Special styling for Vietnam
-                    const cardBorder = item.special ? 'border-red-500/30' : 'border-white/10';
-                    const iconBg = item.special ? 'bg-red-900/20 border-red-500/50' : 'bg-deep border-slate-700';
-                    const iconColor = item.special ? 'text-red-400' : 'text-slate-500';
+                    // Styling
+                    const cardBorder = item.special ? 'border-red-500/40' : 'border-white/10';
+                    const iconBg = item.special ? 'bg-red-900/40 border-red-500' : 'bg-[#0B0F19] border-slate-700';
+                    const iconColor = item.special ? 'text-red-400' : 'text-slate-400';
+                    const yearColor = item.special ? 'text-red-400' : 'text-amber-500';
 
-                    wrapper.className = `flex flex-row ${desktopClasses} items-start md:items-center w-full group pl-10 md:pl-0 relative`;
+                    wrapper.className = `flex flex-row ${desktopClasses} items-start md:items-center w-full group pl-12 md:pl-0 relative`;
                     
                     wrapper.innerHTML = `
                         <!-- Content Side -->
-                        <div class="w-full md:w-1/2 ${paddingClasses} mb-2 md:mb-0">
-                            <div class="milestone-card p-5 md:p-8 rounded-2xl relative overflow-hidden ${cardBorder} flex flex-col ${alignClasses}">
-                                <!-- Glow Effect -->
-                                <div class="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                        <div class="w-full md:w-1/2 ${paddingClasses} mb-2 md:mb-0 relative z-10">
+                            <div class="milestone-card p-6 md:p-8 rounded-lg relative overflow-hidden ${cardBorder} flex flex-col ${alignClasses}">
                                 
-                                <span class="${item.special ? 'text-red-400' : 'text-amber-500'} font-mono text-xs font-bold tracking-widest uppercase mb-1">${item.year}</span>
-                                <h2 class="text-xl md:text-2xl font-serif font-bold text-white mb-1 group-hover:text-amber-300 transition leading-tight">${item.figure}</h2>
-                                <h3 class="text-slate-400 text-xs font-bold uppercase mb-3 tracking-wider">${item.title}</h3>
-                                <p class="text-slate-300 font-light text-sm leading-relaxed mb-4 line-clamp-3 md:line-clamp-none">${item.desc}</p>
+                                <span class="${yearColor} font-math text-lg font-bold tracking-widest uppercase mb-1 flex items-center gap-2">
+                                    ${isEven ? '' : '<i class="fas fa-clock text-xs opacity-50"></i>'}
+                                    ${item.year}
+                                    ${isEven ? '<i class="fas fa-clock text-xs opacity-50"></i>' : ''}
+                                </span>
                                 
-                                <button onclick="openViewer('${item.file}', '${item.figure}')" class="px-5 py-2 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg transition-all duration-300 text-sm font-bold flex items-center gap-2 border border-white/5 w-fit">
-                                    <span>Chi tiết</span> <i class="fas fa-arrow-right text-xs"></i>
+                                <h2 class="text-2xl md:text-4xl font-serif font-bold text-slate-100 mb-2 group-hover:text-amber-300 transition-colors leading-tight">${item.figure}</h2>
+                                <h3 class="text-slate-400 text-xs font-sans font-bold uppercase mb-4 tracking-[0.2em] border-b border-white/10 pb-2">${item.title}</h3>
+                                
+                                <p class="text-slate-300 font-sans font-light text-sm md:text-base leading-relaxed mb-6 line-clamp-3 md:line-clamp-none opacity-90">${item.desc}</p>
+                                
+                                <button onclick="openViewer('${item.file}', '${item.figure}')" class="px-6 py-2.5 bg-white/5 hover:bg-amber-600 hover:border-amber-500 text-slate-300 hover:text-white rounded-md transition-all duration-300 text-xs font-bold uppercase tracking-widest flex items-center gap-3 border border-white/10 w-fit group-btn">
+                                    <span>Hồ Sơ</span> <i class="fas fa-arrow-right group-btn-hover:translate-x-1 transition-transform"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Center Icon (Desktop Center / Mobile Left) -->
-                        <div class="absolute left-[17px] md:left-1/2 top-8 md:top-1/2 transform -translate-x-1/2 md:-translate-y-1/2 z-10 
-                                    w-10 h-10 md:w-14 md:h-14 flex-shrink-0 ${iconBg} border-2 md:border-4 rounded-full flex items-center justify-center 
-                                    shadow-lg group-hover:scale-110 group-hover:border-amber-400 transition-all duration-500 bg-deep">
-                            <i class="${item.icon} ${iconColor} text-sm md:text-xl group-hover:text-amber-400 transition-colors"></i>
+                        <!-- Center Icon -->
+                        <div class="absolute left-[28px] md:left-1/2 top-10 md:top-1/2 transform -translate-x-1/2 md:-translate-y-1/2 z-20 
+                                    w-12 h-12 md:w-16 md:h-16 flex-shrink-0 ${iconBg} border-2 md:border-4 rounded-full flex items-center justify-center 
+                                    shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:border-amber-400 transition-all duration-500 bg-[#0B0F19]">
+                            <i class="${item.icon} ${iconColor} text-lg md:text-2xl group-hover:text-amber-400 transition-colors"></i>
                         </div>
 
-                        <!-- Empty Balance Side (Desktop only) -->
+                        <!-- Empty Balance Side -->
                         <div class="w-full md:w-1/2 hidden md:block"></div>
                     `;
                     container.appendChild(wrapper);
@@ -506,22 +575,17 @@
             });
         }
 
-        // --- INTERACTION LOGIC ---
-        
-        // 1. Navigation Menu
+        // --- INTERACTION LOGIC (KEEP EXISTING) ---
         function toggleNav() {
             document.getElementById('nav-overlay').classList.toggle('active');
         }
 
         function scrollToEra(id) {
-            toggleNav(); // Close menu
+            toggleNav();
             const element = document.getElementById(id);
-            if(element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            if(element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // 2. Viewer (Iframe)
         const viewer = {
             modal: document.getElementById('story-viewer'),
             frame: document.getElementById('content-frame'),
@@ -545,27 +609,20 @@
             viewer.frame.style.opacity = '1';
         }
         
-        // Add event listener safely
         viewer.frame.addEventListener('load', onFrameLoad);
 
         function closeViewer() {
             viewer.modal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
             viewer.modal.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-            
             setTimeout(() => { viewer.frame.src = 'about:blank'; }, 300);
             document.body.style.overflow = '';
         }
 
-        // Close on Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeViewer();
-        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeViewer(); });
 
-        // --- INIT ---
         initBackground();
         renderTimeline();
 
-        // Reveal Animation on Scroll
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -575,7 +632,6 @@
             });
         }, { threshold: 0.1 });
 
-        // Apply initial state for animation
         document.querySelectorAll('.milestone-card').forEach(el => {
             el.style.opacity = '0';
             el.style.transform = 'translateY(30px)';
