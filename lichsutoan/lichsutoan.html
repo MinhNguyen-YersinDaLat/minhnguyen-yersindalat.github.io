@@ -2,42 +2,44 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dòng Chảy Lịch Sử Toán Học</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sử Ký Toán Học Toàn Thư</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- KaTeX for decorative math -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        deep: '#050a14',
+                        deep: '#020617',
                         gold: '#fbbf24',
-                        glass: 'rgba(255, 255, 255, 0.05)',
-                        glassBorder: 'rgba(255, 255, 255, 0.1)',
+                        glass: 'rgba(15, 23, 42, 0.6)',
+                        glassBorder: 'rgba(255, 255, 255, 0.08)',
+                        vietnam: '#da251d',
                     },
                     fontFamily: {
                         serif: ['Cinzel', 'serif'],
                         sans: ['Inter', 'sans-serif'],
+                        script: ['Dancing Script', 'cursive'],
                     },
                     animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'glow': 'glow 3s ease-in-out infinite alternate',
+                        'float-slow': 'float 8s ease-in-out infinite',
+                        'float-medium': 'float 5s ease-in-out infinite',
+                        'float-fast': 'float 3s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite',
                     },
                     keyframes: {
                         float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-20px) rotate(5deg)' },
                         },
-                        glow: {
-                            'from': { boxShadow: '0 0 10px rgba(251, 191, 36, 0.2)' },
-                            'to': { boxShadow: '0 0 20px rgba(251, 191, 36, 0.6)' },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.6, transform: 'scale(1)' },
+                            '50%': { opacity: 1, transform: 'scale(1.1)' },
                         }
                     }
                 }
@@ -46,468 +48,537 @@
     </script>
 
     <style>
-        body { background-color: #050a14; color: #e2e8f0; overflow-x: hidden; }
+        body { background-color: #020617; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         
-        /* Background Effects */
-        .math-grid {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none; z-index: 0;
+        /* Math Symbols Background */
+        .math-symbol {
+            position: fixed;
+            color: rgba(255, 255, 255, 0.03);
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            user-select: none;
+            pointer-events: none;
+            z-index: 0;
         }
-        
-        .glow-orb {
-            position: fixed; width: 600px; height: 600px; background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
-            border-radius: 50%; pointer-events: none; z-index: 0;
-        }
-        
+
         /* Timeline Line */
         .timeline-track {
-            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
-            background: linear-gradient(to bottom, transparent, #fbbf24, #d946ef, transparent);
-            transform: translateX(-50%);
+            position: absolute; left: 24px; top: 0; bottom: 0; width: 2px;
+            background: linear-gradient(to bottom, transparent, #fbbf24, #ef4444, #38bdf8, #a855f7, transparent);
+            z-index: 1;
+        }
+        
+        @media (min-width: 768px) {
+            .timeline-track { left: 50%; transform: translateX(-50%); }
         }
 
-        /* Card Styles */
+        /* Glassmorphism Card */
         .milestone-card {
             background: var(--glass);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glassBorder);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
         }
-        .milestone-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: #fbbf24;
-            box-shadow: 0 0 30px rgba(251, 191, 36, 0.15);
+        .milestone-card:active { transform: scale(0.98); }
+        @media (hover: hover) {
+            .milestone-card:hover {
+                transform: translateY(-5px);
+                border-color: #fbbf24;
+                box-shadow: 0 10px 40px -10px rgba(251, 191, 36, 0.15);
+            }
         }
 
-        /* Iframe Modal Transition */
-        .viewer-modal {
-            transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            opacity: 0; pointer-events: none; transform: scale(0.95);
+        /* Navigation Menu */
+        .nav-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
         }
-        .viewer-modal.active {
-            opacity: 1; pointer-events: auto; transform: scale(1);
+        .nav-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .nav-content {
+            transform: translateY(20px); transition: transform 0.3s ease;
         }
+        .nav-overlay.active .nav-content { transform: translateY(0); }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #fbbf24; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
     </style>
 </head>
-<body class="relative">
+<body class="relative min-h-screen">
 
-    <!-- Background Decoration -->
-    <div class="math-grid"></div>
-    <div class="glow-orb top-[-100px] left-[-100px]"></div>
-    <div class="glow-orb bottom-[-100px] right-[-100px]" style="background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);"></div>
+    <!-- Dynamic Background Symbols (Injected via JS) -->
+    <div id="math-bg-container"></div>
 
     <!-- Header -->
-    <header class="relative z-20 pt-20 pb-10 text-center">
-        <div class="inline-block relative">
-            <h1 class="text-4xl md:text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 mb-4 tracking-wider animate-float">
-                SỬ KÝ TOÁN HỌC
-            </h1>
-            <div class="h-1 w-1/2 mx-auto bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
-        </div>
-        <p class="mt-4 text-slate-400 font-light text-sm md:text-base tracking-[0.2em] uppercase">Hành trình tìm kiếm ngôn ngữ của vũ trụ</p>
+    <header class="relative z-20 pt-16 pb-8 text-center px-4">
+        <h1 class="text-3xl md:text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 mb-2 tracking-wider drop-shadow-lg">
+            SỬ KÝ TOÁN HỌC
+        </h1>
+        <p class="text-slate-400 font-light text-xs md:text-sm tracking-[0.3em] uppercase opacity-80">
+            Từ Bình Minh Cổ Đại Đến Kỷ Nguyên Số
+        </p>
     </header>
 
+    <!-- SEARCH / NAVIGATION FAB (Floating Action Button) -->
+    <button onclick="toggleNav()" class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.5)] flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-300 animate-pulse-glow">
+        <i class="fas fa-compass text-2xl"></i>
+    </button>
+
+    <!-- NAVIGATION OVERLAY -->
+    <div id="nav-overlay" class="nav-overlay" onclick="toggleNav()">
+        <div class="nav-content bg-slate-900/90 border border-white/10 p-6 rounded-2xl w-[90%] max-w-md shadow-2xl relative" onclick="event.stopPropagation()">
+            <button onclick="toggleNav()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <h3 class="text-amber-400 font-serif font-bold text-xl mb-6 text-center border-b border-white/10 pb-3">MỤC LỤC THỜI ĐẠI</h3>
+            <div id="nav-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Main Timeline -->
-    <main class="relative z-10 container mx-auto px-4 pb-32">
-        <div class="timeline-track hidden md:block"></div>
-        
-        <div id="timeline-container" class="space-y-24 relative">
-            <!-- Items will be injected by JS -->
+    <main class="relative z-10 container mx-auto px-4 pb-32 overflow-hidden">
+        <div class="timeline-track"></div>
+        <div id="timeline-container" class="space-y-16 md:space-y-24 relative pt-8">
+            <!-- Content injected by JS -->
         </div>
     </main>
 
     <!-- STORY VIEWER (IFRAME MODAL) -->
-    <div id="story-viewer" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl viewer-modal flex flex-col">
+    <div id="story-viewer" class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl transition-all duration-300 opacity-0 pointer-events-none transform scale-95 flex flex-col">
         <!-- Control Bar -->
-        <div class="h-14 bg-deep/80 border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
-            <div class="flex items-center gap-3">
-                <i class="fas fa-book-open text-amber-400"></i>
-                <span id="viewer-title" class="font-serif font-bold text-slate-200 truncate max-w-[200px] md:max-w-md">Tiêu đề câu chuyện</span>
+        <div class="h-14 bg-slate-900/90 border-b border-white/10 flex items-center justify-between px-4 flex-shrink-0">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <i class="fas fa-book-open text-amber-400 flex-shrink-0"></i>
+                <span id="viewer-title" class="font-serif font-bold text-slate-200 text-sm md:text-base truncate">Đang tải...</span>
             </div>
-            
-            <!-- HOME BUTTON (Close Modal) -->
-            <button onclick="closeViewer()" class="group flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-black border border-amber-500/50 rounded-full transition-all duration-300">
-                <i class="fas fa-home"></i>
-                <span class="text-sm font-bold">Về Trang Chủ</span>
+            <button onclick="closeViewer()" class="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 text-amber-400 rounded-full hover:bg-amber-500 hover:text-white transition-colors">
+                <i class="fas fa-home"></i> <span class="text-xs font-bold hidden md:inline">Đóng</span>
             </button>
         </div>
-
-        <!-- Content Frame -->
-        <div class="flex-1 relative w-full h-full bg-deep">
-            <div id="loader" class="absolute inset-0 flex items-center justify-center text-amber-500">
-                <i class="fas fa-circle-notch fa-spin text-4xl"></i>
+        <!-- Iframe -->
+        <div class="flex-1 relative w-full h-full bg-black">
+            <div id="loader" class="absolute inset-0 flex flex-col items-center justify-center text-amber-500 gap-2">
+                <i class="fas fa-circle-notch fa-spin text-3xl"></i>
+                <span class="text-xs tracking-widest">ĐANG MỞ CỔNG TRI THỨC...</span>
             </div>
             <iframe id="content-frame" class="w-full h-full border-none opacity-0 transition-opacity duration-500"></iframe>
         </div>
     </div>
 
     <script>
-        // --- CƠ SỞ DỮ LIỆU CÁC MỐC THỜI GIAN (UPDATE CHI TIẾT) ---
-        // Danh sách toàn diện để phát triển lâu dài.
-        // 'file': tên file html cần tạo trong tương lai.
+        // --- DỮ LIỆU TIMELINE TOÀN DIỆN (CHI TIẾT NHẤT) ---
+        // Bao gồm: Cổ đại, Trung đại, Phục Hưng, Cận đại, Hiện đại, Toán Việt Nam.
         const timelineData = [
             
-            // --- THỜI KỲ CỔ ĐẠI ---
-            { type: 'era', label: 'THỜI CỔ ĐẠI & TIỀN SỬ', color: 'text-amber-500' },
+            // --- 1. THỜI KỲ CỔ ĐẠI ---
+            { type: 'era', label: 'THỜI CỔ ĐẠI (3000 TCN - 500)', color: 'text-amber-500', id: 'era-ancient' },
             {
-                year: '3000 TCN',
-                title: 'Bình Minh Của Số Học',
-                figure: 'Ai Cập & Lưỡng Hà',
-                desc: 'Khởi nguồn của phép đo đạc, xây dựng Kim Tự Tháp và hệ đếm cơ số 60.',
-                icon: 'fas fa-pyramid',
-                file: 'aicap.html',
-                ready: false 
+                year: '3000 TCN', title: 'Bình Minh Số Học', figure: 'Ai Cập & Lưỡng Hà',
+                desc: 'Khởi nguồn của phép đo đạc ruộng đất bên sông Nile và hệ đếm cơ số 60 của người Babylon.',
+                icon: 'fas fa-pyramid', file: 'aicap.html', ready: true
             },
             {
-                year: '600 TCN',
-                title: 'Nhà Hiền Triết Đầu Tiên',
-                figure: 'Thales của Miletus',
-                desc: 'Người đầu tiên chứng minh định lý hình học và đo chiều cao Kim Tự Tháp bằng bóng nắng.',
-                icon: 'fas fa-sun',
-                file: 'thales.html',
-                ready: false
+                year: '600 TCN', title: 'Nhà Hiền Triết', figure: 'Thales của Miletus',
+                desc: 'Người đầu tiên dùng hình học để đo chiều cao Kim Tự Tháp và dự báo nhật thực.',
+                icon: 'fas fa-sun', file: 'thales.html', ready: true
             },
             {
-                year: '570 TCN',
-                title: 'Vạn Vật Là Số',
-                figure: 'Pythagoras',
-                desc: 'Định lý tam giác vuông bất hủ và giáo phái tôn thờ vẻ đẹp của các con số.',
-                icon: 'fas fa-shapes',
-                file: 'pitago.html',
-                ready: true // DEMO READY
+                year: '570 TCN', title: 'Vạn Vật Là Số', figure: 'Pythagoras',
+                desc: 'Định lý tam giác vuông bất hủ và giáo phái bí ẩn tôn thờ vẻ đẹp của các con số.',
+                icon: 'fas fa-shapes', file: 'pitago.html', ready: true
             },
             {
-                year: '300 TCN',
-                title: 'Bộ "Cơ Bản" (Elements)',
-                figure: 'Euclid',
-                desc: 'Cha đẻ hình học, người hệ thống hóa toán học thành các tiên đề logic chặt chẽ.',
-                icon: 'fas fa-book',
-                file: 'euclid.html',
-                ready: false
+                year: '300 TCN', title: 'Cha Đẻ Hình Học', figure: 'Euclid',
+                desc: 'Tác giả bộ "Cơ bản" (Elements) - cuốn sách giáo khoa toán học thành công nhất mọi thời đại.',
+                icon: 'fas fa-book', file: 'euclid.html', ready: true
             },
             {
-                year: '250 TCN',
-                title: 'Eureka!',
-                figure: 'Archimedes',
-                desc: 'Thiên tài vật lý và toán học, tính gần đúng số Pi và phát minh đòn bẩy.',
-                icon: 'fas fa-lightbulb',
-                file: 'archimedes.html',
-                ready: false
+                year: '250 TCN', title: 'Eureka!', figure: 'Archimedes',
+                desc: 'Thiên tài vật lý và toán học, người tìm ra số Pi, nguyên lý đòn bẩy và sức đẩy của nước.',
+                icon: 'fas fa-lightbulb', file: 'archimedes.html', ready: true
+            },
+            {
+                year: '240 TCN', title: 'Đo Trái Đất', figure: 'Eratosthenes',
+                desc: 'Người đầu tiên tính được chu vi Trái Đất chỉ bằng một cái cọc và bóng nắng.',
+                icon: 'fas fa-globe-africa', file: 'eratosthenes.html', ready: true
             },
 
-            // --- THỜI TRUNG CỔ & PHƯƠNG ĐÔNG ---
-            { type: 'era', label: 'TRUNG CỔ & PHƯƠNG ĐÔNG', color: 'text-emerald-400' },
+            // --- 2. TRUNG CỔ & PHƯƠNG ĐÔNG ---
+            { type: 'era', label: 'PHƯƠNG ĐÔNG & TRUNG CỔ', color: 'text-emerald-400', id: 'era-middle' },
             {
-                year: 'Năm 263',
-                title: 'Cửu Chương Toán Thuật',
-                figure: 'Lưu Huy (Liu Hui)',
-                desc: 'Đỉnh cao toán học Trung Hoa cổ đại, tính số Pi và giải phương trình.',
-                icon: 'fas fa-dragon',
-                file: 'luuhuy.html',
-                ready: false
+                year: 'Năm 263', title: 'Cửu Chương Toán Thuật', figure: 'Lưu Huy (Liu Hui)',
+                desc: 'Đỉnh cao toán học Trung Hoa, tính số Pi chính xác và giải phương trình bằng ma trận.',
+                icon: 'fas fa-dragon', file: 'luuhuy.html', ready: true
             },
             {
-                year: 'Năm 628',
-                title: 'Sức Mạnh Của Hư Vô',
-                figure: 'Brahmagupta & Số 0',
-                desc: 'Phát kiến vĩ đại từ Ấn Độ: Định nghĩa số 0 và các quy tắc số âm.',
-                icon: 'fas fa-circle',
-                file: 'so0.html',
-                ready: true // DEMO READY
+                year: 'Năm 480', title: 'Mật Suất', figure: 'Tổ Xung Chi',
+                desc: 'Tính số Pi chính xác đến 7 chữ số thập phân, kỷ lục thế giới suốt 1000 năm.',
+                icon: 'fas fa-circle', file: 'toxungchi.html', ready: true
             },
             {
-                year: 'Năm 820',
-                title: 'Cha Đẻ Đại Số',
-                figure: 'Al-Khwarizmi',
-                desc: 'Người viết cuốn "Al-Jabr", nguồn gốc của từ "Algebra" (Đại số) và "Algorithm".',
-                icon: 'fas fa-square-root-alt',
-                file: 'alkhwarizmi.html',
-                ready: false
+                year: 'Năm 628', title: 'Sức Mạnh Số 0', figure: 'Brahmagupta',
+                desc: 'Phát kiến vĩ đại từ Ấn Độ: Định nghĩa số 0 (Shunya) và quy tắc tính toán số Âm.',
+                icon: 'fas fa-circle-notch', file: 'so0.html', ready: true
             },
             {
-                year: 'Năm 1202',
-                title: 'Dãy Số Tự Nhiên',
-                figure: 'Fibonacci',
-                desc: 'Mang hệ số Ả Rập vào châu Âu và dãy số Fibonacci bí ẩn trong tự nhiên.',
-                icon: 'fas fa-seedling',
-                file: 'fibonacci.html',
-                ready: false
+                year: 'Năm 820', title: 'Đại Số Algebra', figure: 'Al-Khwarizmi',
+                desc: 'Nhà toán học Ba Tư, nguồn gốc của từ "Algebra" (Đại số) và "Algorithm" (Thuật toán).',
+                icon: 'fas fa-scroll', file: 'alkhwarizmi.html', ready: true
+            },
+            {
+                year: 'Năm 1048', title: 'Thi Sĩ Toán Học', figure: 'Omar Khayyam',
+                desc: 'Giải phương trình bậc 3 bằng hình học và tác giả của tập thơ Rubaiyat.',
+                icon: 'fas fa-feather-alt', file: 'khayyam.html', ready: true
+            },
+            {
+                year: 'Năm 1202', title: 'Dãy Số Tự Nhiên', figure: 'Fibonacci',
+                desc: 'Mang hệ số Ả Rập vào châu Âu và phát hiện dãy số Fibonacci trong tự nhiên.',
+                icon: 'fas fa-leaf', file: 'fibonacci.html', ready: true
             },
 
-            // --- PHỤC HƯNG & KHAI SÁNG ---
-            { type: 'era', label: 'PHỤC HƯNG & KHAI SÁNG', color: 'text-purple-400' },
+            // --- 3. TOÁN HỌC VIỆT NAM (GIAI ĐOẠN ĐẦU) ---
+            { type: 'era', label: 'TINH HOA VIỆT NAM', color: 'text-red-500', bg: 'bg-red-900/30', border: 'border-red-500/50', id: 'era-vn-early' },
             {
-                year: 'Năm 1545',
-                title: 'Số Phức Ra Đời',
-                figure: 'Gerolamo Cardano',
-                desc: 'Giải phương trình bậc 3 và chấp nhận những con số "tưởng tượng" (i).',
-                icon: 'fas fa-question',
-                file: 'cardano.html',
-                ready: false
+                year: 'Thế kỷ 15', title: 'Trạng Lường', figure: 'Lương Thế Vinh',
+                desc: 'Tác giả "Đại thành toán pháp", người cân voi đo giấy và dạy toán cho triều đình.',
+                icon: 'fas fa-balance-scale', file: 'luongthevinh.html', ready: true,
+                special: true
             },
             {
-                year: 'Năm 1637',
-                title: 'Hệ Tọa Độ',
-                figure: 'René Descartes',
+                year: 'Thế kỷ 18', title: 'Nhà Bác Học', figure: 'Lê Quý Đôn',
+                desc: 'Nhà bác học lớn nhất lịch sử phong kiến Việt Nam với kiến thức uyên bác về thiên văn, số học.',
+                icon: 'fas fa-star', file: 'lequydon.html', ready: true,
+                special: true
+            },
+
+            // --- 4. PHỤC HƯNG & KHAI SÁNG ---
+            { type: 'era', label: 'PHỤC HƯNG & KHAI SÁNG', color: 'text-purple-400', id: 'era-renaissance' },
+            {
+                year: 'Năm 1545', title: 'Số Phức', figure: 'Gerolamo Cardano',
+                desc: 'Công bố cách giải phương trình bậc 3, 4 và chấp nhận những con số "tưởng tượng" (số phức).',
+                icon: 'fas fa-dice-d20', file: 'cardano.html', ready: true
+            },
+            {
+                year: 'Năm 1614', title: 'Logarithm', figure: 'John Napier',
+                desc: 'Phát minh Logarit giúp biến phép nhân chia phức tạp thành cộng trừ đơn giản.',
+                icon: 'fas fa-calculator', file: 'napier.html', ready: true
+            },
+            {
+                year: 'Năm 1637', title: 'Hệ Tọa Độ', figure: 'René Descartes',
                 desc: 'Kết hợp Hình học và Đại số. "Tôi tư duy, nên tôi tồn tại".',
-                icon: 'fas fa-crosshairs',
-                file: 'descartes.html',
-                ready: false
+                icon: 'fas fa-crosshairs', file: 'descartes.html', ready: true
             },
             {
-                year: 'Năm 1654',
-                title: 'Lý Thuyết Xác Suất',
-                figure: 'Pascal & Fermat',
-                desc: 'Những lá thư trao đổi về trò chơi may rủi đã khai sinh ra ngành Xác suất.',
-                icon: 'fas fa-dice',
-                file: 'pascal.html',
-                ready: false
+                year: 'Năm 1654', title: 'Xác Suất', figure: 'Pascal & Fermat',
+                desc: 'Những lá thư trao đổi về trò chơi may rủi đã khai sinh ra Lý thuyết Xác suất.',
+                icon: 'fas fa-dice', file: 'pascal.html', ready: true
             },
             {
-                year: 'Năm 1687',
-                title: 'Kỷ Nguyên Vi Tích Phân',
-                figure: 'Isaac Newton',
-                desc: 'Công cụ toán học để mô tả sự chuyển động của vũ trụ và vạn vật.',
-                icon: 'fas fa-apple-alt',
-                file: 'newton.html',
-                ready: false
+                year: 'Năm 1687', title: 'Vi Tích Phân', figure: 'Isaac Newton',
+                desc: 'Công cụ toán học để mô tả sự chuyển động của các thiên thể và vạn vật.',
+                icon: 'fas fa-apple-alt', file: 'newton.html', ready: true
             },
             {
-                year: 'Năm 1737',
-                title: 'Vẻ Đẹp Đồng Nhất Thức',
-                figure: 'Leonhard Euler',
-                desc: 'Nhà toán học năng suất nhất lịch sử. e^(iπ) + 1 = 0.',
-                icon: 'fas fa-infinity',
-                file: 'euler.html',
-                ready: false
+                year: 'Năm 1684', title: 'Ngôn Ngữ Toán', figure: 'Gottfried Leibniz',
+                desc: 'Phát triển ký hiệu vi phân độc lập với Newton, cha đẻ của hệ nhị phân.',
+                icon: 'fas fa-code-branch', file: 'leibniz.html', ready: true
+            },
+            {
+                year: 'Năm 1737', title: 'Ông Vua Toán Học', figure: 'Leonhard Euler',
+                desc: 'Nhà toán học năng suất nhất lịch sử. Tác giả của công thức đẹp nhất: e^(iπ) + 1 = 0.',
+                icon: 'fas fa-infinity', file: 'euler.html', ready: true
+            },
+            {
+                year: 'Năm 1788', title: 'Cơ Học Giải Tích', figure: 'Joseph-Louis Lagrange',
+                desc: 'Viết lại cơ học Newton hoàn toàn bằng giải tích mà không cần hình vẽ.',
+                icon: 'fas fa-cogs', file: 'lagrange.html', ready: true
             },
 
-            // --- THẾ KỶ 19 ---
-            { type: 'era', label: 'THẾ KỶ 19: SỰ CHẶT CHẼ', color: 'text-rose-400' },
+            // --- 5. THẾ KỶ 19: SỰ CHẶT CHẼ ---
+            { type: 'era', label: 'THẾ KỶ 19: KỶ NGUYÊN VÀNG', color: 'text-rose-400', id: 'era-19th' },
             {
-                year: 'Năm 1801',
-                title: 'Hoàng Tử Toán Học',
-                figure: 'Carl Friedrich Gauss',
-                desc: 'Thiên tài toàn năng, từ Lý thuyết số đến Hình học và Thiên văn.',
-                icon: 'fas fa-crown',
-                file: 'gauss.html',
-                ready: false
+                year: 'Năm 1801', title: 'Hoàng Tử Toán Học', figure: 'Carl Friedrich Gauss',
+                desc: 'Thiên tài toàn năng, thống trị hầu hết các lĩnh vực toán học đương thời.',
+                icon: 'fas fa-crown', file: 'gauss.html', ready: true
             },
             {
-                year: 'Năm 1832',
-                title: 'Thiên Tài Đoản Mệnh',
-                figure: 'Évariste Galois',
-                desc: 'Viết nên Lý thuyết Nhóm vào đêm cuối cùng trước khi tử nạn trong đấu súng.',
-                icon: 'fas fa-skull-crossbones',
-                file: 'galois.html',
-                ready: false
+                year: 'Năm 1822', title: 'Chuỗi Fourier', figure: 'Joseph Fourier',
+                desc: 'Biến đổi mọi tín hiệu sóng thành tổng các hàm sin, cos. Nền tảng của xử lý tín hiệu số.',
+                icon: 'fas fa-wave-square', file: 'fourier.html', ready: true
             },
             {
-                year: 'Năm 1854',
-                title: 'Hình Học Đa Chiều',
-                figure: 'Bernhard Riemann',
-                desc: 'Khai phá Hình học phi Euclid, nền tảng cho Thuyết tương đối sau này.',
-                icon: 'fas fa-globe',
-                file: 'riemann.html',
-                ready: false
+                year: 'Năm 1832', title: 'Đoản Mệnh', figure: 'Évariste Galois',
+                desc: 'Viết nên Lý thuyết Nhóm vào đêm cuối cùng trước khi tử nạn trong đấu súng năm 20 tuổi.',
+                icon: 'fas fa-skull', file: 'galois.html', ready: true
             },
             {
-                year: 'Năm 1874',
-                title: 'Đếm Cái Vô Cực',
-                figure: 'Georg Cantor',
-                desc: 'Cha đẻ của Lý thuyết Tập hợp, người dám nhìn thẳng vào Vô cực.',
-                icon: 'fas fa-layer-group',
-                file: 'cantor.html',
-                ready: false
+                year: 'Năm 1854', title: 'Hình Học Đa Chiều', figure: 'Bernhard Riemann',
+                desc: 'Khai phá Hình học phi Euclid, nền tảng không gian cong cho Thuyết tương đối.',
+                icon: 'fas fa-globe', file: 'riemann.html', ready: true
             },
             {
-                year: 'Năm 1888',
-                title: 'Nữ Hoàng Toán Học',
-                figure: 'Sofia Kovalevskaya',
-                desc: 'Người phụ nữ đầu tiên giành học vị Tiến sĩ toán học hiện đại.',
-                icon: 'fas fa-female',
-                file: 'kovalevskaya.html',
-                ready: false
+                year: 'Năm 1874', title: 'Vô Cực', figure: 'Georg Cantor',
+                desc: 'Người dám đếm cái Vô cực, cha đẻ Lý thuyết Tập hợp, bị đương thời chỉ trích đến phát điên.',
+                icon: 'fas fa-layer-group', file: 'cantor.html', ready: true
+            },
+            {
+                year: 'Năm 1888', title: 'Nữ Hoàng Toán Học', figure: 'Sofia Kovalevskaya',
+                desc: 'Người phụ nữ đầu tiên giành học vị Tiến sĩ toán học và Giáo sư đại học ở châu Âu.',
+                icon: 'fas fa-female', file: 'kovalevskaya.html', ready: true
             },
 
-            // --- HIỆN ĐẠI & MÁY TÍNH ---
-            { type: 'era', label: 'HIỆN ĐẠI & KỶ NGUYÊN SỐ', color: 'text-cyan-400' },
+            // --- 6. HIỆN ĐẠI & MÁY TÍNH ---
+            { type: 'era', label: 'THẾ KỶ 20 & HIỆN ĐẠI', color: 'text-cyan-400', id: 'era-modern' },
             {
-                year: 'Năm 1900',
-                title: '23 Bài Toán Thế Kỷ',
-                figure: 'David Hilbert',
-                desc: 'Người định hướng cho sự phát triển của toán học thế kỷ 20.',
-                icon: 'fas fa-list-ol',
-                file: 'hilbert.html',
-                ready: false
+                year: 'Năm 1900', title: '23 Bài Toán', figure: 'David Hilbert',
+                desc: 'Người định hướng cho sự phát triển của toán học toàn cầu trong thế kỷ 20.',
+                icon: 'fas fa-list-ol', file: 'hilbert.html', ready: true
             },
             {
-                year: 'Năm 1914',
-                title: 'Người Biết Vô Cực',
-                figure: 'Srinivasa Ramanujan',
-                desc: 'Thiên tài Ấn Độ tự học với trực giác về số học siêu phàm.',
-                icon: 'fas fa-om',
-                file: 'ramanujan.html',
-                ready: false
+                year: 'Năm 1914', title: 'Người Biết Vô Cực', figure: 'Srinivasa Ramanujan',
+                desc: 'Thiên tài Ấn Độ tự học với trực giác về số học siêu phàm khiến thế giới kinh ngạc.',
+                icon: 'fas fa-om', file: 'ramanujan.html', ready: true
             },
             {
-                year: 'Năm 1931',
-                title: 'Định Lý Bất Toàn',
-                figure: 'Kurt Gödel',
-                desc: 'Chứng minh rằng trong toán học luôn có những điều đúng nhưng không thể chứng minh.',
-                icon: 'fas fa-exclamation-triangle',
-                file: 'godel.html',
-                ready: false
+                year: 'Năm 1918', title: 'Mẹ Đẻ Đại Số Hiện Đại', figure: 'Emmy Noether',
+                desc: 'Người phụ nữ quan trọng nhất lịch sử toán học, định lý Noether kết nối đối xứng và bảo toàn.',
+                icon: 'fas fa-ring', file: 'noether.html', ready: true
             },
             {
-                year: 'Năm 1936',
-                title: 'Cha Đẻ Máy Tính',
-                figure: 'Alan Turing',
-                desc: 'Toán học hóa logic, tạo ra Máy Turing và nền tảng Trí tuệ nhân tạo.',
-                icon: 'fas fa-laptop-code',
-                file: 'turing.html',
-                ready: false
+                year: 'Năm 1931', title: 'Định Lý Bất Toàn', figure: 'Kurt Gödel',
+                desc: 'Chứng minh chấn động: Toán học luôn có những điều đúng nhưng không thể chứng minh.',
+                icon: 'fas fa-exclamation-triangle', file: 'godel.html', ready: true
             },
             {
-                year: 'Năm 1975',
-                title: 'Hình Học Fractal',
-                figure: 'Benoit Mandelbrot',
-                desc: 'Khám phá vẻ đẹp của sự hỗn loạn và hình học trong tự nhiên.',
-                icon: 'fas fa-snowflake',
-                file: 'mandelbrot.html',
-                ready: false
+                year: 'Năm 1936', title: 'Máy Tính & AI', figure: 'Alan Turing',
+                desc: 'Toán học hóa logic, tạo ra Máy Turing, phá mã Enigma và đặt nền móng cho AI.',
+                icon: 'fas fa-laptop-code', file: 'turing.html', ready: true
             },
             {
-                year: 'Năm 1994',
-                title: 'Định Lý Cuối Cùng',
-                figure: 'Andrew Wiles',
-                desc: 'Giải mã bài toán hóc búa nhất lịch sử sau hơn 350 năm thách thức (Fermat).',
-                icon: 'fas fa-check-double',
-                file: 'wiles.html',
-                ready: false
+                year: 'Năm 1944', title: 'Lý Thuyết Trò Chơi', figure: 'John von Neumann',
+                desc: 'Thiên tài kiến trúc máy tính, lý thuyết trò chơi và cơ học lượng tử.',
+                icon: 'fas fa-chess', file: 'vonneumann.html', ready: true
+            },
+            {
+                year: 'Năm 1964', title: 'Tối Ưu Toàn Cục', figure: 'GS. Hoàng Tụy',
+                desc: 'Cha đẻ của lý thuyết Tối ưu toàn cục (Global Optimization) với "Nhát cắt Tụy" nổi tiếng thế giới.',
+                icon: 'fas fa-chart-line', file: 'hoangtuy.html', ready: true, special: true
+            },
+            {
+                year: 'Năm 1975', title: 'Hình Học Fractal', figure: 'Benoit Mandelbrot',
+                desc: 'Khám phá vẻ đẹp của sự hỗn loạn, hình học phân hình trong tự nhiên.',
+                icon: 'fas fa-snowflake', file: 'mandelbrot.html', ready: true
+            },
+            {
+                year: 'Năm 1994', title: 'Định Lý Cuối Cùng', figure: 'Andrew Wiles',
+                desc: 'Giải mã bài toán hóc búa nhất lịch sử sau hơn 350 năm thách thức của Fermat.',
+                icon: 'fas fa-check-double', file: 'wiles.html', ready: true
+            },
+            {
+                year: 'Năm 2003', title: 'Giả Thuyết Poincaré', figure: 'Grigori Perelman',
+                desc: 'Thiên tài ẩn dật giải quyết bài toán thế kỷ và từ chối giải thưởng 1 triệu đô la.',
+                icon: 'fas fa-ghost', file: 'perelman.html', ready: true
+            },
+            {
+                year: 'Năm 2010', title: 'Huy Chương Fields', figure: 'GS. Ngô Bảo Châu',
+                desc: 'Chứng minh Bổ đề Cơ bản trong chương trình Langlands, vinh quang của Toán học Việt Nam.',
+                icon: 'fas fa-medal', file: 'ngobaochau.html', ready: true, special: true
+            },
+            {
+                year: 'Năm 2014', title: 'Huy Chương Fields Nữ', figure: 'Maryam Mirzakhani',
+                desc: 'Người phụ nữ đầu tiên và duy nhất tính đến 2014 nhận giải Fields về hình học các mặt Riemann.',
+                icon: 'fas fa-infinity', file: 'mirzakhani.html', ready: true
             }
         ];
 
+        // --- BACKGROUND EFFECT: FLOATING MATH ---
+        function initBackground() {
+            const container = document.getElementById('math-bg-container');
+            const symbols = ['π', '∞', '∑', '∫', '√', '∂', 'ƒ', '∆', 'e', 'i', 'sin', 'log', 'φ', 'Ω', 'λ'];
+            const count = 25; // Số lượng ký hiệu
+
+            for(let i=0; i<count; i++) {
+                const el = document.createElement('div');
+                el.classList.add('math-symbol');
+                el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                
+                // Random position & animation
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.top = Math.random() * 100 + 'vh';
+                el.style.fontSize = (Math.random() * 40 + 20) + 'px';
+                el.style.opacity = Math.random() * 0.15 + 0.05;
+                
+                // Random animation duration
+                const anims = ['animate-float-slow', 'animate-float-medium', 'animate-float-fast'];
+                el.classList.add(anims[Math.floor(Math.random() * anims.length)]);
+                
+                container.appendChild(el);
+            }
+        }
+
         // --- RENDER TIMELINE ---
-        const container = document.getElementById('timeline-container');
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            const navList = document.getElementById('nav-list');
+            let counter = 0; // Để đếm chẵn lẻ cho layout zigzag
 
-        timelineData.forEach((item, index) => {
-            if (item.type === 'era') {
-                // Render Era Divider
-                const eraDiv = document.createElement('div');
-                eraDiv.className = `flex justify-center items-center py-16 relative z-10`;
-                eraDiv.innerHTML = `
-                    <div class="px-10 py-3 rounded-full border border-white/10 bg-deep/90 backdrop-blur shadow-[0_0_30px_rgba(0,0,0,0.6)] transform hover:scale-105 transition duration-500">
-                        <span class="${item.color} font-serif font-bold tracking-[0.2em] text-xl md:text-2xl drop-shadow-lg text-center block">${item.label}</span>
-                    </div>
-                `;
-                container.appendChild(eraDiv);
-            } else {
-                // Render Milestone Item
-                // Logic Zigzag: Cần tính toán lại index để không bị lệch do chèn Era
-                const isLeft = index % 2 !== 0; 
-                const wrapper = document.createElement('div');
-                
-                wrapper.className = `flex flex-col md:flex-row items-center w-full gap-8 md:gap-0 ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'} group`;
-                
-                const btnHtml = item.ready 
-                    ? `<button onclick="openViewer('${item.file}', '${item.title} - ${item.figure}')" class="mt-4 px-6 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-bold rounded-lg shadow-lg shadow-amber-500/20 transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 w-full md:w-auto justify-center">
-                         <span>Khám Phá</span> <i class="fas fa-arrow-right"></i>
-                       </button>`
-                    : `<button class="mt-4 px-6 py-2 bg-slate-800/50 text-slate-500 rounded-lg cursor-not-allowed border border-white/5 flex items-center gap-2 w-full md:w-auto justify-center group-hover:border-slate-600 transition">
-                         <span>Đang biên soạn...</span> <i class="fas fa-lock text-xs"></i>
-                       </button>`;
+            timelineData.forEach((item, index) => {
+                if (item.type === 'era') {
+                    // 1. Render ERA Divider
+                    const div = document.createElement('div');
+                    div.id = item.id; // Neo cho tìm kiếm
+                    div.className = "flex justify-center items-center py-10 relative z-10 scroll-mt-24";
+                    
+                    const bgClass = item.bg || 'bg-slate-900/80';
+                    const borderClass = item.border || 'border-white/10';
+                    
+                    div.innerHTML = `
+                        <div class="px-8 py-3 rounded-full border ${borderClass} ${bgClass} backdrop-blur shadow-2xl transform hover:scale-105 transition duration-500">
+                            <span class="${item.color} font-serif font-bold tracking-[0.2em] text-sm md:text-xl text-center block uppercase">
+                                <i class="fas fa-bookmark mr-2 text-xs opacity-50"></i>${item.label}
+                            </span>
+                        </div>
+                    `;
+                    container.appendChild(div);
 
-                wrapper.innerHTML = `
-                    <!-- Content Card side -->
-                    <div class="w-full md:w-1/2 ${isLeft ? 'md:pr-16 md:text-right' : 'md:pl-16 md:text-left'} px-4 text-center md:text-inherit">
-                        <div class="milestone-card p-6 md:p-8 rounded-2xl relative overflow-hidden group-hover:border-opacity-50 border-white/10 shadow-2xl">
-                            <div class="absolute top-0 ${isLeft ? 'left-0' : 'right-0'} w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 ${isLeft ? '-translate-x-1/2' : 'translate-x-1/2'}"></div>
-                            
-                            <span class="text-amber-500 font-mono text-xs md:text-sm tracking-[0.2em] uppercase mb-2 block font-bold">${item.year}</span>
-                            <h2 class="text-2xl md:text-3xl font-serif font-bold text-white mb-1 group-hover:text-amber-200 transition">${item.figure}</h2>
-                            <h3 class="text-slate-400 text-xs md:text-sm font-bold uppercase mb-4 tracking-wider">${item.title}</h3>
-                            <p class="text-slate-300 font-light leading-relaxed mb-6 text-sm md:text-base">${item.desc}</p>
-                            
-                            <div class="flex ${isLeft ? 'md:justify-end' : 'md:justify-start'} justify-center">
-                                ${btnHtml}
+                    // 2. Add to Navigation Menu
+                    const navItem = document.createElement('button');
+                    navItem.className = "w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group border-b border-white/5 last:border-0";
+                    navItem.onclick = () => scrollToEra(item.id);
+                    navItem.innerHTML = `
+                        <span class="${item.color} font-bold text-sm">${item.label}</span>
+                        <i class="fas fa-chevron-right text-slate-600 group-hover:text-white transition"></i>
+                    `;
+                    navList.appendChild(navItem);
+
+                } else {
+                    // 3. Render MILESTONE (Card)
+                    const isEven = counter % 2 === 0;
+                    const wrapper = document.createElement('div');
+                    
+                    // Desktop layout logic
+                    const desktopClasses = isEven ? 'md:flex-row' : 'md:flex-row-reverse';
+                    const paddingClasses = isEven ? 'md:pr-16 md:text-right' : 'md:pl-16 md:text-left';
+                    const alignClasses = isEven ? 'md:items-end' : 'md:items-start';
+
+                    // Special styling for Vietnam
+                    const cardBorder = item.special ? 'border-red-500/30' : 'border-white/10';
+                    const iconBg = item.special ? 'bg-red-900/20 border-red-500/50' : 'bg-deep border-slate-700';
+                    const iconColor = item.special ? 'text-red-400' : 'text-slate-500';
+
+                    wrapper.className = `flex flex-row ${desktopClasses} items-start md:items-center w-full group pl-10 md:pl-0 relative`;
+                    
+                    wrapper.innerHTML = `
+                        <!-- Content Side -->
+                        <div class="w-full md:w-1/2 ${paddingClasses} mb-2 md:mb-0">
+                            <div class="milestone-card p-5 md:p-8 rounded-2xl relative overflow-hidden ${cardBorder} flex flex-col ${alignClasses}">
+                                <!-- Glow Effect -->
+                                <div class="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                                
+                                <span class="${item.special ? 'text-red-400' : 'text-amber-500'} font-mono text-xs font-bold tracking-widest uppercase mb-1">${item.year}</span>
+                                <h2 class="text-xl md:text-2xl font-serif font-bold text-white mb-1 group-hover:text-amber-300 transition leading-tight">${item.figure}</h2>
+                                <h3 class="text-slate-400 text-xs font-bold uppercase mb-3 tracking-wider">${item.title}</h3>
+                                <p class="text-slate-300 font-light text-sm leading-relaxed mb-4 line-clamp-3 md:line-clamp-none">${item.desc}</p>
+                                
+                                <button onclick="openViewer('${item.file}', '${item.figure}')" class="px-5 py-2 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg transition-all duration-300 text-sm font-bold flex items-center gap-2 border border-white/5 w-fit">
+                                    <span>Chi tiết</span> <i class="fas fa-arrow-right text-xs"></i>
+                                </button>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Center Icon Node -->
-                    <div class="relative z-10 w-14 h-14 md:w-16 md:h-16 flex-shrink-0 bg-deep border-4 border-slate-700 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.8)] group-hover:border-amber-400 group-hover:shadow-[0_0_30px_rgba(251,191,36,0.4)] group-hover:scale-110 transition-all duration-500">
-                        <i class="${item.icon} text-lg md:text-xl text-slate-500 group-hover:text-amber-400 transition-colors"></i>
-                    </div>
+                        <!-- Center Icon (Desktop Center / Mobile Left) -->
+                        <div class="absolute left-[17px] md:left-1/2 top-8 md:top-1/2 transform -translate-x-1/2 md:-translate-y-1/2 z-10 
+                                    w-10 h-10 md:w-14 md:h-14 flex-shrink-0 ${iconBg} border-2 md:border-4 rounded-full flex items-center justify-center 
+                                    shadow-lg group-hover:scale-110 group-hover:border-amber-400 transition-all duration-500 bg-deep">
+                            <i class="${item.icon} ${iconColor} text-sm md:text-xl group-hover:text-amber-400 transition-colors"></i>
+                        </div>
 
-                    <!-- Empty side for balance -->
-                    <div class="w-full md:w-1/2 hidden md:block"></div>
-                `;
-                container.appendChild(wrapper);
+                        <!-- Empty Balance Side (Desktop only) -->
+                        <div class="w-full md:w-1/2 hidden md:block"></div>
+                    `;
+                    container.appendChild(wrapper);
+                    counter++;
+                }
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+        
+        // 1. Navigation Menu
+        function toggleNav() {
+            document.getElementById('nav-overlay').classList.toggle('active');
+        }
+
+        function scrollToEra(id) {
+            toggleNav(); // Close menu
+            const element = document.getElementById(id);
+            if(element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        });
+        }
 
-        // --- VIEWER LOGIC (IFRAME MODAL) ---
-        const modal = document.getElementById('story-viewer');
-        const frame = document.getElementById('content-frame');
-        const titleEl = document.getElementById('viewer-title');
-        const loader = document.getElementById('loader');
+        // 2. Viewer (Iframe)
+        const viewer = {
+            modal: document.getElementById('story-viewer'),
+            frame: document.getElementById('content-frame'),
+            title: document.getElementById('viewer-title'),
+            loader: document.getElementById('loader')
+        };
 
         function openViewer(file, title) {
-            titleEl.textContent = title;
-            loader.style.display = 'flex';
-            frame.style.opacity = '0';
-            frame.src = file;
-            modal.classList.add('active');
+            viewer.title.textContent = title;
+            viewer.loader.style.display = 'flex';
+            viewer.frame.style.opacity = '0';
+            viewer.frame.src = file;
+            
+            viewer.modal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+            viewer.modal.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
             document.body.style.overflow = 'hidden';
         }
 
         function onFrameLoad() {
-            loader.style.display = 'none';
-            frame.style.opacity = '1';
+            viewer.loader.style.display = 'none';
+            viewer.frame.style.opacity = '1';
         }
-
-        frame.addEventListener('load', onFrameLoad);
+        
+        // Add event listener safely
+        viewer.frame.addEventListener('load', onFrameLoad);
 
         function closeViewer() {
-            modal.classList.remove('active');
-            setTimeout(() => {
-                frame.src = 'about:blank';
-            }, 500); 
+            viewer.modal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+            viewer.modal.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+            
+            setTimeout(() => { viewer.frame.src = 'about:blank'; }, 300);
             document.body.style.overflow = '';
         }
 
+        // Close on Escape
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
-                closeViewer();
-            }
+            if (e.key === 'Escape') closeViewer();
         });
 
-        // Scroll Reveal Effect
+        // --- INIT ---
+        initBackground();
+        renderTimeline();
+
+        // Reveal Animation on Scroll
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-in');
                     entry.target.style.opacity = '1';
                     entry.target.style.transform = 'translateY(0)';
                 }
             });
         }, { threshold: 0.1 });
 
+        // Apply initial state for animation
         document.querySelectorAll('.milestone-card').forEach(el => {
             el.style.opacity = '0';
             el.style.transform = 'translateY(30px)';
-            el.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
             observer.observe(el);
         });
 
