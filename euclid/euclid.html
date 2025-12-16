@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Euclid: Kiến Tạo Chân Lý</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#0f0e17',
+                        paper: '#fffffe',
+                        gold: {
+                            base: '#ff8906',
+                            dim: '#f25f4c',
+                            glow: '#ff9e3d'
+                        },
+                    },
+                    fontFamily: {
+                        title: ['"Cinzel"', 'serif'],
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'zoom-in': 'zoomIn 0.5s ease-out forwards',
+                        'draw': 'draw 2.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+                        zoomIn: { '0%': { transform: 'scale(0.9)', opacity: 0 }, '100%': { transform: 'scale(1)', opacity: 1 } },
+                        draw: { to: { strokeDashoffset: 0 } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #0f0e17; 
+            color: #fffffe; 
+            overflow: hidden; 
+            height: 100vh; 
+            font-family: 'Cormorant Garamond', serif;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .math-illustration {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255, 137, 6, 0.2));
+            transition: all 0.5s ease;
+        }
+        
+        /* SVG Code Animation Styles */
+        .svg-canvas {
+            width: 100%; height: 100%;
+            filter: drop-shadow(0 0 15px rgba(255, 137, 6, 0.4));
+        }
+        
+        .neon-path {
+            fill: none;
+            stroke: #ff8906;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 5px #ff8906);
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 2s ease-out forwards;
+        }
+        
+        .neon-circle {
+            fill: none;
+            stroke: #ff9e3d;
+            stroke-width: 1.5;
+            stroke-opacity: 0.8;
+            filter: drop-shadow(0 0 8px #ff9e3d);
+            stroke-dasharray: 2000;
+            stroke-dashoffset: 2000;
+            animation: draw 2.5s ease-out forwards;
+        }
+        
+        .neon-point {
+            fill: #fffffe;
+            filter: drop-shadow(0 0 10px #ffffff);
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards 1s;
+        }
+        
+        .neon-label {
+            fill: #ff8906;
+            font-family: 'Cinzel', serif;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff8906;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards 1.2s;
+        }
+
+        .neon-fill {
+            fill: rgba(255, 137, 6, 0.2);
+            stroke: none;
+            opacity: 0;
+            animation: fadeIn 2s ease-out forwards 1.5s;
+        }
+        
+        .bg-texture {
+            background-image: url('./alexandria_bg.jpg'); 
+            background-size: cover; background-position: center;
+            opacity: 0.3; mix-blend-mode: overlay;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #ff8906; border-radius: 2px; }
+
+        /* Layout */
+        #main-layout {
+            width: 100%; height: 100%; max-width: 1600px; max-height: 900px;
+            margin: auto; position: relative; display: flex; flex-direction: column;
+            overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+        
+        @media (min-width: 768px) {
+            #main-layout { flex-direction: row; height: 90vh; border-radius: 12px; }
+            #zone-stage { flex: 50; } 
+            #zone-dashboard { flex: 50; }
+        }
+        
+        #zone-stage { flex: 45; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2rem; }
+        
+        /* Character Wrapper Styles */
+        #char-wrapper {
+            position: absolute; bottom: 0; 
+            z-index: 10; pointer-events: none; 
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
+        }
+
+        /* Desktop Character Position */
+        @media (min-width: 769px) {
+            #char-wrapper {
+                left: 5%; height: 85%; max-width: 45%;
+            }
+        }
+        
+        #zone-dashboard {
+            flex: 55; background: rgba(22, 22, 26, 0.95);
+            border-top: 2px solid #ff8906;
+            display: flex; flex-direction: column; position: relative; z-index: 20;
+            backdrop-filter: blur(10px);
+        }
+        
+        #opening-scene { z-index: 9999; pointer-events: auto; }
+        #start-btn { cursor: pointer; position: relative; z-index: 10000; }
+        
+        /* MOBILE SPECIFIC ADJUSTMENTS */
+        @media (max-width: 768px) {
+            #main-layout { height: 100vh; max-height: none; border-radius: 0; }
+            #zone-stage { flex: 40; padding: 1rem; } 
+            #zone-dashboard { flex: 60; }
+            
+            /* TĂNG KÍCH THƯỚC NHÂN VẬT TRÊN MOBILE */
+            #char-wrapper { 
+                left: 50%; 
+                transform: translateX(-50%); 
+                height: 65%; /* Tăng từ 55% lên 65% */
+                max-width: 90%; /* Tăng chiều rộng để ảnh to hơn */
+                bottom: 0;
+                opacity: 1 !important; /* Đảm bảo luôn hiện */
+            }
+            #char-wrapper.hide-mobile {
+                opacity: 0; /* Chỉ ẩn khi cần thiết */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="fixed inset-0 bg-texture z-0 pointer-events-none"></div>
+    <div class="fixed inset-0 bg-gradient-to-t from-void via-transparent to-void z-0 pointer-events-none"></div>
+
+    <div id="main-layout">
+        <!-- STAGE -->
+        <div id="zone-stage">
+            <div id="char-wrapper" class="opacity-0 translate-y-10">
+                <img id="char-img" src="" class="h-full w-auto object-contain" alt="Character" onerror="this.style.display='none'">
+            </div>
+            
+            <!-- Visual Container -->
+            <div id="visual-container" class="w-full h-full flex items-center justify-center relative z-0">
+                <!-- Chế độ Ảnh tĩnh -->
+                <img id="visual-img" src="" class="math-illustration opacity-0 absolute inset-0 m-auto" alt="Math Illustration">
+                
+                <!-- Chế độ Code Vẽ (SVG) -->
+                <div id="visual-code" class="absolute inset-0 w-full h-full flex items-center justify-center opacity-0 transition-opacity duration-500 pointer-events-none">
+                    <!-- SVG sẽ được inject vào đây -->
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="zone-dashboard">
+            <div class="w-full h-1 bg-gradient-to-r from-transparent via-gold-base to-transparent opacity-80 shadow-[0_0_10px_#ff8906]"></div>
+            <div class="flex-1 w-full h-full flex flex-col md:flex-row p-4 md:p-8 gap-4 md:gap-8 overflow-hidden dialog-content">
+                <div class="flex-1 flex flex-col relative overflow-hidden min-h-0">
+                    <div class="flex items-center gap-3 mb-2 pb-2 border-b border-white/10 flex-shrink-0">
+                        <i class="fas fa-quote-left text-gold-dim text-sm"></i>
+                        <h2 id="speaker-name" class="text-gold-base font-title font-bold text-lg md:text-2xl uppercase tracking-[0.15em] drop-shadow-md"></h2>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scroll pr-2 flex flex-col">
+                        <div id="dialogue-text" class="text-paper font-serif text-lg md:text-xl leading-relaxed text-justify drop-shadow-sm"></div>
+                        
+                        <div id="math-note-box" class="hidden mt-4 animate-fade-in flex-shrink-0">
+                            <div class="bg-white/5 border-l-4 border-gold-base pl-4 py-3 rounded-r border border-white/5 backdrop-blur-sm">
+                                <span class="text-gold-base text-xs font-bold uppercase block mb-1 tracking-widest flex items-center gap-2">
+                                    <i class="fas fa-scroll"></i> Góc Học Thuật
+                                </span>
+                                <p id="math-note-text" class="text-base text-gray-300 italic font-serif leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="choices-panel" class="w-full md:w-80 flex-shrink-0 bg-black/40 rounded-lg border border-white/10 p-2 flex flex-col gap-2 overflow-y-auto custom-scroll shadow-inner"></div>
+            </div>
+            
+            <div class="absolute top-[-1.5rem] right-4 md:right-8 z-50">
+                <button onclick="location.reload()" class="w-12 h-12 rounded-full bg-void text-gold-base border border-gold-base shadow-[0_0_15px_rgba(255,137,6,0.3)] hover:bg-gold-base hover:text-void hover:scale-110 transition-all flex items-center justify-center group pointer-events-auto cursor-pointer">
+                    <i class="fas fa-redo-alt group-hover:rotate-180 transition-transform duration-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Opening Scene -->
+    <div id="opening-scene" class="fixed inset-0 z-[9999] bg-[#0f0e17] flex items-center justify-center transition-opacity duration-1000 p-4">
+        <div class="absolute inset-0 bg-[url('./alexandria_bg.jpg')] bg-cover bg-center opacity-30 pointer-events-none"></div>
+        <div class="relative z-10 text-center max-w-lg w-full flex flex-col items-center justify-center h-full pointer-events-none">
+            <div class="flex-1 flex flex-col items-center justify-center">
+                <h1 class="font-title text-5xl md:text-8xl text-gold-base font-bold mb-4 animate-float drop-shadow-[0_0_20px_rgba(255,137,6,0.6)] tracking-widest leading-tight">STOICHEIA</h1>
+                <div class="h-1 w-24 md:w-32 bg-gold-base mx-auto mb-6 shadow-[0_0_10px_#ff8906]"></div>
+                <p class="font-serif text-2xl md:text-4xl text-paper opacity-90 italic mb-2">Cơ Sở Hình Học</p>
+                <p class="text-gray-500 text-xs md:text-sm uppercase tracking-[0.5em] font-sans">Alexandria • 300 TCN</p>
+            </div>
+            <div class="pb-12 md:pb-20 pointer-events-auto">
+                <button id="start-btn" class="px-8 py-3 md:px-10 md:py-4 border border-gold-base text-gold-base hover:bg-gold-base hover:text-void transition-all uppercase tracking-widest text-sm md:text-base rounded shadow-[0_0_20px_rgba(255,137,6,0.2)] animate-pulse-glow bg-void/50 backdrop-blur-sm cursor-pointer select-none">
+                    Bắt đầu hành trình
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reward Overlay -->
+    <div id="reward-overlay" class="fixed inset-0 z-50 bg-void/95 flex items-center justify-center hidden opacity-0 transition-opacity duration-1000 backdrop-blur-xl p-4">
+        <div class="text-center p-6 md:p-8 max-w-lg w-full relative border border-gold-base/30 rounded-2xl bg-white/5 shadow-[0_0_50px_rgba(255,137,6,0.1)]">
+            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 text-6xl text-gold-base drop-shadow-[0_0_20px_#ff8906]"><i class="fas fa-crown"></i></div>
+            <img src="./elements_book.png" class="w-32 md:w-40 mx-auto mb-8 animate-float filter drop-shadow-[0_0_30px_rgba(255,137,6,0.4)]" onerror="this.style.display='none'">
+            <h2 class="font-title text-3xl md:text-5xl text-gold-base mb-6 font-bold uppercase tracking-widest">Di Sản Vĩnh Cửu</h2>
+            <p class="font-serif text-gray-300 text-lg md:text-2xl mb-10 italic leading-relaxed">
+                "Không có con đường hoàng gia nào dẫn đến hình học."
+            </p>
+            <button onclick="location.reload()" class="px-8 py-3 md:px-10 md:py-3 bg-gold-base text-void font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-lg rounded-full text-sm md:text-base">
+                Khám Phá Lại
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- HELPERS FOR CODE DRAWING (SVG) ---
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        
+        function createSVGElement(width=800, height=600) {
+            const svg = document.createElementNS(SVG_NS, "svg");
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            svg.setAttribute("class", "svg-canvas");
+            return svg;
+        }
+
+        function createLine(x1, y1, x2, y2) {
+            const line = document.createElementNS(SVG_NS, "line");
+            line.setAttribute("x1", x1); line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2); line.setAttribute("y2", y2);
+            line.setAttribute("class", "neon-path");
+            return line;
+        }
+
+        function createCircle(cx, cy, r) {
+            const circle = document.createElementNS(SVG_NS, "circle");
+            circle.setAttribute("cx", cx); circle.setAttribute("cy", cy);
+            circle.setAttribute("r", r);
+            circle.setAttribute("class", "neon-circle");
+            return circle;
+        }
+
+        function createPoint(cx, cy, label) {
+            const g = document.createElementNS(SVG_NS, "g");
+            const circle = document.createElementNS(SVG_NS, "circle");
+            circle.setAttribute("cx", cx); circle.setAttribute("cy", cy);
+            circle.setAttribute("r", 5);
+            circle.setAttribute("class", "neon-point");
+            
+            const text = document.createElementNS(SVG_NS, "text");
+            text.setAttribute("x", cx + 15); text.setAttribute("y", cy - 15);
+            text.textContent = label;
+            text.setAttribute("class", "neon-label");
+            
+            g.appendChild(circle);
+            g.appendChild(text);
+            return g;
+        }
+
+        function createPolygon(points) {
+            const poly = document.createElementNS(SVG_NS, "polygon");
+            const pointStr = points.map(p => `${p.x},${p.y}`).join(" ");
+            poly.setAttribute("points", pointStr);
+            poly.setAttribute("class", "neon-fill");
+            return poly;
+        }
+
+        // --- RENDERERS FOR PROP 1 (Recalculated for 800x600 Center) ---
+        // Center Y adjusted to 350 to fit circles (Radius 200) vertically (150-550)
+        // Center X = 400.
+        // Base: Y=350. Wait, base is usually bottom.
+        // Let's assume A, B are on Y=400. Top circle edge Y=200. Bottom circle edge Y=600.
+        // To be safe, let's move everything UP by 50px. Y_Base = 350.
+        // A=(300, 350), B=(500, 350).
+        // Height = 200 * sqrt(3)/2 = 173.2.
+        // C=(400, 350 - 173.2) = (400, 176.8).
+        // Top circle edge = 350 - 200 = 150.
+        // Bottom circle edge = 350 + 200 = 550.
+        // Fits perfectly in 0-600.
+        const P1_COORDS = {
+            A: {x: 300, y: 350},
+            B: {x: 500, y: 350},
+            C: {x: 400, y: 176.8},
+            R: 200
+        };
+
+        const CODE_RENDERERS = {
+            'prop1_intro': (container) => {
+                const svg = createSVGElement();
+                svg.appendChild(createLine(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.B.x, P1_COORDS.B.y));
+                svg.appendChild(createPoint(P1_COORDS.A.x, P1_COORDS.A.y, "A"));
+                svg.appendChild(createPoint(P1_COORDS.B.x, P1_COORDS.B.y, "B"));
+                container.appendChild(svg);
+            },
+            'prop1_step1': (container) => {
+                const svg = createSVGElement();
+                svg.appendChild(createLine(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.B.x, P1_COORDS.B.y));
+                svg.appendChild(createCircle(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.R));
+                svg.appendChild(createPoint(P1_COORDS.A.x, P1_COORDS.A.y, "A"));
+                svg.appendChild(createPoint(P1_COORDS.B.x, P1_COORDS.B.y, "B"));
+                container.appendChild(svg);
+            },
+            'prop1_step2': (container) => {
+                const svg = createSVGElement();
+                svg.appendChild(createLine(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.B.x, P1_COORDS.B.y));
+                svg.appendChild(createCircle(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.R));
+                svg.appendChild(createCircle(P1_COORDS.B.x, P1_COORDS.B.y, P1_COORDS.R));
+                svg.appendChild(createPoint(P1_COORDS.A.x, P1_COORDS.A.y, "A"));
+                svg.appendChild(createPoint(P1_COORDS.B.x, P1_COORDS.B.y, "B"));
+                container.appendChild(svg);
+            },
+            'prop1_step3': (container) => {
+                const svg = createSVGElement();
+                svg.appendChild(createPolygon([P1_COORDS.A, P1_COORDS.B, P1_COORDS.C]));
+                const c1 = createCircle(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.R); c1.style.opacity = 0.3;
+                const c2 = createCircle(P1_COORDS.B.x, P1_COORDS.B.y, P1_COORDS.R); c2.style.opacity = 0.3;
+                svg.appendChild(c1); svg.appendChild(c2);
+                svg.appendChild(createLine(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.B.x, P1_COORDS.B.y));
+                svg.appendChild(createLine(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.C.x, P1_COORDS.C.y));
+                svg.appendChild(createLine(P1_COORDS.B.x, P1_COORDS.B.y, P1_COORDS.C.x, P1_COORDS.C.y));
+                svg.appendChild(createPoint(P1_COORDS.A.x, P1_COORDS.A.y, "A"));
+                svg.appendChild(createPoint(P1_COORDS.B.x, P1_COORDS.B.y, "B"));
+                svg.appendChild(createPoint(P1_COORDS.C.x, P1_COORDS.C.y, "C"));
+                container.appendChild(svg);
+            }
+        };
+
+        // --- STORY DATA ---
+        const STORY = {
+            'intro': { speaker: "Ptolemy I", text: "Alexandria... viên ngọc của Địa Trung Hải. Ta đã cho xây dựng Thư viện vĩ đại này để thu thập mọi tri thức của nhân loại. Nhưng giữa hàng vạn cuộn giấy này, ta vẫn thấy thiếu một thứ gì đó... một trật tự.", char: "ptolemy_char.png", choices: [{ text: "Ngài đang tìm kiếm gì?", next: 'intro_2' }] },
+            'intro_2': { speaker: "Ptolemy I", text: "Ta cần một nền tảng vững chắc. Các kiến trúc sư Ai Cập xây được Kim Tự Tháp, nhưng kiến thức của họ rời rạc. Ta cần một hệ thống logic hoàn hảo.", choices: [{ text: "Đó là Euclid", next: 'meet_euclid' }] },
+            'meet_euclid': { speaker: "Euclid", text: "Kính chào Bệ hạ. Thần là Euclid. Thần mang đến <strong class='text-gold-base'>Cơ Sở (Stoicheia)</strong>. Chân lý không cần trang sức, nó chỉ cần sự rõ ràng.", char: "euclid_char.png", image: "elements_book.png", choices: [{ text: "Bắt đầu Định nghĩa", next: 'def_intro' }] },
+
+            // --- DEFINITIONS ---
+            'def_intro': { speaker: "Euclid", text: "Stoicheia bắt đầu bằng 23 Định Nghĩa. Hãy bắt đầu với những khái niệm nguyên thủy nhất.", mathNote: "Khái niệm nguyên thủy là nền tảng không thể định nghĩa qua cái khác.", image: "def_intro.png", choices: [{ text: "Định nghĩa 1", next: 'def_1' }] },
+            'def_1': { speaker: "Euclid", text: "<strong>Định nghĩa 1:</strong> ĐIỂM là cái không có bộ phận.", mathNote: "Điểm có vị trí nhưng không có kích thước (0 chiều).", image: "def_1.png", choices: [{ text: "Định nghĩa 2", next: 'def_2' }] },
+            'def_2': { speaker: "Euclid", text: "<strong>Định nghĩa 2:</strong> ĐƯỜNG là chiều dài không có bề rộng.", mathNote: "Khái niệm 'Đường' (Line) tổng quát, có thể cong hoặc thẳng.", image: "def_2.png", choices: [{ text: "Định nghĩa 3", next: 'def_3' }] },
+            'def_3': { speaker: "Euclid", text: "<strong>Định nghĩa 3:</strong> GIỚI HẠN của đường là điểm.", mathNote: "Hai đầu mút của một đoạn đường hữu hạn là các điểm.", image: "def_3.png", choices: [{ text: "Định nghĩa 4", next: 'def_4' }] },
+            'def_4': { speaker: "Euclid", text: "<strong>Định nghĩa 4:</strong> ĐƯỜNG THẲNG là đường nằm đều với các điểm trên nó.", mathNote: "Đường thẳng (Straight Line).", image: "def_4.png", choices: [{ text: "Định nghĩa 5", next: 'def_5' }] },
+            'def_5': { speaker: "Euclid", text: "<strong>Định nghĩa 5:</strong> MẶT là cái chỉ có chiều dài và chiều rộng.", mathNote: "Đối tượng 2 chiều (Surface).", image: "def_5.png", choices: [{ text: "Định nghĩa 6", next: 'def_6' }] },
+            'def_6': { speaker: "Euclid", text: "<strong>Định nghĩa 6:</strong> GIỚI HẠN của mặt là đường.", mathNote: "Các cạnh bao quanh một hình phẳng.", image: "def_6.png", choices: [{ text: "Định nghĩa 7", next: 'def_7' }] },
+            'def_7': { speaker: "Euclid", text: "<strong>Định nghĩa 7:</strong> MẶT PHẲNG là mặt nằm đều với các đường thẳng trên nó.", image: "def_7.png", choices: [{ text: "Định nghĩa 8", next: 'def_8' }] },
+            'def_8': { speaker: "Euclid", text: "<strong>Định nghĩa 8:</strong> GÓC PHẲNG là độ nghiêng của hai đường gặp nhau.", mathNote: "Bao gồm cả góc giữa hai đường cong.", image: "def_8.png", choices: [{ text: "Định nghĩa 9", next: 'def_9' }] },
+            'def_9': { speaker: "Euclid", text: "<strong>Định nghĩa 9:</strong> GÓC ĐƯỜNG THẲNG là khi các cạnh của góc là đường thẳng.", image: "def_9.png", choices: [{ text: "Định nghĩa 10", next: 'def_10' }] },
+            'def_10': { speaker: "Euclid", text: "<strong>Định nghĩa 10:</strong> GÓC VUÔNG tạo bởi đường thẳng đứng trên đường thẳng khác làm hai góc kề bằng nhau.", image: "def_10.png", choices: [{ text: "Định nghĩa 11", next: 'def_11' }] },
+            'def_11': { speaker: "Euclid", text: "<strong>Định nghĩa 11:</strong> GÓC TÙ là góc lớn hơn góc vuông.", image: "def_11.png", choices: [{ text: "Định nghĩa 12", next: 'def_12' }] },
+            'def_12': { speaker: "Euclid", text: "<strong>Định nghĩa 12:</strong> GÓC NHỌN là góc nhỏ hơn góc vuông.", image: "def_12.png", choices: [{ text: "Định nghĩa 13", next: 'def_13' }] },
+            'def_13': { speaker: "Euclid", text: "<strong>Định nghĩa 13:</strong> BIÊN là cái giới hạn một vật.", image: "def_13.png", choices: [{ text: "Định nghĩa 14", next: 'def_14' }] },
+            'def_14': { speaker: "Euclid", text: "<strong>Định nghĩa 14:</strong> HÌNH là cái được bao quanh bởi một hay nhiều biên.", image: "def_14.png", choices: [{ text: "Định nghĩa 15", next: 'def_15' }] },
+            'def_15': { speaker: "Euclid", text: "<strong>Định nghĩa 15:</strong> HÌNH TRÒN có các đoạn thẳng từ tâm đến biên bằng nhau.", image: "def_15.png", choices: [{ text: "Định nghĩa 16", next: 'def_16' }] },
+            'def_16': { speaker: "Euclid", text: "<strong>Định nghĩa 16:</strong> TÂM là điểm nằm giữa hình tròn.", image: "def_16.png", choices: [{ text: "Định nghĩa 17", next: 'def_17' }] },
+            'def_17': { speaker: "Euclid", text: "<strong>Định nghĩa 17:</strong> ĐƯỜNG KÍNH là đoạn thẳng qua tâm và giới hạn bởi hai phía của hình tròn.", image: "def_17.png", choices: [{ text: "Định nghĩa 18", next: 'def_18' }] },
+            'def_18': { speaker: "Euclid", text: "<strong>Định nghĩa 18:</strong> BÁN NGUYỆT là hình gồm đường kính và nửa chu vi.", image: "def_18.png", choices: [{ text: "Định nghĩa 19", next: 'def_19' }] },
+            'def_19': { speaker: "Euclid", text: "<strong>Định nghĩa 19:</strong> HÌNH TRẮC DIỆN (Đa giác) là hình giới hạn bởi các đường thẳng.", image: "def_19.png", choices: [{ text: "Định nghĩa 20", next: 'def_20' }] },
+            'def_20': { speaker: "Euclid", text: "<strong>Định nghĩa 20:</strong> TAM GIÁC (theo cạnh): Đều, Cân, Lệch.", image: "def_20.png", choices: [{ text: "Định nghĩa 21", next: 'def_21' }] },
+            'def_21': { speaker: "Euclid", text: "<strong>Định nghĩa 21:</strong> TAM GIÁC (theo góc): Vuông, Tù, Nhọn.", image: "def_21.png", choices: [{ text: "Định nghĩa 22", next: 'def_22' }] },
+            'def_22': { speaker: "Euclid", text: "<strong>Định nghĩa 22:</strong> TỨ GIÁC: Hình vuông, Hình chữ nhật, Hình thoi...", image: "def_22.png", choices: [{ text: "Định nghĩa 23", next: 'def_23' }] },
+            'def_23': { speaker: "Euclid", text: "<strong>Định nghĩa 23:</strong> CÁC ĐƯỜNG SONG SONG không bao giờ gặp nhau.", image: "def_23.png", choices: [{ text: "Tiên đề 1", next: 'post_1' }] },
+
+            // --- POSTULATES ---
+            'post_1': { speaker: "Euclid", text: "<strong>Tiên đề I:</strong> Qua 2 điểm bất kỳ, luôn vẽ được một đường thẳng.", image: "post_1.png", choices: [{ text: "Tiên đề 2", next: 'post_2' }] },
+            'post_2': { speaker: "Euclid", text: "<strong>Tiên đề II:</strong> Có thể kéo dài vô tận một đoạn thẳng.", image: "post_2.png", choices: [{ text: "Tiên đề 3", next: 'post_3' }] },
+            'post_3': { speaker: "Euclid", text: "<strong>Tiên đề III:</strong> Vẽ được một đường tròn với tâm và bán kính bất kỳ.", image: "post_3.png", choices: [{ text: "Tiên đề 4", next: 'post_4' }] },
+            'post_4': { speaker: "Euclid", text: "<strong>Tiên đề IV:</strong> Mọi góc vuông đều bằng nhau.", image: "post_4.png", choices: [{ text: "Tiên đề 5", next: 'post_5' }] },
+            'post_5': { speaker: "Euclid", text: "<strong>Tiên đề V:</strong> Nếu tổng hai góc trong cùng phía nhỏ hơn hai góc vuông, hai đường thẳng sẽ cắt nhau.", image: "post_5.png", choices: [{ text: "Khái niệm chung", next: 'cn_1' }] },
+
+            // --- COMMON NOTIONS ---
+            'cn_1': { speaker: "Euclid", text: "<strong>Khái niệm 1:</strong> Những vật cùng bằng một vật thứ ba thì bằng nhau.", image: "cn_1.png", choices: [{ text: "Khái niệm 2", next: 'cn_2' }] },
+            'cn_2': { speaker: "Euclid", text: "<strong>Khái niệm 2:</strong> Thêm những vật bằng nhau vào những vật bằng nhau thì tổng bằng nhau.", image: "cn_2.png", choices: [{ text: "Khái niệm 3", next: 'cn_3' }] },
+            'cn_3': { speaker: "Euclid", text: "<strong>Khái niệm 3:</strong> Bớt những vật bằng nhau từ những vật bằng nhau thì phần còn lại bằng nhau.", image: "cn_3.png", choices: [{ text: "Khái niệm 4", next: 'cn_4' }] },
+            'cn_4': { speaker: "Euclid", text: "<strong>Khái niệm 4:</strong> Những vật trùng khít lên nhau thì bằng nhau.", image: "cn_4.png", choices: [{ text: "Khái niệm 5", next: 'cn_5' }] },
+            'cn_5': { speaker: "Euclid", text: "<strong>Khái niệm 5:</strong> Toàn thể lớn hơn một bộ phận.", image: "cn_5.png", choices: [{ text: "Mệnh đề I.1", next: 'prop1_intro' }] },
+
+            // --- PROPOSITION 1 ---
+            'prop1_intro': { speaker: "Euclid", text: "Mệnh Đề I.1: <strong>Dựng một tam giác đều trên một đoạn thẳng cho trước.</strong>", mathNote: "Đây là bài toán dựng hình đầu tiên và nổi tiếng nhất.", renderer: 'prop1_intro', choices: [{ text: "Bước 1: Vẽ Đường Tròn A", next: 'prop1_step1' }] },
+            'prop1_step1': { speaker: "Euclid", text: "Vẽ đường tròn tâm A, bán kính AB.", renderer: 'prop1_step1', choices: [{ text: "Bước 2: Vẽ Đường Tròn B", next: 'prop1_step2' }] },
+            'prop1_step2': { speaker: "Euclid", text: "Vẽ đường tròn tâm B, bán kính BA.", renderer: 'prop1_step2', choices: [{ text: "Bước 3: Nối Điểm", next: 'prop1_step3' }] },
+            'prop1_step3': { speaker: "Euclid", text: "Nối giao điểm C với A và B. Ta có tam giác đều ABC.", mathNote: "AC = AB (cùng bán kính A), BC = AB (cùng bán kính B) => AC = BC = AB.", renderer: 'prop1_step3', choices: [{ text: "Kết thúc", next: 'finish_talk' }] },
+            'finish_talk': { speaker: "Ptolemy I", text: "Thật kinh ngạc. Mọi thứ liên kết với nhau thật hoàn hảo.", char: "ptolemy_char.png", image: "elements_book.png", choices: [{ text: "Lời cuối", next: 'royal_road' }] },
+            'royal_road': { speaker: "Euclid", text: "Không có con đường hoàng gia nào dẫn đến hình học.", char: "euclid_char.png", choices: [{ text: "Kết thúc", next: 'finish' }] },
+            'finish': { action: 'end_game' }
+        };
+
+        // --- CORE ENGINE ---
+        const ui = {
+            char: document.getElementById('char-wrapper'),
+            charImg: document.getElementById('char-img'),
+            visualImg: document.getElementById('visual-img'),
+            visualCode: document.getElementById('visual-code'),
+            speaker: document.getElementById('speaker-name'),
+            text: document.getElementById('dialogue-text'),
+            choices: document.getElementById('choices-panel'),
+            mathNoteBox: document.getElementById('math-note-box'),
+            mathNoteText: document.getElementById('math-note-text'),
+            overlay: document.getElementById('reward-overlay'),
+            opening: document.getElementById('opening-scene'),
+            startBtn: document.getElementById('start-btn')
+        };
+
+        let imageTimeout; 
+
+        function renderScene(id) {
+            if (STORY[id].action === 'end_game') {
+                ui.overlay.classList.remove('hidden');
+                setTimeout(() => ui.overlay.classList.remove('opacity-0'), 100);
+                return;
+            }
+
+            clearTimeout(imageTimeout);
+            ui.visualImg.onload = null;
+
+            const scene = STORY[id];
+            
+            // 1. Character Handling (FIXED FOR MOBILE)
+            if (scene.char) {
+                if (!ui.charImg.src.includes(scene.char)) {
+                    ui.char.classList.add('opacity-0', 'translate-y-10');
+                    setTimeout(() => {
+                        ui.charImg.src = scene.char;
+                        ui.charImg.style.display = 'block';
+                        // Hiển thị nhân vật trên mọi thiết bị (xóa bỏ check width)
+                        ui.char.classList.remove('opacity-0', 'translate-y-10');
+                    }, 500);
+                } else {
+                    // Đảm bảo nhân vật luôn hiển thị nếu đã có
+                    ui.char.classList.remove('opacity-0', 'translate-y-10');
+                }
+            } else {
+                ui.char.classList.add('opacity-0', 'translate-y-10');
+            }
+
+            // 2. Visual Handling
+            if (scene.renderer) {
+                // FORCE CLEAR IMAGE
+                ui.visualImg.src = "";
+                ui.visualImg.classList.add('opacity-0'); 
+                
+                ui.visualCode.innerHTML = ''; 
+                ui.visualCode.classList.remove('opacity-0'); 
+                
+                if (CODE_RENDERERS[scene.renderer]) {
+                    CODE_RENDERERS[scene.renderer](ui.visualCode);
+                }
+            } else if (scene.image) {
+                ui.visualCode.classList.add('opacity-0'); 
+                ui.visualImg.classList.add('opacity-0');
+                ui.visualImg.classList.remove('animate-zoom-in');
+                
+                imageTimeout = setTimeout(() => {
+                    ui.visualImg.src = scene.image;
+                    ui.visualImg.onload = () => {
+                        ui.visualImg.classList.remove('opacity-0');
+                        ui.visualImg.classList.add('animate-zoom-in');
+                    };
+                    if(ui.visualImg.complete && ui.visualImg.naturalWidth > 0) {
+                        ui.visualImg.classList.remove('opacity-0');
+                        ui.visualImg.classList.add('animate-zoom-in');
+                    }
+                }, 300);
+            } else {
+                ui.visualImg.classList.add('opacity-0');
+                ui.visualCode.classList.add('opacity-0');
+            }
+
+            ui.speaker.innerText = scene.speaker || "";
+            
+            if (scene.mathNote) {
+                ui.mathNoteBox.classList.remove('hidden');
+                ui.mathNoteText.innerHTML = scene.mathNote;
+            } else {
+                ui.mathNoteBox.classList.add('hidden');
+            }
+
+            // 3. Typewriter Effect
+            typeWriter(scene.text, () => {
+                renderChoices(scene.choices);
+                renderMathInElement(ui.text, { delimiters: [{left: "$", right: "$", display: false}] });
+            });
+        }
+
+        function typeWriter(html, callback) {
+            ui.text.innerHTML = html;
+            ui.text.classList.remove('opacity-100');
+            ui.text.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                ui.text.classList.remove('opacity-0');
+                ui.text.classList.add('transition-opacity', 'duration-500', 'opacity-100');
+                if(callback) callback();
+            }, 100);
+        }
+
+        function renderChoices(choices) {
+            ui.choices.innerHTML = '';
+            if (!choices) return;
+            choices.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left px-5 py-4 bg-white/10 border border-white/20 text-white font-serif font-bold rounded-lg shadow-sm hover:bg-gold-base hover:text-void hover:border-gold-base transition-all duration-200 transform hover:-translate-y-1 flex items-center justify-between group animate-fade-in backdrop-blur-md";
+                btn.innerHTML = `<span>${opt.text}</span> <i class="fas fa-chevron-right text-gold-base group-hover:text-void transition-colors"></i>`;
+                btn.onclick = () => renderScene(opt.next);
+                ui.choices.appendChild(btn);
+            });
+        }
+
+        ui.startBtn.addEventListener('click', () => {
+            ui.opening.style.opacity = 0;
+            setTimeout(() => {
+                ui.opening.style.display = 'none';
+                renderScene('intro');
+            }, 1000);
+        });
+
+    </script>
+</body>
+</html>
