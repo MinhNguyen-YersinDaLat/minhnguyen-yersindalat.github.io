@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thales: Khởi Nguyên Của Logos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts: Nâng cấp lên Cormorant Garamond cho tiếng Việt đẹp nhất theo phong cách cổ điển -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ionian: {
+                            blue: '#0f172a',    
+                            dark: '#020617',
+                            gold: '#fbbf24',    
+                            accent: '#38bdf8',  
+                            panel: 'rgba(15, 23, 42, 0.96)'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        title: ['"Cinzel"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'breathe': 'breathe 8s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                        'aura': 'auraRotate 20s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.03)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.5, boxShadow: '0 0 20px rgba(56, 189, 248, 0.2)' },
+                            '50%': { opacity: 1, boxShadow: '0 0 40px rgba(56, 189, 248, 0.6)' },
+                        },
+                        auraRotate: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Styles */
+        body { 
+            background-color: #020617; 
+            color: #e2e8f0; 
+            font-family: 'Cormorant Garamond', serif; 
+            overflow: hidden; 
+            touch-action: pan-y;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
+        }
+
+        /* Hy Lạp Pattern Overlay */
+        .bg-pattern {
+            position: fixed; inset: 0; pointer-events: none; opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z' fill='%2338bdf8' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            z-index: 0;
+        }
+
+        /* Character Effects Nâng Cấp */
+        .char-aura {
+            position: absolute;
+            width: 120%; height: 120%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(40px);
+            animation: breathe 6s ease-in-out infinite alternate;
+        }
+        
+        .char-glow-ring {
+            position: absolute;
+            width: 100%; height: 100%;
+            border: 2px dashed rgba(251, 191, 36, 0.15);
+            border-radius: 50%;
+            z-index: -2;
+            animation: auraRotate 30s linear infinite;
+        }
+
+        .char-img-effect {
+            filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.3));
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+        .char-img-effect.active {
+            transform: scale(1.02);
+            filter: drop-shadow(0 0 25px rgba(14, 165, 233, 0.5));
+        }
+        
+        /* Dialog Box - Phong cách đá cẩm thạch tối */
+        .dialog-box {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-top: 2px solid #38bdf8;
+            border-bottom: 4px solid #0c4a6e;
+            box-shadow: 0 10px 50px -10px rgba(0,0,0,0.8);
+            transition: all 0.5s ease;
+            display: flex; flex-direction: column;
+        }
+
+        /* GAME MODE: Compact Layout Optimization */
+        .dialog-box.game-mode {
+            background: rgba(10, 15, 30, 0.98);
+            border-top-color: #fbbf24;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+        
+        /* Text Container Animation */
+        #story-text-container {
+            transition: all 0.5s ease;
+            overflow-y: auto;
+        }
+        .game-mode #story-text-container {
+            flex: 0 0 auto;
+            max-height: 50px; /* Thu nhỏ tối đa khi chơi game */
+            margin-bottom: 8px;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 4px;
+            opacity: 0.9;
+        }
+
+        /* Visual Containers */
+        .media-box, .svg-container {
+            width: 100%; max-width: 600px;
+            background: radial-gradient(circle at center, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 0 auto 10px auto; 
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+        
+        .media-box img { 
+            width: 100%; height: auto; max-height: 40vh; object-fit: contain; 
+        }
+        
+        /* Interactive Elements - Nút bấm phong cách Hy Lạp */
+        .btn-action {
+            font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.05em;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 1) 100%);
+            color: #e0f2fe; border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 12px 16px; border-radius: 4px;
+            transition: all 0.2s; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; font-size: 0.95rem;
+            box-shadow: 0 4px 0 rgba(15, 23, 42, 1), 0 5px 10px rgba(0,0,0,0.3);
+        }
+        .btn-action:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(15, 23, 42, 1); }
+        .btn-action:hover { border-color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+        
+        .btn-correct { 
+            border-color: #22c55e !important; 
+            background: linear-gradient(180deg, rgba(20, 83, 45, 0.8) 0%, rgba(20, 83, 45, 1) 100%) !important; 
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3) !important;
+        }
+        .btn-wrong { 
+            border-color: #ef4444 !important; 
+            background: linear-gradient(180deg, rgba(127, 29, 29, 0.8) 0%, rgba(127, 29, 29, 1) 100%) !important; 
+            animation: shake 0.4s; 
+        }
+
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent; height: 36px; cursor: pointer; touch-action: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 24px; width: 24px; border-radius: 50%; background: #fbbf24;
+            -webkit-appearance: none; margin-top: -10px; 
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.8); border: 2px solid #1e293b;
+            transition: transform 0.1s;
+        }
+        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+
+        /* Saros Grid Optimized */
+        .saros-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); /* 4 Cột trên mọi màn hình */
+            gap: 8px; 
+            width: 100%; 
+            padding: 5px; 
+        }
+        .saros-item { 
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.08); 
+            padding: 8px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            aspect-ratio: 1; /* Hình vuông */
+        }
+        .saros-item i, .saros-item .icon-placeholder { font-size: 1.5rem; margin-bottom: 4px; }
+        .saros-item span { font-size: 0.7rem; line-height: 1.1; text-align: center; }
+        .saros-item:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
+        .saros-item.selected { 
+            background: rgba(251, 191, 36, 0.15); 
+            border-color: #fbbf24; 
+            box-shadow: inset 0 0 10px rgba(251, 191, 36, 0.1); 
+        }
+
+        /* Typography */
+        .math-text { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; fill: #94a3b8; }
+        .story-text { 
+            font-size: 1.35rem; line-height: 1.6; color: #f1f5f9; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+        }
+        @media (max-width: 640px) { 
+            .story-text { font-size: 1.15rem; line-height: 1.5; } 
+            .dialog-box { border-radius: 12px 12px 0 0; } /* Bo tròn trên mobile */
+        }
+    </style>
+</head>
+<body class="h-screen w-full relative flex flex-col md:flex-row overflow-hidden select-none">
+
+    <div class="bg-pattern"></div>
+
+    <!-- LEFT AREA (Character) -->
+    <!-- Mobile: Top 35%, Desktop: Left 40% -->
+    <div class="w-full md:w-[40%] h-[35vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-500" id="char-panel">
+        <div class="char-container w-full h-full flex items-center justify-center relative">
+            <!-- Aura Effects -->
+            <div class="char-aura"></div>
+            <div class="char-glow-ring"></div>
+            
+            <img id="char-img" src="thales.png" 
+                 onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Thales&skinColor=light&top=shortHairTheCaesar&clothing=toga&clothesColor=blue03&facialHair=beardMajestic'" 
+                 class="char-img-effect max-h-[100%] md:max-h-[90%] object-contain transform translate-y-0 opacity-100 transition-opacity duration-500 relative z-10" 
+                 alt="Character">
+            
+            <div class="absolute bottom-2 md:bottom-12 bg-slate-950/80 backdrop-blur-md border border-sky-500/30 px-8 py-2 rounded-sm shadow-2xl z-20">
+                <h2 id="char-name" class="text-sky-400 font-title font-bold text-lg md:text-2xl tracking-[0.15em] text-center drop-shadow-md">THALES</h2>
+                <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-sky-500 to-transparent my-1"></div>
+                <p id="char-role" class="text-slate-400 text-[10px] md:text-xs text-center uppercase tracking-widest font-sans">Miletus, 600 TCN</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT AREA (Dialog & Interaction) -->
+    <!-- Mobile: Bottom 65%, Desktop: Right 60% -->
+    <div class="w-full md:w-[60%] h-[65vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-8 z-20 relative">
+        <div id="main-dialog" class="dialog-box w-full h-full md:h-auto md:min-h-[500px] md:rounded-lg p-4 md:p-8">
+            
+            <!-- Content Wrapper -->
+            <div class="flex-1 flex flex-col relative overflow-hidden" id="content-scroller">
+                
+                <!-- VISUALS (GAME/IMAGE) -->
+                <div id="visual-content" class="media-box empty:hidden flex-shrink-0 transition-all duration-500 opacity-0 transform translate-y-4"></div>
+
+                <!-- TEXT CONTENT -->
+                <div id="story-text-container" class="flex-grow min-h-0">
+                    <div id="story-content" class="story-text font-serif text-justify pr-2"></div>
+                </div>
+            </div>
+
+            <!-- CONTROLS -->
+            <div id="controls" class="flex flex-wrap gap-2 justify-center md:justify-end items-center flex-shrink-0 pt-3 border-t border-white/5 mt-2"></div>
+        </div>
+    </div>
+
+    <!-- REWARD OVERLAY -->
+    <div id="reward-overlay" class="fixed inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center hidden backdrop-blur-xl p-6 text-center transition-opacity duration-1000">
+        <div class="mb-8 animate-float relative">
+            <div class="absolute inset-0 bg-yellow-500/20 blur-3xl rounded-full"></div>
+            <i class="fas fa-crown text-7xl md:text-9xl text-yellow-400 drop-shadow-[0_0_40px_rgba(250,204,21,0.8)]"></i>
+        </div>
+        <h2 class="text-3xl md:text-5xl font-title font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600 mb-4 tracking-widest">LOGOS CHIẾN THẮNG</h2>
+        <p class="text-slate-300 font-serif italic max-w-lg mb-8 text-lg md:text-xl leading-relaxed">
+            "Vạn vật là Nước, và tư duy là dòng chảy không ngừng."<br>
+            <span class="text-sky-400 font-sans not-italic text-sm mt-2 block">Bạn là người mở đầu cho kỷ nguyên Khoa học.</span>
+        </p>
+        <button onclick="location.reload()" class="btn-action border-yellow-500/50 text-yellow-100 px-10 py-3 hover:bg-yellow-900/20 rounded-full">
+            Hành Trình Mới
+        </button>
+    </div>
+
+    <script>
+        // --- 1. ASSETS & CONFIG ---
+        const CHARACTERS = {
+            thales: { name: "THALES", role: "Nhà Hiền Triết", img: "thales.png" },
+            priest: { name: "TU SĨ", role: "Người Giữ Đền Ai Cập", img: "priest.png" },
+            babylonian: { name: "NABU", role: "Tư Tế Babylon", img: "babylonian.png" },
+            narrator: { name: "", role: "", img: "" }
+        };
+
+        let gameState = {
+            sunAngle: 70,
+            sarosChoice: null,
+            shipAngle: 10
+        };
+
+        // --- 2. GRAPHICS ENGINE (SVG) ---
+
+        // GAME 1: SHADOW GAME
+        function drawShadowGame(angle) {
+            let safeAngle = parseFloat(angle);
+            if (isNaN(safeAngle)) safeAngle = 70;
+
+            const W = 600; const H = 300; const groundY = 240;
+            const sunRadius = 220; 
+            const clampAngle = Math.max(5, Math.min(175, safeAngle));
+            const rad = clampAngle * Math.PI / 180;
+            
+            const sunCx = W/2 - sunRadius * Math.cos(rad);
+            const sunCy = groundY - sunRadius * Math.sin(rad);
+            
+            const stickX = 150; const stickH = 50;
+            const pyrX = 450; const pyrH = 120; 
+            
+            let shadowL_Stick = stickH / Math.tan(rad);
+            let shadowL_Pyr = pyrH / Math.tan(rad);
+
+            const maxShadow = 400;
+            if (Math.abs(shadowL_Stick) > maxShadow) shadowL_Stick = maxShadow * Math.sign(shadowL_Stick);
+            if (Math.abs(shadowL_Pyr) > maxShadow) shadowL_Pyr = maxShadow * Math.sign(shadowL_Pyr);
+            
+            const stickTipX = stickX + shadowL_Stick;
+            const pyrTipX = pyrX + shadowL_Pyr;
+            
+            const isSuccess = Math.abs(safeAngle - 45) <= 2;
+            const rayColor = isSuccess ? "#22c55e" : "rgba(251, 191, 36, 0.2)";
+            const sunColor = isSuccess ? "#22c55e" : "#fbbf24";
+            
+            return `
+            <div class="w-full flex flex-col items-center">
+                <div class="svg-container h-[200px] mb-2 bg-slate-800 relative w-full overflow-hidden border-none shadow-none bg-transparent">
+                    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0" stop-color="#0f172a"/>
+                                <stop offset="1" stop-color="${safeAngle < 20 || safeAngle > 160 ? '#3f1818' : '#1e293b'}"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="${W}" height="${H}" fill="url(#skyGrad)" rx="8"/>
+                        
+                        <!-- Rays -->
+                        <path d="M${sunCx},${sunCy} L${stickTipX},${groundY}" stroke="${rayColor}" stroke-width="1.5" stroke-dasharray="${isSuccess?'0':'4,4'}"/>
+                        <path d="M${sunCx},${sunCy} L${pyrTipX},${groundY}" stroke="${rayColor}" stroke-width="1.5" stroke-dasharray="${isSuccess?'0':'4,4'}"/>
+                        
+                        <circle cx="${sunCx}" cy="${sunCy}" r="14" fill="${sunColor}" filter="drop-shadow(0 0 10px ${sunColor})"/>
+
+                        <!-- Ground -->
+                        <rect x="0" y="${groundY}" width="${W}" height="${H-groundY}" fill="#334155"/>
+                        <line x1="0" y1="${groundY}" x2="${W}" y2="${groundY}" stroke="#64748b" stroke-width="2"/>
+
+                        <!-- Shadows -->
+                        <line x1="${stickX}" y1="${groundY}" x2="${stickTipX}" y2="${groundY}" stroke="rgba(0,0,0,0.6)" stroke-width="6" stroke-linecap="round"/>
+                        <line x1="${pyrX}" y1="${groundY}" x2="${pyrTipX}" y2="${groundY}" stroke="rgba(0,0,0,0.6)" stroke-width="8" stroke-linecap="round"/>
+
+                        <!-- Objects -->
+                        <line x1="${stickX}" y1="${groundY}" x2="${stickX}" y2="${groundY-stickH}" stroke="#e2e8f0" stroke-width="3"/>
+                        <text x="${stickX}" y="${groundY+20}" text-anchor="middle" class="math-text">Cọc</text>
+                        <path d="M${pyrX-50},${groundY} L${pyrX},${groundY-pyrH} L${pyrX+50},${groundY} Z" fill="#38bdf820" stroke="#38bdf8" stroke-width="2"/>
+                        <text x="${pyrX}" y="${groundY+20}" text-anchor="middle" class="math-text">Kim Tự Tháp</text>
+
+                        <!-- Protractor -->
+                        <path d="M${stickTipX-25},${groundY} A25,25 0 0,1 ${stickTipX-25*Math.cos(rad)},${groundY-25*Math.sin(rad)}" fill="none" stroke="rgba(255,255,255,0.4)"/>
+                        <text x="${stickTipX-35}" y="${groundY-10}" fill="#e2e8f0" font-size="12" font-family="Inter" font-weight="bold">${Math.round(safeAngle)}°</text>
+
+                        ${isSuccess ? `<text x="${W/2}" y="40" text-anchor="middle" fill="#22c55e" font-weight="bold" font-size="18" font-family="Cinzel" style="text-shadow:0 0 10px #000">TỶ LỆ 1:1</text>` : ''}
+                    </svg>
+                </div>
+                
+                <div class="w-full px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+                    <div class="flex justify-between text-[10px] text-slate-400 uppercase font-bold mb-1">
+                        <span>Sáng</span>
+                        <span class="text-yellow-400">${Math.round(safeAngle)}°</span>
+                        <span>Chiều</span>
+                    </div>
+                    <input type="range" min="10" max="170" value="${safeAngle}" step="1" oninput="updateShadow(this.value)" class="w-full">
+                </div>
+            </div>`;
+        }
+        window.updateShadow = (val) => {
+            let numVal = parseFloat(val);
+            if (isNaN(numVal)) numVal = 70;
+            gameState.sunAngle = numVal;
+            const el = document.getElementById('visual-content');
+            if(el) el.innerHTML = drawShadowGame(gameState.sunAngle);
+        };
+
+        // GAME 2: SHIP (SAFEGUARDED)
+        function drawShipGame(angle) {
+            let safeAngle = parseFloat(angle);
+            if (isNaN(safeAngle)) safeAngle = 10;
+
+            const eyeX = 40, eyeY = 50;
+            const targetX = 340; 
+            const rad = safeAngle * Math.PI / 180;
+            const lineLen = 400;
+            const endX = eyeX + lineLen * Math.cos(rad);
+            const endY = eyeY + lineLen * Math.sin(rad);
+            const isHit = Math.abs(safeAngle - 23) < 3;
+            const color = isHit ? "#22c55e" : "#ef4444";
+
+            return `
+            <div class="w-full flex flex-col items-center">
+                <div class="svg-container h-[200px] mb-2 bg-transparent border-none shadow-none relative w-full">
+                    <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" class="w-full h-full bg-slate-900 rounded-lg">
+                        <rect width="400" height="180" fill="#0f172a"/>
+                        <rect y="180" width="400" height="20" fill="#0369a1"/>
+
+                        <!-- Cliff & Tower -->
+                        <path d="M0,200 L60,200 L60,180 L40,50 L0,50 Z" fill="#334155"/>
+                        <circle cx="${eyeX}" cy="${eyeY}" r="3" fill="#fbbf24"/>
+
+                        <!-- Ship -->
+                        <g transform="translate(${targetX}, 175)">
+                            <path d="M-15,5 L15,5 L10,15 L-10,15 Z" fill="#64748b"/>
+                            <path d="M0,-15 L10,5 L-10,5 Z" fill="#e2e8f0"/>
+                        </g>
+
+                        <!-- Lines -->
+                        <line x1="${eyeX}" y1="${eyeY}" x2="400" y2="${eyeY}" stroke="#ffffff20" stroke-dasharray="2"/>
+                        <line x1="${eyeX}" y1="${eyeY}" x2="${endX}" y2="${endY}" stroke="${color}" stroke-width="2" stroke-dasharray="4"/>
+                        
+                        <path d="M${eyeX+40},${eyeY} A40,40 0 0,1 ${eyeX+40*Math.cos(rad)},${eyeY+40*Math.sin(rad)}" fill="none" stroke="${color}"/>
+                        <text x="${eyeX+50}" y="${eyeY+20}" fill="${color}" font-size="12" font-weight="bold">${Math.round(safeAngle)}°</text>
+
+                        ${isHit ? `<text x="${200}" y="100" text-anchor="middle" fill="#22c55e" font-weight="bold">THẲNG HÀNG</text>` : ''}
+                    </svg>
+                </div>
+                <div class="w-full px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+                    <div class="text-[10px] text-sky-400 uppercase font-bold mb-1 text-center">Góc Ngắm</div>
+                    <input type="range" min="0" max="60" value="${safeAngle}" step="1" oninput="updateShip(this.value)">
+                </div>
+            </div>`;
+        }
+        window.updateShip = (val) => {
+            let numVal = parseFloat(val);
+            if (isNaN(numVal)) numVal = 10;
+            gameState.shipAngle = numVal;
+            const el = document.getElementById('visual-content');
+            if(el) el.innerHTML = drawShipGame(gameState.shipAngle);
+        };
+
+        // GAME 3: SAROS PUZZLE (OPTIMIZED LAYOUT)
+        function getSarosHTML() {
+            const options = [
+                { id: 'rain', icon: 'fa-cloud-rain', text: 'Mưa' },
+                { id: 'sun', icon: 'fa-sun', text: 'Nắng' },
+                { id: 'total', icon: 'fa-circle', text: 'Nhật Thực' },
+                { id: 'comet', icon: 'fa-meteor', text: 'Sao Chổi' }
+            ];
+            
+            let gridHTML = options.map(opt => {
+                const isSelected = gameState.sarosChoice === opt.id;
+                const iconClass = opt.id === 'total' 
+                    ? `w-6 h-6 rounded-full bg-black border-2 border-orange-500 shadow-[0_0_10px_orange]` 
+                    : `fas ${opt.icon} text-xl ${isSelected ? 'text-yellow-400' : 'text-slate-400'}`;
+                
+                return `
+                <div class="saros-item ${isSelected ? 'selected' : ''}" onclick="chooseSaros('${opt.id}')">
+                    ${opt.id === 'total' ? `<div class="${iconClass}"></div>` : `<i class="${iconClass}"></i>`}
+                    <span class="text-slate-300 font-bold mt-1">${opt.text}</span>
+                </div>`;
+            }).join('');
+
+            return `
+            <div class="w-full flex flex-col items-center">
+                <div class="p-2 bg-slate-800/80 rounded-lg mb-2 w-full text-center border border-slate-700">
+                    <div class="flex justify-center items-center gap-2">
+                        <span class="text-xs text-slate-400">Chu kỳ 18 năm</span>
+                        <i class="fas fa-arrow-right text-slate-500 text-xs"></i>
+                        <span class="text-xl font-bold text-yellow-400 animate-pulse">?</span>
+                    </div>
+                </div>
+                <div class="saros-grid">
+                    ${gridHTML}
+                </div>
+            </div>`;
+        }
+        window.chooseSaros = (id) => {
+            gameState.sarosChoice = id;
+            const el = document.getElementById('visual-content');
+            if(el) el.innerHTML = getSarosHTML();
+        };
+
+        // --- 3. STORYLINE ---
+        const SCENES = {
+            'intro': {
+                char: 'thales',
+                text: "<span class='text-sky-400 font-title font-bold tracking-widest block mb-2 text-sm'>BẾN CẢNG MILETUS</span>Ta là Thales. Thế gian tin rằng bão tố là cơn giận của Poseidon. Nhưng ta nhìn biển Aegean và thấy <strong class='text-yellow-400'>Logos</strong> - Quy luật.",
+                img: "img_miletus.png",
+                options: [{ label: "Ngài tìm kiếm điều gì?", next: 'scene1_egypt' }]
+            },
+            'scene1_egypt': {
+                char: 'thales',
+                text: "Ta xuôi dòng đến Ai Cập. Trước mắt ta là Đại Kim Tự Tháp Giza. Các kiến trúc sư Ai Cập nắm giữ bí mật của hình học, nhưng họ giấu kín nó.",
+                img: "img_pyramid_scene.png",
+                options: [{ label: "Bí mật đó là gì?", next: 'scene1_priest' }]
+            },
+            'scene1_priest': {
+                char: 'priest',
+                text: "Dừng lại! Đỉnh tháp là nơi giao thoa với thần Ra. Phàm nhân không thể với tới, không dây nào đo được chiều cao của sự vĩnh cửu.",
+                options: [{ label: "Thales đáp lời", next: 'scene1_thales_idea' }]
+            },
+            'scene1_thales_idea': {
+                char: 'thales',
+                text: "Không cần chạm vào thần linh để hiểu họ. Tự nhiên có cây thước vĩ đại: <strong>Ánh Mặt Trời</strong>. Khi bóng của ta bằng chiều cao của ta, thì bóng tháp cũng vậy.",
+                img: "img_pyramid_shadow.png", 
+                options: [{ label: "Thực hiện phép đo", next: 'game1_shadow_intro' }]
+            },
+            
+            // GAME 1
+            'game1_shadow_intro': {
+                char: 'thales',
+                text: "Hãy quan sát cây cọc. Mặt trời đang lặn. Thời khắc <strong>45 độ</strong> sắp đến. Hãy giúp ta bắt lấy nó.",
+                options: [{ label: "Sẵn sàng", next: 'game1_shadow_play' }]
+            },
+            'game1_shadow_play': {
+                char: 'narrator',
+                text: "Kéo thanh trượt. Dừng lại khi bóng cọc và thân cọc bằng nhau (Tam giác vuông cân).",
+                gameMode: true,
+                render: 'shadow',
+                options: [{ label: "Đo đạc ngay", action: 'check_shadow' }]
+            },
+            'game1_correct': {
+                char: 'thales',
+                text: "Tuyệt diệu! \\[ H = Shadow = 147m \\] Ta đã đo được chiều cao ngọn núi này mà không cần rời mặt đất.",
+                options: [{ label: "Hành trình tiếp theo", next: 'scene2_babylon' }]
+            },
+            'game1_wrong': {
+                char: 'thales',
+                type: 'feedback',
+                text: "Chưa đúng. Nếu đo lúc này tỷ lệ sẽ sai lệch. Hãy kiên nhẫn chờ bóng dài thêm.",
+                options: [{ label: "Thử lại", next: 'game1_shadow_play' }]
+            },
+
+            // SCENE 2
+            'scene2_babylon': {
+                char: 'thales',
+                text: "Ta đến Babylon. Nơi đây có tháp Ziggurat chọc trời. Các tư tế đã ghi chép bầu trời suốt 500 năm.",
+                img: "babylonian.png",
+                options: [{ label: "Họ có gì đặc biệt?", next: 'scene2_nabu' }]
+            },
+            'scene2_nabu': {
+                char: 'babylonian',
+                text: "Chúng ta ghi lại quy luật của sao để bói toán mệnh vua. Ngươi tìm kiếm gì ở đây, người lạ?",
+                options: [{ label: "Thales trả lời", next: 'game2_saros_intro' }]
+            },
+            'game2_saros_intro': {
+                char: 'thales',
+                text: "Ta tìm kiếm <strong>Chu kỳ</strong>. Cứ sau 223 tuần trăng (18 năm), vũ trụ lại lặp lại chính nó. Ta gọi đó là Saros.",
+                img: "img_eclipse.png", 
+                options: [{ label: "Dự báo tương lai", next: 'game2_saros_play' }]
+            },
+            'game2_saros_play': {
+                char: 'narrator',
+                text: "Theo quy luật Saros, hiện tượng thiên văn nào sẽ lặp lại?",
+                gameMode: true,
+                render: 'saros',
+                options: [{ label: "Đưa ra lời tiên tri", action: 'check_saros' }]
+            },
+            'game2_correct': {
+                char: 'thales',
+                text: "Chính xác! <strong>Nhật Thực Toàn Phần</strong>. Ta đã cảnh báo hai vua đang giao chiến: 'Hãy buông vũ khí, hoặc thần linh sẽ cướp đi mặt trời'.",
+                img: "img_eclipse_war.png",
+                options: [{ label: "Điều gì đã xảy ra?", next: 'scene3_halys' }]
+            },
+            'game2_wrong': {
+                char: 'thales',
+                type: 'feedback',
+                text: "Không phải. Mưa nắng là thất thường, còn Thiên văn là trật tự tuyệt đối.",
+                options: [{ label: "Suy luận lại", next: 'game2_saros_play' }]
+            },
+            'scene3_halys': {
+                char: 'thales',
+                text: "Ngày 28/5/585 TCN. Giữa trận chiến, bầu trời tối sầm. Các chiến binh kinh hãi quỳ rạp xuống. Hòa bình được lập lại nhờ Tri thức.",
+                options: [{ label: "Trở về quê hương", next: 'scene4_ship_intro' }]
+            },
+
+            // SCENE 3
+            'scene4_ship_intro': {
+                char: 'thales',
+                text: "Ta đã già. Ngồi trên vách đá Miletus, lính canh hỏi ta: 'Con tàu ngoài kia cách bờ bao xa?'.",
+                img: "img_ship_cliff.png",
+                options: [{ label: "Làm sao đo được?", next: 'game3_ship_intro' }]
+            },
+            'game3_ship_intro': {
+                char: 'thales',
+                text: "Dùng định lý <strong>Góc-Cạnh-Góc (ASA)</strong>. Chỉ cần đứng trên bờ, ta có thể 'bắt' con tàu vào trong một tam giác ảo.",
+                img: "img_ship_distance.png",
+                options: [{ label: "Thực hành đo đạc", next: 'game3_ship_play' }]
+            },
+            'game3_ship_play': {
+                char: 'narrator',
+                text: "Điều chỉnh thước ngắm sao cho tia nhìn chạm đúng mũi con tàu.",
+                gameMode: true,
+                render: 'ship',
+                options: [{ label: "Xác định khoảng cách", action: 'check_ship' }]
+            },
+            'game3_correct': {
+                char: 'thales',
+                text: "Tuyệt vời! Góc 23 độ. Ta kẻ tam giác tương ứng trên mặt đất và biết ngay khoảng cách là 300 stadia.",
+                options: [{ label: "Đoạn kết", next: 'finish' }]
+            },
+            'game3_wrong': {
+                char: 'thales',
+                type: 'feedback',
+                text: "Góc ngắm chưa chuẩn. Tia nhìn đang rơi xuống biển hoặc vượt quá tàu.",
+                options: [{ label: "Ngắm lại", next: 'game3_ship_play' }]
+            },
+            'finish': { action: 'show_reward' }
+        };
+
+        // --- 4. CORE ENGINE ---
+        const ui = {
+            dialog: document.getElementById('main-dialog'),
+            textContainer: document.getElementById('story-text-container'),
+            text: document.getElementById('story-content'),
+            visual: document.getElementById('visual-content'),
+            controls: document.getElementById('controls'),
+            charImg: document.getElementById('char-img'),
+            charName: document.getElementById('char-name'),
+            charRole: document.getElementById('char-role'),
+            charPanel: document.getElementById('char-panel')
+        };
+
+        function renderScene(id) {
+            const scene = SCENES[id];
+            if (!scene) return;
+
+            // Character Logic
+            if (scene.char) {
+                const char = CHARACTERS[scene.char];
+                if (ui.charName.innerText !== char.name || ui.charImg.classList.contains('opacity-0')) {
+                    ui.charImg.classList.remove('opacity-100', 'translate-y-0');
+                    ui.charImg.classList.add('opacity-0', 'translate-y-4');
+                    
+                    setTimeout(() => {
+                        ui.charImg.src = char.img;
+                        ui.charName.innerText = char.name;
+                        ui.charRole.innerText = char.role;
+                        
+                        if (scene.char === 'narrator') {
+                            ui.charPanel.classList.add('opacity-0');
+                        } else {
+                            ui.charPanel.classList.remove('opacity-0');
+                            ui.charImg.classList.remove('opacity-0', 'translate-y-4');
+                            ui.charImg.classList.add('opacity-100', 'translate-y-0');
+                        }
+                    }, 300);
+                }
+            }
+
+            // Game Mode Toggle
+            if (scene.gameMode) {
+                ui.dialog.classList.add('game-mode');
+            } else {
+                ui.dialog.classList.remove('game-mode');
+            }
+
+            // Content Update
+            ui.text.innerHTML = scene.text || "";
+            renderMathInElement(ui.text, { delimiters: [{left: "\\[", right: "\\]", display: true}], throwOnError: false });
+
+            // Visual Rendering
+            ui.visual.innerHTML = '';
+            ui.visual.classList.add('hidden');
+            ui.visual.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (scene.render === 'shadow') {
+                    ui.visual.classList.remove('hidden');
+                    ui.visual.innerHTML = drawShadowGame(gameState.sunAngle);
+                } else if (scene.render === 'saros') {
+                    ui.visual.classList.remove('hidden');
+                    ui.visual.innerHTML = getSarosHTML();
+                } else if (scene.render === 'ship') {
+                    ui.visual.classList.remove('hidden');
+                    ui.visual.innerHTML = drawShipGame(gameState.shipAngle);
+                } else if (scene.img) {
+                    ui.visual.classList.remove('hidden');
+                    ui.visual.innerHTML = `<img src="${scene.img}" class="rounded-lg shadow-lg w-full h-full object-contain" onload="this.style.opacity=1" style="opacity:0; transition: opacity 0.5s">`;
+                }
+                
+                // Reveal visual
+                if (!ui.visual.classList.contains('hidden')) {
+                    ui.visual.style.opacity = '1';
+                    ui.visual.style.transform = 'translateY(0)';
+                }
+            }, 100);
+
+            // Controls
+            ui.controls.innerHTML = '';
+            if (scene.options) {
+                scene.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-action flex-grow md:flex-grow-0 min-w-[120px]'; 
+                    btn.innerText = opt.label;
+                    btn.onclick = () => handleAction(opt, btn);
+                    ui.controls.appendChild(btn);
+                });
+            } else if (scene.action === 'show_reward') {
+                document.getElementById('reward-overlay').classList.remove('hidden');
+                setTimeout(() => document.getElementById('reward-overlay').classList.remove('opacity-0'), 100);
+            }
+        }
+
+        function handleAction(opt, btn) {
+            if (opt.next) {
+                renderScene(opt.next);
+                return;
+            }
+
+            let isWin = false;
+            if (opt.action === 'check_shadow') {
+                isWin = (gameState.sunAngle >= 43 && gameState.sunAngle <= 47);
+                if (isWin) { btn.classList.add('btn-correct'); setTimeout(() => renderScene('game1_correct'), 800); }
+                else { btn.classList.add('btn-wrong'); setTimeout(() => renderScene('game1_wrong'), 800); }
+            }
+            else if (opt.action === 'check_saros') {
+                isWin = (gameState.sarosChoice === 'total');
+                if (isWin) { btn.classList.add('btn-correct'); setTimeout(() => renderScene('game2_correct'), 800); }
+                else { btn.classList.add('btn-wrong'); setTimeout(() => renderScene('game2_wrong'), 800); }
+            }
+            else if (opt.action === 'check_ship') {
+                isWin = (gameState.shipAngle >= 21 && gameState.shipAngle <= 25);
+                if (isWin) { btn.classList.add('btn-correct'); setTimeout(() => renderScene('game3_correct'), 800); }
+                else { btn.classList.add('btn-wrong'); setTimeout(() => renderScene('game3_wrong'), 800); }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const charImg = document.getElementById('char-img');
+            const charPanel = document.getElementById('char-panel');
+            charImg.classList.remove('opacity-0', 'translate-y-4');
+            charImg.classList.add('opacity-100', 'translate-y-0');
+            charPanel.classList.remove('opacity-0');
+            
+            renderScene('intro');
+        });
+
+    </script>
+</body>
+</html>
