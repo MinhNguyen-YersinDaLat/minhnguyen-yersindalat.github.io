@@ -8,7 +8,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Fonts: Nâng cấp lên Cormorant Garamond cho tiếng Việt đẹp nhất theo phong cách cổ điển -->
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
     <!-- KaTeX -->
@@ -80,14 +80,13 @@
                 radial-gradient(circle at 85% 30%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
         }
 
-        /* Hy Lạp Pattern Overlay */
         .bg-pattern {
             position: fixed; inset: 0; pointer-events: none; opacity: 0.03;
             background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z' fill='%2338bdf8' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
             z-index: 0;
         }
 
-        /* Character Effects Nâng Cấp */
+        /* Character Effects */
         .char-aura {
             position: absolute;
             width: 120%; height: 120%;
@@ -110,14 +109,14 @@
         .char-img-effect {
             filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.3));
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
         }
         .char-img-effect.active {
             transform: scale(1.02);
             filter: drop-shadow(0 0 25px rgba(14, 165, 233, 0.5));
         }
         
-        /* Dialog Box - Phong cách đá cẩm thạch tối */
+        /* Dialog Box */
         .dialog-box {
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(20px);
@@ -129,7 +128,6 @@
             display: flex; flex-direction: column;
         }
 
-        /* GAME MODE: Compact Layout Optimization */
         .dialog-box.game-mode {
             background: rgba(10, 15, 30, 0.98);
             border-top-color: #fbbf24;
@@ -137,22 +135,21 @@
             padding-bottom: 8px !important;
         }
         
-        /* Text Container Animation */
         #story-text-container {
             transition: all 0.5s ease;
             overflow-y: auto;
         }
         .game-mode #story-text-container {
             flex: 0 0 auto;
-            max-height: 50px; /* Thu nhỏ tối đa khi chơi game */
-            margin-bottom: 8px;
-            font-size: 1rem;
+            max-height: 50px;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding-bottom: 4px;
             opacity: 0.9;
         }
 
-        /* Visual Containers */
+        /* Visual Containers - ADJUSTED FOR MOBILE */
         .media-box, .svg-container {
             width: 100%; max-width: 600px;
             background: radial-gradient(circle at center, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
@@ -166,11 +163,17 @@
             position: relative;
         }
         
+        /* Adjusted image height for mobile visibility */
         .media-box img { 
-            width: 100%; height: auto; max-height: 40vh; object-fit: contain; 
+            width: 100%; height: auto; 
+            max-height: 25vh; /* Default for mobile: shorter to show text */
+            object-fit: contain; 
+        }
+        @media (min-width: 768px) {
+            .media-box img { max-height: 40vh; } /* Larger on desktop */
         }
         
-        /* Interactive Elements - Nút bấm phong cách Hy Lạp */
+        /* Interactive Elements */
         .btn-action {
             font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.05em;
             background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 1) 100%);
@@ -197,7 +200,7 @@
 
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
-        /* Custom Range Slider */
+        /* Range Slider */
         input[type=range] {
             -webkit-appearance: none; width: 100%; background: transparent; height: 36px; cursor: pointer; touch-action: none;
         }
@@ -215,23 +218,23 @@
         /* Saros Grid Optimized */
         .saros-grid { 
             display: grid; 
-            grid-template-columns: repeat(4, 1fr); /* 4 Cột trên mọi màn hình */
-            gap: 8px; 
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px; 
             width: 100%; 
-            padding: 5px; 
+            padding: 4px; 
         }
         .saros-item { 
             background: rgba(255,255,255,0.03); 
             border: 1px solid rgba(255,255,255,0.08); 
-            padding: 8px; 
+            padding: 6px; 
             border-radius: 8px; 
             cursor: pointer; 
             transition: all 0.2s;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            aspect-ratio: 1; /* Hình vuông */
+            aspect-ratio: 1; 
         }
-        .saros-item i, .saros-item .icon-placeholder { font-size: 1.5rem; margin-bottom: 4px; }
-        .saros-item span { font-size: 0.7rem; line-height: 1.1; text-align: center; }
+        .saros-item i, .saros-item .icon-placeholder { font-size: 1.2rem; margin-bottom: 2px; }
+        .saros-item span { font-size: 0.65rem; line-height: 1; text-align: center; }
         .saros-item:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
         .saros-item.selected { 
             background: rgba(251, 191, 36, 0.15); 
@@ -242,12 +245,12 @@
         /* Typography */
         .math-text { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; fill: #94a3b8; }
         .story-text { 
-            font-size: 1.35rem; line-height: 1.6; color: #f1f5f9; 
+            font-size: 1.2rem; line-height: 1.5; color: #f1f5f9; 
             text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
         }
         @media (max-width: 640px) { 
-            .story-text { font-size: 1.15rem; line-height: 1.5; } 
-            .dialog-box { border-radius: 12px 12px 0 0; } /* Bo tròn trên mobile */
+            .story-text { font-size: 1.05rem; line-height: 1.4; } 
+            .dialog-box { border-radius: 16px 16px 0 0; padding: 12px !important; }
         }
     </style>
 </head>
@@ -256,10 +259,9 @@
     <div class="bg-pattern"></div>
 
     <!-- LEFT AREA (Character) -->
-    <!-- Mobile: Top 35%, Desktop: Left 40% -->
-    <div class="w-full md:w-[40%] h-[35vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-500" id="char-panel">
+    <!-- Mobile: Top 30% (Reduced to give more space for dialog), Desktop: Left 40% -->
+    <div class="w-full md:w-[40%] h-[30vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-500" id="char-panel">
         <div class="char-container w-full h-full flex items-center justify-center relative">
-            <!-- Aura Effects -->
             <div class="char-aura"></div>
             <div class="char-glow-ring"></div>
             
@@ -268,17 +270,17 @@
                  class="char-img-effect max-h-[100%] md:max-h-[90%] object-contain transform translate-y-0 opacity-100 transition-opacity duration-500 relative z-10" 
                  alt="Character">
             
-            <div class="absolute bottom-2 md:bottom-12 bg-slate-950/80 backdrop-blur-md border border-sky-500/30 px-8 py-2 rounded-sm shadow-2xl z-20">
-                <h2 id="char-name" class="text-sky-400 font-title font-bold text-lg md:text-2xl tracking-[0.15em] text-center drop-shadow-md">THALES</h2>
-                <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-sky-500 to-transparent my-1"></div>
+            <div class="absolute bottom-2 md:bottom-12 bg-slate-950/80 backdrop-blur-md border border-sky-500/30 px-6 py-1 md:px-8 md:py-2 rounded-sm shadow-2xl z-20">
+                <h2 id="char-name" class="text-sky-400 font-title font-bold text-base md:text-2xl tracking-[0.15em] text-center drop-shadow-md">THALES</h2>
+                <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-sky-500 to-transparent my-1 hidden md:block"></div>
                 <p id="char-role" class="text-slate-400 text-[10px] md:text-xs text-center uppercase tracking-widest font-sans">Miletus, 600 TCN</p>
             </div>
         </div>
     </div>
 
     <!-- RIGHT AREA (Dialog & Interaction) -->
-    <!-- Mobile: Bottom 65%, Desktop: Right 60% -->
-    <div class="w-full md:w-[60%] h-[65vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-8 z-20 relative">
+    <!-- Mobile: Bottom 70% (Increased space), Desktop: Right 60% -->
+    <div class="w-full md:w-[60%] h-[70vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-8 z-20 relative">
         <div id="main-dialog" class="dialog-box w-full h-full md:h-auto md:min-h-[500px] md:rounded-lg p-4 md:p-8">
             
             <!-- Content Wrapper -->
@@ -289,12 +291,12 @@
 
                 <!-- TEXT CONTENT -->
                 <div id="story-text-container" class="flex-grow min-h-0">
-                    <div id="story-content" class="story-text font-serif text-justify pr-2"></div>
+                    <div id="story-content" class="story-text font-serif text-justify pr-1"></div>
                 </div>
             </div>
 
             <!-- CONTROLS -->
-            <div id="controls" class="flex flex-wrap gap-2 justify-center md:justify-end items-center flex-shrink-0 pt-3 border-t border-white/5 mt-2"></div>
+            <div id="controls" class="flex flex-wrap gap-2 justify-center md:justify-end items-center flex-shrink-0 pt-2 border-t border-white/5 mt-2"></div>
         </div>
     </div>
 
@@ -363,7 +365,7 @@
             
             return `
             <div class="w-full flex flex-col items-center">
-                <div class="svg-container h-[200px] mb-2 bg-slate-800 relative w-full overflow-hidden border-none shadow-none bg-transparent">
+                <div class="svg-container h-[180px] md:h-[250px] mb-2 bg-slate-800 relative w-full overflow-hidden border-none shadow-none bg-transparent">
                     <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" class="w-full h-full">
                         <defs>
                             <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
@@ -435,7 +437,7 @@
 
             return `
             <div class="w-full flex flex-col items-center">
-                <div class="svg-container h-[200px] mb-2 bg-transparent border-none shadow-none relative w-full">
+                <div class="svg-container h-[160px] md:h-[200px] mb-2 bg-transparent border-none shadow-none relative w-full">
                     <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" class="w-full h-full bg-slate-900 rounded-lg">
                         <rect width="400" height="180" fill="#0f172a"/>
                         <rect y="180" width="400" height="20" fill="#0369a1"/>
