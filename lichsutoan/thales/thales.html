@@ -29,7 +29,7 @@
                             dark: '#020617',
                             gold: '#fbbf24',    
                             accent: '#38bdf8',  
-                            panel: 'rgba(15, 23, 42, 0.96)'
+                            panel: 'rgba(10, 15, 30, 0.95)'
                         }
                     },
                     fontFamily: {
@@ -76,34 +76,47 @@
             overflow: hidden; 
             touch-action: pan-y;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
+                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(251, 191, 36, 0.03) 0%, transparent 50%);
         }
 
         .bg-pattern {
-            position: fixed; inset: 0; pointer-events: none; opacity: 0.03;
+            position: fixed; inset: 0; pointer-events: none; opacity: 0.04;
             background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z' fill='%2338bdf8' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
             z-index: 0;
         }
 
+        /* --- EPIC SCROLLBAR STYLING --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #92400e, #fbbf24);
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #b45309, #fcd34d);
+        }
+
         /* Character Effects */
         .char-aura {
-            position: absolute;
-            width: 120%; height: 120%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%);
-            border-radius: 50%;
-            z-index: -1;
-            filter: blur(40px);
-            animation: breathe 6s ease-in-out infinite alternate;
+            position: absolute; width: 120%; height: 120%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            border-radius: 50%; z-index: -1; filter: blur(40px);
+            animation: pulseGlow 6s ease-in-out infinite alternate;
         }
         
         .char-glow-ring {
-            position: absolute;
-            width: 100%; height: 100%;
-            border: 2px dashed rgba(251, 191, 36, 0.15);
-            border-radius: 50%;
-            z-index: -2;
-            animation: auraRotate 30s linear infinite;
+            position: absolute; width: 100%; height: 100%;
+            border: 2px dashed rgba(251, 191, 36, 0.1);
+            border-radius: 50%; z-index: -2;
+            animation: auraRotate 40s linear infinite;
         }
 
         .char-img-effect {
@@ -113,23 +126,23 @@
         }
         .char-img-effect.active {
             transform: scale(1.02);
-            filter: drop-shadow(0 0 25px rgba(14, 165, 233, 0.5));
+            filter: drop-shadow(0 0 30px rgba(14, 165, 233, 0.5));
         }
         
         /* Dialog Box */
         .dialog-box {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(56, 189, 248, 0.15);
+            background: rgba(10, 15, 30, 0.96);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
             border-top: 2px solid #38bdf8;
             border-bottom: 4px solid #0c4a6e;
-            box-shadow: 0 10px 50px -10px rgba(0,0,0,0.8);
+            box-shadow: 0 15px 60px -10px rgba(0,0,0,0.8);
             transition: all 0.5s ease;
             display: flex; flex-direction: column;
         }
 
         .dialog-box.game-mode {
-            background: rgba(10, 15, 30, 0.98);
+            background: rgba(8, 12, 25, 0.98);
             border-top-color: #fbbf24;
             padding-top: 8px !important;
             padding-bottom: 8px !important;
@@ -138,119 +151,162 @@
         #story-text-container {
             transition: all 0.5s ease;
             overflow-y: auto;
+            padding-right: 5px; /* Prevent scrollbar overlap */
         }
         .game-mode #story-text-container {
             flex: 0 0 auto;
-            max-height: 50px;
-            margin-bottom: 4px;
+            max-height: 60px; /* Increased slightly for readability */
+            margin-bottom: 6px;
             font-size: 0.95rem;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding-bottom: 4px;
-            opacity: 0.9;
+            opacity: 0.95;
         }
 
-        /* Visual Containers - ADJUSTED FOR MOBILE */
+        /* Visual Containers */
         .media-box, .svg-container {
             width: 100%; max-width: 600px;
-            background: radial-gradient(circle at center, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            background: radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             margin: 0 auto 10px auto; 
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             overflow: hidden;
             transition: all 0.5s ease;
             position: relative;
         }
         
-        /* Adjusted image height for mobile visibility */
         .media-box img { 
             width: 100%; height: auto; 
-            max-height: 25vh; /* Default for mobile: shorter to show text */
+            max-height: 22vh; /* MOBILE OPTIMIZATION: Reduced height */
             object-fit: contain; 
         }
+        
+        /* Desktop styles for images */
         @media (min-width: 768px) {
-            .media-box img { max-height: 40vh; } /* Larger on desktop */
+            .media-box img { max-height: 40vh; }
         }
         
         /* Interactive Elements */
         .btn-action {
             font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.05em;
-            background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 1) 100%);
-            color: #e0f2fe; border: 1px solid rgba(56, 189, 248, 0.3);
-            padding: 12px 16px; border-radius: 4px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 1) 100%);
+            color: #e0f2fe; border: 1px solid rgba(56, 189, 248, 0.4);
+            padding: 14px 20px; border-radius: 6px;
             transition: all 0.2s; position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
             text-align: center; font-size: 0.95rem;
-            box-shadow: 0 4px 0 rgba(15, 23, 42, 1), 0 5px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 0 rgba(10, 15, 30, 1), 0 5px 15px rgba(0,0,0,0.4);
         }
-        .btn-action:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(15, 23, 42, 1); }
-        .btn-action:hover { border-color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+        .btn-action:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(10, 15, 30, 1); }
+        .btn-action:hover { border-color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
         
         .btn-correct { 
             border-color: #22c55e !important; 
-            background: linear-gradient(180deg, rgba(20, 83, 45, 0.8) 0%, rgba(20, 83, 45, 1) 100%) !important; 
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3) !important;
+            background: linear-gradient(180deg, rgba(20, 83, 45, 0.9) 0%, rgba(20, 83, 45, 1) 100%) !important; 
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4) !important;
         }
         .btn-wrong { 
             border-color: #ef4444 !important; 
-            background: linear-gradient(180deg, rgba(127, 29, 29, 0.8) 0%, rgba(127, 29, 29, 1) 100%) !important; 
+            background: linear-gradient(180deg, rgba(127, 29, 29, 0.9) 0%, rgba(127, 29, 29, 1) 100%) !important; 
             animation: shake 0.4s; 
         }
 
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
-        /* Range Slider */
-        input[type=range] {
-            -webkit-appearance: none; width: 100%; background: transparent; height: 36px; cursor: pointer; touch-action: none;
+        /* --- SLIDER --- */
+        .slider-container {
+            width: 100%;
+            padding: 0 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            height: 60px;
         }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 2px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            height: 24px; width: 24px; border-radius: 50%; background: #fbbf24;
-            -webkit-appearance: none; margin-top: -10px; 
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.8); border: 2px solid #1e293b;
-            transition: transform 0.1s;
-        }
-        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
 
-        /* Saros Grid Optimized */
+        input[type=range] {
+            -webkit-appearance: none; 
+            width: 100%; 
+            background: transparent; 
+            height: 100%; 
+            cursor: pointer; 
+            touch-action: none; 
+            margin: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 10;
+        }
+        input[type=range]:focus { outline: none; }
+        
+        .slider-track {
+            position: absolute;
+            left: 10px; right: 10px;
+            top: 50%; transform: translateY(-50%);
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 36px; width: 36px;
+            border-radius: 50%; 
+            background: radial-gradient(circle at 30% 30%, #fbbf24, #b45309);
+            margin-top: 0;
+            position: relative;
+            top: 50%; 
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.6), 0 2px 5px rgba(0,0,0,0.5);
+            border: 2px solid #fff;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        
+        input[type=range]:active::-webkit-slider-thumb { 
+            transform: translateY(-50%) scale(1.2); 
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.9);
+        }
+
+        /* Saros Grid */
         .saros-grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr);
-            gap: 6px; 
+            gap: 8px; 
             width: 100%; 
             padding: 4px; 
         }
         .saros-item { 
             background: rgba(255,255,255,0.03); 
             border: 1px solid rgba(255,255,255,0.08); 
-            padding: 6px; 
-            border-radius: 8px; 
+            padding: 8px; 
+            border-radius: 10px; 
             cursor: pointer; 
             transition: all 0.2s;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             aspect-ratio: 1; 
+            position: relative;
+            overflow: hidden;
         }
-        .saros-item i, .saros-item .icon-placeholder { font-size: 1.2rem; margin-bottom: 2px; }
-        .saros-item span { font-size: 0.65rem; line-height: 1; text-align: center; }
         .saros-item:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
         .saros-item.selected { 
             background: rgba(251, 191, 36, 0.15); 
             border-color: #fbbf24; 
-            box-shadow: inset 0 0 10px rgba(251, 191, 36, 0.1); 
+            box-shadow: inset 0 0 15px rgba(251, 191, 36, 0.2); 
         }
+        .saros-item i { font-size: 1.4rem; margin-bottom: 4px; transition: color 0.3s; }
+        .saros-item span { font-size: 0.7rem; line-height: 1.1; text-align: center; font-weight: 500; color: #cbd5e1; }
 
         /* Typography */
         .math-text { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; fill: #94a3b8; }
         .story-text { 
-            font-size: 1.2rem; line-height: 1.5; color: #f1f5f9; 
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+            font-size: 1.25rem; line-height: 1.6; color: #e2e8f0; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6); 
         }
         @media (max-width: 640px) { 
-            .story-text { font-size: 1.05rem; line-height: 1.4; } 
-            .dialog-box { border-radius: 16px 16px 0 0; padding: 12px !important; }
+            .story-text { font-size: 1.1rem; line-height: 1.5; } 
+            .dialog-box { border-radius: 20px 20px 0 0; padding: 12px !important; }
         }
     </style>
 </head>
@@ -259,8 +315,8 @@
     <div class="bg-pattern"></div>
 
     <!-- LEFT AREA (Character) -->
-    <!-- Mobile: Top 30% (Reduced to give more space for dialog), Desktop: Left 40% -->
-    <div class="w-full md:w-[40%] h-[30vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-500" id="char-panel">
+    <!-- Mobile: Top 30% -->
+    <div class="w-full md:w-[35%] h-[30vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-500" id="char-panel">
         <div class="char-container w-full h-full flex items-center justify-center relative">
             <div class="char-aura"></div>
             <div class="char-glow-ring"></div>
@@ -279,9 +335,9 @@
     </div>
 
     <!-- RIGHT AREA (Dialog & Interaction) -->
-    <!-- Mobile: Bottom 70% (Increased space), Desktop: Right 60% -->
-    <div class="w-full md:w-[60%] h-[70vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-8 z-20 relative">
-        <div id="main-dialog" class="dialog-box w-full h-full md:h-auto md:min-h-[500px] md:rounded-lg p-4 md:p-8">
+    <!-- Mobile: Bottom 70% | Desktop: 65% (Wider) -->
+    <div class="w-full md:w-[65%] h-[70vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-8 z-20 relative">
+        <div id="main-dialog" class="dialog-box w-full h-full md:h-auto md:min-h-[500px] md:rounded-lg p-3 md:p-8">
             
             <!-- Content Wrapper -->
             <div class="flex-1 flex flex-col relative overflow-hidden" id="content-scroller">
@@ -360,7 +416,7 @@
             const pyrTipX = pyrX + shadowL_Pyr;
             
             const isSuccess = Math.abs(safeAngle - 45) <= 2;
-            const rayColor = isSuccess ? "#22c55e" : "rgba(251, 191, 36, 0.2)";
+            const rayColor = isSuccess ? "#22c55e" : "rgba(251, 191, 36, 0.4)";
             const sunColor = isSuccess ? "#22c55e" : "#fbbf24";
             
             return `
@@ -370,16 +426,20 @@
                         <defs>
                             <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0" stop-color="#0f172a"/>
-                                <stop offset="1" stop-color="${safeAngle < 20 || safeAngle > 160 ? '#3f1818' : '#1e293b'}"/>
+                                <stop offset="1" stop-color="${safeAngle < 20 || safeAngle > 160 ? '#451a03' : '#1e293b'}"/>
                             </linearGradient>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
                         </defs>
                         <rect width="${W}" height="${H}" fill="url(#skyGrad)" rx="8"/>
                         
-                        <!-- Rays -->
-                        <path d="M${sunCx},${sunCy} L${stickTipX},${groundY}" stroke="${rayColor}" stroke-width="1.5" stroke-dasharray="${isSuccess?'0':'4,4'}"/>
-                        <path d="M${sunCx},${sunCy} L${pyrTipX},${groundY}" stroke="${rayColor}" stroke-width="1.5" stroke-dasharray="${isSuccess?'0':'4,4'}"/>
+                        <!-- Rays with Glow -->
+                        <path d="M${sunCx},${sunCy} L${stickTipX},${groundY}" stroke="${rayColor}" stroke-width="2" stroke-dasharray="${isSuccess?'0':'4,4'}" filter="url(#glow)"/>
+                        <path d="M${sunCx},${sunCy} L${pyrTipX},${groundY}" stroke="${rayColor}" stroke-width="2" stroke-dasharray="${isSuccess?'0':'4,4'}" filter="url(#glow)"/>
                         
-                        <circle cx="${sunCx}" cy="${sunCy}" r="14" fill="${sunColor}" filter="drop-shadow(0 0 10px ${sunColor})"/>
+                        <circle cx="${sunCx}" cy="${sunCy}" r="16" fill="${sunColor}" filter="url(#glow)"/>
 
                         <!-- Ground -->
                         <rect x="0" y="${groundY}" width="${W}" height="${H-groundY}" fill="#334155"/>
@@ -395,21 +455,37 @@
                         <path d="M${pyrX-50},${groundY} L${pyrX},${groundY-pyrH} L${pyrX+50},${groundY} Z" fill="#38bdf820" stroke="#38bdf8" stroke-width="2"/>
                         <text x="${pyrX}" y="${groundY+20}" text-anchor="middle" class="math-text">Kim Tự Tháp</text>
 
+                        <!-- Visual Guides for Length Equality -->
+                        ${isSuccess ? `
+                            <!-- Bracket for Stick Height -->
+                            <path d="M${stickX-10},${groundY} L${stickX-15},${groundY} L${stickX-15},${groundY-stickH} L${stickX-10},${groundY-stickH}" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+                            <text x="${stickX-25}" y="${groundY-stickH/2}" fill="#22c55e" font-size="12" text-anchor="end" alignment-baseline="middle">h</text>
+                            
+                            <!-- Bracket for Stick Shadow -->
+                            <path d="M${stickX},${groundY+5} L${stickX},${groundY+10} L${stickTipX},${groundY+10} L${stickTipX},${groundY+5}" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+                            <text x="${(stickX+stickTipX)/2}" y="${groundY+25}" fill="#22c55e" font-size="12" text-anchor="middle">s</text>
+                            
+                            <text x="${(stickX+stickTipX)/2}" y="${groundY-stickH-20}" text-anchor="middle" fill="#22c55e" font-weight="bold">h = s</text>
+                        ` : ''}
+
                         <!-- Protractor -->
-                        <path d="M${stickTipX-25},${groundY} A25,25 0 0,1 ${stickTipX-25*Math.cos(rad)},${groundY-25*Math.sin(rad)}" fill="none" stroke="rgba(255,255,255,0.4)"/>
+                        <path d="M${stickTipX-25},${groundY} A25,25 0 0,1 ${stickTipX-25*Math.cos(rad)},${groundY-25*Math.sin(rad)}" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.4)"/>
                         <text x="${stickTipX-35}" y="${groundY-10}" fill="#e2e8f0" font-size="12" font-family="Inter" font-weight="bold">${Math.round(safeAngle)}°</text>
 
-                        ${isSuccess ? `<text x="${W/2}" y="40" text-anchor="middle" fill="#22c55e" font-weight="bold" font-size="18" font-family="Cinzel" style="text-shadow:0 0 10px #000">TỶ LỆ 1:1</text>` : ''}
+                        ${isSuccess ? `<text x="${W/2}" y="40" text-anchor="middle" fill="#22c55e" font-weight="bold" font-size="18" font-family="Cinzel" style="text-shadow:0 0 10px #000">TỶ LỆ 1:1 (45°)</text>` : ''}
                     </svg>
                 </div>
                 
                 <div class="w-full px-4 py-2 bg-white/5 rounded-lg border border-white/10">
                     <div class="flex justify-between text-[10px] text-slate-400 uppercase font-bold mb-1">
-                        <span>Sáng</span>
-                        <span class="text-yellow-400">${Math.round(safeAngle)}°</span>
-                        <span>Chiều</span>
+                        <span><i class="fas fa-sun text-yellow-500 mr-1"></i>Sáng</span>
+                        <span class="text-yellow-400 font-bold tracking-widest">${Math.round(safeAngle)}°</span>
+                        <span>Chiều<i class="fas fa-moon text-blue-300 ml-1"></i></span>
                     </div>
-                    <input type="range" min="10" max="170" value="${safeAngle}" step="1" oninput="updateShadow(this.value)" class="w-full">
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" min="10" max="170" value="${safeAngle}" step="1" oninput="updateShadow(this.value)">
+                    </div>
                 </div>
             </div>`;
         }
@@ -435,16 +511,27 @@
             const isHit = Math.abs(safeAngle - 23) < 3;
             const color = isHit ? "#22c55e" : "#ef4444";
 
+            // Calculation for visual feedback
+            // Tower height from eye (50) to sea (180) = 130
+            // Horizontal distance = 130 / tan(rad)
+            const calculatedDist = Math.round(130 / Math.tan(rad));
+
             return `
             <div class="w-full flex flex-col items-center">
                 <div class="svg-container h-[160px] md:h-[200px] mb-2 bg-transparent border-none shadow-none relative w-full">
                     <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" class="w-full h-full bg-slate-900 rounded-lg">
+                        <defs>
+                            <filter id="glow-red"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        </defs>
                         <rect width="400" height="180" fill="#0f172a"/>
                         <rect y="180" width="400" height="20" fill="#0369a1"/>
 
                         <!-- Cliff & Tower -->
                         <path d="M0,200 L60,200 L60,180 L40,50 L0,50 Z" fill="#334155"/>
                         <circle cx="${eyeX}" cy="${eyeY}" r="3" fill="#fbbf24"/>
+
+                        <!-- Right Angle Marker at Tower Base -->
+                        <path d="M60,170 L70,170 L70,180" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
 
                         <!-- Ship -->
                         <g transform="translate(${targetX}, 175)">
@@ -454,17 +541,26 @@
 
                         <!-- Lines -->
                         <line x1="${eyeX}" y1="${eyeY}" x2="400" y2="${eyeY}" stroke="#ffffff20" stroke-dasharray="2"/>
-                        <line x1="${eyeX}" y1="${eyeY}" x2="${endX}" y2="${endY}" stroke="${color}" stroke-width="2" stroke-dasharray="4"/>
+                        <line x1="${eyeX}" y1="${eyeY}" x2="${endX}" y2="${endY}" stroke="${color}" stroke-width="2" stroke-dasharray="4" filter="url(#glow-red)"/>
                         
-                        <path d="M${eyeX+40},${eyeY} A40,40 0 0,1 ${eyeX+40*Math.cos(rad)},${eyeY+40*Math.sin(rad)}" fill="none" stroke="${color}"/>
+                        <!-- Visualizing the Triangle on Land (Virtual) -->
+                        ${isHit ? `
+                            <path d="M60,180 L340,180" stroke="#22c55e" stroke-width="2"/>
+                            <text x="200" y="195" text-anchor="middle" fill="#22c55e" font-size="12">Khoảng cách d = ${calculatedDist}</text>
+                        ` : ''}
+
+                        <path d="M${eyeX+40},${eyeY} A40,40 0 0,1 ${eyeX+40*Math.cos(rad)},${eyeY+40*Math.sin(rad)}" fill="rgba(255,255,255,0.1)" stroke="${color}"/>
                         <text x="${eyeX+50}" y="${eyeY+20}" fill="${color}" font-size="12" font-weight="bold">${Math.round(safeAngle)}°</text>
 
-                        ${isHit ? `<text x="${200}" y="100" text-anchor="middle" fill="#22c55e" font-weight="bold">THẲNG HÀNG</text>` : ''}
+                        ${isHit ? `<text x="${200}" y="100" text-anchor="middle" fill="#22c55e" font-weight="bold" filter="url(#glow-red)">GÓC - CẠNH - GÓC</text>` : ''}
                     </svg>
                 </div>
                 <div class="w-full px-4 py-2 bg-white/5 rounded-lg border border-white/10">
                     <div class="text-[10px] text-sky-400 uppercase font-bold mb-1 text-center">Góc Ngắm</div>
-                    <input type="range" min="0" max="60" value="${safeAngle}" step="1" oninput="updateShip(this.value)">
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" min="0" max="60" value="${safeAngle}" step="1" oninput="updateShip(this.value)">
+                    </div>
                 </div>
             </div>`;
         }
@@ -502,7 +598,7 @@
             <div class="w-full flex flex-col items-center">
                 <div class="p-2 bg-slate-800/80 rounded-lg mb-2 w-full text-center border border-slate-700">
                     <div class="flex justify-center items-center gap-2">
-                        <span class="text-xs text-slate-400">Chu kỳ 18 năm</span>
+                        <span class="text-xs text-slate-400">Chu kỳ Saros 223 tháng trăng (khoảng 18 năm 11 ngày)</span>
                         <i class="fas fa-arrow-right text-slate-500 text-xs"></i>
                         <span class="text-xl font-bold text-yellow-400 animate-pulse">?</span>
                     </div>
@@ -539,7 +635,7 @@
             },
             'scene1_thales_idea': {
                 char: 'thales',
-                text: "Không cần chạm vào thần linh để hiểu họ. Tự nhiên có cây thước vĩ đại: <strong>Ánh Mặt Trời</strong>. Khi bóng của ta bằng chiều cao của ta, thì bóng tháp cũng vậy.",
+                text: "Không cần chạm vào thần linh để hiểu họ. Tự nhiên có cây thước vĩ đại: <strong>Ánh Mặt Trời</strong>. Khi bóng của ta bằng chiều cao của ta (tỷ lệ 1:1), thì bóng của Kim Tự Tháp cũng dài đúng bằng chiều cao của nó.",
                 img: "img_pyramid_shadow.png", 
                 options: [{ label: "Thực hiện phép đo", next: 'game1_shadow_intro' }]
             },
@@ -552,20 +648,20 @@
             },
             'game1_shadow_play': {
                 char: 'narrator',
-                text: "Kéo thanh trượt. Dừng lại khi bóng cọc và thân cọc bằng nhau (Tam giác vuông cân).",
+                text: "Kéo thanh trượt. Dừng lại khi bóng cọc dài bằng đúng chiều cao cọc (h = s).",
                 gameMode: true,
                 render: 'shadow',
                 options: [{ label: "Đo đạc ngay", action: 'check_shadow' }]
             },
             'game1_correct': {
                 char: 'thales',
-                text: "Tuyệt diệu! \\[ H = Shadow = 147m \\] Ta đã đo được chiều cao ngọn núi này mà không cần rời mặt đất.",
+                text: "Tuyệt diệu! \\[ H_{tháp} = S_{tháp} = 147m \\] Ta đã đo được chiều cao ngọn núi này nhờ tỉ lệ đồng dạng mà không cần rời mặt đất.",
                 options: [{ label: "Hành trình tiếp theo", next: 'scene2_babylon' }]
             },
             'game1_wrong': {
                 char: 'thales',
                 type: 'feedback',
-                text: "Chưa đúng. Nếu đo lúc này tỷ lệ sẽ sai lệch. Hãy kiên nhẫn chờ bóng dài thêm.",
+                text: "Chưa đúng. Bóng phải dài bằng đúng chiều cao (tam giác vuông cân). Hãy kiên nhẫn chờ bóng dài thêm.",
                 options: [{ label: "Thử lại", next: 'game1_shadow_play' }]
             },
 
@@ -583,20 +679,20 @@
             },
             'game2_saros_intro': {
                 char: 'thales',
-                text: "Ta tìm kiếm <strong>Chu kỳ</strong>. Cứ sau 223 tuần trăng (18 năm), vũ trụ lại lặp lại chính nó. Ta gọi đó là Saros.",
+                text: "Ta tìm kiếm <strong>Chu kỳ</strong>. Cứ sau 223 tuần trăng (18 năm 11 ngày), vũ trụ lại lặp lại chính nó. Ta gọi đó là Saros.",
                 img: "img_eclipse.png", 
                 options: [{ label: "Dự báo tương lai", next: 'game2_saros_play' }]
             },
             'game2_saros_play': {
                 char: 'narrator',
-                text: "Theo quy luật Saros, hiện tượng thiên văn nào sẽ lặp lại?",
+                text: "Theo quy luật Saros, hiện tượng thiên văn nào sẽ lặp lại sau 18 năm?",
                 gameMode: true,
                 render: 'saros',
                 options: [{ label: "Đưa ra lời tiên tri", action: 'check_saros' }]
             },
             'game2_correct': {
                 char: 'thales',
-                text: "Chính xác! <strong>Nhật Thực Toàn Phần</strong>. Ta đã cảnh báo hai vua đang giao chiến: 'Hãy buông vũ khí, hoặc thần linh sẽ cướp đi mặt trời'.",
+                text: "Chính xác! <strong>Nhật Thực Toàn Phần</strong> (28/5/585 TCN). Ta đã cảnh báo hai vua Lydia và Media đang giao chiến: 'Hãy buông vũ khí, hoặc thần linh sẽ cướp đi mặt trời'.",
                 img: "img_eclipse_war.png",
                 options: [{ label: "Điều gì đã xảy ra?", next: 'scene3_halys' }]
             },
@@ -608,7 +704,7 @@
             },
             'scene3_halys': {
                 char: 'thales',
-                text: "Ngày 28/5/585 TCN. Giữa trận chiến, bầu trời tối sầm. Các chiến binh kinh hãi quỳ rạp xuống. Hòa bình được lập lại nhờ Tri thức.",
+                text: "Ngày 28/5/585 TCN, bên dòng sông Halys. Giữa trận chiến, bầu trời tối sầm. Các chiến binh kinh hãi quỳ rạp xuống. Hòa bình được lập lại nhờ Tri thức thiên văn.",
                 options: [{ label: "Trở về quê hương", next: 'scene4_ship_intro' }]
             },
 
@@ -621,7 +717,7 @@
             },
             'game3_ship_intro': {
                 char: 'thales',
-                text: "Dùng định lý <strong>Góc-Cạnh-Góc (ASA)</strong>. Chỉ cần đứng trên bờ, ta có thể 'bắt' con tàu vào trong một tam giác ảo.",
+                text: "Ta dùng định lý về sự bằng nhau của hai tam giác (Góc-Cạnh-Góc). Ta tạo ra một tam giác ảo trên đất liền bằng đúng với tam giác ngoài biển.",
                 img: "img_ship_distance.png",
                 options: [{ label: "Thực hành đo đạc", next: 'game3_ship_play' }]
             },
@@ -634,7 +730,7 @@
             },
             'game3_correct': {
                 char: 'thales',
-                text: "Tuyệt vời! Góc 23 độ. Ta kẻ tam giác tương ứng trên mặt đất và biết ngay khoảng cách là 300 stadia.",
+                text: "Tuyệt vời! Góc 23 độ. Ta kẻ tam giác tương ứng trên mặt đất và đo được cạnh đáy là 300 mét. Vậy con tàu cũng cách tháp 300 mét.",
                 options: [{ label: "Đoạn kết", next: 'finish' }]
             },
             'game3_wrong': {
