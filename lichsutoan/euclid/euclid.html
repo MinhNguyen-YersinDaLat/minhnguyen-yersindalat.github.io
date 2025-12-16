@@ -79,27 +79,36 @@
             filter: drop-shadow(0 0 15px rgba(255, 137, 6, 0.4));
         }
         
+        /* QUAN TRỌNG: Keyframes cho hiệu ứng vẽ */
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
         .neon-path {
             fill: none;
             stroke: #ff8906;
-            stroke-width: 3;
+            stroke-width: 4; /* Tăng độ dày nét vẽ */
             stroke-linecap: round;
             stroke-linejoin: round;
             filter: drop-shadow(0 0 5px #ff8906);
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 1000;
-            animation: draw 2s ease-out forwards;
+            stroke-dasharray: 2000;
+            stroke-dashoffset: 2000;
+            animation: draw 2.5s ease-out forwards;
         }
         
         .neon-circle {
             fill: none;
             stroke: #ff9e3d;
-            stroke-width: 1.5;
-            stroke-opacity: 0.8;
+            stroke-width: 2;
+            stroke-opacity: 0.8; /* Tăng độ rõ */
             filter: drop-shadow(0 0 8px #ff9e3d);
-            stroke-dasharray: 2000;
-            stroke-dashoffset: 2000;
-            animation: draw 2.5s ease-out forwards;
+            stroke-dasharray: 3000;
+            stroke-dashoffset: 3000;
+            animation: draw 3s ease-out forwards;
         }
         
         .neon-point {
@@ -120,7 +129,7 @@
         }
 
         .neon-fill {
-            fill: rgba(255, 137, 6, 0.2);
+            fill: rgba(255, 137, 6, 0.25); /* Tăng độ đậm màu nền */
             stroke: none;
             opacity: 0;
             animation: fadeIn 2s ease-out forwards 1.5s;
@@ -159,7 +168,6 @@
             filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
         }
 
-        /* Desktop Character Position */
         @media (min-width: 769px) {
             #char-wrapper {
                 left: 5%; height: 85%; max-width: 45%;
@@ -182,17 +190,19 @@
             #zone-stage { flex: 40; padding: 1rem; } 
             #zone-dashboard { flex: 60; }
             
-            /* TĂNG KÍCH THƯỚC NHÂN VẬT TRÊN MOBILE */
+            /* Tăng kích thước nhân vật TO HƠN trên Mobile */
             #char-wrapper { 
                 left: 50%; 
                 transform: translateX(-50%); 
-                height: 65%; /* Tăng từ 55% lên 65% */
-                max-width: 90%; /* Tăng chiều rộng để ảnh to hơn */
+                height: 75%; /* Tăng từ 70% lên 75% */
+                max-width: 95%; 
                 bottom: 0;
-                opacity: 1 !important; /* Đảm bảo luôn hiện */
+                opacity: 1; /* Mặc định hiện */
             }
-            #char-wrapper.hide-mobile {
-                opacity: 0; /* Chỉ ẩn khi cần thiết */
+            /* Class để ẩn nhân vật khi cần */
+            #char-wrapper.opacity-0 {
+                opacity: 0 !important;
+                transform: translateX(-50%) translateY(20px);
             }
         }
     </style>
@@ -318,11 +328,11 @@
             const g = document.createElementNS(SVG_NS, "g");
             const circle = document.createElementNS(SVG_NS, "circle");
             circle.setAttribute("cx", cx); circle.setAttribute("cy", cy);
-            circle.setAttribute("r", 5);
+            circle.setAttribute("r", 6);
             circle.setAttribute("class", "neon-point");
             
             const text = document.createElementNS(SVG_NS, "text");
-            text.setAttribute("x", cx + 15); text.setAttribute("y", cy - 15);
+            text.setAttribute("x", cx + 20); text.setAttribute("y", cy - 10);
             text.textContent = label;
             text.setAttribute("class", "neon-label");
             
@@ -339,18 +349,7 @@
             return poly;
         }
 
-        // --- RENDERERS FOR PROP 1 (Recalculated for 800x600 Center) ---
-        // Center Y adjusted to 350 to fit circles (Radius 200) vertically (150-550)
-        // Center X = 400.
-        // Base: Y=350. Wait, base is usually bottom.
-        // Let's assume A, B are on Y=400. Top circle edge Y=200. Bottom circle edge Y=600.
-        // To be safe, let's move everything UP by 50px. Y_Base = 350.
-        // A=(300, 350), B=(500, 350).
-        // Height = 200 * sqrt(3)/2 = 173.2.
-        // C=(400, 350 - 173.2) = (400, 176.8).
-        // Top circle edge = 350 - 200 = 150.
-        // Bottom circle edge = 350 + 200 = 550.
-        // Fits perfectly in 0-600.
+        // --- RENDERERS FOR PROP 1 (Centered & Scaled) ---
         const P1_COORDS = {
             A: {x: 300, y: 350},
             B: {x: 500, y: 350},
@@ -385,16 +384,28 @@
             },
             'prop1_step3': (container) => {
                 const svg = createSVGElement();
+                
+                // 1. Draw Fill Background
                 svg.appendChild(createPolygon([P1_COORDS.A, P1_COORDS.B, P1_COORDS.C]));
-                const c1 = createCircle(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.R); c1.style.opacity = 0.3;
-                const c2 = createCircle(P1_COORDS.B.x, P1_COORDS.B.y, P1_COORDS.R); c2.style.opacity = 0.3;
-                svg.appendChild(c1); svg.appendChild(c2);
+                
+                // 2. Draw Circles (With specific opacity to ensure visibility)
+                const c1 = createCircle(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.R); 
+                c1.style.opacity = 0.5; // Đảm bảo nhìn thấy rõ
+                const c2 = createCircle(P1_COORDS.B.x, P1_COORDS.B.y, P1_COORDS.R); 
+                c2.style.opacity = 0.5;
+                svg.appendChild(c1); 
+                svg.appendChild(c2);
+
+                // 3. Draw Lines (Triangle Sides) - Explicitly calling line creator for clear overlay
                 svg.appendChild(createLine(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.B.x, P1_COORDS.B.y));
                 svg.appendChild(createLine(P1_COORDS.A.x, P1_COORDS.A.y, P1_COORDS.C.x, P1_COORDS.C.y));
                 svg.appendChild(createLine(P1_COORDS.B.x, P1_COORDS.B.y, P1_COORDS.C.x, P1_COORDS.C.y));
+
+                // 4. Draw Points on top
                 svg.appendChild(createPoint(P1_COORDS.A.x, P1_COORDS.A.y, "A"));
                 svg.appendChild(createPoint(P1_COORDS.B.x, P1_COORDS.B.y, "B"));
                 svg.appendChild(createPoint(P1_COORDS.C.x, P1_COORDS.C.y, "C"));
+                
                 container.appendChild(svg);
             }
         };
@@ -485,8 +496,11 @@
 
             const scene = STORY[id];
             
-            // 1. Character Handling (FIXED FOR MOBILE)
+            // 1. Character Handling (FIXED: Removing opacity-0 properly)
             if (scene.char) {
+                // Ensure character is visible first
+                ui.char.classList.remove('opacity-0', 'translate-y-10');
+                
                 if (!ui.charImg.src.includes(scene.char)) {
                     ui.char.classList.add('opacity-0', 'translate-y-10');
                     setTimeout(() => {
@@ -505,8 +519,9 @@
 
             // 2. Visual Handling
             if (scene.renderer) {
-                // FORCE CLEAR IMAGE
-                ui.visualImg.src = "";
+                // FORCE HIDE IMAGE - CRITICAL FIX
+                ui.visualImg.style.display = 'none'; // Hard hide
+                ui.visualImg.src = ""; // Clear source
                 ui.visualImg.classList.add('opacity-0'); 
                 
                 ui.visualCode.innerHTML = ''; 
@@ -517,6 +532,7 @@
                 }
             } else if (scene.image) {
                 ui.visualCode.classList.add('opacity-0'); 
+                ui.visualImg.style.display = 'block'; // Show image container
                 ui.visualImg.classList.add('opacity-0');
                 ui.visualImg.classList.remove('animate-zoom-in');
                 
