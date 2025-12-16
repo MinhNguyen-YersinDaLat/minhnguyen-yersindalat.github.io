@@ -30,7 +30,6 @@
                             light: '#f7e3a1',
                             glow: '#ffdf80'
                         },
-                        parchment: '#f3e5ab',
                     },
                     fontFamily: {
                         title: ['"Cinzel"', 'serif'],
@@ -39,13 +38,11 @@
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
-                        'pulse-glow': 'pulseGlow 3s infinite',
                         'fade-in': 'fadeIn 0.8s ease-out forwards',
                         'slide-up': 'slideUp 0.5s ease-out forwards',
                     },
                     keyframes: {
                         float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } },
-                        pulseGlow: { '0%, 100%': { boxShadow: '0 0 10px rgba(212, 175, 55, 0.2)' }, '50%': { boxShadow: '0 0 20px rgba(212, 175, 55, 0.5)' } },
                         fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
                         slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } }
                     }
@@ -55,274 +52,249 @@
     </script>
 
     <style>
-        /* --- CORE STYLES --- */
-        body { background-color: #0a0a0c; color: #e5e7eb; overflow: hidden; touch-action: manipulation; }
+        /* --- CORE --- */
+        body { background-color: #050505; color: #e5e7eb; overflow: hidden; touch-action: manipulation; }
 
-        /* --- LAYOUT GRID --- */
-        #main-container {
-            display: grid;
-            grid-template-rows: 1fr auto; /* Top takes remaining space, Bottom takes content size */
-            height: 100vh;
-            width: 100vw;
+        /* --- LAYOUT STRUCTURE (The "Stage") --- */
+        #stage {
+            position: relative;
+            width: 100vw; height: 100vh;
             overflow: hidden;
-        }
-
-        /* --- VISUAL AREA (TOP) --- */
-        #visual-area {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            z-index: 10;
-        }
-
-        /* --- BOTTOM AREA (Dialogue + Char) --- */
-        #bottom-area {
-            position: relative;
-            width: 100%;
-            display: flex;
-            align-items: flex-end; /* Align items to bottom */
-            justify-content: center;
-            padding: 0 1rem 1rem 1rem;
-            z-index: 20;
-            gap: 1rem; /* Space between char and box */
-        }
-
-        /* CHARACTER DISPLAY FIXES */
-        .char-wrapper {
-            flex-shrink: 0;
-            width: 250px; /* Fixed width for character base */
-            height: 350px; /* Reasonable height constraint */
-            position: relative;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-        }
-
-        .char-portrait {
-            max-width: 100%;
-            max-height: 130%; /* Allow to grow upwards out of wrapper */
-            object-fit: contain;
-            object-position: bottom center;
-            mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.3));
-            transition: all 0.5s ease-out;
-            transform-origin: bottom center;
-        }
-
-        /* Responsive Character */
-        @media (max-width: 768px) {
-            #bottom-area {
-                flex-direction: column-reverse; /* Stack dialogue below, char on top? No, usually side by side or char behind */
-                align-items: center;
-                padding-bottom: 0;
-            }
-            .char-wrapper {
-                width: 120px;
-                height: 120px;
-                position: absolute;
-                bottom: 100%; /* Sit on top of dialogue box */
-                left: 0;
-                z-index: 5;
-            }
-            .char-portrait {
-                max-height: 150px;
-            }
-            /* Push dialogue down slightly or adjust padding */
-            .glass-panel {
-                border-radius: 12px 12px 0 0 !important;
-            }
-        }
-
-        /* DIALOGUE BOX */
-        .glass-panel {
-            flex-grow: 1;
-            max-width: 800px;
-            background: rgba(10, 5, 15, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-top: 3px solid #d4af37;
-            box-shadow: 0 -5px 30px rgba(0,0,0,0.8);
-            border-radius: 16px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            height: 220px; /* Fixed height for stability */
+        }
+
+        /* 1. VISUAL LAYER (Top/Center) */
+        #visual-layer {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding-bottom: 200px; /* Leave space for dialog */
+        }
+
+        /* 2. CHARACTER LAYER (Bottom Left) */
+        #char-layer {
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            width: 400px; /* Fixed width to control aspect ratio */
+            height: 80vh; /* Max height relative to screen */
+            z-index: 5; /* Behind dialog, in front of BG */
+            pointer-events: none;
+            display: flex;
+            align-items: flex-end;
+            transition: all 0.5s ease-out;
         }
         
+        .char-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: bottom left;
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        /* 3. DIALOGUE LAYER (Bottom Fixed) */
+        #dialogue-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 280px; /* Fixed height for consistency */
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            padding: 0 2rem 2rem 2rem;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 60%, transparent 100%);
+        }
+
+        .dialog-box {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(16, 12, 20, 0.95);
+            border: 1px solid #d4af37;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* MOBILE ADJUSTMENTS */
         @media (max-width: 768px) {
-            .glass-panel {
-                width: 100%;
-                height: 40vh; /* Taller on mobile for text */
-                border-radius: 16px 16px 0 0;
+            #visual-layer {
+                padding-bottom: 0;
+                align-items: flex-start;
+                padding-top: 60px; /* Space for visual */
+            }
+            #char-layer {
+                left: 50%;
+                transform: translateX(-50%);
+                width: 300px;
+                height: 50vh;
+                opacity: 0.4; /* Fade out on mobile to see text/visuals */
+                bottom: 150px; /* Push up slightly behind text */
+                z-index: 1; /* Send to back */
+            }
+            #dialogue-layer {
+                height: auto;
+                min-height: 250px;
+                padding: 1rem;
+                background: linear-gradient(to top, rgba(0,0,0,1) 20%, transparent 100%);
+            }
+            .dialog-box {
+                flex-direction: column;
+            }
+            #choices-panel {
+                border-left: none !important;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                width: 100% !important;
+                max-height: 100px;
             }
         }
 
-        .btn-choice {
-            background: linear-gradient(90deg, rgba(212, 175, 55, 0.05), transparent);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-left: 3px solid #d4af37;
-            transition: all 0.3s ease;
-            text-align: left;
-            position: relative;
-            overflow: hidden;
-            padding: 0.75rem 1rem;
-            color: #f3e5ab;
-            font-family: 'Playfair Display', serif;
-            font-size: 0.95rem;
-        }
-        .btn-choice:hover {
-            background: linear-gradient(90deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.05));
-            border-color: #ffdf80;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-            padding-left: 1.5rem;
-        }
-
-        /* --- VISUAL PROOF (The Math Engine) --- */
-        /* Canvas container for the proof */
-        .proof-stage {
-            position: relative;
-            width: 300px; height: 300px;
-            background: #1a1a1a;
-            border: 2px solid #555;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-            margin: auto;
-            overflow: hidden;
-        }
-
-        /* DIMENSIONS:
-           Side a = 120px
-           Side b = 180px
-           Total = 300px
+        /* --- MATH PROOF ENGINE (Precise CSS Geometry) --- */
+        /*
+           We use a 280x280 container.
+           a = 120px (3 units)
+           b = 160px (4 units)
         */
-        
-        .shape {
+        .proof-board {
+            position: relative;
+            width: 282px; height: 282px; /* +2px for border */
+            border: 2px solid #555;
+            background: #111;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.1);
+            overflow: hidden;
+        }
+
+        /* The 4 Triangles */
+        .tri {
             position: absolute;
-            transition: all 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+            transition: all 1.2s cubic-bezier(0.5, 0, 0.1, 1);
+            opacity: 0.9;
             box-sizing: border-box;
             border: 1px solid rgba(255,255,255,0.2);
-            display: flex; justify-content: center; align-items: center;
+            /* Gradient Gold */
+            background: linear-gradient(135deg, #b8860b, #eab308); 
         }
+
+        /* Triangle Shapes defined by clip-path */
+        /* T1: Width 120, Height 160. Right Angle Top-Left */
+        .tri-1 { width: 120px; height: 160px; clip-path: polygon(0 0, 100% 0, 0 100%); }
         
-        /* The 4 Congruent Right Triangles */
-        /* Base: 120, Height: 180. Color: Gold/Amber */
-        /* We use clip-path to cut rectangles into triangles */
+        /* T2: Width 160, Height 120. Right Angle Top-Right */
+        .tri-2 { width: 160px; height: 120px; clip-path: polygon(100% 0, 100% 100%, 0 0); }
+
+        /* T3: Width 120, Height 160. Right Angle Bottom-Right */
+        .tri-3 { width: 120px; height: 160px; clip-path: polygon(100% 100%, 0 100%, 100% 0); }
+
+        /* T4: Width 160, Height 120. Right Angle Bottom-Left */
+        .tri-4 { width: 160px; height: 120px; clip-path: polygon(0 100%, 0 0, 100% 100%); }
+
+        /* --- STATE POSITIONS --- */
         
-        /* Triangle 1 */
-        .tri-1 { 
-            width: 120px; height: 180px; 
-            background: linear-gradient(135deg, #b8860b, #d4af37);
-            clip-path: polygon(0 0, 100% 0, 0 100%); /* Right angle Top-Left */
-        }
-        /* Triangle 2 */
-        .tri-2 { 
-            width: 180px; height: 120px; 
-            background: linear-gradient(135deg, #b8860b, #d4af37);
-            clip-path: polygon(100% 0, 100% 100%, 0 0); /* Right angle Top-Right */
-        }
-        /* Triangle 3 */
-        .tri-3 { 
-            width: 120px; height: 180px; 
-            background: linear-gradient(135deg, #b8860b, #d4af37);
-            clip-path: polygon(100% 100%, 0 100%, 100% 0); /* Right angle Bottom-Right */
-        }
-        /* Triangle 4 */
-        .tri-4 { 
-            width: 180px; height: 120px; 
-            background: linear-gradient(135deg, #b8860b, #d4af37);
-            clip-path: polygon(0 100%, 0 0, 100% 100%); /* Right angle Bottom-Left */
-        }
+        /* STATE C (Initial): Center tilted square */
+        .pos-c .tri-1 { top: 0; left: 0; }
+        .pos-c .tri-2 { top: 0; right: 0; }
+        .pos-c .tri-3 { bottom: 0; right: 0; }
+        .pos-c .tri-4 { bottom: 0; left: 0; }
 
-        /* --- STATE LOGIC --- */
-        /* STATE C: Inner Square c^2 */
-        .state-c .tri-1 { top: 0; left: 0; }
-        .state-c .tri-2 { top: 0; right: 0; }
-        .state-c .tri-3 { bottom: 0; right: 0; }
-        .state-c .tri-4 { bottom: 0; left: 0; }
+        /* STATE AB (Target): Two Rectangles */
+        /* Goal: Create a^2 hole (Top-Right) and b^2 hole (Bottom-Left)? 
+           Wait, standard proof creates a^2 (Top-Left) and b^2 (Bottom-Right).
+           Let's align to make Rectangles at BL and TR.
+        */
+        /* Rectangle at Bottom-Left (120x160): Uses T1 and T3.
+           T1 (starts TL): Moves down to (bottom:0, left:0) ? No, T1 is TL-oriented.
+           It must sit at TOP of the BL-Rect. top: 120px (since 280-160=120). left:0.
+           T3 (starts BR): Moves to (bottom:0, left:0).
+        */
+        .pos-ab .tri-1 { top: 120px; left: 0; } 
+        .pos-ab .tri-3 { bottom: 0; left: 0; } /* T3 is BR-oriented, fits bottom of rect */
+        
+        /* Rectangle at Top-Right (160x120): Uses T2 and T4.
+           T2 (starts TR): Stays at (top:0, right:0).
+           T4 (starts BL): Moves to (top:0, right:0). T4 is BL-oriented, fits top-left of the TR-Rect? No.
+           T4 is BL-oriented (width 160, height 120).
+           Clip: (0 100%, 0 0, 100% 100%).
+           If moved to Top-Right area...
+           Let's move T4 to top:0, right:0.
+           It sits on top of T2?
+           T2 is TR-oriented. T4 is BL-oriented.
+           They combine to form a 160x120 rectangle.
+        */
+        .pos-ab .tri-2 { top: 0; right: 0; }
+        .pos-ab .tri-4 { top: 0; right: 0; } /* Slides all the way to TR corner */
 
-        /* STATE AB: Two Rectangles (a^2 and b^2 revealed) */
-        /* Move T1 down to join T4 (forms 120x300 rect on left) */
-        .state-ab .tri-1 { top: 120px; left: 0; } 
-        /* Move T3 up to join T2 (forms 180x300 rect on right) */
-        .state-ab .tri-3 { bottom: 120px; right: 0; }
-        /* T2 and T4 stay in corners, effectively */
-        .state-ab .tri-2 { top: 0; right: 0; }
-        .state-ab .tri-4 { bottom: 0; left: 0; }
-
-        /* LABELS */
-        .math-label {
+        /* Math Labels */
+        .lbl {
             position: absolute; color: white; font-family: 'Cinzel', serif; font-weight: bold;
-            text-shadow: 0 0 5px black; pointer-events: none; opacity: 0; transition: opacity 1s;
-            z-index: 30;
+            text-shadow: 0 0 5px black; opacity: 0; transition: opacity 1s; z-index: 20; pointer-events: none;
         }
-        .state-c .lbl-c { opacity: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; }
-        .state-ab .lbl-a { opacity: 1; top: 60px; left: 60px; transform: translate(-50%, -50%); font-size: 28px; color: #facc15; } /* Center of 120x120 */
-        .state-ab .lbl-b { opacity: 1; bottom: 90px; right: 90px; transform: translate(50%, 50%); font-size: 32px; color: #facc15; } /* Center of 180x180 */
+        .pos-c .lbl-c { opacity: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; }
+        .pos-ab .lbl-a { opacity: 1; top: 60px; left: 60px; transform: translate(-50%, -50%); font-size: 24px; color: #facc15; } /* Top-Left Hole (120x120) */
+        .pos-ab .lbl-b { opacity: 1; bottom: 80px; right: 80px; transform: translate(50%, 50%); font-size: 28px; color: #facc15; } /* Bottom-Right Hole (160x160) */
 
     </style>
 </head>
-<body class="bg-void select-none font-sans overflow-hidden">
+<body>
 
-    <!-- BACKGROUND -->
-    <div id="bg-layer" class="absolute inset-0 z-0 bg-cover bg-center transition-all duration-1000 opacity-40"></div>
-    <div class="absolute inset-0 z-0 bg-gradient-to-t from-void via-void/80 to-transparent pointer-events-none"></div>
-
-    <!-- MAIN GRID CONTAINER -->
-    <div id="main-container">
+    <!-- STAGE -->
+    <div id="stage">
         
-        <!-- TOP: VISUAL AREA -->
-        <div id="visual-area">
-            <div id="visual-display" class="transition-opacity duration-500 scale-90 md:scale-100">
-                <!-- Content injected via JS -->
+        <!-- Background -->
+        <div id="bg-layer" class="absolute inset-0 z-0 bg-cover bg-center transition-all duration-1000 opacity-40"></div>
+        <div class="absolute inset-0 z-0 bg-gradient-to-t from-void via-void/80 to-transparent pointer-events-none"></div>
+
+        <!-- 1. Visual Layer (Math) -->
+        <div id="visual-layer">
+            <div id="visual-content" class="transition-all duration-500 transform scale-90 md:scale-100">
+                <!-- Injected via JS -->
             </div>
         </div>
 
-        <!-- BOTTOM: INTERFACE AREA -->
-        <div id="bottom-area">
-            
-            <!-- CHARACTER (Beside Dialogue) -->
-            <div class="char-wrapper">
-                <img id="char-img" src="" class="char-portrait" alt="Character">
-            </div>
+        <!-- 2. Character Layer -->
+        <div id="char-layer">
+            <img id="char-img" src="" class="char-img" alt="Character">
+        </div>
 
-            <!-- DIALOGUE BOX -->
-            <div class="glass-panel">
-                <!-- Name Header -->
-                <div class="bg-black/40 border-b border-gold-dim/30 py-2 px-6 flex items-center justify-between shrink-0">
-                    <h2 id="speaker-name" class="text-gold-base font-title text-lg tracking-[0.2em] uppercase drop-shadow-md"></h2>
-                    <div class="text-[10px] text-gold-dim font-body italic tracking-wider">Huyền Thoại Số Học</div>
-                </div>
-
-                <!-- Content Body -->
-                <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <!-- 3. Dialogue Layer -->
+        <div id="dialogue-layer">
+            <div class="dialog-box animate-slide-up">
+                
+                <!-- Left: Name & Text -->
+                <div class="flex-1 flex flex-col p-6 relative">
+                    <!-- Speaker Name -->
+                    <div class="flex items-center gap-3 mb-2 border-b border-white/10 pb-2">
+                        <h2 id="speaker-name" class="text-gold-base font-title text-xl tracking-widest uppercase"></h2>
+                    </div>
                     
-                    <!-- Text (Scrollable) -->
-                    <div class="flex-1 p-6 overflow-y-auto custom-scroll relative">
-                        <div id="dialogue-text" class="font-body text-lg leading-relaxed text-justify text-gray-200 drop-shadow-sm"></div>
+                    <!-- Text Content -->
+                    <div class="flex-1 overflow-y-auto pr-2 custom-scroll">
+                        <p id="dialogue-text" class="font-body text-lg leading-relaxed text-gray-200 text-justify"></p>
                         
-                        <!-- Embedded Math Note -->
-                        <div id="math-note-container" class="hidden mt-4 pt-4 border-t border-white/10 animate-fade-in">
-                            <div class="bg-gold-dim/10 border-l-2 border-gold-base p-3">
-                                <strong class="text-gold-base font-title text-xs uppercase block mb-1">
-                                    <i class="fas fa-lightbulb"></i> Góc Nhìn Toán Học
-                                </strong>
-                                <div id="math-note-content" class="text-sm text-slate-300"></div>
-                            </div>
+                        <!-- Math Note (Conditional) -->
+                        <div id="math-note-box" class="hidden mt-4 p-3 bg-black/40 border-l-2 border-gold-dim rounded-r">
+                            <span class="text-gold-base text-xs font-bold uppercase block mb-1">Góc Toán Học</span>
+                            <p id="math-note-text" class="text-sm text-slate-300 italic"></p>
                         </div>
                     </div>
-
-                    <!-- Choices (Sidebar on Desktop, Bottom on Mobile) -->
-                    <div id="choices-container" class="w-full md:w-64 bg-black/20 border-t md:border-t-0 md:border-l border-gold-dim/20 p-4 flex flex-col gap-2 shrink-0 overflow-y-auto">
-                        <!-- Buttons go here -->
-                    </div>
                 </div>
-            </div>
 
+                <!-- Right: Choices -->
+                <div id="choices-panel" class="w-72 bg-black/20 border-l border-white/10 p-4 flex flex-col gap-2 overflow-y-auto">
+                    <!-- Buttons injected here -->
+                </div>
+
+            </div>
         </div>
+
     </div>
 
     <script>
@@ -331,103 +303,90 @@
             pythagoras: "pythagoras.png",
             theano: "theano.png",
             hippasus: "hippasus.png",
-            bg_blacksmith: "blacksmith_scene.png",
-            bg_monochord: "monochord_art.png",
-            bg_storm: "storm_ship.png",
-            icon_tetractys: "tetractys_symbol.png"
+            blacksmith: "blacksmith_scene.png",
+            monochord: "monochord_art.png",
+            storm: "storm_ship.png",
+            tetractys: "tetractys_symbol.png"
         };
 
-        // --- MATH VISUAL GENERATORS ---
+        // --- MATH VISUALS ---
         
-        // 1. Precise Proof Animation (Rearrangement Proof)
-        function getProofVisual(state) {
-            let layoutClass = 'state-c';
-            if (state === 'ab') layoutClass = 'state-ab';
+        // 1. Precise Proof Animation
+        function renderProof(state) {
+            // state: 'intro' (c^2) or 'slide' (a^2+b^2)
+            const posClass = state === 'slide' ? 'pos-ab' : 'pos-c';
             
             return `
             <div class="flex flex-col items-center gap-6 animate-fade-in">
-                <div class="proof-stage ${layoutClass}">
-                    <!-- Background Grid (Visual Aid) -->
-                    <div class="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:30px_30px]"></div>
+                <div class="proof-board ${posClass}">
+                    <!-- Grid Lines (Subtle) -->
+                    <div class="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
 
                     <!-- Labels -->
-                    <div class="math-label lbl-c">c²</div>
-                    <div class="math-label lbl-a">a²</div>
-                    <div class="math-label lbl-b">b²</div>
+                    <div class="lbl lbl-c">c²</div>
+                    <div class="lbl lbl-a">a²</div>
+                    <div class="lbl lbl-b">b²</div>
 
-                    <!-- 4 Moving Triangles -->
-                    <div class="shape tri-1"></div>
-                    <div class="shape tri-2"></div>
-                    <div class="shape tri-3"></div>
-                    <div class="shape tri-4"></div>
+                    <!-- Triangles -->
+                    <div class="tri tri-1"></div>
+                    <div class="tri tri-2"></div>
+                    <div class="tri tri-3"></div>
+                    <div class="tri tri-4"></div>
                 </div>
-                
-                <div class="bg-black/60 border border-gold-dim/40 px-6 py-2 rounded-full backdrop-blur-sm">
-                    <p class="text-sm text-center font-body text-slate-300">
-                        <span class="text-gold-base font-bold">Diện tích bảo toàn</span>: Phần còn lại bằng nhau
+                <div class="bg-black/60 px-4 py-2 rounded-full border border-gold-dim/30">
+                    <p class="text-xs text-slate-300 italic">
+                        ${state === 'slide' ? 'Dịch chuyển tạo khoảng trống a² và b²' : 'Hình vuông c² ở giữa'}
                     </p>
                 </div>
             </div>`;
         }
 
-        // 2. Monochord (Compact)
-        function getMonochordVisual() {
+        // 2. Monochord
+        function renderMonochord() {
             return `
-            <div class="w-full max-w-sm p-6 bg-black/80 border border-gold-dim rounded-lg animate-fade-in shadow-[0_0_30px_rgba(212,175,55,0.15)]">
-                <div class="flex justify-between text-[10px] text-gold-base mb-4 font-title uppercase tracking-widest opacity-80">
+            <div class="bg-black/80 p-6 rounded-lg border border-gold-dim shadow-2xl max-w-sm w-full animate-fade-in">
+                <div class="flex justify-between text-xs text-gold-base mb-4 uppercase tracking-widest">
                     <span>Gốc (1:1)</span>
-                    <span>Hòa âm (2:3)</span>
-                    <span>Quãng 8 (1:2)</span>
+                    <span>Tỷ lệ vàng</span>
+                    <span>Quãng 8</span>
                 </div>
-                <div class="relative h-16 flex items-center mb-4">
-                    <!-- String -->
-                    <div class="absolute w-full h-[2px] bg-slate-600"></div>
-                    <div class="absolute w-full h-[3px] bg-gold-light opacity-60 animate-pulse shadow-[0_0_10px_gold]"></div>
-                    
-                    <!-- Nodes -->
-                    <div class="absolute left-0 w-3 h-3 rounded-full bg-white shadow-[0_0_8px_white] z-10"></div>
-                    <div class="absolute right-0 w-3 h-3 rounded-full bg-white shadow-[0_0_8px_white] z-10"></div>
-                    
-                    <!-- Movable Bridge -->
-                    <div class="absolute left-2/3 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[16px] border-b-gold-base transform -translate-x-1/2 bottom-1/2 transition-all duration-1000 ease-in-out z-20" id="bridge-marker"></div>
-                    
-                    <!-- Ratio Marker -->
-                    <div class="absolute left-2/3 top-full mt-2 transform -translate-x-1/2 text-gold-light text-xs font-bold font-mono">2:3</div>
+                <div class="relative h-12 flex items-center mb-2">
+                    <div class="absolute w-full h-[2px] bg-gray-600"></div>
+                    <div class="absolute w-full h-[4px] bg-gold-base opacity-50 animate-pulse"></div>
+                    <div class="absolute left-2/3 top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[12px] border-l-transparent border-r-transparent border-b-white"></div>
                 </div>
-                <div class="text-center font-serif text-gold-light text-base italic">
-                    "Âm nhạc là hiện thân của những con số."
-                </div>
+                <div class="text-center font-serif text-gold-light italic">"Tỷ lệ 2:3 tạo nên Quãng 5 hoàn hảo"</div>
             </div>`;
         }
 
-        // --- STORY CONTENT ---
+        // --- STORY DATA ---
         const STORY = [
             {
                 id: "intro",
                 speaker: "",
                 bg: "black",
                 char: null,
-                visual: `<div class="text-center drop-shadow-[0_0_15px_rgba(212,175,55,0.6)]"><h1 class="font-title text-6xl text-gold-base mb-4 animate-float">SAMOS</h1><p class="text-slate-400 text-sm tracking-[0.5em] uppercase border-t border-slate-700 pt-4 inline-block">530 Trước Công Nguyên</p></div>`,
-                text: "Hãy nhắm mắt lại. Bạn đang đứng trên bờ biển Aegean đầy gió. Không có máy tính, không có giấy viết. Chỉ có cát trắng và những vì sao. Đây là nơi một giáo phái bí ẩn tôn thờ Chân Lý ra đời.",
-                choices: [{ text: "Bước vào đền thờ", next: "meet_pythagoras" }]
+                visual: `<div class="text-center"><h1 class="font-title text-6xl text-gold-base mb-4 animate-float drop-shadow-[0_0_15px_gold]">SAMOS</h1><p class="text-slate-500 text-sm tracking-[0.5em] uppercase">530 TCN</p></div>`,
+                text: "Chào mừng người lữ hành. Bạn đang đứng trước cổng đền thờ tri thức. Hãy gạt bỏ mọi tạp niệm, bởi ở đây, chúng ta chỉ tôn thờ một thứ duy nhất: Chân Lý.",
+                choices: [{ text: "Bước vào", next: "meet_pythagoras" }]
             },
             {
                 id: "meet_pythagoras",
                 speaker: "Pythagoras",
-                bg: ASSETS.bg_monochord,
+                bg: ASSETS.monochord,
                 char: ASSETS.pythagoras,
                 visual: null,
-                text: "Chào mừng, người tìm kiếm (Seeker). Ta là Pythagoras. Ngươi nhìn thấy gì xung quanh? Hỗn loạn? Thay đổi? Ta bảo cho ngươi hay: Phía sau bức màn ảo ảnh đó là một trật tự vĩnh cửu. Bản chất của vũ trụ là **Số (Arithmos)**.",
-                choices: [{ text: "Tại sao lại là Số?", next: "blacksmith_story" }]
+                text: "Ta là Pythagoras. Ngươi thấy thế giới này hỗn loạn ư? Không. Đó chỉ là ảo ảnh. Bản chất thực sự của vũ trụ là những con số (Arithmos). Mọi thứ đều có thể đo đếm được.",
+                choices: [{ text: "Tại sao lại là Số?", next: "blacksmith" }]
             },
             {
-                id: "blacksmith_story",
+                id: "blacksmith",
                 speaker: "Pythagoras",
-                bg: ASSETS.bg_blacksmith,
+                bg: ASSETS.blacksmith,
                 char: ASSETS.pythagoras,
-                visual: getMonochordVisual(),
-                text: "Ta đã đi qua một lò rèn và nghe thấy tiếng búa đập. Những chiếc búa có trọng lượng tỷ lệ **1:2, 2:3, 3:4** tạo ra những âm thanh hòa quyện tuyệt vời. Vũ trụ hát bằng những con số nguyên.",
-                mathNote: "Pythagoras phát hiện ra mối liên hệ giữa Toán học và Âm nhạc. Tỷ lệ dây đàn đơn giản tạo ra các quãng hòa âm (Consonance).",
+                visual: renderMonochord(),
+                text: "Ta đã nghe tiếng búa rèn sắt. Những chiếc búa có trọng lượng tỷ lệ đơn giản (1:2, 2:3) tạo ra âm thanh êm dịu. Những tỷ lệ lẻ loi tạo ra tiếng ồn. Âm nhạc chính là Toán học biết hát.",
+                mathNote: "Pythagoras phát hiện ra mối liên hệ giữa độ dài dây đàn và cao độ âm thanh.",
                 choices: [{ text: "Thật kỳ diệu", next: "meet_theano" }]
             },
             {
@@ -435,156 +394,134 @@
                 speaker: "Theano",
                 bg: "black",
                 char: ASSETS.theano,
-                visual: `<img src="${ASSETS.icon_tetractys}" class="w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.6)] animate-pulse-glow">`,
-                text: "Ta là Theano. Nếu âm nhạc là số trong thời gian, thì hình học là số trong không gian. Hãy nhìn **Tetractys**. 1 điểm là nguồn gốc. 2 điểm là đường thẳng. 3 điểm là mặt phẳng. 4 điểm là khối. Tổng là 10 - Sự hoàn hảo.",
-                choices: [{ text: "Còn định lý tam giác?", next: "theorem_start" }]
+                visual: `<img src="${ASSETS.tetractys}" class="w-48 animate-pulse-glow drop-shadow-[0_0_30px_gold]">`,
+                text: "Ta là Theano. Nếu âm nhạc là số trong thời gian, thì Hình học là số trong không gian. Định lý vĩ đại nhất của chúng ta nói về sự bảo toàn diện tích.",
+                choices: [{ text: "Định lý tam giác vuông?", next: "proof_start" }]
             },
             {
-                id: "theorem_start",
+                id: "proof_start",
                 speaker: "Theano",
                 bg: "black",
                 char: ASSETS.theano,
-                visual: getProofVisual('c'), 
-                text: "Định lý vĩ đại nhất: Trong tam giác vuông, bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông. Hãy nhìn hình vuông lớn này. Nó chứa 4 tam giác vàng. Phần trống ở giữa chính là **\\(c^2\\)**.",
-                mathNote: "Diện tích hình vuông lớn: \\((a+b)^2\\).<br>Diện tích phần trống = Tổng diện tích - 4 tam giác.",
-                choices: [{ text: "Hãy chứng minh!", next: "theorem_anim" }]
+                visual: renderProof('intro'),
+                text: "Hãy nhìn hình vuông lớn này. 4 tam giác vàng bao quanh một hình vuông nghiêng ở giữa. Đó là bình phương cạnh huyền \\(c^2\\).",
+                mathNote: "Diện tích hình vuông nghiêng = Tổng diện tích - 4 tam giác.",
+                choices: [{ text: "Chứng minh nó!", next: "proof_slide" }]
             },
             {
-                id: "theorem_anim",
+                id: "proof_slide",
                 speaker: "Pythagoras",
                 bg: "black",
                 char: ASSETS.pythagoras,
-                visual: getProofVisual('ab'),
-                text: "Hãy quan sát! Ta chỉ trượt 4 tam giác đó đi (Rearrangement). Chúng vẫn nằm trong khung hình vuông lớn đó. Nhưng giờ đây, phần diện tích màu đen đã tách thành hai hình vuông nhỏ: **\\(a^2\\)** và **\\(b^2\\)**. Vì diện tích đen không đổi, nên ta có: \\(c^2 = a^2 + b^2\\).",
-                mathNote: "Đây là phương pháp chứng minh bằng 'Bảo toàn diện tích'. Đơn giản, trực quan và không thể chối cãi.",
+                visual: renderProof('slide'),
+                text: "Hãy quan sát! Ta trượt các tam giác đi. Diện tích màu đen không đổi, nhưng giờ nó tách thành hai hình vuông nhỏ: \\(a^2\\) và \\(b^2\\). Vậy \\(c^2 = a^2 + b^2\\). Chân lý đã hiện ra!",
+                mathNote: "Chứng minh bằng phương pháp sắp xếp lại (Rearrangement Proof).",
                 choices: [{ text: "Quá thuyết phục!", next: "meet_hippasus" }]
             },
             {
                 id: "meet_hippasus",
                 speaker: "Hippasus",
-                bg: ASSETS.bg_storm,
+                bg: ASSETS.storm,
                 char: ASSETS.hippasus,
                 visual: null,
-                text: "(Giọng run rẩy trong bão tố) Thưa thầy... Định lý rất đẹp. Nhưng nó che giấu một con quái vật. Con đã xét một hình vuông cạnh là 1. Đường chéo của nó... đường chéo của nó không thể đo đếm được bằng phân số!",
-                choices: [{ text: "Ý ngươi là sao?", next: "crisis_explanation" }]
+                text: "Thưa thầy... Định lý rất đẹp. Nhưng con đã tìm ra một con quái vật. Hình vuông cạnh 1 có đường chéo là bao nhiêu? Nó không phải là số nguyên, cũng không phải phân số!",
+                choices: [{ text: "Số Vô Tỉ?", next: "crisis" }]
             },
             {
-                id: "crisis_explanation",
+                id: "crisis",
                 speaker: "Hippasus",
-                bg: ASSETS.bg_storm,
+                bg: ASSETS.storm,
                 char: ASSETS.hippasus,
-                visual: `
-                <div class="bg-red-950/60 border border-red-500/30 p-6 rounded-lg text-center shadow-[0_0_30px_rgba(220,38,38,0.2)] max-w-sm">
-                    <p class="mb-3 text-red-200 text-lg">Giả sử \\( \\sqrt{2} = \\frac{p}{q} \\) (tối giản)</p>
-                    <p class="text-sm text-slate-300">\\( \\Rightarrow 2 = \\frac{p^2}{q^2} \\Rightarrow p^2 = 2q^2 \\)</p>
-                    <p class="text-xs text-slate-400 mt-2 italic">\\( p^2 \\) chẵn \\( \\to \\) \\( p \\) chẵn.</p>
-                    <p class="text-xs text-slate-400 italic">... \\( q \\) cũng chẵn.</p>
-                    <p class="text-red-500 font-bold mt-4 font-title text-xl animate-pulse">Mâu thuẫn!</p>
-                </div>`,
-                text: "Nếu đường chéo là một tỷ lệ \\( p/q \\), thì cả p và q đều phải chia hết cho 2 mãi mãi... Điều này vô lý! Con số này tồn tại nhưng không thể viết ra. Nó là **Vô Tỉ (Irrational)**.",
-                mathNote: "Chứng minh phản chứng: Giả sử \\(\\sqrt{2}\\) hữu tỉ dẫn đến mâu thuẫn toán học (p và q vừa tối giản vừa cùng chẵn).",
-                choices: [{ text: "Phản ứng của thầy?", next: "crisis_climax" }]
-            },
-            {
-                id: "crisis_climax",
-                speaker: "Pythagoras",
-                bg: ASSETS.bg_storm,
-                char: ASSETS.pythagoras,
-                visual: `<h1 class="text-6xl text-red-600 font-title animate-pulse-glow tracking-widest drop-shadow-[0_0_20px_red]">ALOGON</h1>`,
-                text: "Câm miệng! Alogon! Điều không thể nói ra! Vũ trụ của ta là sự hài hòa, không phải là vực thẳm vô tận không đáy này. Ngươi đang phá hủy nền móng của ngôi đền!",
-                choices: [{ text: "Kết cục", next: "ending" }]
+                visual: `<h1 class="text-6xl text-red-600 font-title animate-pulse drop-shadow-[0_0_20px_red]">ALOGON</h1>`,
+                text: "Đó là Alogon - Điều không thể nói ra. \\(\\sqrt{2}\\) là một vực thẳm vô tận. Sự hài hòa của vũ trụ đã bị phá vỡ!",
+                mathNote: "Sự phát hiện ra số vô tỉ đã gây ra cuộc khủng hoảng toán học đầu tiên.",
+                choices: [{ text: "Kết thúc", next: "ending" }]
             },
             {
                 id: "ending",
                 speaker: "",
-                bg: ASSETS.bg_storm,
+                bg: ASSETS.storm,
                 char: null,
-                visual: `<div class="text-center w-3/4 mx-auto"><p class="italic text-slate-300 font-serif leading-relaxed text-xl">"Hippasus chìm xuống biển khơi, nhưng chân lý toán học thì nổi lên mặt nước."</p></div>`,
-                text: "Toán học được xây dựng từ niềm tin và cả sự đổ vỡ. Pythagoras cho ta vẻ đẹp của sự hài hòa. Hippasus cho ta thấy sự vô tận của thực tại. Cả hai đều bất tử.",
-                choices: [{ text: "Khởi đầu lại", next: "intro" }]
+                visual: `<p class="text-xl italic text-slate-300">"Chân lý không bao giờ chết."</p>`,
+                text: "Hippasus đã phải trả giá bằng mạng sống, nhưng cánh cửa đến vô hạn đã mở ra. Toán học hiện đại bắt đầu từ sự đổ vỡ đó.",
+                choices: [{ text: "Hành trình lại", next: "intro" }]
             }
         ];
 
-        // --- CORE ENGINE ---
+        // --- ENGINE ---
         const ui = {
             bg: document.getElementById('bg-layer'),
-            visual: document.getElementById('visual-display'),
+            visual: document.getElementById('visual-content'),
             charImg: document.getElementById('char-img'),
+            charLayer: document.getElementById('char-layer'),
             name: document.getElementById('speaker-name'),
             dialogue: document.getElementById('dialogue-text'),
-            choices: document.getElementById('choices-container'),
-            mathNoteContainer: document.getElementById('math-note-container'),
-            mathNoteContent: document.getElementById('math-note-content')
+            choices: document.getElementById('choices-panel'),
+            mathNoteBox: document.getElementById('math-note-box'),
+            mathNoteText: document.getElementById('math-note-text')
         };
 
-        function renderScene(sceneId) {
-            const scene = STORY.find(s => s.id === sceneId);
-            if (!scene) return;
+        function renderScene(id) {
+            const scene = STORY.find(s => s.id === id);
+            if(!scene) return;
 
-            // 1. Background
-            if (scene.bg.includes('.')) {
+            // BG
+            if(scene.bg.includes('.')) {
                 ui.bg.style.backgroundImage = `url('${scene.bg}')`;
-                ui.bg.classList.remove('bg-black', 'bg-void');
+                ui.bg.classList.remove('bg-black');
             } else {
                 ui.bg.style.backgroundImage = 'none';
-                ui.bg.classList.add('bg-void');
+                ui.bg.classList.add('bg-black');
             }
 
-            // 2. Character Handling
-            if (scene.char) {
-                const isSameChar = ui.charImg.src.includes(scene.char);
-                if (!isSameChar) {
-                    ui.charImg.style.opacity = 0;
-                    ui.charImg.style.transform = 'translateY(20px) scale(0.95)';
+            // Character
+            if(scene.char) {
+                if(!ui.charImg.src.includes(scene.char)) {
+                    ui.charLayer.style.opacity = 0;
+                    ui.charLayer.style.transform = 'translateX(-20px)';
                     setTimeout(() => {
                         ui.charImg.src = scene.char;
-                        ui.charImg.style.opacity = 1;
-                        ui.charImg.style.transform = 'translateY(0) scale(1)';
+                        ui.charLayer.style.opacity = 1;
+                        ui.charLayer.style.transform = 'translateX(0)';
                     }, 400);
                 } else {
-                    ui.charImg.style.opacity = 1;
-                    ui.charImg.style.transform = 'translateY(0) scale(1)';
+                    ui.charLayer.style.opacity = 1;
+                    ui.charLayer.style.transform = 'translateX(0)';
                 }
             } else {
-                ui.charImg.style.opacity = 0;
+                ui.charLayer.style.opacity = 0;
             }
 
-            // 3. Visual Stage
+            // Visual
             ui.visual.innerHTML = scene.visual || '';
-            if (scene.visual) {
-                renderMathInElement(ui.visual, { delimiters: [{left: "\\(", right: "\\)", display: false}] });
-            }
+            if(scene.visual) renderMathInElement(ui.visual, {delimiters:[{left:"\\(",right:"\\)",display:false}]});
 
-            // 4. Text & Math Notes
+            // Text
             ui.name.innerText = scene.speaker;
-            // Name tag visibility could be handled if needed, but keeping it simple
-            
-            ui.dialogue.innerHTML = scene.text;
-            renderMathInElement(ui.dialogue, { delimiters: [{left: "\\(", right: "\\)", display: false}] });
+            ui.dialogue.innerText = scene.text;
+            if(scene.text) renderMathInElement(ui.dialogue, {delimiters:[{left:"\\(",right:"\\)",display:false}]});
 
-            if (scene.mathNote) {
-                ui.mathNoteContainer.classList.remove('hidden');
-                ui.mathNoteContent.innerHTML = scene.mathNote;
-                renderMathInElement(ui.mathNoteContent, { delimiters: [{left: "\\(", right: "\\)", display: false}] });
+            // Math Note
+            if(scene.mathNote) {
+                ui.mathNoteBox.classList.remove('hidden');
+                ui.mathNoteText.innerText = scene.mathNote;
             } else {
-                ui.mathNoteContainer.classList.add('hidden');
+                ui.mathNoteBox.classList.add('hidden');
             }
 
-            // 5. Choices
+            // Choices
             ui.choices.innerHTML = '';
-            scene.choices.forEach(choice => {
+            scene.choices.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = 'btn-choice w-full rounded';
-                btn.innerHTML = `<i class="fas fa-caret-right mr-2 text-gold-base"></i> ${choice.text}`;
-                btn.onclick = () => renderScene(choice.next);
+                btn.className = 'w-full text-left p-3 text-gold-light border border-gold-dim/30 hover:bg-gold-dim/20 hover:border-gold-base transition-all rounded mb-2 font-heading text-sm';
+                btn.innerHTML = `✦ ${opt.text}`;
+                btn.onclick = () => renderScene(opt.next);
                 ui.choices.appendChild(btn);
             });
         }
 
         // Init
-        document.addEventListener('DOMContentLoaded', () => {
-            renderScene('intro');
-        });
+        document.addEventListener('DOMContentLoaded', () => renderScene('intro'));
 
     </script>
 </body>
