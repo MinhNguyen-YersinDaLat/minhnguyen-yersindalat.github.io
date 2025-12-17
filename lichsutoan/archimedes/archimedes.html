@@ -45,7 +45,7 @@
                         'water-rise': 'rise 2s ease-out forwards',
                         'fire-flicker': 'flicker 0.2s infinite alternate',
                         'god-glow': 'glow 3s ease-in-out infinite alternate',
-                        'bubble': 'bubble 2s infinite',
+                        'bubble': 'bubble 1s ease-out forwards',
                     },
                     keyframes: {
                         float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
@@ -62,7 +62,7 @@
                         bubble: {
                             '0%': { transform: 'translateY(0) scale(0)', opacity: 0 },
                             '50%': { opacity: 1 },
-                            '100%': { transform: 'translateY(-20px) scale(1)', opacity: 0 }
+                            '100%': { transform: 'translateY(-20px) scale(1.5)', opacity: 0 }
                         }
                     }
                 }
@@ -141,7 +141,14 @@
             overflow: hidden;
             transition: all 0.5s ease;
             position: relative;
-            min-height: 220px;
+            min-height: 25vh; 
+        }
+        
+        @media (min-width: 768px) {
+            .media-box, .svg-container {
+                min-height: 220px;
+                margin: 0 auto 20px auto; 
+            }
         }
         
         .media-box img { 
@@ -158,13 +165,21 @@
             background: linear-gradient(180deg, rgba(22, 78, 99, 0.9) 0%, rgba(8, 51, 68, 1) 100%);
             color: #fbbf24; 
             border: 1px solid rgba(217, 119, 6, 0.5);
-            padding: 16px 24px; border-radius: 6px;
+            padding: 12px 16px; 
+            border-radius: 6px;
             transition: all 0.3s; position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
-            text-align: center; font-size: 1rem;
+            text-align: center; font-size: 0.9rem;
             box-shadow: 0 4px 0 rgba(69, 26, 3, 0.8);
             text-transform: uppercase;
         }
+        @media (min-width: 768px) {
+            .btn-action {
+                padding: 16px 24px;
+                font-size: 1rem;
+            }
+        }
+
         .btn-action:hover { 
             border-color: #fcd34d; 
             background: linear-gradient(180deg, rgba(180, 83, 9, 0.9) 0%, rgba(120, 53, 15, 1) 100%);
@@ -174,15 +189,21 @@
         .btn-action:active { transform: translateY(2px); box-shadow: none; }
         
         .story-text { 
-            font-size: 1.35rem; line-height: 1.7; color: #e0f2fe; 
+            font-size: 1.15rem; 
+            line-height: 1.6; color: #e0f2fe; 
             text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
         }
+        @media (min-width: 768px) {
+            .story-text { 
+                font-size: 1.35rem; 
+                line-height: 1.7; 
+            }
+        }
+
         .text-bronze { color: #fbbf24; font-weight: bold; font-family: 'Cinzel', serif; }
         .katex { font-size: 1.2em; color: #22d3ee; }
 
         /* Game Elements */
-        .water-rect { transform-origin: bottom; transition: height 1.5s cubic-bezier(0.25, 1, 0.5, 1); }
-        .item-drop { transition: transform 1s cubic-bezier(0.6, 0.04, 0.98, 0.335); }
         .slider-container { width: 90%; margin-top: 15px; position: relative; height: 40px; }
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; }
         input[type=range]::-webkit-slider-thumb { 
@@ -194,8 +215,8 @@
         
         /* UI Buttons */
         .home-btn, .audio-btn {
-            position: absolute; top: 1.5rem; 
-            width: 48px; height: 48px;
+            position: absolute; top: 1rem; 
+            width: 40px; height: 40px; 
             background: rgba(2, 6, 23, 0.6);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 50%;
@@ -203,8 +224,13 @@
             color: #94a3b8; z-index: 50;
             transition: all 0.3s; backdrop-filter: blur(8px);
         }
-        .home-btn { left: 1.5rem; }
-        .audio-btn { right: 1.5rem; }
+        .home-btn { left: 1rem; }
+        .audio-btn { right: 1rem; }
+        @media (min-width: 768px) {
+            .home-btn, .audio-btn { width: 48px; height: 48px; top: 1.5rem; }
+            .home-btn { left: 1.5rem; }
+            .audio-btn { right: 1.5rem; }
+        }
         .home-btn:hover { border-color: #fbbf24; color: #fbbf24; transform: rotate(90deg); }
         .audio-btn:hover { border-color: #22d3ee; color: #22d3ee; box-shadow: 0 0 20px rgba(34, 211, 238, 0.4); }
     </style>
@@ -231,27 +257,26 @@
     <div class="absolute inset-0 bg-[url('bg_syracuse.jpg')] bg-cover bg-center opacity-30 pointer-events-none mix-blend-overlay"></div>
 
     <!-- LEFT AREA: CHARACTER -->
-    <div class="w-full md:w-[40%] h-[35vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-700" id="char-panel">
+    <div class="w-full md:w-[40%] h-[15vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-700" id="char-panel">
         <div class="char-container w-full h-full flex items-center justify-center relative">
             <div class="char-aura"></div>
             <!-- Character Image -->
-            <!-- FIX: Thêm style mặc định và onerror để ẩn ảnh nếu không tải được -->
             <img id="char-img" src="archimedes.png" 
                  onerror="this.style.display='none'" 
-                 class="char-img-effect animate-breathe max-h-[100%] md:max-h-[90%] object-contain transform translate-y-0 opacity-100 relative z-20" 
+                 class="char-img-effect animate-breathe max-h-[140%] md:max-h-[90%] object-contain transform translate-y-[10%] md:translate-y-0 opacity-100 relative z-20" 
                  alt="Character">
             
             <!-- Name Tag -->
-            <div id="name-tag" class="absolute bottom-4 md:bottom-16 bg-syracuse-dark/90 backdrop-blur-xl border-y border-syracuse-bronze/60 px-8 py-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] z-30 transition-opacity duration-300">
-                <h2 id="char-name" class="text-syracuse-gold font-title font-bold text-lg md:text-3xl tracking-[0.2em] text-center drop-shadow-md">ARCHIMEDES</h2>
-                <p id="char-role" class="text-syracuse-accent text-[10px] md:text-xs text-center uppercase tracking-widest font-sans mt-1">Thiên Tài Syracuse • 287 - 212 TCN</p>
+            <div id="name-tag" class="absolute bottom-1 md:bottom-16 bg-syracuse-dark/90 backdrop-blur-xl border-y border-syracuse-bronze/60 px-4 py-2 md:px-8 md:py-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] z-30 transition-opacity duration-300 origin-bottom scale-75 md:scale-100">
+                <h2 id="char-name" class="text-syracuse-gold font-title font-bold text-lg md:text-3xl tracking-[0.2em] text-center drop-shadow-md whitespace-nowrap">ARCHIMEDES</h2>
+                <p id="char-role" class="text-syracuse-accent text-[10px] md:text-xs text-center uppercase tracking-widest font-sans mt-1">Thiên Tài Syracuse</p>
             </div>
         </div>
     </div>
 
     <!-- RIGHT AREA: INTERACTION -->
-    <div class="w-full md:w-[60%] h-[65vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-12 z-20 relative">
-        <div id="main-dialog" class="dialog-box w-full h-full md:h-auto md:min-h-[600px] md:rounded-2xl p-4 md:p-10">
+    <div class="w-full md:w-[60%] h-[85vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-12 z-20 relative">
+        <div id="main-dialog" class="dialog-box w-full h-full md:h-auto md:min-h-[600px] md:rounded-2xl p-3 md:p-10">
             
             <!-- Content Scroll Area -->
             <div class="flex-1 flex flex-col relative overflow-hidden" id="content-scroller">
@@ -259,13 +284,13 @@
                 <div id="visual-content" class="media-box empty:hidden flex-shrink-0 transition-all duration-500 opacity-0 transform translate-y-4"></div>
                 
                 <!-- Text Content -->
-                <div id="story-text-container" class="flex-grow min-h-0 mt-4">
+                <div id="story-text-container" class="flex-grow min-h-0 mt-2 md:mt-4">
                     <div id="story-content" class="story-text font-serif text-justify pr-2"></div>
                 </div>
             </div>
 
             <!-- Action Area -->
-            <div id="controls" class="flex flex-wrap gap-4 justify-center md:justify-end items-center flex-shrink-0 pt-6 border-t border-white/10 mt-4"></div>
+            <div id="controls" class="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-end items-center flex-shrink-0 pt-3 md:pt-6 border-t border-white/10 mt-2 md:mt-4"></div>
         </div>
     </div>
 
@@ -292,10 +317,9 @@
             hiero: { name: "VUA HIERO II", role: "Bạo Chúa Syracuse", img: "hiero.png" },
             soldier: { name: "MARCELLUS", role: "Đại Tướng La Mã", img: "soldier.png" },
             apollo: { name: "THẦN APOLLO", role: "Thần Mặt Trời", img: "apollo.png" },
-            narrator: { name: "", role: "", img: "" } // Narrator has no image
+            narrator: { name: "", role: "", img: "" }
         };
 
-        // --- 2. AUDIO ENGINE ---
         const audio = {
             bgm: document.getElementById('bgm'),
             enabled: false,
@@ -320,159 +344,245 @@
             }
         };
 
-        // --- 3. LOGIC GAME & VISUALIZATION (UPDATED SVGs) ---
+        // --- 3. LOGIC GAME & VISUALIZATION ---
         let gameState = { crownTested: false, leverBalanced: false, piIterations: 0, fulcrumPos: 50, piStep: 0, mirrorAngle: 45 };
 
-        // Game 1: Buoyancy (SVG)
+        // Game 1: Buoyancy - FIX: Using JS Animation instead of SVG SMIL
         function drawBuoyancyGame(showResult=false) { 
             const W=600,H=250; 
-            const waterBaseY=180; 
-            const startY = 60;
-            const endY = 175;
-            const itemY = showResult ? endY : startY;
+            const waterBaseY=180;
             
-            const riseGold=showResult?15:0; 
-            const riseCrown=showResult?35:0; 
-
+            // Logic: Render objects at START position (top) if animating, or HOLDING position if normal.
+            // If showResult is true, we render them at TOP (y=60) and let JS animate them dropping.
+            const itemStartY = 60; // Mouth of basin
+            
             return `
             <div class="svg-container" style="background:transparent;box-shadow:none;border:none;">
                 <svg viewBox="0 0 ${W} ${H}" class="w-full h-full">
                     <defs>
-                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fce76c;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b45309;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#22d3ee;stop-opacity:0.4" />
-                            <stop offset="100%" style="stop-color:#0e7490;stop-opacity:0.7" />
-                        </linearGradient>
+                        <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fce76c"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+                        <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22d3ee" stop-opacity="0.6"/><stop offset="1" stop-color="#0e7490" stop-opacity="0.9"/></linearGradient>
                     </defs>
-                    <!-- Tank 1 -->
+                    
+                    <!-- Tank 1 (Gold Block) -->
                     <g transform="translate(50, 0)">
-                        <text x="100" y="25" fill="#fbbf24" text-anchor="middle" font-family="Be Vietnam Pro" font-size="12" font-weight="bold">KHỐI VÀNG</text>
-                        <path d="M20,50 L20,220 L180,220 L180,50" fill="none" stroke="#94a3b8" stroke-width="2" stroke-opacity="0.5"/>
-                        <rect x="22" y="${waterBaseY-riseGold}" width="156" height="${40+riseGold}" fill="url(#waterGrad)" class="water-rect"/>
-                        ${showResult ? '<circle cx="100" cy="180" r="2" fill="rgba(255,255,255,0.5)" class="animate-bubble" style="animation-delay: 0.2s" />' : ''}
-                        
-                        <rect x="75" y="${itemY}" width="50" height="40" rx="4" fill="url(#goldGrad)" stroke="#fff" stroke-width="1" class="item-drop">
-                             <animateTransform attributeName="transform" type="translate" from="0 ${showResult? -115 : 0}" to="0 0" duration="1s" fill="freeze" calcMode="spline" keySplines="0.42 0 0.58 1"/>
+                        <text x="80" y="30" fill="#fbbf24" font-size="12" font-weight="bold">KHỐI VÀNG</text>
+                        <!-- Water -->
+                        <rect id="water-gold" x="0" y="${waterBaseY}" width="160" height="40" fill="url(#waterGrad)" style="transform-box: fill-box; transform-origin: center bottom;">
                         </rect>
+                        <!-- Tank Outline -->
+                        <path d="M0,50 L0,220 L160,220 L160,50" fill="none" stroke="#94a3b8" stroke-width="2"/>
+                        <!-- Item Group -->
+                        <g id="g-gold" transform="translate(0, 0)">
+                            <rect x="55" y="${itemStartY}" width="50" height="40" rx="4" fill="url(#goldGrad)" stroke="#fff">
+                            </rect>
+                        </g>
+                        <!-- Splash -->
+                        <circle id="splash-gold" cx="80" cy="${waterBaseY}" r="0" fill="white" class="opacity-0"></circle>
                         
-                        <line x1="180" y1="${waterBaseY}" x2="195" y2="${waterBaseY}" stroke="#fff" stroke-width="1" stroke-dasharray="2"/>
-                        ${showResult?`<line x1="180" y1="${waterBaseY-riseGold}" x2="195" y2="${waterBaseY-riseGold}" stroke="#22d3ee" stroke-width="2"/>`:''}</g>
-                    <!-- Tank 2 -->
+                        <!-- Ruler Line -->
+                        ${showResult ? `<line x1="165" y1="${waterBaseY - (40*0.15)}" x2="330" y2="${waterBaseY - (40*0.15)}" stroke="#64748b" stroke-dasharray="4" opacity="0.5"/>` : ''}
+                    </g>
+
+                    <!-- Tank 2 (Crown) -->
                     <g transform="translate(350, 0)">
-                        <text x="100" y="25" fill="#fbbf24" text-anchor="middle" font-family="Be Vietnam Pro" font-size="12" font-weight="bold">VƯƠNG MIỆN</text>
-                        <path d="M20,50 L20,220 L180,220 L180,50" fill="none" stroke="#94a3b8" stroke-width="2" stroke-opacity="0.5"/>
-                        <rect x="22" y="${waterBaseY-riseCrown}" width="156" height="${40+riseCrown}" fill="url(#waterGrad)" class="water-rect"/>
-                        ${showResult ? '<circle cx="80" cy="180" r="3" fill="rgba(255,255,255,0.5)" class="animate-bubble" /> <circle cx="120" cy="190" r="2" fill="rgba(255,255,255,0.5)" class="animate-bubble" style="animation-delay: 0.5s" />' : ''}
-                        
-                        <path d="M60,${itemY+40} L60,${itemY+10} L80,${itemY+30} L100,${itemY} L120,${itemY+30} L140,${itemY+10} L140,${itemY+40} Q100,${itemY+50} 60,${itemY+40} Z" fill="url(#goldGrad)" stroke="#fff" stroke-width="1" class="item-drop">
-                             <animateTransform attributeName="transform" type="translate" from="0 ${showResult? -115 : 0}" to="0 0" duration="1s" fill="freeze" calcMode="spline" keySplines="0.42 0 0.58 1"/>
-                        </path>
-                        
-                        <line x1="180" y1="${waterBaseY}" x2="195" y2="${waterBaseY}" stroke="#fff" stroke-width="1" stroke-dasharray="2"/>
-                        ${showResult?`<line x1="180" y1="${waterBaseY-riseCrown}" x2="195" y2="${waterBaseY-riseCrown}" stroke="#ef4444" stroke-width="2"/><text x="205" y="${waterBaseY-riseCrown+4}" fill="#ef4444" font-size="12" font-weight="bold">CAO HƠN!</text>`:''}</g>
+                        <text x="80" y="30" fill="#fbbf24" font-size="12" font-weight="bold">VƯƠNG MIỆN</text>
+                        <!-- Water -->
+                        <rect id="water-crown" x="0" y="${waterBaseY}" width="160" height="40" fill="url(#waterGrad)" style="transform-box: fill-box; transform-origin: center bottom;">
+                        </rect>
+                        <!-- Tank Outline -->
+                        <path d="M0,50 L0,220 L160,220 L160,50" fill="none" stroke="#94a3b8" stroke-width="2"/>
+                        <!-- Item Group -->
+                        <g id="g-crown" transform="translate(0, 0)">
+                            <path d="M50,${itemStartY+40} L50,${itemStartY+10} L70,${itemStartY+30} L90,${itemStartY} L110,${itemStartY+30} L130,${itemStartY+10} L130,${itemStartY+40} Z" fill="url(#goldGrad)" stroke="#fff">
+                            </path>
+                        </g>
+                        <!-- Splash -->
+                        <circle id="splash-crown" cx="80" cy="${waterBaseY}" r="0" fill="white" class="opacity-0"></circle>
+                    </g>
+
+                    <!-- Comparison Text -->
+                    ${showResult ? `
+                        <g opacity="0" id="comparison-result">
+                            <text x="280" y="${waterBaseY - 60}" fill="#ef4444" font-size="12" font-weight="bold" text-anchor="middle">CAO HƠN!</text>
+                            <path d="M280,${waterBaseY-55} L280,${waterBaseY - (40*0.35) - 5}" stroke="#ef4444" marker-end="url(#arrow)" />
+                        </g>
+                    ` : ''}
                 </svg>
             </div>`; 
         }
 
-        // Game 2: Lever (SVG)
+        // --- NEW ANIMATION LOGIC FOR BUOYANCY ---
+        function runBuoyancyAnimation() {
+            const duration = 1500;
+            const startTime = performance.now();
+            
+            // Elements
+            const gGold = document.getElementById('g-gold');
+            const gCrown = document.getElementById('g-crown');
+            const wGold = document.getElementById('water-gold');
+            const wCrown = document.getElementById('water-crown');
+            const sGold = document.getElementById('splash-gold');
+            const sCrown = document.getElementById('splash-crown');
+            const comp = document.getElementById('comparison-result');
+            
+            if(!gGold) return;
+
+            // Physics Config
+            const startY = 0; // Relative to Group
+            const dropDist = 115; // 60 -> 175 = 115px
+            const delayWater = 800; // ms
+
+            function animate(t) {
+                const elapsed = t - startTime;
+                
+                // 1. Drop Animation (Bounce effect)
+                let pDrop = Math.min(elapsed / 1000, 1);
+                // Ease Out Bounce simplified
+                let easeDrop = 1 - Math.pow(1 - pDrop, 3); // Cubic out
+                
+                const currentY = startY + (dropDist * easeDrop);
+                gGold.setAttribute('transform', `translate(0, ${currentY})`);
+                gCrown.setAttribute('transform', `translate(0, ${currentY})`);
+
+                // 2. Splash (Trigger once when drop finishes approx)
+                if (elapsed > 900 && elapsed < 1000) {
+                    sGold.classList.add('animate-bubble');
+                    sCrown.classList.add('animate-bubble');
+                }
+
+                // 3. Water Rise (Delayed)
+                if (elapsed > delayWater) {
+                    const pWater = Math.min((elapsed - delayWater) / 1000, 1);
+                    const easeWater = 1 - Math.pow(1 - pWater, 3);
+                    
+                    const scaleG = 1 + (0.15 * easeWater);
+                    const scaleC = 1 + (0.35 * easeWater);
+                    
+                    wGold.setAttribute('transform', `scale(1, ${scaleG})`);
+                    wCrown.setAttribute('transform', `scale(1, ${scaleC})`);
+                }
+
+                // 4. Comparison Result Fade In
+                if (elapsed > 2000 && comp) {
+                    comp.style.transition = 'opacity 1s';
+                    comp.style.opacity = '1';
+                }
+
+                if (elapsed < 2500) requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // Game 2: Lever
         function drawLeverGame(pos) { 
-            const W=600,H=200; const barY=150; const barLen=500; const startX=(W-barLen)/2; 
+            const W=600,H=220; const barY=150; const barLen=500; const startX=(W-barLen)/2; 
             const isSuccess=pos<25; const fulcrumX=startX+(pos/100)*barLen; 
             const angle=isSuccess?12:-8; 
-            const statusColor=isSuccess?"#22c55e":"#ef4444"; 
-            const msg=isSuccess?"THÀNH CÔNG: MÔ-MEN LỰC ĐỦ LỚN!":"THẤT BẠI: CÁNH TAY ĐÒN QUÁ NGẮN..."; 
-            return `
-            <div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;">
-                <svg viewBox="0 0 ${W} ${H}" class="w-full h-full overflow-visible">
-                    <defs><radialGradient id="earthGrad"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#0369a1"/></radialGradient></defs>
-                    <line x1="0" y1="${barY+30}" x2="${W}" y2="${barY+30}" stroke="#64748b" stroke-width="2"/>
-                    <g transform="rotate(${angle}, ${fulcrumX}, ${barY})" class="lever-bar">
-                        <!-- Wood Bar -->
-                        <rect x="${startX}" y="${barY-4}" width="${barLen}" height="8" rx="4" fill="#78350f" stroke="#451a03"/>
-                        
-                        <!-- Detailed Earth -->
-                        <g transform="translate(${startX}, ${barY-30})">
-                            <circle cx="0" cy="0" r="35" fill="url(#earthGrad)" stroke="#fff" stroke-width="1"/>
-                            <path d="M-15,-15 Q5,-25 15,-10 T20,10 T-5,20 T-20,5 Z" fill="#166534" opacity="0.8"/>
-                            <text x="0" y="55" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="bold">TRÁI ĐẤT</text>
-                            <line x1="0" y1="35" x2="0" y2="4" stroke="#b45309" stroke-width="2"/>
-                        </g>
-                        <!-- Force -->
-                        <g transform="translate(${startX+barLen}, ${barY-35})">
-                            <path d="M0,0 L0,35 M-10,35 L10,35" stroke="#fbbf24" stroke-width="2"/>
-                            <circle cx="0" cy="-10" r="12" fill="#fbbf24"/>
-                            <text x="0" y="55" text-anchor="middle" fill="#fbbf24" font-size="12">LỰC ĐẨY</text>
-                        </g>
-                    </g>
-                    <!-- Fulcrum -->
-                    <path d="M${fulcrumX},${barY} L${fulcrumX-15},${barY+30} L${fulcrumX+15},${barY+30} Z" fill="#57534e" stroke="#292524" stroke-width="2"/>
-                    <text x="${W/2}" y="30" text-anchor="middle" fill="${statusColor}" font-family="Be Vietnam Pro" font-size="16" font-weight="bold">${msg}</text>
-                </svg>
-                <div class="slider-container"><input type="range" min="0" max="100" value="${pos}" oninput="updateLever(this.value)"></div>
-                <div class="text-xs text-slate-400 mt-2 w-full flex justify-between px-4"><span>Lợi Lực ($d_1$ nhỏ)</span><span>Thiệt Lực ($d_1$ lớn)</span></div>
-            </div>`; 
-        }
-
-        // Game 3: Pi (SVG)
-        function drawPiGame(stepIndex) { 
-            const sidesMap=[6,12,24,48,96]; const sides=sidesMap[stepIndex]; const R=80; const cx=300;const cy=100; const piReal=3.14159; const piApprox=sides*Math.sin(Math.PI/sides); 
-            let points=""; for(let i=0;i<sides;i++){const theta=(i*2*Math.PI)/sides-Math.PI/2;const x=cx+R*Math.cos(theta);const y=cy+R*Math.sin(theta);points+=`${x},${y} `;} 
-            return `<div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;"><svg viewBox="0 0 600 220" class="w-full h-full overflow-visible"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-opacity="0.3" stroke-dasharray="4"/><polygon points="${points}" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="1.5" class="pi-poly"/><text x="${cx}" y="${cy+R+35}" text-anchor="middle" fill="#ecfeff" font-family="Inter" font-size="14">Đa giác nội tiếp ${sides} cạnh</text><g transform="translate(80, 100)"><text x="0" y="0" fill="#fbbf24" font-size="24" font-weight="bold" font-family="Cinzel">π ≈ ${piApprox.toFixed(5)}</text><text x="0" y="30" fill="#0ea5e9" font-size="14">Thực tế: ${piReal.toFixed(5)}</text></g><g transform="translate(520, 100)" text-anchor="end"><text x="0" y="0" fill="#94a3b8" font-size="14">Sai số:</text><text x="0" y="25" fill="#ef4444" font-size="14">${(Math.abs(piReal-piApprox)).toFixed(5)}</text></g></svg><div class="slider-container"><input type="range" min="0" max="4" value="${stepIndex}" step="1" oninput="updatePi(this.value)"></div><div class="text-xs text-slate-400 mt-2 w-full text-center font-serif italic">Kéo thanh trượt để thực hiện phương pháp "Vét Cạn" (Exhaustion)</div></div>`; 
-        }
-
-        // Game 4: Defense (SVG)
-        function drawDefenseGame(angle) { 
-            const W=600,H=250; const sunX=50,sunY=30; const mirrorX=500,mirrorY=200; const shipX=100,shipY=200; 
-            const isHit=angle>=68&&angle<=74; 
-            const rayLen=500; 
-            const visualAngleDeg=270-(angle*0.9); 
-            const visualRad=visualAngleDeg*(Math.PI/180); 
-            
-            let endX=mirrorX+rayLen*Math.cos(visualRad); 
-            let endY=mirrorY+rayLen*Math.sin(visualRad); 
-            
-            if(isHit) { endX = shipX; endY = shipY - 20; }
-
-            const hitColor=isHit?"#ef4444":"#fbbf24"; const beamWidth=isHit?4:1; const opacity=isHit?0.9:0.3; 
+            const d1 = fulcrumX - startX; 
+            const d2 = (startX + barLen) - fulcrumX; 
             
             return `
             <div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;">
                 <svg viewBox="0 0 ${W} ${H}" class="w-full h-full overflow-visible">
                     <defs>
-                        <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fff" /></marker>
                     </defs>
+                    <line x1="0" y1="${barY+30}" x2="${W}" y2="${barY+30}" stroke="#64748b" stroke-width="2"/>
                     
-                    <!-- Sun -->
-                    <circle cx="${sunX}" cy="${sunY}" r="25" fill="#fbbf24" filter="url(#glow)"><animate attributeName="r" values="25;28;25" duration="3s" repeatCount="indefinite"/></circle>
-                    <line x1="${sunX}" y1="${sunY}" x2="${mirrorX}" y2="${mirrorY}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="5"/>
-                    
-                    <!-- Ray -->
-                    <line x1="${mirrorX}" y1="${mirrorY}" x2="${endX}" y2="${endY}" stroke="${hitColor}" stroke-width="${beamWidth}" stroke-opacity="${opacity}" class="ray-path"/>
-                    
-                    <!-- Roman Trireme Ship -->
-                    <g transform="translate(${shipX}, ${shipY-10})" class="ship-target">
-                        <path d="M-40,0 Q0,20 40,0 L35,15 H-35 Z" fill="#3f2305" stroke="#000"/>
-                        <path d="M-30,5 L-40,25 M-20,5 L-30,25 M-10,5 L-20,25 M0,5 L-10,25 M10,5 L0,25" stroke="#5c3a12" stroke-width="2"/>
-                        <line x1="0" y1="0" x2="0" y2="-50" stroke="#5c3a12" stroke-width="3"/>
-                        <path d="M0,-50 Q30,-40 0,-10 Q-30,-40 0,-50" fill="${isHit?'#1f2937':'#e2e8f0'}" stroke="#94a3b8"/>
-                        <!-- Burning Effect -->
-                        <g style="display:${isHit?'block':'none'};" class="animate-fire-flicker">
-                            <path d="M-5,-20 Q0,-50 5,-20 Q0,-10 -5,-20" fill="#ef4444" opacity="0.8"/>
-                            <path d="M-10,-25 Q0,-60 10,-25 Q0,-15 -10,-25" fill="#f59e0b" opacity="0.6"/>
+                    <!-- Lever Group -->
+                    <g transform="rotate(${angle}, ${fulcrumX}, ${barY})">
+                        <rect x="${startX}" y="${barY-6}" width="${barLen}" height="12" rx="4" fill="#78350f" stroke="#451a03"/>
+                        
+                        <!-- EARTH (Load) -->
+                        <g transform="translate(${startX}, ${barY-35})">
+                            <circle cx="0" cy="0" r="35" fill="#0ea5e9" stroke="#fff" stroke-width="1"/>
+                            <path d="M-20,-10 Q0,-30 20,-10 Q10,10 -20,-10" fill="#166534" opacity="0.6"/>
+                            <!-- Weight Vector P -->
+                            <line x1="0" y1="0" x2="0" y2="80" stroke="#ef4444" stroke-width="3" marker-end="url(#arrowHead)"/>
+                            <text x="10" y="60" fill="#ef4444" font-weight="bold">P (Trọng Lực)</text>
+                        </g>
+                        
+                        <!-- FORCE (Archimedes) -->
+                        <g transform="translate(${startX+barLen}, ${barY-35})">
+                            <circle cx="0" cy="-10" r="15" fill="#fbbf24" opacity="0.8"/>
+                            <!-- Force Vector F -->
+                            <line x1="0" y1="-10" x2="0" y2="70" stroke="#fbbf24" stroke-width="3" marker-end="url(#arrowHead)"/>
+                            <text x="-60" y="50" fill="#fbbf24" font-weight="bold">F (Lực đẩy)</text>
                         </g>
                     </g>
+
+                    <!-- Fulcrum -->
+                    <path d="M${fulcrumX},${barY} L${fulcrumX-20},${barY+30} L${fulcrumX+20},${barY+30} Z" fill="#57534e" stroke="#fff" stroke-width="1"/>
                     
-                    <!-- Mirror -->
-                    <g transform="translate(${mirrorX}, ${mirrorY})">
-                        <path d="M0,0 Q-15,15 0,30" stroke="#a3a3a3" stroke-width="5" fill="none" transform="rotate(${angle/2}, 0, 15)" filter="drop-shadow(0 0 5px #fff)"/>
-                        <circle cx="10" cy="15" r="5" fill="#fbbf24"/>
+                    <!-- Distance Indicators -->
+                    <g transform="translate(0, ${barY+50})">
+                        <text x="${startX + d1/2}" y="0" fill="#94a3b8" text-anchor="middle" font-size="12">d₁ (Cánh tay đòn vật)</text>
+                        <text x="${fulcrumX + d2/2}" y="0" fill="#94a3b8" text-anchor="middle" font-size="12">d₂ (Cánh tay đòn lực)</text>
+                    </g>
+                </svg>
+                <div class="slider-container"><input type="range" min="0" max="100" value="${pos}" oninput="updateLever(this.value)"></div>
+            </div>`; 
+        }
+
+        // Game 3: Pi
+        function drawPiGame(stepIndex) { 
+            const sidesMap=[6,12,24,48,96]; const sides=sidesMap[stepIndex]; const R=80; const cx=300;const cy=110; 
+            const piApprox=sides*Math.sin(Math.PI/sides); 
+            
+            let ptsInner=""; for(let i=0;i<sides;i++){const th=(i*2*Math.PI)/sides-Math.PI/2; ptsInner+=`${cx+R*Math.cos(th)},${cy+R*Math.sin(th)} `;}
+            let ptsOuter=""; const R_out=R/Math.cos(Math.PI/sides); for(let i=0;i<sides;i++){const th=(i*2*Math.PI)/sides-Math.PI/2; ptsOuter+=`${cx+R_out*Math.cos(th)},${cy+R_out*Math.sin(th)} `;}
+
+            return `<div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;">
+                <svg viewBox="0 0 600 240" class="w-full h-full overflow-visible">
+                    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="4"/>
+                    <polygon points="${ptsInner}" fill="rgba(34, 211, 238, 0.2)" stroke="#22d3ee" stroke-width="1"/>
+                    <polygon points="${ptsOuter}" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="2"/>
+                    <text x="${cx}" y="${cy+R+40}" text-anchor="middle" fill="#ecfeff" font-family="Be Vietnam Pro" font-size="12">
+                        Kẹp giữa đa giác nội tiếp (Xanh) và ngoại tiếp (Vàng)
+                    </text>
+                    <g transform="translate(100, 110)">
+                        <text x="0" y="0" fill="#fbbf24" font-size="24" font-weight="bold" font-family="Cinzel">π ≈ ${piApprox.toFixed(5)}</text>
+                        <text x="0" y="25" fill="#22d3ee" font-size="12">n = ${sides}</text>
+                    </g>
+                </svg>
+                <div class="slider-container"><input type="range" min="0" max="4" value="${stepIndex}" step="1" oninput="updatePi(this.value)"></div>
+            </div>`; 
+        }
+
+        // Game 4: Defense
+        function drawDefenseGame(angle) { 
+            const W=600,H=250; const sunX=50,sunY=30; const mirrorX=500,mirrorY=200; 
+            const isHit=angle>=68&&angle<=74; 
+            const visualAngleDeg=270-(angle*0.9); 
+            const visualRad=visualAngleDeg*(Math.PI/180); 
+            
+            let endX=mirrorX+500*Math.cos(visualRad); 
+            let endY=mirrorY+500*Math.sin(visualRad); 
+            if(isHit) { endX = 100; endY = 180; } 
+
+            return `
+            <div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;">
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-full overflow-visible">
+                    <defs><filter id="sunGlow"><feGaussianBlur stdDeviation="4" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                    <circle cx="${sunX}" cy="${sunY}" r="20" fill="#fbbf24" filter="url(#sunGlow)"/>
+                    <line x1="${sunX}" y1="${sunY}" x2="${mirrorX}" y2="${mirrorY}" stroke="#fbbf24" stroke-width="2"/>
+                    <line x1="${mirrorX}" y1="${mirrorY}" x2="${endX}" y2="${endY}" stroke="${isHit?'#ef4444':'#fbbf24'}" stroke-width="${isHit?4:2}" stroke-opacity="${isHit?1:0.5}" />
+                    <line x1="${mirrorX}" y1="${mirrorY}" x2="${mirrorX - 50}" y2="${mirrorY - 50}" stroke="#fff" stroke-dasharray="4" opacity="0.5" transform="rotate(${angle-90}, ${mirrorX}, ${mirrorY})"/>
+                    <g transform="translate(100, 190)">
+                        <path d="M-30,0 Q0,20 30,0 L25,10 H-25 Z" fill="#3f2305"/>
+                        <line x1="0" y1="0" x2="0" y2="-40" stroke="#5c3a12" stroke-width="3"/>
+                        <path d="M0,-40 Q25,-30 0,-10" fill="${isHit?'#1f2937':'#e2e8f0'}" stroke="#94a3b8"/>
+                        <g style="display:${isHit?'block':'none'}">
+                            <circle cx="0" cy="-20" r="15" fill="#ef4444" opacity="0.8"><animate attributeName="r" values="10;15;10" duration="0.2s" repeatCount="indefinite"/></circle>
+                            <circle cx="0" cy="-25" r="10" fill="#fbbf24"><animate attributeName="cy" values="-25;-30;-25" duration="0.3s" repeatCount="indefinite"/></circle>
+                        </g>
+                    </g>
+                    <g transform="translate(${mirrorX}, ${mirrorY}) rotate(${angle/2})">
+                        <path d="M0,-20 Q-10,0 0,20" stroke="#a3a3a3" stroke-width="4" fill="none"/>
                     </g>
                 </svg>
                 <div class="slider-container"><input type="range" min="0" max="100" value="${angle}" oninput="updateDefense(this.value)"></div>
-                <div class="text-xs text-slate-400 mt-2 w-full text-center">Góc phản xạ: ${angle}° (Cần ~70°)</div>
             </div>`; 
         }
 
@@ -650,26 +760,22 @@
             
             if (scene.char) {
                 const char = CHARACTERS[scene.char];
-                // Cập nhật thông tin nhân vật
                 if (ui.charName.innerText !== char.name || !ui.charImg.src.includes(char.img)) {
                     ui.charImg.classList.add('opacity-0', 'translate-y-4');
                     ui.nameTag.classList.add('opacity-0');
                     
                     setTimeout(() => {
-                        // FIX: Kiểm tra xem có ảnh không. Nếu là narrator (img rỗng), ẩn ảnh đi.
                         if (char.img) {
                             ui.charImg.style.display = 'block';
                             ui.charImg.src = char.img; 
                             ui.nameTag.style.display = 'block';
                             
-                            // Hiệu ứng riêng cho các vị thần/main
                             if (scene.char === 'archimedes' || scene.char === 'athena' || scene.char === 'apollo') {
                                 ui.charImg.classList.add('char-active');
                             } else {
                                 ui.charImg.classList.remove('char-active');
                             }
                         } else {
-                            // Narrator: Ẩn ảnh và bảng tên
                             ui.charImg.style.display = 'none';
                             ui.nameTag.style.display = 'none';
                         }
@@ -677,7 +783,6 @@
                         ui.charName.innerText = char.name; 
                         ui.charRole.innerText = char.role;
                         
-                        // Hiện lại (nếu không phải hidden)
                         ui.charImg.classList.remove('opacity-0', 'translate-y-4');
                         ui.nameTag.classList.remove('opacity-0');
                     }, 300);
@@ -700,8 +805,17 @@
             ui.visual.style.opacity = '0';
             
             setTimeout(() => {
-                if (scene.render === 'buoyancy_start') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawBuoyancyGame(false); } 
-                else if (scene.render === 'buoyancy_end') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawBuoyancyGame(true); } 
+                // FIXED LOGIC: Call Animation Function for Buoyancy
+                if (scene.render === 'buoyancy_start') { 
+                    ui.visual.classList.remove('hidden'); 
+                    ui.visual.innerHTML = drawBuoyancyGame(false); 
+                } 
+                else if (scene.render === 'buoyancy_end') { 
+                    ui.visual.classList.remove('hidden'); 
+                    ui.visual.innerHTML = drawBuoyancyGame(true); 
+                    // Trigger custom animation manually to guarantee execution
+                    runBuoyancyAnimation();
+                } 
                 else if (scene.render === 'lever_game') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawLeverGame(gameState.fulcrumPos); } 
                 else if (scene.render === 'pi_game') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawPiGame(gameState.piStep); } 
                 else if (scene.render === 'defense_game') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawDefenseGame(gameState.mirrorAngle); }
@@ -732,7 +846,7 @@
             if (opt.action === 'drop_items') { renderScene('game_buoyancy_result'); return; }
             if (opt.action === 'check_lever') { 
                 if (gameState.leverBalanced) { btn.classList.add('border-green-500'); renderScene('game_lever_success'); } 
-                else { btn.classList.add('border-red-500', 'animate-puytxlse'); setTimeout(() => renderScene('game_lever_fail'), 1000); } 
+                else { btn.classList.add('border-red-500', 'animate-pulse'); setTimeout(() => renderScene('game_lever_fail'), 1000); } 
                 return; 
             }
             if (opt.action === 'check_pi') { 
