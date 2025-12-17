@@ -234,14 +234,15 @@
     <div class="w-full md:w-[40%] h-[35vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-700" id="char-panel">
         <div class="char-container w-full h-full flex items-center justify-center relative">
             <div class="char-aura"></div>
-            <!-- Character Image with Glow Effect -->
+            <!-- Character Image -->
+            <!-- FIX: Thêm style mặc định và onerror để ẩn ảnh nếu không tải được -->
             <img id="char-img" src="archimedes.png" 
-                 onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Archimedes&skinColor=light&clothing=toga&facialHair=beardMajestic&top=shortHairTheCaesar'" 
+                 onerror="this.style.display='none'" 
                  class="char-img-effect animate-breathe max-h-[100%] md:max-h-[90%] object-contain transform translate-y-0 opacity-100 relative z-20" 
                  alt="Character">
             
             <!-- Name Tag -->
-            <div class="absolute bottom-4 md:bottom-16 bg-syracuse-dark/90 backdrop-blur-xl border-y border-syracuse-bronze/60 px-8 py-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] z-30">
+            <div id="name-tag" class="absolute bottom-4 md:bottom-16 bg-syracuse-dark/90 backdrop-blur-xl border-y border-syracuse-bronze/60 px-8 py-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] z-30 transition-opacity duration-300">
                 <h2 id="char-name" class="text-syracuse-gold font-title font-bold text-lg md:text-3xl tracking-[0.2em] text-center drop-shadow-md">ARCHIMEDES</h2>
                 <p id="char-role" class="text-syracuse-accent text-[10px] md:text-xs text-center uppercase tracking-widest font-sans mt-1">Thiên Tài Syracuse • 287 - 212 TCN</p>
             </div>
@@ -274,24 +275,24 @@
             <div class="absolute inset-0 bg-syracuse-bronze/20 blur-[100px] rounded-full"></div>
             <i class="fas fa-infinity text-8xl md:text-9xl text-syracuse-gold drop-shadow-[0_0_50px_rgba(251,191,36,0.8)]"></i>
         </div>
-        <h2 class="text-4xl md:text-6xl font-title font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-amber-700 mb-6 tracking-widest">BẤT TỬ</h2>
+        <h2 class="text-4xl md:text-6xl font-title font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-amber-700 mb-6 tracking-widest">DI SẢN BẤT TỬ</h2>
         <p class="text-slate-300 font-serif italic max-w-2xl mb-10 text-xl md:text-2xl leading-relaxed">
             "Người La Mã có thể chiếm được Syracuse, nhưng họ không bao giờ chiếm được trí tuệ của Archimedes."
         </p>
         <button onclick="try{window.parent.closeViewer()}catch(e){location.reload()}" class="btn-action w-64">
-            Đóng Lại Lịch Sử
+            Khép Lại Trang Sử
         </button>
     </div>
 
     <script>
         // --- 1. DỮ LIỆU & TÀI NGUYÊN (ASSETS) ---
         const CHARACTERS = {
+            athena: { name: "NỮ THẦN ATHENA", role: "Vị Thần Trí Tuệ", img: "athena.png" },
             archimedes: { name: "ARCHIMEDES", role: "Nhà Toán Học Vĩ Đại", img: "archimedes.png" },
             hiero: { name: "VUA HIERO II", role: "Bạo Chúa Syracuse", img: "hiero.png" },
             soldier: { name: "MARCELLUS", role: "Đại Tướng La Mã", img: "soldier.png" },
-            athena: { name: "NỮ THẦN ATHENA", role: "Thần Trí Tuệ", img: "athena.png" },
             apollo: { name: "THẦN APOLLO", role: "Thần Mặt Trời", img: "apollo.png" },
-            narrator: { name: "", role: "", img: "" }
+            narrator: { name: "", role: "", img: "" } // Narrator has no image
         };
 
         // --- 2. AUDIO ENGINE ---
@@ -322,13 +323,10 @@
         // --- 3. LOGIC GAME & VISUALIZATION (UPDATED SVGs) ---
         let gameState = { crownTested: false, leverBalanced: false, piIterations: 0, fulcrumPos: 50, piStep: 0, mirrorAngle: 45 };
 
-        // Game 1: Buoyancy (SVG) - FIX: Item Y and Water Effect
+        // Game 1: Buoyancy (SVG)
         function drawBuoyancyGame(showResult=false) { 
             const W=600,H=250; 
             const waterBaseY=180; 
-            // Tank bottom is at 220. 
-            // Item height ~40-50.
-            // Target Y when dropped should be ~175 (220 - 45).
             const startY = 60;
             const endY = 175;
             const itemY = showResult ? endY : startY;
@@ -353,11 +351,9 @@
                     <g transform="translate(50, 0)">
                         <text x="100" y="25" fill="#fbbf24" text-anchor="middle" font-family="Be Vietnam Pro" font-size="12" font-weight="bold">KHỐI VÀNG</text>
                         <path d="M20,50 L20,220 L180,220 L180,50" fill="none" stroke="#94a3b8" stroke-width="2" stroke-opacity="0.5"/>
-                        <!-- Water Rise -->
                         <rect x="22" y="${waterBaseY-riseGold}" width="156" height="${40+riseGold}" fill="url(#waterGrad)" class="water-rect"/>
                         ${showResult ? '<circle cx="100" cy="180" r="2" fill="rgba(255,255,255,0.5)" class="animate-bubble" style="animation-delay: 0.2s" />' : ''}
                         
-                        <!-- Gold Block -->
                         <rect x="75" y="${itemY}" width="50" height="40" rx="4" fill="url(#goldGrad)" stroke="#fff" stroke-width="1" class="item-drop">
                              <animateTransform attributeName="transform" type="translate" from="0 ${showResult? -115 : 0}" to="0 0" duration="1s" fill="freeze" calcMode="spline" keySplines="0.42 0 0.58 1"/>
                         </rect>
@@ -368,11 +364,9 @@
                     <g transform="translate(350, 0)">
                         <text x="100" y="25" fill="#fbbf24" text-anchor="middle" font-family="Be Vietnam Pro" font-size="12" font-weight="bold">VƯƠNG MIỆN</text>
                         <path d="M20,50 L20,220 L180,220 L180,50" fill="none" stroke="#94a3b8" stroke-width="2" stroke-opacity="0.5"/>
-                        <!-- Water Rise -->
                         <rect x="22" y="${waterBaseY-riseCrown}" width="156" height="${40+riseCrown}" fill="url(#waterGrad)" class="water-rect"/>
                         ${showResult ? '<circle cx="80" cy="180" r="3" fill="rgba(255,255,255,0.5)" class="animate-bubble" /> <circle cx="120" cy="190" r="2" fill="rgba(255,255,255,0.5)" class="animate-bubble" style="animation-delay: 0.5s" />' : ''}
                         
-                        <!-- Detailed Crown -->
                         <path d="M60,${itemY+40} L60,${itemY+10} L80,${itemY+30} L100,${itemY} L120,${itemY+30} L140,${itemY+10} L140,${itemY+40} Q100,${itemY+50} 60,${itemY+40} Z" fill="url(#goldGrad)" stroke="#fff" stroke-width="1" class="item-drop">
                              <animateTransform attributeName="transform" type="translate" from="0 ${showResult? -115 : 0}" to="0 0" duration="1s" fill="freeze" calcMode="spline" keySplines="0.42 0 0.58 1"/>
                         </path>
@@ -383,14 +377,17 @@
             </div>`; 
         }
 
-        // Game 2: Lever (SVG) - UPDATE: Detailed Earth & Wood Texture
+        // Game 2: Lever (SVG)
         function drawLeverGame(pos) { 
             const W=600,H=200; const barY=150; const barLen=500; const startX=(W-barLen)/2; 
             const isSuccess=pos<25; const fulcrumX=startX+(pos/100)*barLen; 
-            const angle=isSuccess?12:-8; const statusColor=isSuccess?"#22c55e":"#ef4444"; const msg=isSuccess?"THÀNH CÔNG: MÔ-MEN LỰC ĐỦ LỚN!":"THẤT BẠI: CÁNH TAY ĐÒN QUÁ NGẮN..."; 
+            const angle=isSuccess?12:-8; 
+            const statusColor=isSuccess?"#22c55e":"#ef4444"; 
+            const msg=isSuccess?"THÀNH CÔNG: MÔ-MEN LỰC ĐỦ LỚN!":"THẤT BẠI: CÁNH TAY ĐÒN QUÁ NGẮN..."; 
             return `
             <div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;">
                 <svg viewBox="0 0 ${W} ${H}" class="w-full h-full overflow-visible">
+                    <defs><radialGradient id="earthGrad"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#0369a1"/></radialGradient></defs>
                     <line x1="0" y1="${barY+30}" x2="${W}" y2="${barY+30}" stroke="#64748b" stroke-width="2"/>
                     <g transform="rotate(${angle}, ${fulcrumX}, ${barY})" class="lever-bar">
                         <!-- Wood Bar -->
@@ -398,20 +395,19 @@
                         
                         <!-- Detailed Earth -->
                         <g transform="translate(${startX}, ${barY-30})">
-                            <circle cx="0" cy="0" r="35" fill="#0ea5e9" stroke="#fff" stroke-width="1"/>
-                            <!-- Continents -->
+                            <circle cx="0" cy="0" r="35" fill="url(#earthGrad)" stroke="#fff" stroke-width="1"/>
                             <path d="M-15,-15 Q5,-25 15,-10 T20,10 T-5,20 T-20,5 Z" fill="#166534" opacity="0.8"/>
                             <text x="0" y="55" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="bold">TRÁI ĐẤT</text>
                             <line x1="0" y1="35" x2="0" y2="4" stroke="#b45309" stroke-width="2"/>
                         </g>
-                        <!-- Archimedes Force -->
+                        <!-- Force -->
                         <g transform="translate(${startX+barLen}, ${barY-35})">
                             <path d="M0,0 L0,35 M-10,35 L10,35" stroke="#fbbf24" stroke-width="2"/>
                             <circle cx="0" cy="-10" r="12" fill="#fbbf24"/>
                             <text x="0" y="55" text-anchor="middle" fill="#fbbf24" font-size="12">LỰC ĐẨY</text>
                         </g>
                     </g>
-                    <!-- Stone Fulcrum -->
+                    <!-- Fulcrum -->
                     <path d="M${fulcrumX},${barY} L${fulcrumX-15},${barY+30} L${fulcrumX+15},${barY+30} Z" fill="#57534e" stroke="#292524" stroke-width="2"/>
                     <text x="${W/2}" y="30" text-anchor="middle" fill="${statusColor}" font-family="Be Vietnam Pro" font-size="16" font-weight="bold">${msg}</text>
                 </svg>
@@ -420,29 +416,24 @@
             </div>`; 
         }
 
-        // Game 3: Pi (SVG) - UPDATE: Minimal change, just clean up
+        // Game 3: Pi (SVG)
         function drawPiGame(stepIndex) { 
             const sidesMap=[6,12,24,48,96]; const sides=sidesMap[stepIndex]; const R=80; const cx=300;const cy=100; const piReal=3.14159; const piApprox=sides*Math.sin(Math.PI/sides); 
             let points=""; for(let i=0;i<sides;i++){const theta=(i*2*Math.PI)/sides-Math.PI/2;const x=cx+R*Math.cos(theta);const y=cy+R*Math.sin(theta);points+=`${x},${y} `;} 
             return `<div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;"><svg viewBox="0 0 600 220" class="w-full h-full overflow-visible"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-opacity="0.3" stroke-dasharray="4"/><polygon points="${points}" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="1.5" class="pi-poly"/><text x="${cx}" y="${cy+R+35}" text-anchor="middle" fill="#ecfeff" font-family="Inter" font-size="14">Đa giác nội tiếp ${sides} cạnh</text><g transform="translate(80, 100)"><text x="0" y="0" fill="#fbbf24" font-size="24" font-weight="bold" font-family="Cinzel">π ≈ ${piApprox.toFixed(5)}</text><text x="0" y="30" fill="#0ea5e9" font-size="14">Thực tế: ${piReal.toFixed(5)}</text></g><g transform="translate(520, 100)" text-anchor="end"><text x="0" y="0" fill="#94a3b8" font-size="14">Sai số:</text><text x="0" y="25" fill="#ef4444" font-size="14">${(Math.abs(piReal-piApprox)).toFixed(5)}</text></g></svg><div class="slider-container"><input type="range" min="0" max="4" value="${stepIndex}" step="1" oninput="updatePi(this.value)"></div><div class="text-xs text-slate-400 mt-2 w-full text-center font-serif italic">Kéo thanh trượt để thực hiện phương pháp "Vét Cạn" (Exhaustion)</div></div>`; 
         }
 
-        // Game 4: Defense (SVG) - UPDATE: Trireme Ship, Realistic Fire & Accurate Ray
+        // Game 4: Defense (SVG)
         function drawDefenseGame(angle) { 
             const W=600,H=250; const sunX=50,sunY=30; const mirrorX=500,mirrorY=200; const shipX=100,shipY=200; 
-            const isHit=angle>=68&&angle<=74; // Adjusted hit window
+            const isHit=angle>=68&&angle<=74; 
             const rayLen=500; 
-            // Mapping Logic: Slider 0 (Top) -> 90 deg. Slider 100 (Left) -> 180 deg.
-            // But visually we want beam to hit (100, 200). Vector is (-400, 0). 
-            // Angle ~70 makes visual sense in this projection.
             const visualAngleDeg=270-(angle*0.9); 
             const visualRad=visualAngleDeg*(Math.PI/180); 
             
-            // Calculate Ray End
             let endX=mirrorX+rayLen*Math.cos(visualRad); 
             let endY=mirrorY+rayLen*Math.sin(visualRad); 
             
-            // If hit, clamp ray to ship
             if(isHit) { endX = shipX; endY = shipY - 20; }
 
             const hitColor=isHit?"#ef4444":"#fbbf24"; const beamWidth=isHit?4:1; const opacity=isHit?0.9:0.3; 
@@ -463,19 +454,14 @@
                     
                     <!-- Roman Trireme Ship -->
                     <g transform="translate(${shipX}, ${shipY-10})" class="ship-target">
-                        <!-- Hull -->
                         <path d="M-40,0 Q0,20 40,0 L35,15 H-35 Z" fill="#3f2305" stroke="#000"/>
-                        <!-- Oars -->
                         <path d="M-30,5 L-40,25 M-20,5 L-30,25 M-10,5 L-20,25 M0,5 L-10,25 M10,5 L0,25" stroke="#5c3a12" stroke-width="2"/>
-                        <!-- Mast -->
                         <line x1="0" y1="0" x2="0" y2="-50" stroke="#5c3a12" stroke-width="3"/>
-                        <!-- Sail -->
                         <path d="M0,-50 Q30,-40 0,-10 Q-30,-40 0,-50" fill="${isHit?'#1f2937':'#e2e8f0'}" stroke="#94a3b8"/>
                         <!-- Burning Effect -->
                         <g style="display:${isHit?'block':'none'};" class="animate-fire-flicker">
                             <path d="M-5,-20 Q0,-50 5,-20 Q0,-10 -5,-20" fill="#ef4444" opacity="0.8"/>
                             <path d="M-10,-25 Q0,-60 10,-25 Q0,-15 -10,-25" fill="#f59e0b" opacity="0.6"/>
-                            <path d="M0,-30 Q0,-70 0,-30" stroke="#fff" stroke-width="1" opacity="0.5"/>
                         </g>
                     </g>
                     
@@ -498,29 +484,37 @@
         const SCENES = {
             'intro': { 
                 char: 'athena', 
-                text: "<span class='text-syracuse-gold font-title block mb-4 text-xl'>THẦN THOẠI VỀ TRÍ TUỆ</span>Hỡi người lữ khách thời gian, ta là Athena. Ta đã chứng kiến nhiều đế chế trỗi dậy và sụp đổ. Nhưng hiếm có ngọn lửa trí tuệ nào rực rỡ như tại Syracuse vào năm 287 TCN. Tại đây, một phàm nhân đã dám thách thức cả quy luật của vũ trụ bằng những con số.", 
+                text: "<span class='text-syracuse-gold font-title block mb-4 text-xl'>THẦN THOẠI VỀ TRÍ TUỆ</span>Chào mừng người lữ khách xuyên không gian và thời gian. Ta là Athena, vị thần bảo hộ của trí tuệ và chiến lược. Hãy cùng ta quay ngược dòng lịch sử trở về năm 287-212 Trước Công Nguyên, đến với thành bang Syracuse rực rỡ trên đảo Sicily. Đây là thời kỳ Hy Lạp hóa (Hellenistic Period), khi khoa học và nghệ thuật đạt đến đỉnh cao chưa từng thấy. Nhưng cũng là lúc bóng tối của Chiến tranh Punic lần thứ hai đang bao trùm, khi Đế chế La Mã hùng mạnh đang khao khát thôn tính vùng đất này. Tại đây, có một người đàn ông mà trí tuệ của ông đã trở thành huyền thoại, thách thức cả gươm giáo của quân đoàn La Mã.", 
+                img: "athena.png", 
+                options: [{ label: "Đó là nơi nào?", next: 'intro_city' }] 
+            },
+            'intro_city': {
+                char: 'narrator',
+                text: "Syracuse không chỉ là một thương cảng sầm uất, mà là thủ phủ của tri thức. Trong khi người La Mã xây dựng đường sá và quân đội, thì tại đây, các học giả tranh luận về hình học phẳng, thiên văn và cơ học. Những bản vẽ trên cát bụi quý giá hơn vàng bạc. Giữa bối cảnh ấy, Archimedes nổi lên như một ngôi sao sáng nhất, người bạn thân thiết của vua Hiero II và là người con ưu tú nhất của Syracuse.",
                 img: "bg_syracuse.jpg", 
-                options: [{ label: "Người đó là ai?", next: 'intro_archimedes' }] 
+                options: [{ label: "Gặp nhân vật chính", next: 'intro_archimedes' }]
             },
             'intro_archimedes': {
                 char: 'archimedes',
-                text: "Đừng làm phiền các vòng tròn của ta! ... Ồ, thứ lỗi. Ta là Archimedes. Người đời gọi ta là kẻ mộng mơ, nhưng ta chỉ nhìn thấy cấu trúc của thực tại nơi những người khác chỉ thấy hỗn loạn. Hình học... chính là ngôn ngữ của các vị thần.",
-                options: [{ label: "Ngài đang nghiên cứu gì?", next: 'scene_king_call' }]
+                text: "(\"Noli turbare circulos meos!\" - Đừng làm hỏng các vòng tròn của ta!)... Ồ, thứ lỗi cho sự thất lễ này. Ta là Archimedes. Ta đang suy ngẫm về mối quan hệ giữa thể tích hình cầu và hình trụ ngoại tiếp nó. Ngươi biết đấy, vẻ đẹp của vũ trụ không nằm ở sự hỗn loạn, mà nằm ở các trật tự toán học hoàn hảo. Hình học chính là ngôn ngữ mà các vị thần dùng để viết nên thế giới này.",
+                img: "archimedes.png",
+                options: [{ label: "Nhà vua triệu kiến", next: 'scene_king_call' }]
             },
             'scene_king_call': { 
                 char: 'hiero', 
-                text: "Archimedes! Bạn già của ta. Ta có một vấn đề nan giải. Ta đã giao vàng ròng cho thợ kim hoàn làm chiếc vương miện dâng thần Apollo. Nhưng ta nghi ngờ hắn đã tráo bạc vào đó. Chiếc vương miện rất đẹp, ta không muốn nung chảy nó để kiểm tra.", 
+                text: "Hỡi Archimedes, người bạn thông thái của ta! Ta đang gặp một vấn đề nan giải liên quan đến danh dự của các vị thần. Ta đã thề dâng tặng một chiếc vương miện bằng vàng ròng cho ngôi đền bất tử nếu Syracuse được bình an. Ta đã giao đúng khối lượng vàng cho người thợ kim hoàn. Chiếc vương miện này khi hoàn thành có trọng lượng đúng bằng số vàng ta đã giao. Nhưng tin đồn cho rằng hắn đã biển thủ một phần vàng và thay thế bằng bạc. Ta không thể nung chảy nó để kiểm tra vì sẽ phá hủy tác phẩm nghệ thuật dâng thần. Ngươi hãy dùng trí tuệ của mình để tìm ra sự thật!", 
                 img: "img_crown.png", 
-                options: [{ label: "Một bài toán khó...", next: 'scene_eureka_ponder' }] 
+                options: [{ label: "Nhận lệnh", next: 'scene_eureka_ponder' }] 
             },
             'scene_eureka_ponder': { 
                 char: 'archimedes', 
-                text: "Vàng nặng hơn bạc rất nhiều. Nếu chiếc vương miện này bị pha bạc, nó sẽ nhẹ hơn một khối vàng ròng cùng thể tích. Hoặc nói cách khác: <span class='text-syracuse-accent'>Nếu cùng khối lượng, vương miện pha bạc sẽ có thể tích lớn hơn ($V_{bạc} > V_{vàng}$).</span> Nhưng làm sao đo thể tích một vật chạm trổ phức tạp thế này?", 
+                text: "Đây là một bài toán hóc búa về Tỷ Trọng Vật Chất. Ta biết rằng vàng ($Au$) có khối lượng riêng lớn hơn nhiều so với bạc ($Ag$). Mật độ ($\rho$) được định nghĩa là khối lượng chia cho thể tích: $\\rho = \\frac{m}{V}$. Nếu chiếc vương miện là vàng ròng, nó sẽ có một thể tích $V_{vàng}$. Nhưng nếu nó bị pha bạc (vật liệu nhẹ hơn), để có cùng khối lượng $m$, thể tích tổng cộng của vương miện $V_{pha}$ bắt buộc phải lớn hơn $V_{vàng}$. Vấn đề là chiếc vương miện có hình dạng chạm khắc quá phức tạp, ta không thể dùng thước kẹp hay công thức hình học cơ bản để tính thể tích của nó được.", 
+                img: "img_gold_block.png", 
                 options: [{ label: "Đi tắm để suy nghĩ", next: 'scene_eureka_bath' }] 
             },
             'scene_eureka_bath': { 
                 char: 'archimedes', 
-                text: "Dòng nước mát lạnh... Khoan đã! Khi ta bước vào bồn, nước dâng lên. Thể tích nước tràn ra chính bằng thể tích phần cơ thể ta chìm trong nước. Đây rồi! Chìa khóa nằm ở sự chiếm chỗ (Displacement)!", 
+                text: "Dòng nước mát lạnh... Khoan đã! Khi ta bước vào bồn, nước dâng lên và tràn ra ngoài. Thể tích nước tràn ra chính bằng thể tích phần cơ thể ta chìm trong nước. Đây rồi! Chìa khóa nằm ở sự chiếm chỗ (Displacement)! Ta có thể đo thể tích của bất kỳ vật thể nào, dù hình dạng phức tạp đến đâu, bằng cách đo thể tích chất lỏng mà nó chiếm chỗ.", 
                 img: "img_bath.png", 
                 sfx: 'sfx-water', 
                 options: [{ label: "Tìm ra chân lý!", next: 'scene_eureka_shout' }] 
@@ -532,14 +526,14 @@
             },
             'game_buoyancy_start': { 
                 char: 'narrator', 
-                text: "Archimedes đặt hai bể nước. Bể 1 chứa khối vàng chuẩn. Bể 2 chứa vương miện. Nếu vương miện pha bạc (nhẹ hơn vàng), nó sẽ cần kích thước lớn hơn để đạt cùng trọng lượng, do đó sẽ làm tràn nhiều nước hơn.", 
+                text: "Thí nghiệm kiểm chứng: Ta sẽ chuẩn bị hai bình nước đầy. Một bên ta thả khối vàng ròng (đối chứng), bên kia ta thả chiếc vương miện. Nếu vương miện là vàng thật, lượng nước tràn ra phải bằng nhau. Nếu vương miện pha bạc (nhẹ hơn, thể tích lớn hơn), nước sẽ tràn ra nhiều hơn.", 
                 gameMode: true, 
                 render: 'buoyancy_start', 
                 options: [{ label: "Thả vật vào nước!", action: 'drop_items' }] 
             },
             'game_buoyancy_result': { 
                 char: 'archimedes', 
-                text: "Sự thật đã phơi bày! Mực nước bên vương miện dâng cao hơn. Điều này chứng tỏ: <span class='text-bronze'>$V_{vương miện} > V_{vàng}$</span>. Tên thợ đã pha bạc vào! Khoa học không biết nói dối.", 
+                text: "Sự thật đã phơi bày! Mực nước bên vương miện dâng cao hơn và tràn ra nhiều hơn. Điều này chứng tỏ: <span class='text-bronze'>$V_{vương miện} > V_{vàng}$</span>. Tên thợ đã pha bạc vào! Khoa học không biết nói dối, và nhà vua đã bị lừa.", 
                 gameMode: true, 
                 render: 'buoyancy_end', 
                 sfx: 'sfx-win', 
@@ -547,87 +541,90 @@
             },
             'scene_lever_intro': { 
                 char: 'archimedes', 
-                text: "Sau vụ vương miện, ta nhận ra sức mạnh của cơ học. Ta đã nói với vua Hiero: <span class='text-syracuse-gold italic'>'Hãy cho tôi một điểm tựa, tôi sẽ nâng cả Trái Đất.'</span> Đó không phải lời khoác lác, đó là định luật bảo toàn công.", 
+                text: "Sau vụ vương miện, ta nhận ra sức mạnh của cơ học. Ta đã nói với vua Hiero: <span class='text-syracuse-gold italic'>'Hãy cho tôi một điểm tựa, tôi sẽ nâng cả Trái Đất.'</span> Đó không phải lời khoác lác, đó là định luật bảo toàn công và mô-men lực.", 
                 img: "img_lever.png", 
                 options: [{ label: "Nguyên lý là gì?", next: 'scene_lever_math' }] 
             },
             'scene_lever_math': {
                 char: 'archimedes',
-                text: "Định luật đòn bẩy: $$F_1 \cdot d_1 = F_2 \cdot d_2$$ Trong đó $F$ là lực và $d$ là cánh tay đòn. Nếu cánh tay đòn của ta dài gấp 100 lần, ta có thể nâng vật nặng gấp 100 lần sức ta. Hãy thử xem!",
+                text: "Định luật đòn bẩy: $$F_1 \cdot d_1 = F_2 \cdot d_2$$ Trong đó $F$ là lực và $d$ là cánh tay đòn (khoảng cách từ điểm tựa đến điểm đặt lực). Để nâng một vật nặng khổng lồ (Trái Đất), ta chỉ cần một lực nhỏ, miễn là cánh tay đòn của ta ($d_2$) đủ dài so với cánh tay đòn của vật ($d_1$).",
                 options: [{ label: "Thách thức Trái Đất", next: 'game_lever_start' }]
             },
             'game_lever_start': { 
                 char: 'narrator', 
-                text: "Bạn cần nâng Trái Đất lên. Hãy điều chỉnh Điểm Tựa (Fulcrum). Hãy nhớ: Để lợi về Lực, ta phải thiệt về Đường đi. Cần đặt điểm tựa thật gần vật nặng.", 
+                text: "Bạn cần nâng Trái Đất lên. Hãy điều chỉnh Điểm Tựa (Fulcrum). Hãy nhớ: Để lợi về Lực, ta phải thiệt về Đường đi. Cần đặt điểm tựa thật gần vật nặng để tối đa hóa cánh tay đòn của lực đẩy.", 
                 gameMode: true, 
                 render: 'lever_game', 
                 options: [{ label: "Dùng toàn lực!", action: 'check_lever' }] 
             },
-            'game_lever_fail': { char: 'archimedes', type: 'feedback', text: "Chưa đủ lực! Điểm tựa còn quá xa vật nặng. Cánh tay đòn của lực tác dụng ($d_2$) phải dài hơn nữa!", options: [{ label: "Thử lại", next: 'game_lever_start' }] },
+            'game_lever_fail': { char: 'archimedes', type: 'feedback', text: "Chưa đủ lực! Điểm tựa còn quá xa vật nặng. Cánh tay đòn của lực tác dụng ($d_2$) phải dài hơn nữa để tạo ra mô-men xoắn đủ lớn!", options: [{ label: "Thử lại", next: 'game_lever_start' }] },
             'game_lever_success': { 
                 char: 'archimedes', 
-                text: "Kì diệu chưa! Chỉ với sức của một người phàm, ta đã làm rung chuyển cả hành tinh. Đây chính là sức mạnh của trí tuệ đòn bẩy.", 
+                text: "Kì diệu chưa! Chỉ với sức của một người phàm, ta đã làm rung chuyển cả hành tinh. Đây chính là sức mạnh của trí tuệ đòn bẩy. Cơ học là nghệ thuật biến điều không thể thành có thể.", 
                 sfx: 'sfx-metal', 
                 options: [{ label: "Đến Hình Học Thiêng Liêng", next: 'scene_pi_intro' }] 
             },
             'scene_pi_intro': { 
                 char: 'archimedes', 
-                text: "Nhưng tình yêu lớn nhất của ta là Hình Học. Ta trăn trở về tỷ lệ giữa chu vi và đường kính hình tròn. Ta gọi nó là hằng số quy luật vũ trụ. Sau này các người gọi là $\\pi$.", 
+                text: "Nhưng tình yêu lớn nhất của ta là Hình Học. Ta trăn trở về tỷ lệ giữa chu vi ($C$) và đường kính ($D$) của một hình tròn. Ta gọi nó là hằng số quy luật vũ trụ. Sau này các người gọi là $\\pi$.", 
                 img: "img_pi_scroll.png", 
                 options: [{ label: "Tính nó thế nào?", next: 'scene_pi_calc' }] 
             },
             'scene_pi_calc': { 
                 char: 'archimedes', 
-                text: "Đường tròn là một đa giác vô hạn cạnh. Ta dùng phương pháp 'Vét Cạn' (Method of Exhaustion). Ta kẹp đường tròn giữa đa giác nội tiếp và ngoại tiếp. Bắt đầu từ lục giác đều, rồi nhân đôi số cạnh...", 
+                text: "Đường tròn là một đa giác vô hạn cạnh. Ta dùng phương pháp 'Vét Cạn' (Method of Exhaustion). Ta kẹp đường tròn giữa các đa giác đều nội tiếp và ngoại tiếp. Bắt đầu từ lục giác đều (6 cạnh), rồi nhân đôi số cạnh lên 12, 24, 48, 96...", 
                 options: [{ label: "Thực hiện tính toán", next: 'game_pi_start' }] 
             },
             'game_pi_start': { 
                 char: 'narrator', 
-                text: "Hãy kéo thanh trượt để tăng số cạnh đa giác: 6, 12, 24, 48, và cuối cùng là 96 cạnh. Quan sát giá trị Pi hội tụ về 3.14.", 
+                text: "Hãy kéo thanh trượt để tăng số cạnh đa giác: 6, 12, 24, 48, và cuối cùng là 96 cạnh. Quan sát giá trị Pi xấp xỉ dần hội tụ về giá trị thực 3.14159...", 
                 gameMode: true, 
                 render: 'pi_game', 
                 options: [{ label: "Đạt tới 96 cạnh", action: 'check_pi' }] 
             },
             'game_pi_success': { 
                 char: 'archimedes', 
-                text: "Với đa giác 96 cạnh, ta đã chứng minh: $$3\\frac{10}{71} < \\pi < 3\\frac{1}{7}$$ Hay $3.1408 < \\pi < 3.1428$. Một sự chính xác tuyệt mỹ thời cổ đại!", 
+                text: "Tuyệt vời! Với đa giác 96 cạnh, ta đã chứng minh: $$3\\frac{10}{71} < \\pi < 3\\frac{1}{7}$$ Hay $3.1408 < \\pi < 3.1428$. Một sự chính xác tuyệt mỹ thời cổ đại, đặt nền móng cho phép tính vi tích phân sau này.", 
                 sfx: 'sfx-win', 
                 options: [{ label: "Biến cố ập đến", next: 'scene_war_intro' }] 
             },
             'scene_war_intro': { 
                 char: 'soldier', 
-                text: "Cấp báo! Năm 212 TCN. Đại tướng Marcellus và hạm đội La Mã hùng mạnh đang bao vây Syracuse. Chúng ta không thể địch lại số lượng của chúng! Tường thành sắp vỡ!", 
+                text: "Cấp báo! Năm 212 TCN. Đại tướng Marcellus và hạm đội La Mã hùng mạnh đang bao vây Syracuse cả đường thủy lẫn đường bộ. Chúng ta không thể địch lại số lượng của chúng! Tường thành sắp vỡ trước những cỗ máy công thành Sambuca!", 
                 img: "img_roman_fleet.png", 
                 options: [{ label: "Archimedes ra trận", next: 'scene_mirror_weapon' }] 
             },
             'scene_mirror_weapon': { 
                 char: 'archimedes', 
-                text: "Kẻ thù có gươm giáo, ta có hình học. Mang các tấm gương đồng parabol ra đây! Ta sẽ hội tụ tia nắng mặt trời thành tia tử thần (Heat Ray). Chúng sẽ bị thiêu rụi trước khi chạm bờ.", 
+                text: "Kẻ thù có gươm giáo, ta có hình học. Bình tĩnh! Hãy mang các tấm gương đồng parabol ra đây! Ta sẽ hội tụ tia nắng mặt trời thành tia tử thần (Heat Ray). Theo nguyên lý quang học, mọi tia sáng song song đến gương parabol đều hội tụ tại tiêu điểm F.", 
+                img: "img_mirrors.png", 
                 options: [{ label: "Kích hoạt Gương Thần", next: 'game_defense_start' }] 
             },
             'game_defense_start': { 
                 char: 'narrator', 
-                text: "Sử dụng nguyên lý phản xạ của Parabol. Hãy điều chỉnh góc gương để tiêu điểm hội tụ đúng vào cánh buồm tàu địch. (Gợi ý: Khoảng 70 độ).", 
+                text: "Nhiệm vụ: Điều chỉnh góc nghiêng của các tấm gương đồng để chùm tia phản xạ hội tụ chính xác vào tiêu điểm là cánh buồm khô của tàu địch. Hãy nhớ góc tới bằng góc phản xạ ($i = i'$). (Gợi ý: Khoảng 70 độ).", 
                 gameMode: true, 
                 render: 'defense_game', 
                 options: [{ label: "Khai hỏa!", action: 'check_defense' }] 
             },
             'game_defense_success': { 
-                char: 'apollo', // Character change: Apollo appears
-                text: "Hỡi những con người Syracuse quả cảm! Ta, Apollo, ban cho các ngươi sức mạnh của mặt trời. Hãy để ánh sáng thiêu rụi bóng tối xâm lăng!", 
+                char: 'apollo', 
+                text: "Ta, Apollo, Thần Mặt Trời, chứng giám cho trí tuệ của con người! Ngọn lửa công lý đã được thắp lên từ chính ánh sáng của ta. Kẻ xâm lăng kiêu ngạo sẽ phải trả giá bằng tro bụi!", 
                 img: "img_burning_ship.png", 
                 sfx: 'sfx-fire', 
                 options: [{ label: "Kết cục bi tráng", next: 'scene_death' }] 
             },
-            'game_defense_fail': { char: 'archimedes', type: 'feedback', text: "Chệch mục tiêu rồi! Hãy tính toán lại góc phản xạ ngay!", options: [{ label: "Thử lại", next: 'game_defense_start' }] },
+            'game_defense_fail': { char: 'archimedes', type: 'feedback', text: "Chệch mục tiêu rồi! Năng lượng bị phân tán. Hãy tính toán lại góc phản xạ ngay để hội tụ ánh sáng vào một điểm!", options: [{ label: "Thử lại", next: 'game_defense_start' }] },
             'scene_death': {
                 char: 'soldier',
-                text: "Thành phố đã thất thủ! Tướng quân Marcellus ra lệnh bắt sống Archimedes. Nhưng... này ông già kia! Đứng dậy ngay!",
+                text: "Thành phố đã thất thủ do nội gián! Tướng quân Marcellus ra lệnh bắt sống Archimedes. Nhưng... này ông già kia! Đứng dậy ngay! Ngươi đang vẽ bậy gì trên đất thế?",
+                img: "soldier.png",
                 options: [{ label: "Archimedes phản ứng", next: 'scene_last_words' }]
             },
             'scene_last_words': {
                 char: 'archimedes',
-                text: "<span class='italic text-gray-400'>Vẫn cắm cúi vẽ trên cát...</span><br><br>\"Tránh ra! Đừng làm hỏng các đường tròn của ta!\" (Noli turbare circulos meos!)",
+                text: "<span class='italic text-gray-400'>Vẫn cắm cúi giải bài toán hình học trên khay cát...</span><br><br>\"Tránh ra! Đừng làm hỏng các đường tròn của ta!\" (Noli turbare circulos meos!) Ta sắp tìm ra lời giải rồi...",
+                img: "archimedes.png",
                 options: [{ label: "Sự ra đi của huyền thoại", next: 'finish' }]
             },
             'finish': { action: 'show_reward', sfx: 'sfx-win' }
@@ -642,7 +639,8 @@
             charImg: document.getElementById('char-img'),
             charName: document.getElementById('char-name'),
             charRole: document.getElementById('char-role'),
-            charPanel: document.getElementById('char-panel')
+            charPanel: document.getElementById('char-panel'),
+            nameTag: document.getElementById('name-tag')
         };
 
         function renderScene(id) {
@@ -652,18 +650,36 @@
             
             if (scene.char) {
                 const char = CHARACTERS[scene.char];
-                if (ui.charName.innerText !== char.name) {
+                // Cập nhật thông tin nhân vật
+                if (ui.charName.innerText !== char.name || !ui.charImg.src.includes(char.img)) {
                     ui.charImg.classList.add('opacity-0', 'translate-y-4');
+                    ui.nameTag.classList.add('opacity-0');
+                    
                     setTimeout(() => {
-                        ui.charImg.src = char.img; 
+                        // FIX: Kiểm tra xem có ảnh không. Nếu là narrator (img rỗng), ẩn ảnh đi.
+                        if (char.img) {
+                            ui.charImg.style.display = 'block';
+                            ui.charImg.src = char.img; 
+                            ui.nameTag.style.display = 'block';
+                            
+                            // Hiệu ứng riêng cho các vị thần/main
+                            if (scene.char === 'archimedes' || scene.char === 'athena' || scene.char === 'apollo') {
+                                ui.charImg.classList.add('char-active');
+                            } else {
+                                ui.charImg.classList.remove('char-active');
+                            }
+                        } else {
+                            // Narrator: Ẩn ảnh và bảng tên
+                            ui.charImg.style.display = 'none';
+                            ui.nameTag.style.display = 'none';
+                        }
+                        
                         ui.charName.innerText = char.name; 
                         ui.charRole.innerText = char.role;
+                        
+                        // Hiện lại (nếu không phải hidden)
                         ui.charImg.classList.remove('opacity-0', 'translate-y-4');
-                        if (scene.char === 'archimedes' || scene.char === 'athena' || scene.char === 'apollo') {
-                            ui.charImg.classList.add('char-active');
-                        } else {
-                            ui.charImg.classList.remove('char-active');
-                        }
+                        ui.nameTag.classList.remove('opacity-0');
                     }, 300);
                 }
             }
@@ -716,7 +732,7 @@
             if (opt.action === 'drop_items') { renderScene('game_buoyancy_result'); return; }
             if (opt.action === 'check_lever') { 
                 if (gameState.leverBalanced) { btn.classList.add('border-green-500'); renderScene('game_lever_success'); } 
-                else { btn.classList.add('border-red-500', 'animate-pulse'); setTimeout(() => renderScene('game_lever_fail'), 500); } 
+                else { btn.classList.add('border-red-500', 'animate-puytxlse'); setTimeout(() => renderScene('game_lever_fail'), 1000); } 
                 return; 
             }
             if (opt.action === 'check_pi') { 
@@ -726,7 +742,7 @@
             }
             if (opt.action === 'check_defense') { 
                 if (gameState.mirrorAngle >= 68 && gameState.mirrorAngle <= 74) { btn.classList.add('border-green-500'); renderScene('game_defense_success'); } 
-                else { btn.classList.add('border-red-500'); setTimeout(() => renderScene('game_defense_fail'), 500); } 
+                else { btn.classList.add('border-red-500'); setTimeout(() => renderScene('game_defense_fail'), 1000); } 
                 return; 
             }
             if (opt.next) { renderScene(opt.next); return; }
