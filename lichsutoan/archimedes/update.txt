@@ -1,0 +1,9 @@
+bgm_syracuse.mp3: Nhạc nền. Giai điệu hào hùng, cổ điển (orchestral/epic), mang âm hưởng chiến trận hoặc trí tuệ.
+
+sfx_water.mp3: Tiếng nước bắn tung tóe (Dùng cho đoạn Eureka).
+
+sfx_metal.mp3: Tiếng kim loại va chạm nặng nề (Dùng cho đoạn Đòn bẩy).
+
+sfx_fire.mp3: Tiếng lửa cháy bùng lên (Dùng cho đoạn Đốt thuyền).
+
+sfx_win.mp3: Tiếng reo hò chiến thắng hoặc âm thanh hoàn thành nhiệm vụ (Dùng khi thắng game).

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Archimedes: Huyền Thoại Syracuse</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        syracuse: {
+                            ocean: '#0e7490',   /* Deep Ocean */
+                            dark: '#020617',    /* Night Sky */
+                            bronze: '#d97706',  /* Ancient Bronze */
+                            gold: '#fbbf24',    /* Gold */
+                            accent: '#06b6d4',  /* Magic Blue */
+                            panel: 'rgba(2, 6, 23, 0.95)'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', '"Be Vietnam Pro"', 'serif'],
+                        title: ['"Cinzel"', 'serif'],
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'breathe': 'breathe 8s ease-in-out infinite',
+                        'gear-spin': 'spin 60s linear infinite',
+                        'water-rise': 'rise 2s ease-out forwards',
+                        'fire-flicker': 'flicker 0.2s infinite alternate',
+                        'god-glow': 'glow 3s ease-in-out infinite alternate',
+                        'bubble': 'bubble 2s infinite',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        breathe: { '0%, 100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.02)' } },
+                        rise: { '0%': { transform: 'scaleY(1)' }, '100%': { transform: 'scaleY(var(--target-scale))' } },
+                        flicker: { 
+                            '0%': { opacity: 0.7, transform: 'scale(1) skewX(0deg)' }, 
+                            '100%': { opacity: 1, transform: 'scale(1.1) skewX(5deg)' } 
+                        },
+                        glow: {
+                            '0%': { filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.3)) brightness(1)' },
+                            '100%': { filter: 'drop-shadow(0 0 25px rgba(251, 191, 36, 0.6)) brightness(1.1)' }
+                        },
+                        bubble: {
+                            '0%': { transform: 'translateY(0) scale(0)', opacity: 0 },
+                            '50%': { opacity: 1 },
+                            '100%': { transform: 'translateY(-20px) scale(1)', opacity: 0 }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #020617; 
+            color: #ecfeff; 
+            font-family: 'Cormorant Garamond', serif; 
+            overflow: hidden; 
+            touch-action: pan-y;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(217, 119, 6, 0.08) 0%, transparent 50%);
+        }
+
+        .bg-gear-pattern {
+            position: fixed; inset: 0; pointer-events: none; opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0l4 10h10l-4 10 6 8-10 2v10l-6-8-6 8v-10l-10-2 6-8-4-10h10l4-10z' fill='%23b45309' fill-rule='evenodd'/%3E%3C/svg%3E");
+            z-index: 0;
+            animation: gear-spin 120s linear infinite;
+        }
+
+        .char-aura {
+            position: absolute; width: 140%; height: 140%;
+            background: radial-gradient(circle, rgba(14, 116, 144, 0.2) 0%, transparent 70%);
+            border-radius: 50%; z-index: -1; filter: blur(60px);
+        }
+        
+        .char-img-effect {
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .char-active {
+            animation: god-glow 4s infinite alternate;
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        
+        .dialog-box {
+            background: rgba(2, 6, 23, 0.85); 
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(217, 119, 6, 0.3);
+            border-top: 3px solid #d97706;
+            border-bottom: 3px solid #0e7490;
+            box-shadow: 0 20px 70px -10px rgba(0,0,0,0.9);
+            transition: all 0.5s ease;
+            display: flex; flex-direction: column;
+        }
+
+        .dialog-box.game-mode {
+            background: rgba(8, 51, 68, 0.95);
+            border-color: #22d3ee;
+        }
+        
+        #story-text-container {
+            transition: all 0.5s ease;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        #story-text-container::-webkit-scrollbar { width: 6px; }
+        #story-text-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        #story-text-container::-webkit-scrollbar-thumb { background: #d97706; border-radius: 3px; }
+
+        .media-box, .svg-container {
+            width: 100%; max-width: 600px;
+            background: radial-gradient(circle at center, rgba(14, 116, 144, 0.3) 0%, rgba(2, 6, 23, 0.8) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin: 0 auto 15px auto; 
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            position: relative;
+            min-height: 220px;
+        }
+        
+        .media-box img { 
+            width: 100%; height: auto; 
+            max-height: 35vh;
+            object-fit: contain; 
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        .btn-action {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 700; 
+            letter-spacing: 0.05em;
+            background: linear-gradient(180deg, rgba(22, 78, 99, 0.9) 0%, rgba(8, 51, 68, 1) 100%);
+            color: #fbbf24; 
+            border: 1px solid rgba(217, 119, 6, 0.5);
+            padding: 16px 24px; border-radius: 6px;
+            transition: all 0.3s; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; font-size: 1rem;
+            box-shadow: 0 4px 0 rgba(69, 26, 3, 0.8);
+            text-transform: uppercase;
+        }
+        .btn-action:hover { 
+            border-color: #fcd34d; 
+            background: linear-gradient(180deg, rgba(180, 83, 9, 0.9) 0%, rgba(120, 53, 15, 1) 100%);
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.8); 
+            transform: translateY(-2px);
+        }
+        .btn-action:active { transform: translateY(2px); box-shadow: none; }
+        
+        .story-text { 
+            font-size: 1.35rem; line-height: 1.7; color: #e0f2fe; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
+        }
+        .text-bronze { color: #fbbf24; font-weight: bold; font-family: 'Cinzel', serif; }
+        .katex { font-size: 1.2em; color: #22d3ee; }
+
+        /* Game Elements */
+        .water-rect { transform-origin: bottom; transition: height 1.5s cubic-bezier(0.25, 1, 0.5, 1); }
+        .item-drop { transition: transform 1s cubic-bezier(0.6, 0.04, 0.98, 0.335); }
+        .slider-container { width: 90%; margin-top: 15px; position: relative; height: 40px; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; }
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%; 
+            background: #fbbf24; border: 2px solid #78350f; margin-top: -12px; 
+            box-shadow: 0 0 15px rgba(251, 191, 36, 1);
+        }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; }
+        
+        /* UI Buttons */
+        .home-btn, .audio-btn {
+            position: absolute; top: 1.5rem; 
+            width: 48px; height: 48px;
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; z-index: 50;
+            transition: all 0.3s; backdrop-filter: blur(8px);
+        }
+        .home-btn { left: 1.5rem; }
+        .audio-btn { right: 1.5rem; }
+        .home-btn:hover { border-color: #fbbf24; color: #fbbf24; transform: rotate(90deg); }
+        .audio-btn:hover { border-color: #22d3ee; color: #22d3ee; box-shadow: 0 0 20px rgba(34, 211, 238, 0.4); }
+    </style>
+</head>
+<body class="h-screen w-full relative flex flex-col md:flex-row overflow-hidden select-none">
+
+    <button onclick="try{window.parent.closeViewer()}catch(e){location.reload()}" class="home-btn" title="Về Dòng Thời Gian">
+        <i class="fas fa-arrow-left text-xl"></i>
+    </button>
+    
+    <button id="audio-toggle" class="audio-btn" title="Âm Thanh">
+        <i class="fas fa-volume-mute text-xl"></i>
+    </button>
+    
+    <!-- Audio Sources -->
+    <audio id="bgm" loop><source src="bgm_syracuse.mp3" type="audio/mpeg"></audio>
+    <audio id="sfx-water"><source src="sfx_water.mp3" type="audio/mpeg"></audio>
+    <audio id="sfx-metal"><source src="sfx_metal.mp3" type="audio/mpeg"></audio>
+    <audio id="sfx-fire"><source src="sfx_fire.mp3" type="audio/mpeg"></audio>
+    <audio id="sfx-win"><source src="sfx_win.mp3" type="audio/mpeg"></audio>
+
+    <!-- Background Layers -->
+    <div class="bg-gear-pattern"></div>
+    <div class="absolute inset-0 bg-[url('bg_syracuse.jpg')] bg-cover bg-center opacity-30 pointer-events-none mix-blend-overlay"></div>
+
+    <!-- LEFT AREA: CHARACTER -->
+    <div class="w-full md:w-[40%] h-[35vh] md:h-full flex items-end md:items-center justify-center relative z-10 pointer-events-none transition-all duration-700" id="char-panel">
+        <div class="char-container w-full h-full flex items-center justify-center relative">
+            <div class="char-aura"></div>
+            <!-- Character Image with Glow Effect -->
+            <img id="char-img" src="archimedes.png" 
+                 onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Archimedes&skinColor=light&clothing=toga&facialHair=beardMajestic&top=shortHairTheCaesar'" 
+                 class="char-img-effect animate-breathe max-h-[100%] md:max-h-[90%] object-contain transform translate-y-0 opacity-100 relative z-20" 
+                 alt="Character">
+            
+            <!-- Name Tag -->
+            <div class="absolute bottom-4 md:bottom-16 bg-syracuse-dark/90 backdrop-blur-xl border-y border-syracuse-bronze/60 px-8 py-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] z-30">
+                <h2 id="char-name" class="text-syracuse-gold font-title font-bold text-lg md:text-3xl tracking-[0.2em] text-center drop-shadow-md">ARCHIMEDES</h2>
+                <p id="char-role" class="text-syracuse-accent text-[10px] md:text-xs text-center uppercase tracking-widest font-sans mt-1">Thiên Tài Syracuse • 287 - 212 TCN</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT AREA: INTERACTION -->
+    <div class="w-full md:w-[60%] h-[65vh] md:h-full flex flex-col justify-end md:justify-center p-0 md:p-12 z-20 relative">
+        <div id="main-dialog" class="dialog-box w-full h-full md:h-auto md:min-h-[600px] md:rounded-2xl p-4 md:p-10">
+            
+            <!-- Content Scroll Area -->
+            <div class="flex-1 flex flex-col relative overflow-hidden" id="content-scroller">
+                <!-- Visuals/Game Container -->
+                <div id="visual-content" class="media-box empty:hidden flex-shrink-0 transition-all duration-500 opacity-0 transform translate-y-4"></div>
+                
+                <!-- Text Content -->
+                <div id="story-text-container" class="flex-grow min-h-0 mt-4">
+                    <div id="story-content" class="story-text font-serif text-justify pr-2"></div>
+                </div>
+            </div>
+
+            <!-- Action Area -->
+            <div id="controls" class="flex flex-wrap gap-4 justify-center md:justify-end items-center flex-shrink-0 pt-6 border-t border-white/10 mt-4"></div>
+        </div>
+    </div>
+
+    <!-- ENDING / REWARD OVERLAY -->
+    <div id="reward-overlay" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center hidden backdrop-blur-xl p-8 text-center transition-opacity duration-1000">
+        <div class="mb-8 animate-float relative">
+            <div class="absolute inset-0 bg-syracuse-bronze/20 blur-[100px] rounded-full"></div>
+            <i class="fas fa-infinity text-8xl md:text-9xl text-syracuse-gold drop-shadow-[0_0_50px_rgba(251,191,36,0.8)]"></i>
+        </div>
+        <h2 class="text-4xl md:text-6xl font-title font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-amber-700 mb-6 tracking-widest">BẤT TỬ</h2>
+        <p class="text-slate-300 font-serif italic max-w-2xl mb-10 text-xl md:text-2xl leading-relaxed">
+            "Người La Mã có thể chiếm được Syracuse, nhưng họ không bao giờ chiếm được trí tuệ của Archimedes."
+        </p>
+        <button onclick="try{window.parent.closeViewer()}catch(e){location.reload()}" class="btn-action w-64">
+            Đóng Lại Lịch Sử
+        </button>
+    </div>
+
+    <script>
+        // --- 1. DỮ LIỆU & TÀI NGUYÊN (ASSETS) ---
+        const CHARACTERS = {
+            archimedes: { name: "ARCHIMEDES", role: "Nhà Toán Học Vĩ Đại", img: "archimedes.png" },
+            hiero: { name: "VUA HIERO II", role: "Bạo Chúa Syracuse", img: "hiero.png" },
+            soldier: { name: "MARCELLUS", role: "Đại Tướng La Mã", img: "soldier.png" },
+            athena: { name: "NỮ THẦN ATHENA", role: "Thần Trí Tuệ", img: "athena.png" },
+            apollo: { name: "THẦN APOLLO", role: "Thần Mặt Trời", img: "apollo.png" },
+            narrator: { name: "", role: "", img: "" }
+        };
+
+        // --- 2. AUDIO ENGINE ---
+        const audio = {
+            bgm: document.getElementById('bgm'),
+            enabled: false,
+            toggleBtn: document.getElementById('audio-toggle'),
+            init: function() { this.toggleBtn.onclick = () => this.toggle(); },
+            toggle: function() {
+                this.enabled = !this.enabled;
+                if (this.enabled) {
+                    this.bgm.volume = 0.2; this.bgm.play().catch(()=>{});
+                    this.toggleBtn.innerHTML = '<i class="fas fa-volume-up text-syracuse-gold"></i>';
+                    this.toggleBtn.style.borderColor = '#fbbf24';
+                } else {
+                    this.bgm.pause();
+                    this.toggleBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                    this.toggleBtn.style.borderColor = '#22d3ee';
+                }
+            },
+            playSFX: function(id) {
+                if (!this.enabled) return;
+                const sfx = document.getElementById(id);
+                if (sfx) { sfx.currentTime = 0; sfx.volume = 0.5; sfx.play().catch(()=>{}); }
+            }
+        };
+
+        // --- 3. LOGIC GAME & VISUALIZATION (UPDATED SVGs) ---
+        let gameState = { crownTested: false, leverBalanced: false, piIterations: 0, fulcrumPos: 50, piStep: 0, mirrorAngle: 45 };
+
+        // Game 1: Buoyancy (SVG) - FIX: Item Y and Water Effect
+        function drawBuoyancyGame(showResult=false) { 
+            const W=600,H=250; 
+            const waterBaseY=180; 
+            // Tank bottom is at 220. 
+            // Item height ~40-50.
+            // Target Y when dropped should be ~175 (220 - 45).
+            const startY = 60;
+            const endY = 175;
+            const itemY = showResult ? endY : startY;
+            
+            const riseGold=showResult?15:0; 
+            const riseCrown=showResult?35:0; 
+
+            return `
+            <div class="svg-container" style="background:transparent;box-shadow:none;border:none;">
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#fce76c;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b45309;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#22d3ee;stop-opacity:0.4" />
+                            <stop offset="100%" style="stop-color:#0e7490;stop-opacity:0.7" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Tank 1 -->
+                    <g transform="translate(50, 0)">
+                        <text x="100" y="25" fill="#fbbf24" text-anchor="middle" font-family="Be Vietnam Pro" font-size="12" font-weight="bold">KHỐI VÀNG</text>
+                        <path d="M20,50 L20,220 L180,220 L180,50" fill="none" stroke="#94a3b8" stroke-width="2" stroke-opacity="0.5"/>
+                        <!-- Water Rise -->
+                        <rect x="22" y="${waterBaseY-riseGold}" width="156" height="${40+riseGold}" fill="url(#waterGrad)" class="water-rect"/>
+                        ${showResult ? '<circle cx="100" cy="180" r="2" fill="rgba(255,255,255,0.5)" class="animate-bubble" style="animation-delay: 0.2s" />' : ''}
+                        
+                        <!-- Gold Block -->
+                        <rect x="75" y="${itemY}" width="50" height="40" rx="4" fill="url(#goldGrad)" stroke="#fff" stroke-width="1" class="item-drop">
+                             <animateTransform attributeName="transform" type="translate" from="0 ${showResult? -115 : 0}" to="0 0" duration="1s" fill="freeze" calcMode="spline" keySplines="0.42 0 0.58 1"/>
+                        </rect>
+                        
+                        <line x1="180" y1="${waterBaseY}" x2="195" y2="${waterBaseY}" stroke="#fff" stroke-width="1" stroke-dasharray="2"/>
+                        ${showResult?`<line x1="180" y1="${waterBaseY-riseGold}" x2="195" y2="${waterBaseY-riseGold}" stroke="#22d3ee" stroke-width="2"/>`:''}</g>
+                    <!-- Tank 2 -->
+                    <g transform="translate(350, 0)">
+                        <text x="100" y="25" fill="#fbbf24" text-anchor="middle" font-family="Be Vietnam Pro" font-size="12" font-weight="bold">VƯƠNG MIỆN</text>
+                        <path d="M20,50 L20,220 L180,220 L180,50" fill="none" stroke="#94a3b8" stroke-width="2" stroke-opacity="0.5"/>
+                        <!-- Water Rise -->
+                        <rect x="22" y="${waterBaseY-riseCrown}" width="156" height="${40+riseCrown}" fill="url(#waterGrad)" class="water-rect"/>
+                        ${showResult ? '<circle cx="80" cy="180" r="3" fill="rgba(255,255,255,0.5)" class="animate-bubble" /> <circle cx="120" cy="190" r="2" fill="rgba(255,255,255,0.5)" class="animate-bubble" style="animation-delay: 0.5s" />' : ''}
+                        
+                        <!-- Detailed Crown -->
+                        <path d="M60,${itemY+40} L60,${itemY+10} L80,${itemY+30} L100,${itemY} L120,${itemY+30} L140,${itemY+10} L140,${itemY+40} Q100,${itemY+50} 60,${itemY+40} Z" fill="url(#goldGrad)" stroke="#fff" stroke-width="1" class="item-drop">
+                             <animateTransform attributeName="transform" type="translate" from="0 ${showResult? -115 : 0}" to="0 0" duration="1s" fill="freeze" calcMode="spline" keySplines="0.42 0 0.58 1"/>
+                        </path>
+                        
+                        <line x1="180" y1="${waterBaseY}" x2="195" y2="${waterBaseY}" stroke="#fff" stroke-width="1" stroke-dasharray="2"/>
+                        ${showResult?`<line x1="180" y1="${waterBaseY-riseCrown}" x2="195" y2="${waterBaseY-riseCrown}" stroke="#ef4444" stroke-width="2"/><text x="205" y="${waterBaseY-riseCrown+4}" fill="#ef4444" font-size="12" font-weight="bold">CAO HƠN!</text>`:''}</g>
+                </svg>
+            </div>`; 
+        }
+
+        // Game 2: Lever (SVG) - UPDATE: Detailed Earth & Wood Texture
+        function drawLeverGame(pos) { 
+            const W=600,H=200; const barY=150; const barLen=500; const startX=(W-barLen)/2; 
+            const isSuccess=pos<25; const fulcrumX=startX+(pos/100)*barLen; 
+            const angle=isSuccess?12:-8; const statusColor=isSuccess?"#22c55e":"#ef4444"; const msg=isSuccess?"THÀNH CÔNG: MÔ-MEN LỰC ĐỦ LỚN!":"THẤT BẠI: CÁNH TAY ĐÒN QUÁ NGẮN..."; 
+            return `
+            <div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;">
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-full overflow-visible">
+                    <line x1="0" y1="${barY+30}" x2="${W}" y2="${barY+30}" stroke="#64748b" stroke-width="2"/>
+                    <g transform="rotate(${angle}, ${fulcrumX}, ${barY})" class="lever-bar">
+                        <!-- Wood Bar -->
+                        <rect x="${startX}" y="${barY-4}" width="${barLen}" height="8" rx="4" fill="#78350f" stroke="#451a03"/>
+                        
+                        <!-- Detailed Earth -->
+                        <g transform="translate(${startX}, ${barY-30})">
+                            <circle cx="0" cy="0" r="35" fill="#0ea5e9" stroke="#fff" stroke-width="1"/>
+                            <!-- Continents -->
+                            <path d="M-15,-15 Q5,-25 15,-10 T20,10 T-5,20 T-20,5 Z" fill="#166534" opacity="0.8"/>
+                            <text x="0" y="55" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="bold">TRÁI ĐẤT</text>
+                            <line x1="0" y1="35" x2="0" y2="4" stroke="#b45309" stroke-width="2"/>
+                        </g>
+                        <!-- Archimedes Force -->
+                        <g transform="translate(${startX+barLen}, ${barY-35})">
+                            <path d="M0,0 L0,35 M-10,35 L10,35" stroke="#fbbf24" stroke-width="2"/>
+                            <circle cx="0" cy="-10" r="12" fill="#fbbf24"/>
+                            <text x="0" y="55" text-anchor="middle" fill="#fbbf24" font-size="12">LỰC ĐẨY</text>
+                        </g>
+                    </g>
+                    <!-- Stone Fulcrum -->
+                    <path d="M${fulcrumX},${barY} L${fulcrumX-15},${barY+30} L${fulcrumX+15},${barY+30} Z" fill="#57534e" stroke="#292524" stroke-width="2"/>
+                    <text x="${W/2}" y="30" text-anchor="middle" fill="${statusColor}" font-family="Be Vietnam Pro" font-size="16" font-weight="bold">${msg}</text>
+                </svg>
+                <div class="slider-container"><input type="range" min="0" max="100" value="${pos}" oninput="updateLever(this.value)"></div>
+                <div class="text-xs text-slate-400 mt-2 w-full flex justify-between px-4"><span>Lợi Lực ($d_1$ nhỏ)</span><span>Thiệt Lực ($d_1$ lớn)</span></div>
+            </div>`; 
+        }
+
+        // Game 3: Pi (SVG) - UPDATE: Minimal change, just clean up
+        function drawPiGame(stepIndex) { 
+            const sidesMap=[6,12,24,48,96]; const sides=sidesMap[stepIndex]; const R=80; const cx=300;const cy=100; const piReal=3.14159; const piApprox=sides*Math.sin(Math.PI/sides); 
+            let points=""; for(let i=0;i<sides;i++){const theta=(i*2*Math.PI)/sides-Math.PI/2;const x=cx+R*Math.cos(theta);const y=cy+R*Math.sin(theta);points+=`${x},${y} `;} 
+            return `<div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;"><svg viewBox="0 0 600 220" class="w-full h-full overflow-visible"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-opacity="0.3" stroke-dasharray="4"/><polygon points="${points}" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="1.5" class="pi-poly"/><text x="${cx}" y="${cy+R+35}" text-anchor="middle" fill="#ecfeff" font-family="Inter" font-size="14">Đa giác nội tiếp ${sides} cạnh</text><g transform="translate(80, 100)"><text x="0" y="0" fill="#fbbf24" font-size="24" font-weight="bold" font-family="Cinzel">π ≈ ${piApprox.toFixed(5)}</text><text x="0" y="30" fill="#0ea5e9" font-size="14">Thực tế: ${piReal.toFixed(5)}</text></g><g transform="translate(520, 100)" text-anchor="end"><text x="0" y="0" fill="#94a3b8" font-size="14">Sai số:</text><text x="0" y="25" fill="#ef4444" font-size="14">${(Math.abs(piReal-piApprox)).toFixed(5)}</text></g></svg><div class="slider-container"><input type="range" min="0" max="4" value="${stepIndex}" step="1" oninput="updatePi(this.value)"></div><div class="text-xs text-slate-400 mt-2 w-full text-center font-serif italic">Kéo thanh trượt để thực hiện phương pháp "Vét Cạn" (Exhaustion)</div></div>`; 
+        }
+
+        // Game 4: Defense (SVG) - UPDATE: Trireme Ship, Realistic Fire & Accurate Ray
+        function drawDefenseGame(angle) { 
+            const W=600,H=250; const sunX=50,sunY=30; const mirrorX=500,mirrorY=200; const shipX=100,shipY=200; 
+            const isHit=angle>=68&&angle<=74; // Adjusted hit window
+            const rayLen=500; 
+            // Mapping Logic: Slider 0 (Top) -> 90 deg. Slider 100 (Left) -> 180 deg.
+            // But visually we want beam to hit (100, 200). Vector is (-400, 0). 
+            // Angle ~70 makes visual sense in this projection.
+            const visualAngleDeg=270-(angle*0.9); 
+            const visualRad=visualAngleDeg*(Math.PI/180); 
+            
+            // Calculate Ray End
+            let endX=mirrorX+rayLen*Math.cos(visualRad); 
+            let endY=mirrorY+rayLen*Math.sin(visualRad); 
+            
+            // If hit, clamp ray to ship
+            if(isHit) { endX = shipX; endY = shipY - 20; }
+
+            const hitColor=isHit?"#ef4444":"#fbbf24"; const beamWidth=isHit?4:1; const opacity=isHit?0.9:0.3; 
+            
+            return `
+            <div class="svg-container" style="background:transparent;box-shadow:none;border:none;flex-direction:column;">
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-full overflow-visible">
+                    <defs>
+                        <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    </defs>
+                    
+                    <!-- Sun -->
+                    <circle cx="${sunX}" cy="${sunY}" r="25" fill="#fbbf24" filter="url(#glow)"><animate attributeName="r" values="25;28;25" duration="3s" repeatCount="indefinite"/></circle>
+                    <line x1="${sunX}" y1="${sunY}" x2="${mirrorX}" y2="${mirrorY}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="5"/>
+                    
+                    <!-- Ray -->
+                    <line x1="${mirrorX}" y1="${mirrorY}" x2="${endX}" y2="${endY}" stroke="${hitColor}" stroke-width="${beamWidth}" stroke-opacity="${opacity}" class="ray-path"/>
+                    
+                    <!-- Roman Trireme Ship -->
+                    <g transform="translate(${shipX}, ${shipY-10})" class="ship-target">
+                        <!-- Hull -->
+                        <path d="M-40,0 Q0,20 40,0 L35,15 H-35 Z" fill="#3f2305" stroke="#000"/>
+                        <!-- Oars -->
+                        <path d="M-30,5 L-40,25 M-20,5 L-30,25 M-10,5 L-20,25 M0,5 L-10,25 M10,5 L0,25" stroke="#5c3a12" stroke-width="2"/>
+                        <!-- Mast -->
+                        <line x1="0" y1="0" x2="0" y2="-50" stroke="#5c3a12" stroke-width="3"/>
+                        <!-- Sail -->
+                        <path d="M0,-50 Q30,-40 0,-10 Q-30,-40 0,-50" fill="${isHit?'#1f2937':'#e2e8f0'}" stroke="#94a3b8"/>
+                        <!-- Burning Effect -->
+                        <g style="display:${isHit?'block':'none'};" class="animate-fire-flicker">
+                            <path d="M-5,-20 Q0,-50 5,-20 Q0,-10 -5,-20" fill="#ef4444" opacity="0.8"/>
+                            <path d="M-10,-25 Q0,-60 10,-25 Q0,-15 -10,-25" fill="#f59e0b" opacity="0.6"/>
+                            <path d="M0,-30 Q0,-70 0,-30" stroke="#fff" stroke-width="1" opacity="0.5"/>
+                        </g>
+                    </g>
+                    
+                    <!-- Mirror -->
+                    <g transform="translate(${mirrorX}, ${mirrorY})">
+                        <path d="M0,0 Q-15,15 0,30" stroke="#a3a3a3" stroke-width="5" fill="none" transform="rotate(${angle/2}, 0, 15)" filter="drop-shadow(0 0 5px #fff)"/>
+                        <circle cx="10" cy="15" r="5" fill="#fbbf24"/>
+                    </g>
+                </svg>
+                <div class="slider-container"><input type="range" min="0" max="100" value="${angle}" oninput="updateDefense(this.value)"></div>
+                <div class="text-xs text-slate-400 mt-2 w-full text-center">Góc phản xạ: ${angle}° (Cần ~70°)</div>
+            </div>`; 
+        }
+
+        window.updateLever = (val) => { gameState.fulcrumPos=parseInt(val); document.getElementById('visual-content').innerHTML=drawLeverGame(gameState.fulcrumPos); gameState.leverBalanced=gameState.fulcrumPos<25; };
+        window.updatePi = (val) => { gameState.piStep=parseInt(val); document.getElementById('visual-content').innerHTML=drawPiGame(gameState.piStep); };
+        window.updateDefense = (val) => { gameState.mirrorAngle=parseInt(val); document.getElementById('visual-content').innerHTML=drawDefenseGame(gameState.mirrorAngle); };
+
+        // --- 4. KỊCH BẢN ĐẠI SỬ THI ---
+        const SCENES = {
+            'intro': { 
+                char: 'athena', 
+                text: "<span class='text-syracuse-gold font-title block mb-4 text-xl'>THẦN THOẠI VỀ TRÍ TUỆ</span>Hỡi người lữ khách thời gian, ta là Athena. Ta đã chứng kiến nhiều đế chế trỗi dậy và sụp đổ. Nhưng hiếm có ngọn lửa trí tuệ nào rực rỡ như tại Syracuse vào năm 287 TCN. Tại đây, một phàm nhân đã dám thách thức cả quy luật của vũ trụ bằng những con số.", 
+                img: "bg_syracuse.jpg", 
+                options: [{ label: "Người đó là ai?", next: 'intro_archimedes' }] 
+            },
+            'intro_archimedes': {
+                char: 'archimedes',
+                text: "Đừng làm phiền các vòng tròn của ta! ... Ồ, thứ lỗi. Ta là Archimedes. Người đời gọi ta là kẻ mộng mơ, nhưng ta chỉ nhìn thấy cấu trúc của thực tại nơi những người khác chỉ thấy hỗn loạn. Hình học... chính là ngôn ngữ của các vị thần.",
+                options: [{ label: "Ngài đang nghiên cứu gì?", next: 'scene_king_call' }]
+            },
+            'scene_king_call': { 
+                char: 'hiero', 
+                text: "Archimedes! Bạn già của ta. Ta có một vấn đề nan giải. Ta đã giao vàng ròng cho thợ kim hoàn làm chiếc vương miện dâng thần Apollo. Nhưng ta nghi ngờ hắn đã tráo bạc vào đó. Chiếc vương miện rất đẹp, ta không muốn nung chảy nó để kiểm tra.", 
+                img: "img_crown.png", 
+                options: [{ label: "Một bài toán khó...", next: 'scene_eureka_ponder' }] 
+            },
+            'scene_eureka_ponder': { 
+                char: 'archimedes', 
+                text: "Vàng nặng hơn bạc rất nhiều. Nếu chiếc vương miện này bị pha bạc, nó sẽ nhẹ hơn một khối vàng ròng cùng thể tích. Hoặc nói cách khác: <span class='text-syracuse-accent'>Nếu cùng khối lượng, vương miện pha bạc sẽ có thể tích lớn hơn ($V_{bạc} > V_{vàng}$).</span> Nhưng làm sao đo thể tích một vật chạm trổ phức tạp thế này?", 
+                options: [{ label: "Đi tắm để suy nghĩ", next: 'scene_eureka_bath' }] 
+            },
+            'scene_eureka_bath': { 
+                char: 'archimedes', 
+                text: "Dòng nước mát lạnh... Khoan đã! Khi ta bước vào bồn, nước dâng lên. Thể tích nước tràn ra chính bằng thể tích phần cơ thể ta chìm trong nước. Đây rồi! Chìa khóa nằm ở sự chiếm chỗ (Displacement)!", 
+                img: "img_bath.png", 
+                sfx: 'sfx-water', 
+                options: [{ label: "Tìm ra chân lý!", next: 'scene_eureka_shout' }] 
+            },
+            'scene_eureka_shout': { 
+                char: 'archimedes', 
+                text: "<strong class='text-4xl text-syracuse-gold block mb-4 animate-god-glow text-center font-title'>EUREKA! EUREKA!</strong>(Ta tìm ra rồi!) Nguyên lý thật đơn giản: $F_A = d \cdot V$. Một vật nhúng trong chất lỏng chịu một lực đẩy lên bằng trọng lượng của khối chất lỏng bị chiếm chỗ. Ta có thể đo thể tích vương miện bằng nước!", 
+                options: [{ label: "Kiểm chứng ngay (Game)", next: 'game_buoyancy_start' }] 
+            },
+            'game_buoyancy_start': { 
+                char: 'narrator', 
+                text: "Archimedes đặt hai bể nước. Bể 1 chứa khối vàng chuẩn. Bể 2 chứa vương miện. Nếu vương miện pha bạc (nhẹ hơn vàng), nó sẽ cần kích thước lớn hơn để đạt cùng trọng lượng, do đó sẽ làm tràn nhiều nước hơn.", 
+                gameMode: true, 
+                render: 'buoyancy_start', 
+                options: [{ label: "Thả vật vào nước!", action: 'drop_items' }] 
+            },
+            'game_buoyancy_result': { 
+                char: 'archimedes', 
+                text: "Sự thật đã phơi bày! Mực nước bên vương miện dâng cao hơn. Điều này chứng tỏ: <span class='text-bronze'>$V_{vương miện} > V_{vàng}$</span>. Tên thợ đã pha bạc vào! Khoa học không biết nói dối.", 
+                gameMode: true, 
+                render: 'buoyancy_end', 
+                sfx: 'sfx-win', 
+                options: [{ label: "Tiếp tục nghiên cứu", next: 'scene_lever_intro' }] 
+            },
+            'scene_lever_intro': { 
+                char: 'archimedes', 
+                text: "Sau vụ vương miện, ta nhận ra sức mạnh của cơ học. Ta đã nói với vua Hiero: <span class='text-syracuse-gold italic'>'Hãy cho tôi một điểm tựa, tôi sẽ nâng cả Trái Đất.'</span> Đó không phải lời khoác lác, đó là định luật bảo toàn công.", 
+                img: "img_lever.png", 
+                options: [{ label: "Nguyên lý là gì?", next: 'scene_lever_math' }] 
+            },
+            'scene_lever_math': {
+                char: 'archimedes',
+                text: "Định luật đòn bẩy: $$F_1 \cdot d_1 = F_2 \cdot d_2$$ Trong đó $F$ là lực và $d$ là cánh tay đòn. Nếu cánh tay đòn của ta dài gấp 100 lần, ta có thể nâng vật nặng gấp 100 lần sức ta. Hãy thử xem!",
+                options: [{ label: "Thách thức Trái Đất", next: 'game_lever_start' }]
+            },
+            'game_lever_start': { 
+                char: 'narrator', 
+                text: "Bạn cần nâng Trái Đất lên. Hãy điều chỉnh Điểm Tựa (Fulcrum). Hãy nhớ: Để lợi về Lực, ta phải thiệt về Đường đi. Cần đặt điểm tựa thật gần vật nặng.", 
+                gameMode: true, 
+                render: 'lever_game', 
+                options: [{ label: "Dùng toàn lực!", action: 'check_lever' }] 
+            },
+            'game_lever_fail': { char: 'archimedes', type: 'feedback', text: "Chưa đủ lực! Điểm tựa còn quá xa vật nặng. Cánh tay đòn của lực tác dụng ($d_2$) phải dài hơn nữa!", options: [{ label: "Thử lại", next: 'game_lever_start' }] },
+            'game_lever_success': { 
+                char: 'archimedes', 
+                text: "Kì diệu chưa! Chỉ với sức của một người phàm, ta đã làm rung chuyển cả hành tinh. Đây chính là sức mạnh của trí tuệ đòn bẩy.", 
+                sfx: 'sfx-metal', 
+                options: [{ label: "Đến Hình Học Thiêng Liêng", next: 'scene_pi_intro' }] 
+            },
+            'scene_pi_intro': { 
+                char: 'archimedes', 
+                text: "Nhưng tình yêu lớn nhất của ta là Hình Học. Ta trăn trở về tỷ lệ giữa chu vi và đường kính hình tròn. Ta gọi nó là hằng số quy luật vũ trụ. Sau này các người gọi là $\\pi$.", 
+                img: "img_pi_scroll.png", 
+                options: [{ label: "Tính nó thế nào?", next: 'scene_pi_calc' }] 
+            },
+            'scene_pi_calc': { 
+                char: 'archimedes', 
+                text: "Đường tròn là một đa giác vô hạn cạnh. Ta dùng phương pháp 'Vét Cạn' (Method of Exhaustion). Ta kẹp đường tròn giữa đa giác nội tiếp và ngoại tiếp. Bắt đầu từ lục giác đều, rồi nhân đôi số cạnh...", 
+                options: [{ label: "Thực hiện tính toán", next: 'game_pi_start' }] 
+            },
+            'game_pi_start': { 
+                char: 'narrator', 
+                text: "Hãy kéo thanh trượt để tăng số cạnh đa giác: 6, 12, 24, 48, và cuối cùng là 96 cạnh. Quan sát giá trị Pi hội tụ về 3.14.", 
+                gameMode: true, 
+                render: 'pi_game', 
+                options: [{ label: "Đạt tới 96 cạnh", action: 'check_pi' }] 
+            },
+            'game_pi_success': { 
+                char: 'archimedes', 
+                text: "Với đa giác 96 cạnh, ta đã chứng minh: $$3\\frac{10}{71} < \\pi < 3\\frac{1}{7}$$ Hay $3.1408 < \\pi < 3.1428$. Một sự chính xác tuyệt mỹ thời cổ đại!", 
+                sfx: 'sfx-win', 
+                options: [{ label: "Biến cố ập đến", next: 'scene_war_intro' }] 
+            },
+            'scene_war_intro': { 
+                char: 'soldier', 
+                text: "Cấp báo! Năm 212 TCN. Đại tướng Marcellus và hạm đội La Mã hùng mạnh đang bao vây Syracuse. Chúng ta không thể địch lại số lượng của chúng! Tường thành sắp vỡ!", 
+                img: "img_roman_fleet.png", 
+                options: [{ label: "Archimedes ra trận", next: 'scene_mirror_weapon' }] 
+            },
+            'scene_mirror_weapon': { 
+                char: 'archimedes', 
+                text: "Kẻ thù có gươm giáo, ta có hình học. Mang các tấm gương đồng parabol ra đây! Ta sẽ hội tụ tia nắng mặt trời thành tia tử thần (Heat Ray). Chúng sẽ bị thiêu rụi trước khi chạm bờ.", 
+                options: [{ label: "Kích hoạt Gương Thần", next: 'game_defense_start' }] 
+            },
+            'game_defense_start': { 
+                char: 'narrator', 
+                text: "Sử dụng nguyên lý phản xạ của Parabol. Hãy điều chỉnh góc gương để tiêu điểm hội tụ đúng vào cánh buồm tàu địch. (Gợi ý: Khoảng 70 độ).", 
+                gameMode: true, 
+                render: 'defense_game', 
+                options: [{ label: "Khai hỏa!", action: 'check_defense' }] 
+            },
+            'game_defense_success': { 
+                char: 'apollo', // Character change: Apollo appears
+                text: "Hỡi những con người Syracuse quả cảm! Ta, Apollo, ban cho các ngươi sức mạnh của mặt trời. Hãy để ánh sáng thiêu rụi bóng tối xâm lăng!", 
+                img: "img_burning_ship.png", 
+                sfx: 'sfx-fire', 
+                options: [{ label: "Kết cục bi tráng", next: 'scene_death' }] 
+            },
+            'game_defense_fail': { char: 'archimedes', type: 'feedback', text: "Chệch mục tiêu rồi! Hãy tính toán lại góc phản xạ ngay!", options: [{ label: "Thử lại", next: 'game_defense_start' }] },
+            'scene_death': {
+                char: 'soldier',
+                text: "Thành phố đã thất thủ! Tướng quân Marcellus ra lệnh bắt sống Archimedes. Nhưng... này ông già kia! Đứng dậy ngay!",
+                options: [{ label: "Archimedes phản ứng", next: 'scene_last_words' }]
+            },
+            'scene_last_words': {
+                char: 'archimedes',
+                text: "<span class='italic text-gray-400'>Vẫn cắm cúi vẽ trên cát...</span><br><br>\"Tránh ra! Đừng làm hỏng các đường tròn của ta!\" (Noli turbare circulos meos!)",
+                options: [{ label: "Sự ra đi của huyền thoại", next: 'finish' }]
+            },
+            'finish': { action: 'show_reward', sfx: 'sfx-win' }
+        };
+
+        const ui = {
+            dialog: document.getElementById('main-dialog'),
+            textContainer: document.getElementById('story-text-container'),
+            text: document.getElementById('story-content'),
+            visual: document.getElementById('visual-content'),
+            controls: document.getElementById('controls'),
+            charImg: document.getElementById('char-img'),
+            charName: document.getElementById('char-name'),
+            charRole: document.getElementById('char-role'),
+            charPanel: document.getElementById('char-panel')
+        };
+
+        function renderScene(id) {
+            const scene = SCENES[id];
+            if (!scene) return;
+            if (scene.sfx) audio.playSFX(scene.sfx);
+            
+            if (scene.char) {
+                const char = CHARACTERS[scene.char];
+                if (ui.charName.innerText !== char.name) {
+                    ui.charImg.classList.add('opacity-0', 'translate-y-4');
+                    setTimeout(() => {
+                        ui.charImg.src = char.img; 
+                        ui.charName.innerText = char.name; 
+                        ui.charRole.innerText = char.role;
+                        ui.charImg.classList.remove('opacity-0', 'translate-y-4');
+                        if (scene.char === 'archimedes' || scene.char === 'athena' || scene.char === 'apollo') {
+                            ui.charImg.classList.add('char-active');
+                        } else {
+                            ui.charImg.classList.remove('char-active');
+                        }
+                    }, 300);
+                }
+            }
+
+            if (scene.gameMode) ui.dialog.classList.add('game-mode'); 
+            else ui.dialog.classList.remove('game-mode');
+
+            ui.text.innerHTML = scene.text || "";
+            if (window.renderMathInElement) {
+                renderMathInElement(ui.text, { 
+                    delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], 
+                    throwOnError: false 
+                });
+            }
+            
+            ui.visual.innerHTML = ''; 
+            ui.visual.classList.add('hidden'); 
+            ui.visual.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (scene.render === 'buoyancy_start') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawBuoyancyGame(false); } 
+                else if (scene.render === 'buoyancy_end') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawBuoyancyGame(true); } 
+                else if (scene.render === 'lever_game') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawLeverGame(gameState.fulcrumPos); } 
+                else if (scene.render === 'pi_game') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawPiGame(gameState.piStep); } 
+                else if (scene.render === 'defense_game') { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = drawDefenseGame(gameState.mirrorAngle); }
+                else if (scene.img) { ui.visual.classList.remove('hidden'); ui.visual.innerHTML = `<img src="${scene.img}" onerror="this.style.display='none'" class="rounded-lg shadow-lg w-full h-full object-contain animate-float" onload="this.style.opacity=1" style="opacity:0; transition: opacity 0.5s">`; }
+
+                if (!ui.visual.classList.contains('hidden')) { 
+                    ui.visual.style.opacity = '1'; 
+                    ui.visual.style.transform = 'translateY(0)'; 
+                }
+            }, 100);
+
+            ui.controls.innerHTML = '';
+            if (scene.options) {
+                scene.options.forEach(opt => {
+                    const btn = document.createElement('button'); 
+                    btn.className = 'btn-action flex-grow md:flex-grow-0 min-w-[160px]'; 
+                    btn.innerText = opt.label;
+                    btn.onclick = () => handleAction(opt, btn); 
+                    ui.controls.appendChild(btn);
+                });
+            } else if (scene.action === 'show_reward') { 
+                document.getElementById('reward-overlay').classList.remove('hidden'); 
+                setTimeout(() => document.getElementById('reward-overlay').classList.remove('opacity-0'), 100); 
+            }
+        }
+
+        function handleAction(opt, btn) {
+            if (opt.action === 'drop_items') { renderScene('game_buoyancy_result'); return; }
+            if (opt.action === 'check_lever') { 
+                if (gameState.leverBalanced) { btn.classList.add('border-green-500'); renderScene('game_lever_success'); } 
+                else { btn.classList.add('border-red-500', 'animate-pulse'); setTimeout(() => renderScene('game_lever_fail'), 500); } 
+                return; 
+            }
+            if (opt.action === 'check_pi') { 
+                if (gameState.piStep >= 4) { btn.classList.add('border-green-500'); renderScene('game_pi_success'); } 
+                else { btn.classList.add('border-red-500'); } 
+                return; 
+            }
+            if (opt.action === 'check_defense') { 
+                if (gameState.mirrorAngle >= 68 && gameState.mirrorAngle <= 74) { btn.classList.add('border-green-500'); renderScene('game_defense_success'); } 
+                else { btn.classList.add('border-red-500'); setTimeout(() => renderScene('game_defense_fail'), 500); } 
+                return; 
+            }
+            if (opt.next) { renderScene(opt.next); return; }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            audio.init();
+            renderScene('intro'); 
+        });
+    </script>
+</body>
+</html>
