@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thống kê Nâng cao - Yersin Edition</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- KaTeX & Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'] },
+                    colors: {
+                        yersin: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        html, body { height: 100%; margin: 0; background: radial-gradient(circle at top left, #fff7ed, #ffedd5, #fed7aa); font-family: 'Be Vietnam Pro', sans-serif; overflow: hidden; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 10px 40px -10px rgba(249, 115, 22, 0.15); }
+        .custom-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.3); border-radius: 10px; }
+        .text-gradient-yersin { background: linear-gradient(to right, #ea580c, #f97316, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .floating-icon { position: absolute; color: #f97316; opacity: 0.1; z-index: 0; pointer-events: none; }
+        
+        @keyframes modalPop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-content { animation: modalPop 0.2s ease-out; }
+    </style>
+</head>
+<body>
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        /* --- 1. CORE LOGIC (MathSolver Chuẩn SGK) --- */
+        const MathSolver = {
+            sum: (arr) => arr.reduce((a, b) => a + b, 0),
+            
+            // Xử lý mẫu đơn (Ungrouped Data) - Chuẩn SGK
+            solveUngrouped: (data) => {
+                if (!data || data.length === 0) return null;
+                const n = data.length;
+                const sorted = [...data].sort((a, b) => a - b);
+                
+                // 1. Số trung bình (Mean)
+                const sumX = MathSolver.sum(data);
+                const mean = sumX / n;
+
+                // 2. Phương sai (S^2) & Độ lệch chuẩn (S) - Hiệu chỉnh theo SGK mới (chia cho n)
+                const variance = data.reduce((acc, x) => acc + Math.pow(x - mean, 2), 0) / n;
+                const stdDev = Math.sqrt(variance);
+
+                // 3. Trung vị (Median - Q2)
+                const median = (arr) => {
+                    const len = arr.length;
+                    const mid = Math.floor(len / 2);
+                    return len % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+                };
+                const q2 = median(sorted);
+
+                // 4. Tứ phân vị (Q1, Q3) - Chuẩn SGK: Loại bỏ Q2 khi chia đôi nếu n lẻ
+                const lowerHalf = n % 2 === 0 ? sorted.slice(0, n/2) : sorted.slice(0, Math.floor(n/2));
+                const upperHalf = n % 2 === 0 ? sorted.slice(n/2) : sorted.slice(Math.floor(n/2) + 1);
+                const q1 = median(lowerHalf);
+                const q3 = median(upperHalf);
+                const iqr = q3 - q1;
+
+                // 5. Mốt (Mode)
+                const f = {}; let maxF = 0;
+                data.forEach(x => { f[x] = (f[x]||0)+1; if(f[x]>maxF) maxF=f[x]; });
+                const modes = maxF > 1 ? Object.keys(f).filter(k => f[k] === maxF).map(Number).sort((a,b)=>a-b) : [];
+
+                return { 
+                    type: 'ungrouped', n, sorted, mean, variance, stdDev, 
+                    q1, q2, q3, iqr, min: sorted[0], max: sorted[n-1], range: sorted[n-1] - sorted[0],
+                    outliers: sorted.filter(x => x < q1 - 1.5*iqr || x > q3 + 1.5*iqr), 
+                    lowerBound: q1 - 1.5*iqr, upperBound: q3 + 1.5*iqr,
+                    modes
+                };
+            },
+
+            // Xử lý mẫu ghép nhóm (Grouped Data) - Chuẩn SGK
+            solveGrouped: (rows) => {
+                if (!rows || rows.length === 0) return null;
+                const n = rows.reduce((acc, r) => acc + r.f, 0);
+                let cf = 0;
+                const processed = rows.map(r => { cf += r.f; return { ...r, c: (r.l + r.r) / 2, cf }; });
+
+                // 1. Số trung bình
+                const mean = processed.reduce((acc, r) => acc + r.f * r.c, 0) / n;
+                
+                // 2. Phương sai & Độ lệch chuẩn
+                const variance = processed.reduce((acc, r) => acc + r.f * Math.pow(r.c - mean, 2), 0) / n;
+                const stdDev = Math.sqrt(variance);
+
+                // 3. Tứ phân vị (Nội suy tuyến tính)
+                const findQ = (k) => {
+                    const pos = (k * n) / 4;
+                    const group = processed.find(r => r.cf >= pos);
+                    if (!group) return 0;
+                    const prevCF = processed[processed.indexOf(group) - 1]?.cf || 0;
+                    return group.l + ((pos - prevCF) / group.f) * (group.r - group.l);
+                };
+                const q1 = findQ(1), q2 = findQ(2), q3 = findQ(3);
+                
+                // 4. Mốt (Mode) cho mẫu ghép nhóm - Công thức chuẩn SGK
+                const maxF = Math.max(...processed.map(r => r.f));
+                const modeGroups = processed.filter(r => r.f === maxF);
+                const modes = modeGroups.map(g => {
+                    const idx = processed.indexOf(g);
+                    const f = g.f;
+                    const f_prev = processed[idx - 1]?.f || 0; // Tần số nhóm trước (nếu không có thì bằng 0)
+                    const f_next = processed[idx + 1]?.f || 0; // Tần số nhóm sau (nếu không có thì bằng 0)
+                    const h = g.r - g.l;
+                    // Công thức: Mo = u + ((f - f_prev) / ((f - f_prev) + (f - f_next))) * h
+                    const d1 = f - f_prev;
+                    const d2 = f - f_next;
+                    if (d1 + d2 === 0) return g.c; // Trường hợp đặc biệt
+                    return g.l + (d1 / (d1 + d2)) * h;
+                });
+
+                const min = processed.length > 0 ? processed[0].l : 0;
+                const max = processed.length > 0 ? processed[processed.length-1].r : 0;
+
+                return { 
+                    type: 'grouped', n, data: processed, mean, variance, stdDev, 
+                    q1, q2, q3, iqr: q3 - q1, min, max, range: max - min,
+                    outliers: [], lowerBound: q1 - 1.5*(q3-q1), upperBound: q3 + 1.5*(q3-q1),
+                    modes
+                };
+            },
+
+            // Tự động phát hiện & tính toán
+            solveAuto: (text) => {
+                if (!text || !text.trim()) return null;
+                const lines = text.trim().split('\n');
+                let isGrouped = false;
+                // Kiểm tra cú pháp ghép nhóm: "150-155:5" hoặc "150 155 5"
+                if (lines[0].includes(':') || (lines[0].trim().split(/\s+/).length === 3)) isGrouped = true;
+
+                if (isGrouped) {
+                    const rows = lines.map(line => {
+                        let parts = line.split(/[:;\t]/);
+                        if (parts.length >= 2) { 
+                            const range = parts[0].split('-');
+                            if (range.length === 2) return { l: parseFloat(range[0]), r: parseFloat(range[1]), f: parseFloat(parts[1]) };
+                        }
+                        parts = line.trim().split(/\s+/);
+                        if (parts.length === 3) return { l: parseFloat(parts[0]), r: parseFloat(parts[1]), f: parseFloat(parts[2]) };
+                        return null;
+                    }).filter(x => x && !isNaN(x.l) && !isNaN(x.r) && !isNaN(x.f));
+                    return rows.length > 0 ? MathSolver.solveGrouped(rows) : null;
+                } else {
+                    const data = text.split(/[\s,]+/).filter(x=>x).map(Number).filter(x => !isNaN(x));
+                    return data.length > 0 ? MathSolver.solveUngrouped(data) : null;
+                }
+            },
+
+            // --- PROBABILITY FUNCTIONS ---
+            factorial: (n) => {
+                if (n === 0 || n === 1) return 1;
+                let result = 1; for (let i = 2; i <= n; i++) result *= i;
+                return result;
+            },
+            combination: (n, k) => {
+                if (k < 0 || k > n) return 0;
+                return MathSolver.factorial(n) / (MathSolver.factorial(k) * MathSolver.factorial(n - k));
+            },
+            binomialPDF: (n, p, k) => MathSolver.combination(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k),
+            normalPDF: (x, mean, stdDev) => {
+                return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+            }
+        };
+
+        /* --- 2. COMPONENTS & ICONS --- */
+        const Latex = ({ children }) => {
+            const ref = useRef(null);
+            useEffect(() => { if (ref.current && window.katex) try { window.katex.render(children, ref.current, {throwOnError:false}); } catch{} }, [children]);
+            return <span ref={ref} />;
+        };
+
+        const copyToClipboard = (text) => { navigator.clipboard.writeText(text).then(() => alert("Đã sao chép vào bộ nhớ đệm!")); };
+
+        const Icons = {
+            Back: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>,
+            Copy: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>,
+            Check: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>,
+            X: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
+            Compare: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+            Quiz: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>,
+            Plus: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-12H4" /></svg>,
+            Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+            Edit: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
+            Calc: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
+            Bolt: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+            Lab: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>,
+            Prob: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>,
+            Clock: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        };
+
+        const FloatingIcons = () => (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="floating-icon animate-float-slow text-4xl" style={{top:'10%', left:'10%'}}>A</div>
+                <div className="floating-icon animate-float-slow text-4xl" style={{top:'20%', right:'15%', animationDelay:'2s'}}>B</div>
+                <div className="floating-icon animate-float-slow text-6xl font-serif" style={{bottom:'15%', left:'20%', animationDelay:'4s'}}>≠</div>
+            </div>
+        );
+
+        /* --- 3. DATA SOURCES --- */
+        const DATA_SOURCES = {
+            temp_dl_22_23: { type: 'ungrouped', name: "Nhiệt độ TB tháng Đà Lạt (2022-2023)", labelA: "Năm 2022", dataA: "15.8 16.5 17.8 18.5 19.2 19.0 18.5 18.4 18.0 17.5 16.8 15.5", labelB: "Năm 2023", dataB: "16.0 16.9 18.2 19.5 20.0 19.4 18.9 18.7 18.3 17.8 17.0 16.1", source: "Niên giám Thống kê Lâm Đồng 2023" },
+            rain_dl_lk: { type: 'ungrouped', name: "Lượng mưa mùa mưa (mm) Đà Lạt vs Liên Khương", labelA: "Đà Lạt", dataA: "210 250 280 320 300 240", labelB: "Liên Khương", dataB: "190 230 260 290 270 210", source: "Đài KTTV Lâm Đồng (Số liệu tham khảo)" },
+            temp_hanoi_dalat: { type: 'ungrouped', name: "Nhiệt độ TB tháng (Đà Lạt vs Hà Nội)", labelA: "Đà Lạt", dataA: "15.8 16.7 17.8 18.9 19.3 19.0 18.6 18.5 18.2 17.6 16.5 15.7", labelB: "Hà Nội", dataB: "16.4 17.0 20.2 23.7 27.3 28.8 28.9 28.2 27.2 24.6 21.4 18.2", source: "Tổng cục Thống kê (GSO)" },
+            coffee_yield: { type: 'grouped', name: "Năng suất Cà phê (tạ/ha) - Di Linh", labelA: "Năm 2020", dataA: "30-32:5\n32-34:12\n34-36:20\n36-38:8\n38-40:5", labelB: "Năm 2023", dataB: "30-32:3\n32-34:10\n34-36:18\n36-38:12\n38-40:7", source: "Sở NN&PTNT Lâm Đồng (Mô phỏng)" },
+            durian_price: { type: 'grouped', name: "Giá sầu riêng (nghìn đ/kg) - Đạ Huoai", labelA: "Tháng 6/2023", dataA: "40-50:10\n50-60:25\n60-70:15\n70-80:5", labelB: "Tháng 6/2024", dataB: "40-50:5\n50-60:15\n60-70:25\n70-80:10", source: "Khảo sát thị trường nông sản" },
+            flower_export: { type: 'ungrouped', name: "Sản lượng hoa xuất khẩu (triệu cành)", labelA: "Cty Dalat Hasfarm", dataA: "12 15 18 20 22 25 28 30 29 25 18 15", labelB: "Cty Rừng Hoa", dataB: "5 6 7 8 9 10 12 13 12 10 8 6", source: "Hiệp hội Hoa Đà Lạt (Mô phỏng)" },
+            student_height: { type: 'grouped', name: "Chiều cao học sinh lớp 12 (cm)", labelA: "Nam sinh", dataA: "160-165:5\n165-170:15\n170-175:20\n175-180:8\n180-185:2", labelB: "Nữ sinh", dataB: "150-155:8\n155-160:20\n160-165:18\n165-170:4", source: "Khảo sát y tế học đường 2024" },
+            math_score: { type: 'grouped', name: "Điểm thi Toán THPTQG (Mô phỏng)", labelA: "Trường Yersin", dataA: "0-2:0\n2-4:2\n4-6:15\n6-8:45\n8-10:28", labelB: "Trường Bùi Thị Xuân", dataB: "0-2:0\n2-4:1\n4-6:12\n6-8:48\n8-10:29", source: "Dữ liệu giả định giáo dục" },
+            tourist_dalat: { type: 'ungrouped', name: "Khách du lịch đến Đà Lạt (nghìn lượt/tháng)", labelA: "Năm 2019", dataA: "450 500 480 550 600 700 750 720 500 480 550 650", labelB: "Năm 2023", dataB: "500 550 520 600 750 850 900 800 550 520 600 750", source: "Sở VHTTDL Lâm Đồng" },
+            gdp_growth: { type: 'ungrouped', name: "Tăng trưởng GDP Việt Nam (%)", labelA: "Giai đoạn 2011-2015", dataA: "6.24 5.25 5.42 5.98 6.68", labelB: "Giai đoạn 2016-2020", dataB: "6.21 6.81 7.08 7.02 2.91", source: "Tổng cục Thống kê (GSO)" },
+            inflation: { type: 'ungrouped', name: "Lạm phát CPI (%)", labelA: "2015-2019", dataA: "0.63 2.66 3.53 3.54 2.79", labelB: "2020-2024", dataB: "3.23 1.84 3.15 3.25 4.00", source: "GSO & IMF Forecast" },
+        };
+
+        /* --- 4. SMART INPUT MODAL --- */
+        const DataInputModal = ({ isOpen, onClose, onSave, title, initialData }) => {
+            if (!isOpen) return null;
+            const [mode, setMode] = useState('ungrouped');
+            const [rawText, setRawText] = useState('');
+            const [rows, setRows] = useState(Array.from({length: 5}, () => ({ id: Math.random(), l: '', r: '', f: '' })));
+            const [genConfig, setGenConfig] = useState({ u1: '150', h: '5', k: '5' });
+
+            useEffect(() => {
+                if (initialData) {
+                    if (initialData.includes(':') || (initialData.trim().split(/\s+/).length === 3 && initialData.includes('\n'))) {
+                        setMode('grouped');
+                        const lines = initialData.trim().split('\n');
+                        const newRows = lines.map(line => {
+                            let parts = line.split(/[:;\t]/);
+                            if (parts.length >= 2) {
+                                const range = parts[0].split('-');
+                                if (range.length === 2) return { id: Math.random(), l: range[0], r: range[1], f: parts[1] };
+                            }
+                            return { id: Math.random(), l: '', r: '', f: '' };
+                        }).filter(r => r.l !== '');
+                        if (newRows.length > 0) setRows(newRows);
+                    } else {
+                        setMode('ungrouped');
+                        setRawText(initialData);
+                    }
+                }
+            }, [isOpen, initialData]);
+
+            const addRow = () => setRows([...rows, { id: Math.random(), l: '', r: '', f: '' }]);
+            const removeRow = (id) => setRows(rows.filter(r => r.id !== id));
+            const updateRow = (id, k, v) => setRows(rows.map(r => r.id===id ? {...r, [k]: v} : r));
+
+            const generateTable = () => {
+                const u1 = parseFloat(genConfig.u1), h = parseFloat(genConfig.h), k = parseInt(genConfig.k);
+                if(isNaN(u1) || isNaN(h) || isNaN(k)) return alert("Vui lòng nhập số hợp lệ!");
+                const newRows = [];
+                let curr = u1;
+                for(let i=0; i<k; i++) {
+                    const next = parseFloat((curr + h).toFixed(10));
+                    newRows.push({ id: Math.random(), l: curr, r: next, f: '' });
+                    curr = next;
+                }
+                setRows(newRows);
+            };
+
+            const handleSave = () => {
+                if (mode === 'ungrouped') {
+                    onSave(rawText, 'ungrouped');
+                } else {
+                    const validRows = rows.filter(r => r.l!=='' && r.r!=='' && r.f!=='');
+                    if (validRows.length === 0) return alert("Bảng trống!");
+                    const text = validRows.map(r => `${r.l}-${r.r}:${r.f}`).join("\n");
+                    onSave(text, 'grouped');
+                }
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl modal-content overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-5 border-b border-slate-200 bg-yersin-50 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-yersin-700 flex items-center gap-2"><Icons.Edit /> {title}</h3>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><Icons.X /></button>
+                        </div>
+                        <div className="p-4 flex gap-3 justify-center bg-white border-b border-slate-100">
+                            <button onClick={()=>setMode('ungrouped')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${mode==='ungrouped' ? 'bg-yersin-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>Nhập thô</button>
+                            <button onClick={()=>setMode('grouped')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm ${mode==='grouped' ? 'bg-yersin-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>Nhập bảng</button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 bg-slate-50 custom-scroll">
+                            {mode === 'ungrouped' ? (
+                                <textarea value={rawText} onChange={e=>setRawText(e.target.value)} className="w-full h-full min-h-[300px] p-5 rounded-2xl border-2 border-slate-200 focus:border-yersin-500 outline-none font-mono text-lg shadow-inner resize-none bg-white" placeholder="Nhập các số cách nhau bởi dấu cách..." />
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                                        <div className="text-sm font-bold text-yersin-700 uppercase mb-3 flex items-center gap-2"><Icons.Bolt /> Tạo khung nhanh</div>
+                                        <div className="grid grid-cols-4 gap-3 items-end">
+                                             <div><label className="text-xs text-slate-500 font-bold block mb-1">Đầu trái</label><input type="number" value={genConfig.u1} onChange={e=>setGenConfig({...genConfig, u1:e.target.value})} className="w-full p-2 rounded-lg border border-slate-300 text-center font-bold outline-none focus:border-yersin-500" /></div>
+                                             <div><label className="text-xs text-slate-500 font-bold block mb-1">Độ dài</label><input type="number" value={genConfig.h} onChange={e=>setGenConfig({...genConfig, h:e.target.value})} className="w-full p-2 rounded-lg border border-slate-300 text-center font-bold outline-none focus:border-yersin-500" /></div>
+                                             <div><label className="text-xs text-slate-500 font-bold block mb-1">Số nhóm</label><input type="number" value={genConfig.k} onChange={e=>setGenConfig({...genConfig, k:e.target.value})} className="w-full p-2 rounded-lg border border-slate-300 text-center font-bold outline-none focus:border-yersin-500" /></div>
+                                             <button onClick={generateTable} className="h-[42px] bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg shadow-md transition-all text-sm">Tạo</button>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+                                        <div className="grid grid-cols-[1fr_1fr_1fr_40px] gap-2 mb-2 p-2 bg-slate-100 rounded-lg text-center font-bold text-xs text-slate-500 uppercase"><div>Đầu trái</div><div>Đầu phải</div><div>Tần số</div><div></div></div>
+                                        <div className="max-h-[300px] overflow-y-auto custom-scroll pr-1">
+                                            {rows.map(r => (
+                                                <div key={r.id} className="grid grid-cols-[1fr_1fr_1fr_40px] gap-2 mb-2">
+                                                    <input type="number" value={r.l} onChange={e=>updateRow(r.id,'l',e.target.value)} className="p-3 border rounded-xl text-center font-bold text-lg focus:border-yersin-500 outline-none" placeholder="..." />
+                                                    <input type="number" value={r.r} onChange={e=>updateRow(r.id,'r',e.target.value)} className="p-3 border rounded-xl text-center font-bold text-lg focus:border-yersin-500 outline-none" placeholder="..." />
+                                                    <input type="number" value={r.f} onChange={e=>updateRow(r.id,'f',e.target.value)} className="p-3 border rounded-xl text-center font-bold text-lg text-yersin-600 bg-yersin-50 focus:border-yersin-500 outline-none" placeholder="..." />
+                                                    <button onClick={()=>removeRow(r.id)} className="text-slate-300 hover:text-red-500 flex items-center justify-center transition-colors"><Icons.Trash /></button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button onClick={addRow} className="w-full py-3 mt-2 border-2 border-dashed border-slate-300 text-slate-500 rounded-xl font-bold hover:border-yersin-500 hover:text-yersin-600 hover:bg-yersin-50 flex justify-center gap-2 transition-all"><Icons.Plus /> Thêm nhóm</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-5 border-t border-slate-200 bg-white flex justify-end gap-3">
+                            <button onClick={onClose} className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all">Hủy bỏ</button>
+                            <button onClick={handleSave} className="px-8 py-3 bg-gradient-to-r from-yersin-500 to-yersin-600 text-white font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all">Lưu dữ liệu</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        /* --- 5. VISUALIZATIONS --- */
+        const BoxPlotComparison = ({ resA, resB, labelA, labelB }) => {
+            if (!resA || !resB) return null;
+            const getMinMax = (res) => { let vals = [res.min, res.max]; if (res.outliers && res.outliers.length > 0) vals = [...vals, ...res.outliers]; return vals; };
+            const allValues = [...getMinMax(resA), ...getMinMax(resB)];
+            const globalMin = Math.min(...allValues); const globalMax = Math.max(...allValues);
+            const range = globalMax - globalMin || 1;
+            const domainMin = globalMin - range * 0.1; const domainRange = (globalMax + range * 0.1) - domainMin;
+            const width = 600, height = 250, paddingX = 40, contentWidth = width - 2 * paddingX;
+            const getX = (val) => paddingX + ((val - domainMin) / domainRange) * contentWidth;
+
+            const SingleBox = ({ data, y, color, label }) => {
+                const { q1, q2, q3, outliers, lowerBound, upperBound, min, max } = data;
+                const boxH = 40;
+                const whiskerMin = Math.max(min, lowerBound); const whiskerMax = Math.min(max, upperBound);
+                const xMin = getX(whiskerMin), xMax = getX(whiskerMax), xQ1 = getX(q1), xQ2 = getX(q2), xQ3 = getX(q3);
+                return (
+                    <g>
+                        <text x={10} y={y + 5} className="text-xs font-bold fill-slate-600" style={{fontSize: '12px'}}>{label}</text>
+                        <line x1={xMin} y1={y} x2={xMax} y2={y} stroke={color} strokeWidth="1.5" strokeDasharray="4 2" />
+                        <line x1={xMin} y1={y - 10} x2={xMin} y2={y + 10} stroke={color} strokeWidth="2" />
+                        <line x1={xMax} y1={y - 10} x2={xMax} y2={y + 10} stroke={color} strokeWidth="2" />
+                        <rect x={xQ1} y={y - boxH/2} width={xQ3 - xQ1} height={boxH} fill={color} fillOpacity="0.2" stroke={color} strokeWidth="2" />
+                        <line x1={xQ2} y1={y - boxH/2} x2={xQ2} y2={y + boxH/2} stroke={color} strokeWidth="3" />
+                        {outliers && outliers.map((val, i) => (<circle key={i} cx={getX(val)} cy={y} r="3" fill="red" stroke="white" strokeWidth="1" />))}
+                    </g>
+                );
+            };
+            const ticks = Array.from({length: 6}, (_, i) => { const val = domainMin + (i * domainRange) / 5; return { x: getX(val), val: val.toFixed(1) }; });
+            return (
+                <div className="w-full overflow-x-auto"><svg width={width} height={height} className="mx-auto bg-white rounded-xl border border-slate-200"><line x1={paddingX} y1={height - 30} x2={width - paddingX} y2={height - 30} stroke="#94a3b8" strokeWidth="1" />{ticks.map((t, i) => (<g key={i}><line x1={t.x} y1={height - 30} x2={t.x} y2={height - 25} stroke="#94a3b8" strokeWidth="1" /><text x={t.x} y={height - 10} textAnchor="middle" className="text-[10px] fill-slate-500">{t.val}</text></g>))}<SingleBox data={resA} y={80} color="#ea580c" label={labelA} /><SingleBox data={resB} y={160} color="#2563eb" label={labelB} /></svg></div>
+            );
+        };
+
+        const ChartsComparison = ({ resA, resB, labelA, labelB }) => {
+            const barRef = useRef(null), pieRefA = useRef(null), pieRefB = useRef(null);
+            const chartInstancesRef = useRef([]); 
+
+            useEffect(() => {
+                if (!resA || !resB) return;
+                
+                const cleanup = () => {
+                    chartInstancesRef.current.forEach(c => c.destroy());
+                    chartInstancesRef.current = [];
+                };
+                cleanup();
+
+                const getChartData = (res) => {
+                    if (res.type === 'ungrouped') {
+                        const f = {}; res.sorted.forEach(x => f[x]=(f[x]||0)+1);
+                        const keys = Object.keys(f).map(Number).sort((a,b)=>a-b);
+                        return { labels: keys, data: keys.map(k=>f[k]) };
+                    } else { return { labels: res.data.map(r => `[${r.l};${r.r})`), data: res.data.map(r => r.f) }; }
+                };
+                const dA = getChartData(resA), dB = getChartData(resB);
+                
+                if(barRef.current) {
+                    const allLabels = Array.from(new Set([...dA.labels, ...dB.labels])).sort();
+                    const mapData = (d) => allLabels.map(l => { const idx = d.labels.indexOf(l); return idx >=0 ? d.data[idx] : 0; });
+                    chartInstancesRef.current.push(new Chart(barRef.current, { type: 'bar', data: { labels: allLabels, datasets: [{ label: labelA, data: mapData(dA), backgroundColor: 'rgba(249, 115, 22, 0.7)' }, { label: labelB, data: mapData(dB), backgroundColor: 'rgba(37, 99, 235, 0.7)' }] }, options: { responsive: true, plugins: { title: { display: true, text: 'So sánh Tần số' } } } }));
+                }
+                const drawPie = (ref, d, title) => { if(ref.current) chartInstancesRef.current.push(new Chart(ref.current, { type: 'pie', data: { labels: d.labels, datasets: [{ data: d.data, backgroundColor: d.labels.map((_, i) => `hsla(${i * 360 / d.labels.length}, 70%, 60%, 0.8)`) }] }, options: { responsive: true, plugins: { title: { display: true, text: title }, legend: { position: 'bottom' } } } })); };
+                drawPie(pieRefA, dA, labelA); drawPie(pieRefB, dB, labelB);
+                
+                return cleanup;
+            }, [resA, resB, labelA, labelB]);
+
+            return (<div className="space-y-6"><div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><canvas ref={barRef} /></div><div className="grid grid-cols-2 gap-4"><div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><canvas ref={pieRefA} /></div><div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><canvas ref={pieRefB} /></div></div></div>);
+        };
+
+        /* --- 6. NEW FEATURES --- */
+        
+        // INTERACTIVE LAB
+        const LabView = () => {
+            const [data, setData] = useState([10, 12, 11, 13, 12, 14, 12, 10, 11]);
+            const [outlier, setOutlier] = useState(100);
+            const chartRef = useRef(null);
+            const chartInstanceRef = useRef(null);
+
+            const allData = useMemo(() => [...data, outlier].sort((a,b)=>a-b), [data, outlier]);
+            const res = useMemo(() => MathSolver.solveUngrouped(allData), [allData]);
+
+            useEffect(() => {
+                if (chartInstanceRef.current) chartInstanceRef.current.destroy();
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    chartInstanceRef.current = new Chart(ctx, {
+                        type: 'scatter',
+                        data: {
+                            datasets: [
+                                { label: 'Dữ liệu', data: allData.map((v, i) => ({x: v, y: 1})), backgroundColor: '#ea580c', pointRadius: 6 },
+                                { label: 'Số trung bình', data: [{x: res.mean, y: 1}], backgroundColor: '#2563eb', pointRadius: 10, pointStyle: 'rectRot' },
+                                { label: 'Trung vị', data: [{x: res.q2, y: 1}], backgroundColor: '#16a34a', pointRadius: 10, pointStyle: 'triangle' }
+                            ]
+                        },
+                        options: {
+                            scales: { y: { display: false, min: 0, max: 2 }, x: { min: Math.min(...allData)-5, max: Math.max(...allData)+5 } },
+                            plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.x.toFixed(2)}` } } }
+                        }
+                    });
+                }
+                return () => { if(chartInstanceRef.current) chartInstanceRef.current.destroy(); }
+            }, [res, allData]);
+
+            return (
+                <div className="p-6 h-full flex flex-col items-center">
+                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 w-full max-w-4xl">
+                        <h2 className="text-2xl font-bold text-yersin-700 mb-4 flex items-center gap-2"><Icons.Lab /> Phòng thí nghiệm Số đặc trưng</h2>
+                        <p className="text-slate-600 mb-6">Kéo thanh trượt để thay đổi giá trị ngoại lệ và xem sự "bền vững" của Trung vị so với Số trung bình.</p>
+                        
+                        <div className="mb-8">
+                            <canvas ref={chartRef} height="100"></canvas>
+                        </div>
+
+                        <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span className="font-bold text-slate-700">Giá trị ngoại lệ:</span>
+                            <input type="range" min="0" max="200" value={outlier} onChange={(e)=>setOutlier(Number(e.target.value))} className="flex-1 accent-yersin-500" />
+                            <span className="font-mono font-bold text-xl text-yersin-600 w-16 text-right">{outlier}</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6 mt-6 text-center">
+                            <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                <div className="text-sm font-bold text-blue-500 uppercase">Số trung bình</div>
+                                <div className="text-3xl font-black text-blue-700 mt-2">{res.mean.toFixed(2)}</div>
+                            </div>
+                            <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                                <div className="text-sm font-bold text-green-500 uppercase">Trung vị</div>
+                                <div className="text-3xl font-black text-green-700 mt-2">{res.q2.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // PROBABILITY DISTRIBUTIONS
+        const ProbabilityView = () => {
+            const [type, setType] = useState('normal'); // normal, binomial
+            const [params, setParams] = useState({ mu: 0, sigma: 1, n: 10, p: 0.5 });
+            const chartRef = useRef(null);
+            const chartInstanceRef = useRef(null);
+
+            useEffect(() => {
+                if(chartInstanceRef.current) chartInstanceRef.current.destroy();
+                if(!chartRef.current) return;
+
+                let data, labels, chartType, label;
+                if (type === 'normal') {
+                    chartType = 'line';
+                    label = 'Phân phối Chuẩn';
+                    labels = []; data = [];
+                    const start = params.mu - 4 * params.sigma;
+                    const end = params.mu + 4 * params.sigma;
+                    const step = (end - start) / 100;
+                    for (let x = start; x <= end; x += step) {
+                        labels.push(x.toFixed(2));
+                        data.push(MathSolver.normalPDF(x, params.mu, params.sigma));
+                    }
+                } else {
+                    chartType = 'bar';
+                    label = 'Phân phối Nhị thức';
+                    labels = []; data = [];
+                    for (let k = 0; k <= params.n; k++) {
+                        labels.push(k);
+                        data.push(MathSolver.binomialPDF(params.n, params.p, k));
+                    }
+                }
+
+                chartInstanceRef.current = new Chart(chartRef.current, {
+                    type: chartType,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            borderColor: '#ea580c',
+                            backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                            borderWidth: 2,
+                            pointRadius: type === 'normal' ? 0 : 3,
+                            fill: true
+                        }]
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+                return () => { if(chartInstanceRef.current) chartInstanceRef.current.destroy(); }
+            }, [type, params]);
+
+            return (
+                <div className="p-6 h-full flex flex-col items-center">
+                    <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-200 w-full max-w-4xl flex flex-col h-full">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-yersin-700 flex items-center gap-2"><Icons.Prob /> Phân phối xác suất</h2>
+                            <div className="flex bg-slate-100 p-1 rounded-lg">
+                                <button onClick={()=>setType('normal')} className={`px-4 py-2 rounded-md text-sm font-bold ${type==='normal' ? 'bg-white shadow text-yersin-600' : 'text-slate-500'}`}>Chuẩn (Normal)</button>
+                                <button onClick={()=>setType('binomial')} className={`px-4 py-2 rounded-md text-sm font-bold ${type==='binomial' ? 'bg-white shadow text-yersin-600' : 'text-slate-500'}`}>Nhị thức (Binomial)</button>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 mb-6 bg-slate-50 p-4 rounded-xl">
+                            {type === 'normal' ? (
+                                <>
+                                    <div className="flex items-center gap-2"><label>Kỳ vọng (<Latex>{'\\mu'}</Latex>):</label><input type="number" value={params.mu} onChange={e=>setParams({...params, mu: parseFloat(e.target.value)})} className="p-2 w-20 border rounded text-center font-bold" /></div>
+                                    <div className="flex items-center gap-2"><label>Độ lệch chuẩn (<Latex>{'\\sigma'}</Latex>):</label><input type="number" value={params.sigma} onChange={e=>setParams({...params, sigma: parseFloat(e.target.value)})} className="p-2 w-20 border rounded text-center font-bold" /></div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-2"><label>Số thử nghiệm (n):</label><input type="number" value={params.n} onChange={e=>setParams({...params, n: parseInt(e.target.value)})} className="p-2 w-20 border rounded text-center font-bold" /></div>
+                                    <div className="flex items-center gap-2"><label>Xác suất (p):</label><input type="number" step="0.1" max="1" min="0" value={params.p} onChange={e=>setParams({...params, p: parseFloat(e.target.value)})} className="p-2 w-20 border rounded text-center font-bold" /></div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="flex-1 w-full relative"><canvas ref={chartRef}></canvas></div>
+                    </div>
+                </div>
+            );
+        };
+
+        const QuizView = () => {
+            const [mode, setMode] = useState('practice'); // practice, challenge
+            const [question, setQuestion] = useState(null);
+            const [userAns, setUserAns] = useState("");
+            const [status, setStatus] = useState("idle");
+            const [score, setScore] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(60);
+            const [isPlaying, setIsPlaying] = useState(false);
+
+            useEffect(() => {
+                let timer;
+                if (mode === 'challenge' && isPlaying && timeLeft > 0) {
+                    timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+                } else if (timeLeft === 0) {
+                    setIsPlaying(false);
+                    setStatus('finished');
+                }
+                return () => clearInterval(timer);
+            }, [mode, isPlaying, timeLeft]);
+
+            const generateQuestion = () => {
+                const len = Math.floor(Math.random() * 5) + 5; 
+                const arr = Array.from({length: len}, () => Math.floor(Math.random() * 20) + 1);
+                const result = MathSolver.solveUngrouped(arr);
+                const types = [{ key: 'mean', label: 'Số trung bình', val: result.mean }, { key: 'median', label: 'Trung vị', val: result.q2 }];
+                const type = types[Math.floor(Math.random() * types.length)];
+                setQuestion({ type, answer: type.val, data: arr });
+                setUserAns(""); setStatus("idle");
+            };
+
+            const startChallenge = () => {
+                setMode('challenge'); setScore(0); setTimeLeft(60); setIsPlaying(true); generateQuestion();
+            };
+
+            const checkAnswer = () => {
+                if (!question) return;
+                const val = parseFloat(userAns);
+                if (isNaN(val)) return;
+                const correct = Math.abs(val - question.answer) < 0.1;
+                
+                if (mode === 'challenge') {
+                    if (correct) { setScore(s => s + 1); generateQuestion(); }
+                    else { 
+                        // Visual feedback for wrong answer in challenge could be added here
+                        setUserAns(""); // Clear for retry or next
+                    }
+                } else {
+                    setStatus(correct ? "correct" : "wrong");
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center h-full p-6">
+                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 max-w-2xl w-full text-center relative overflow-hidden">
+                        {status === 'finished' ? (
+                            <div className="animate-fade-in">
+                                <h2 className="text-4xl font-black text-yersin-600 mb-4">Hết giờ!</h2>
+                                <p className="text-2xl text-slate-700">Điểm số của bạn: <span className="font-bold text-blue-600">{score}</span></p>
+                                <button onClick={() => { setStatus('idle'); setMode('practice'); }} className="mt-8 px-6 py-3 bg-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-300">Quay lại</button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex justify-between items-center mb-6">
+                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                        <button onClick={()=>setMode('practice')} disabled={isPlaying} className={`px-4 py-2 rounded-md text-sm font-bold ${mode==='practice'?'bg-white shadow text-yersin-600':'text-slate-500'}`}>Luyện tập</button>
+                                        <button onClick={startChallenge} disabled={isPlaying} className={`px-4 py-2 rounded-md text-sm font-bold ${mode==='challenge'?'bg-white shadow text-purple-600':'text-slate-500'}`}>Đấu trường (60s)</button>
+                                    </div>
+                                    {mode === 'challenge' && <div className="font-mono text-2xl font-bold text-red-500 flex items-center gap-2"><Icons.Clock /> {timeLeft}s</div>}
+                                    {mode === 'challenge' && <div className="font-bold text-xl text-green-600">Điểm: {score}</div>}
+                                </div>
+
+                                {(!isPlaying && mode === 'challenge') ? (
+                                    <div className="py-10">
+                                        <h3 className="text-2xl font-bold text-slate-700 mb-4">Sẵn sàng chưa?</h3>
+                                        <button onClick={startChallenge} className="px-8 py-4 bg-purple-600 text-white font-bold rounded-2xl shadow-lg hover:bg-purple-700 transform hover:scale-105 transition-all">BẮT ĐẦU NGAY</button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {!question && generateQuestion()}
+                                        <p className="text-slate-500 mb-4">Tính <span className="font-bold text-yersin-600">{question?.type.label}</span>:</p>
+                                        <div className="bg-slate-50 p-6 rounded-2xl mb-8 border border-slate-200 text-slate-700 font-mono text-2xl tracking-widest">{question?.data.join("  ")}</div>
+                                        <div className="flex flex-col items-center gap-4">
+                                            <input type="number" value={userAns} onChange={e=>setUserAns(e.target.value)} onKeyDown={e=>e.key==='Enter'&&checkAnswer()} className="w-40 p-3 text-center text-xl font-bold rounded-xl border-2 outline-none border-slate-300 focus:border-yersin-500" placeholder="..." />
+                                            <button onClick={checkAnswer} className="px-8 py-3 bg-gradient-to-r from-yersin-500 to-yersin-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition-all">Trả lời</button>
+                                        </div>
+                                        {mode === 'practice' && status === 'correct' && <div className="mt-6 text-green-600 font-bold animate-bounce flex items-center justify-center gap-2"><Icons.Check /> Chính xác!</div>}
+                                        {mode === 'practice' && status === 'wrong' && <div className="mt-6 text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">Sai rồi! Đáp án: <b>{question.answer.toFixed(2)}</b></div>}
+                                        {mode === 'practice' && <button onClick={generateQuestion} className="mt-8 text-slate-400 hover:text-yersin-600 text-sm font-bold">Câu tiếp theo &rarr;</button>}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        /* --- 6. VIEW LOGIC (ComparisonView) --- */
+        const ComparisonView = () => {
+            const [inputA, setInputA] = useState("");
+            const [inputB, setInputB] = useState("");
+            const [labelA, setLabelA] = useState("Mẫu A");
+            const [labelB, setLabelB] = useState("Mẫu B");
+            const [sourceInfo, setSourceInfo] = useState("");
+            const [showModalA, setShowModalA] = useState(false);
+            const [showModalB, setShowModalB] = useState(false);
+            const [showResults, setShowResults] = useState(false);
+
+            const resultA = useMemo(() => MathSolver.solveAuto(inputA), [inputA]);
+            const resultB = useMemo(() => MathSolver.solveAuto(inputB), [inputB]);
+
+            // Auto Load & Transfer Logic
+            useEffect(() => {
+                const saved = localStorage.getItem('yersin_stats_data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    setInputA(parsed.inputA || ""); setInputB(parsed.inputB || "");
+                    setLabelA(parsed.labelA || "Mẫu A"); setLabelB(parsed.labelB || "Mẫu B");
+                }
+                const params = new URLSearchParams(window.location.search);
+                const importData = params.get('import');
+                if (importData) {
+                    try {
+                        const { mode, data, target } = JSON.parse(decodeURIComponent(importData));
+                        let text = "";
+                        if (mode === 'ungrouped') text = data.join(" ");
+                        else text = data.map(r => `${r.l}-${r.r}:${r.f}`).join("\n");
+                        if (target === 'A') { setInputA(text); setLabelA("Dữ liệu nhập từ cơ bản"); }
+                        else if (target === 'B') { setInputB(text); setLabelB("Dữ liệu nhập từ cơ bản"); }
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        setShowResults(false);
+                    } catch (e) {}
+                }
+            }, []);
+
+            useEffect(() => { localStorage.setItem('yersin_stats_data', JSON.stringify({ inputA, inputB, labelA, labelB })); }, [inputA, inputB, labelA, labelB]);
+
+            const loadData = (key) => {
+                const d = DATA_SOURCES[key];
+                setInputA(d.dataA); setInputB(d.dataB);
+                setLabelA(d.labelA); setLabelB(d.labelB);
+                setSourceInfo(d.source); setShowResults(false);
+            };
+
+            const getComment = () => {
+                if(!resultA || !resultB) return "";
+                let txt = "";
+                if(Math.abs(resultA.mean - resultB.mean) < 0.05) txt += "Hai mẫu có số trung bình xấp xỉ nhau. ";
+                else txt += `${resultA.mean > resultB.mean ? labelA : labelB} có số trung bình cao hơn. `;
+                if(Math.abs(resultA.stdDev - resultB.stdDev) < 0.05) txt += "Độ ổn định tương đương.";
+                else txt += `${resultA.stdDev < resultB.stdDev ? labelA : labelB} có độ ổn định cao hơn (độ lệch chuẩn nhỏ hơn).`;
+                return txt;
+            };
+
+            const renderDataPreview = (res) => {
+                if (!res) return <div className="text-slate-400 italic">Chưa có dữ liệu</div>;
+                if (res.type === 'ungrouped') return <div className="font-mono text-sm break-all text-slate-600">{res.sorted.join(", ")}</div>;
+                return <div className="grid grid-cols-2 gap-2 text-sm max-w-xs">{res.data.map((r,i) => <div key={i} className="flex justify-between border-b border-slate-100 p-1"><span>[{r.l}; {r.r})</span><span className="font-bold">{r.f}</span></div>)}</div>;
+            }
+
+            return (
+                <div className="flex flex-col h-full overflow-hidden">
+                    <div className="p-4 bg-white border-b border-slate-200 flex flex-col gap-3">
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scroll">
+                            <span className="font-bold text-slate-600 text-sm whitespace-nowrap mr-1">Dữ liệu mẫu:</span>
+                            {Object.entries(DATA_SOURCES).map(([k, v]) => (
+                                <button key={k} onClick={()=>loadData(k)} className="px-3 py-1 bg-slate-100 hover:bg-yersin-100 hover:text-yersin-700 text-slate-600 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border border-slate-200">{v.name}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scroll p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:border-yersin-300 transition-all">
+                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-yersin-500 rounded-l-2xl"></div>
+                                    <div className="flex justify-between items-center mb-4 pl-2"><input value={labelA} onChange={e=>setLabelA(e.target.value)} className="text-lg font-bold text-yersin-700 outline-none bg-transparent w-full" /><button onClick={()=>setShowModalA(true)} className="ml-2 text-slate-400 hover:text-yersin-600 p-2 rounded-full hover:bg-yersin-50"><Icons.Edit /></button></div>
+                                    <div onClick={()=>setShowModalA(true)} className="bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[120px] cursor-pointer hover:bg-white hover:border-yersin-200 hover:shadow-inner transition-all">{renderDataPreview(resultA)}</div>
+                                </div>
+                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:border-blue-300 transition-all">
+                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 rounded-l-2xl"></div>
+                                    <div className="flex justify-between items-center mb-4 pl-2"><input value={labelB} onChange={e=>setLabelB(e.target.value)} className="text-lg font-bold text-blue-700 outline-none bg-transparent w-full" /><button onClick={()=>setShowModalB(true)} className="ml-2 text-slate-400 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50"><Icons.Edit /></button></div>
+                                    <div onClick={()=>setShowModalB(true)} className="bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[120px] cursor-pointer hover:bg-white hover:border-blue-200 hover:shadow-inner transition-all">{renderDataPreview(resultB)}</div>
+                                </div>
+                            </div>
+                            {sourceInfo && <div className="text-center text-xs text-slate-400 italic mb-6">Nguồn dữ liệu: {sourceInfo}</div>}
+                            <div className="flex justify-center mb-10"><button onClick={()=>setShowResults(true)} disabled={!resultA || !resultB} className={`group relative px-8 py-4 rounded-2xl font-bold text-lg text-white shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-3 ${(!resultA || !resultB) ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-yersin-500 to-yersin-600 hover:from-yersin-600 hover:to-yersin-700'}`}><Icons.Calc /> PHÂN TÍCH & SO SÁNH</button></div>
+                            {showResults && resultA && resultB && (
+                                <div className="animate-fade-in bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                    <table className="w-full text-sm text-left"><thead className="bg-slate-50 text-slate-500 uppercase font-bold"><tr><th className="p-3">Chỉ số</th><th className="p-3 text-yersin-600">{labelA}</th><th className="p-3 text-blue-600">{labelB}</th></tr></thead>
+                                    <tbody className="divide-y divide-slate-100 font-medium"><tr><td className="p-3">Kích thước (n)</td><td className="p-3">{resultA.n}</td><td className="p-3">{resultB.n}</td></tr><tr><td className="p-3">Min - Max</td><td className="p-3 text-xs font-mono">[{resultA.min}, {resultA.max}]</td><td className="p-3 text-xs font-mono">[{resultB.min}, {resultB.max}]</td></tr><tr className="bg-yellow-50/50"><td className="p-3 font-bold">Trung bình (<Latex>{'\\bar{x}'}</Latex>)</td><td className="p-3 font-bold text-lg text-yersin-700">{resultA.mean.toFixed(2)}</td><td className="p-3 font-bold text-lg text-blue-700">{resultB.mean.toFixed(2)}</td></tr><tr><td className="p-3">Trung vị (<Latex>{'M_e'}</Latex>)</td><td className="p-3">{resultA.q2.toFixed(2)}</td><td className="p-3">{resultB.q2.toFixed(2)}</td></tr><tr><td className="p-3">Mốt (<Latex>{'M_o'}</Latex>)</td><td className="p-3">{resultA.modes && resultA.modes.length > 0 ? resultA.modes.map(m => m.toFixed(2)).join(', ') : '-'}</td><td className="p-3">{resultB.modes && resultB.modes.length > 0 ? resultB.modes.map(m => m.toFixed(2)).join(', ') : '-'}</td></tr><tr><td className="p-3">Tứ phân vị (<Latex>{'Q_1; Q_3'}</Latex>)</td><td className="p-3">{resultA.q1.toFixed(2)}; {resultA.q3.toFixed(2)}</td><td className="p-3">{resultB.q1.toFixed(2)}; {resultB.q3.toFixed(2)}</td></tr><tr><td className="p-3">Khoảng biến thiên (<Latex>{'R'}</Latex>)</td><td className="p-3">{resultA.range.toFixed(2)}</td><td className="p-3">{resultB.range.toFixed(2)}</td></tr><tr><td className="p-3">Độ lệch chuẩn (<Latex>{'S'}</Latex>)</td><td className="p-3 font-bold">{resultA.stdDev.toFixed(2)}</td><td className="p-3 font-bold">{resultB.stdDev.toFixed(2)}</td></tr><tr><td className="p-3">Phương sai (<Latex>{'S^2'}</Latex>)</td><td className="p-3">{resultA.variance.toFixed(2)}</td><td className="p-3">{resultB.variance.toFixed(2)}</td></tr></tbody></table>
+                                    <div className="bg-green-50 p-4 border-t border-green-100 text-green-800 text-sm"><strong>💡 Nhận xét: </strong> {getComment()}</div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-6">
+                            {showResults && resultA && resultB ? (
+                                <><div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><h4 className="font-bold text-slate-700 mb-2 uppercase text-sm">Biểu đồ Hộp (Box Plot)</h4><BoxPlotComparison resA={resultA} resB={resultB} labelA={labelA} labelB={labelB} /></div><div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><h4 className="font-bold text-slate-700 mb-2 uppercase text-sm">Biểu đồ so sánh</h4><ChartsComparison resA={resultA} resB={resultB} labelA={labelA} labelB={labelB} /></div></>
+                            ) : <div className="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl"><Icons.Compare /><span className="mt-2 italic">Bấm "Phân tích & So sánh" để xem kết quả</span></div>}
+                        </div>
+                    </div>
+                    <DataInputModal isOpen={showModalA} onClose={()=>setShowModalA(false)} onSave={setInputA} title={`Nhập dữ liệu cho ${labelA}`} initialData={inputA} />
+                    <DataInputModal isOpen={showModalB} onClose={()=>setShowModalB(false)} onSave={setInputB} title={`Nhập dữ liệu cho ${labelB}`} initialData={inputB} />
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [tab, setTab] = useState('compare'); 
+            return (
+                <div className="h-full flex flex-col relative bg-slate-50">
+                    <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 sticky top-0 z-50 flex justify-between items-center shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <img src="logo.png" alt="Logo" className="w-10 h-10 object-contain" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+                            <div>
+                                <h1 className="text-xl font-black text-gradient-yersin uppercase tracking-tight leading-tight">Thống kê Nâng cao</h1>
+                                <p className="text-xs text-slate-500 font-bold">Thầy Thái Minh Nguyên - Yersin Đà Lạt</p>
+                            </div>
+                        </div>
+                        <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+                            <button onClick={()=>setTab('compare')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${tab==='compare' ? 'bg-white text-yersin-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}><Icons.Compare /> So sánh</button>
+                            <button onClick={()=>setTab('lab')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${tab==='lab' ? 'bg-white text-orange-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}><Icons.Lab /> Thí nghiệm</button>
+                            <button onClick={()=>setTab('prob')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${tab==='prob' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}><Icons.Prob /> Xác suất</button>
+                            <button onClick={()=>setTab('quiz')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${tab==='quiz' ? 'bg-white text-purple-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}><Icons.Quiz /> Đấu trường</button>
+                            <a href="thongke.html" className="px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 text-slate-500 hover:text-slate-700 hover:bg-slate-200"><Icons.Back /></a>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-hidden relative z-10">
+                        {tab === 'compare' && <ComparisonView />}
+                        {tab === 'lab' && <LabView />}
+                        {tab === 'prob' && <ProbabilityView />}
+                        {tab === 'quiz' && <QuizView />}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
