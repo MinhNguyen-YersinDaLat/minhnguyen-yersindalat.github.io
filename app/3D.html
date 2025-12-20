@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hình Học Không Gian AI - Yersin Ultimate (All-in-One)</title>
+    
+    <!-- CSS & Three.js Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- MediaPipe AI -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <!-- MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* --- 1. CORE AESTHETICS (ORANGE THEME - ORIGINAL) --- */
+        :root {
+            --primary: #f97316; /* Orange-500 */
+            --primary-glow: rgba(249, 115, 22, 0.6);
+            --accent: #06b6d4;  /* Cyan-500 */
+            --success: #22c55e; /* Green-500 */
+            --danger: #ef4444;  /* Red-500 */
+            --glass-bg: rgba(15, 23, 42, 0.85); 
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-main: #f1f5f9;
+        }
+
+        body { margin: 0; overflow: hidden; font-family: 'Be Vietnam Pro', sans-serif; background: #000; color: var(--text-main); user-select: none; touch-action: none; }
+        
+        /* Background Layer */
+        .studio-bg { 
+            position: absolute; width: 100vw; height: 100vh; z-index: 0; 
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 70%, #000000 100%); 
+        }
+
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; }
+        #canvas-container:active { cursor: grabbing; }
+
+        /* --- UI COMPONENTS --- */
+        .glass-panel {
+            background: var(--glass-bg); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border-radius: 20px; 
+            transition: all 0.4s ease;
+        }
+
+        .ui-element { opacity: 0; pointer-events: none; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(30px); }
+        .ui-active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        
+        /* --- SIDEBAR & MENU SYSTEM --- */
+        #mobile-menu-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 60;
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.2);
+            color: var(--primary); display: none; justify-content: center; align-items: center;
+            font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(10px);
+        }
+
+        /* Sidebar Container */
+        .sidebar { 
+            position: absolute; top: 24px; left: 24px; 
+            bottom: 240px; 
+            width: 360px; 
+            max-height: calc(100vh - 48px);
+            overflow-y: auto; overflow-x: hidden;
+            padding: 24px; 
+            padding-bottom: 40px; 
+            z-index: 50; 
+            display: flex; flex-direction: column; gap: 12px; 
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Controls Dock */
+        .controls-dock {
+            position: absolute; bottom: 40px; 
+            left: 24px; width: 360px;
+            padding: 20px; z-index: 50;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+
+        /* ACCORDION STYLES */
+        .accordion-btn {
+            width: 100%; text-align: left; padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; color: var(--text-main); font-weight: 700;
+            font-family: 'Montserrat', sans-serif; text-transform: uppercase;
+            font-size: 0.8rem; letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 5px;
+        }
+        .accordion-btn.active {
+            background: linear-gradient(90deg, rgba(249, 115, 22, 0.2), transparent);
+            border-color: var(--primary); color: #fff;
+        }
+        .accordion-btn i.fa-chevron-down { transition: transform 0.3s; font-size: 0.8rem; opacity: 0.7; }
+        .accordion-btn.active i.fa-chevron-down { transform: rotate(180deg); color: var(--primary); opacity: 1; }
+
+        .accordion-content {
+            max-height: 0; overflow: hidden; 
+            transition: max-height 0.5s ease-in-out, opacity 0.4s ease;
+            background: rgba(0, 0, 0, 0.3); border-radius: 0 0 12px 12px;
+            margin-top: -5px; margin-bottom: 10px; opacity: 0; pointer-events: none;
+        }
+        .accordion-content.open { max-height: 800px; opacity: 1; pointer-events: auto; border: 1px solid rgba(255,255,255,0.05); border-top: none; }
+        .accordion-inner { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+
+        /* RIGHT PANEL */
+        .right-panel-container { 
+            position: absolute; top: 24px; right: 24px; z-index: 40; 
+            display: flex; flex-direction: column; gap: 15px; width: 300px; 
+            pointer-events: none; 
+        }
+        .right-panel-container > * { pointer-events: auto; }
+
+        /* CONTROLS */
+        select { 
+            width: 100%; background: rgba(15, 23, 42, 0.95); color: #fff; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 14px; 
+            outline: none; font-family: 'Be Vietnam Pro', sans-serif; font-size: 0.9rem;
+        }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: #334155; border-radius: 2px; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); 
+            box-shadow: 0 0 10px var(--primary-glow); cursor: pointer; border: 2px solid #fff;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+
+        /* --- GAME MODE STYLES (IMPORTED FROM GAME FILE) --- */
+        .game-hud {
+            position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 80; display: none; flex-direction: column; align-items: center; gap: 10px;
+            width: auto; pointer-events: auto;
+        }
+        .game-active .game-hud { display: flex; }
+        .game-panel {
+            background: rgba(0, 0, 0, 0.8); border: 1px solid var(--primary);
+            padding: 15px 25px; border-radius: 16px; backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(249, 115, 22, 0.3); text-align: center;
+            min-width: 300px;
+        }
+        .game-task { font-size: 1rem; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .game-timer { font-size: 2rem; font-weight: 900; color: var(--primary); font-family: 'Montserrat'; line-height: 1; }
+        .game-score { font-size: 0.9rem; color: #94a3b8; font-weight: 600; margin-top: 5px; }
+        .game-feedback { 
+            position: absolute; top: 120%; left: 50%; transform: translateX(-50%);
+            padding: 10px 20px; border-radius: 8px; font-weight: bold; white-space: nowrap;
+            opacity: 0; transition: 0.3s; pointer-events: none;
+        }
+        .feedback-success { background: var(--success); color: #000; box-shadow: 0 0 20px var(--success); }
+        .feedback-fail { background: var(--danger); color: #fff; box-shadow: 0 0 20px var(--danger); }
+
+        /* Level Selection */
+        #level-select-screen {
+            position: absolute; inset: 0; z-index: 90;
+            background: #000000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.5s;
+        }
+        #level-select-screen.active { opacity: 1; pointer-events: auto; }
+        
+        .level-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; 
+            max-width: 1000px; width: 90%;
+        }
+        .level-card {
+            background: rgba(20, 20, 25, 1);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px; 
+            height: 180px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px;
+            transition: all 0.3s; cursor: pointer;
+            position: relative; overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .level-card:hover, .level-card.hovered {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 40px rgba(249, 115, 22, 0.3); transform: scale(1.05);
+        }
+        .level-title { font-family: 'Montserrat'; font-weight: 900; font-size: 1.2rem; color: #fff; text-transform: uppercase; text-align: center; letter-spacing: 1px; pointer-events: none; }
+
+        /* Mobile Warning */
+        #mobile-warning {
+            position: fixed; inset: 0; z-index: 999; background: #000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px;
+        }
+
+        /* --- POPUP SYSTEM STYLES (Privacy & Guide) --- */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .modal-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; /* Reduced radius */
+            padding: 25px; /* Compact padding */
+            max-width: 500px; width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+        
+        /* Privacy Specific */
+        .icon-shield {
+            width: 60px; height: 60px; margin: 0 auto 15px; /* Smaller icon */
+            background: rgba(34, 197, 94, 0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--success);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+        }
+        .icon-shield i { font-size: 28px; color: var(--success); }
+        
+        .modal-card h2 {
+            font-family: 'Montserrat', sans-serif; font-weight: 800;
+            color: #fff; font-size: 1.3rem; margin-bottom: 12px; /* Compact margin */
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        .privacy-content {
+            text-align: left; color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; /* Compact font */
+            background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px;
+            margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .privacy-content ul { list-style: none; padding: 0; margin: 10px 0; }
+        .privacy-content li { margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+        .privacy-content li i { margin-top: 3px; font-size: 1em; }
+        .privacy-content strong { color: #fff; }
+        
+        .trust-note {
+            font-size: 0.8rem; color: #94a3b8; font-style: italic; text-align: center; margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;
+        }
+        
+        .privacy-btn {
+            background: linear-gradient(135deg, var(--success), #16a34a);
+            color: white; font-family: 'Montserrat', sans-serif; font-weight: 700;
+            padding: 14px 24px; border-radius: 12px; border: none; width: 100%;
+            cursor: pointer; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.3s; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+        }
+        .privacy-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4); }
+
+        /* Guide Specific */
+        .guide-section { text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
+        .guide-section h3 { font-size: 0.9rem; color: #fff; margin-bottom: 10px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .guide-section ul { padding: 0; margin: 0; list-style: none; }
+        .guide-section li { font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .guide-section li span.action { font-weight: 700; color: var(--primary); }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            #mobile-menu-btn { display: flex; }
+            .sidebar { transform: translateX(-120%); top: 80px; bottom: 140px; left: 10px; width: calc(100% - 20px); max-height: none; border-radius: 16px; background: rgba(10, 15, 30, 0.95); }
+            .sidebar.active { transform: translateX(0); }
+            .controls-dock { bottom: 40px; left: 10px; width: calc(100% - 20px); background: rgba(15, 23, 42, 0.9); padding: 12px 20px; border-radius: 16px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; height: auto; }
+            .controls-dock .control-group { flex: 1; }
+            .controls-dock label { display: none; }
+            .right-panel-container { top: 80px; right: 10px; width: 180px; }
+            .formula-card { padding: 10px; }
+            .formula-card h3 { font-size: 0.6rem; }
+            #formula-content { font-size: 0.75rem !important; }
+            #intro-screen h1 { font-size: 2rem; padding: 0 10px; }
+            .mode-btn { width: 100%; padding: 14px; font-size: 0.85rem; } /* Adjusted width for grid */
+            
+            /* Game responsive */
+            .game-hud { top: 70px; width: 90%; }
+            .game-panel { min-width: auto; width: 100%; padding: 10px; }
+            .level-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .level-card { height: 150px; }
+            
+            .modal-card { width: 95%; padding: 20px; }
+            .privacy-content li { font-size: 0.85rem; }
+        }
+
+        /* REFINED HOME BUTTON - UPDATED Z-INDEX */
+        .home-btn {
+            position: absolute; top: 20px; right: 20px; 
+            z-index: 100; /* Increased to overlay Level Selection (90) */
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px);
+        }
+        .home-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); border-color: var(--primary); }
+
+        /* INTRO SCREEN */
+        #intro-screen {
+            position: fixed; inset: 0; z-index: 100; background: #020617;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+        }
+        .intro-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; align-items: center;
+            max-width: 90%; width: 600px;
+        }
+        .breathing-logo {
+            animation: breathe 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px rgba(249, 115, 22, 0.6));
+        }
+        @keyframes breathe {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(249, 115, 22, 0.4)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 30px rgba(249, 115, 22, 0.9)); transform: scale(1.05); }
+        }
+
+        .mode-btn {
+            padding: 18px 30px; margin: 0; width: 100%; /* Reset margin for grid */
+            font-family: 'Montserrat', sans-serif; font-weight: 800; letter-spacing: 1px;
+            background: transparent; color: white;
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+            text-transform: uppercase; cursor: pointer;
+            transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 12px;
+            min-height: 70px; /* Ensure consistent height in grid */
+        }
+        .mode-btn.primary {
+            background: rgba(249, 115, 22, 0.15); 
+            border-color: var(--primary); color: var(--primary);
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+        }
+        /* New Game Button Style */
+        .mode-btn.game {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: var(--accent); color: var(--accent);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+        }
+        .mode-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .mode-btn.primary:hover { background: var(--primary); color: white; }
+        .mode-btn.game:hover { background: var(--accent); color: white; }
+
+        .cam-box { width: 100%; height: 140px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000; position: relative; display: none !important; }
+        
+        .intersect-info {
+            padding: 12px; border: 1px solid var(--primary); background: rgba(249, 115, 22, 0.1);
+            display: none; box-shadow: 0 0 20px rgba(249, 115, 22, 0.2); border-radius: 12px;
+        }
+
+        .app-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 36px;
+            display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.6) 60%, transparent 100%);
+            z-index: 90; pointer-events: none;
+            backdrop-filter: blur(2px);
+        }
+        .footer-text { 
+            font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            text-shadow: 0 1px 2px #000;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .footer-highlight { color: var(--primary); font-weight: 700; }
+
+        #hand-cursor { 
+            position: absolute; width: 44px; height: 44px; border: 2px solid var(--primary); border-radius: 50%; 
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 100; 
+            box-shadow: 0 0 20px var(--primary-glow); display: none; transition: 0.05s; backdrop-filter: blur(2px);
+        }
+        
+        .label-3d {
+            position: absolute; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; 
+            color: #0f172a; background: #fff; width: 32px; height: 32px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; border: 2px solid var(--primary); 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8); pointer-events: none; transform: translate(-50%, -50%); z-index: 10;
+        }
+        
+        .face-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .face-item:hover { background: rgba(255, 255, 255, 0.1); color: #fff; padding-left: 14px; }
+        .face-item input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+
+        #mouse-zoom-control { display: none; }
+        .mouse-zoom-active #mouse-zoom-control { display: block; position: absolute; bottom: 90px; right: 24px; width: 40px; height: 200px; z-index: 40; pointer-events: auto; }
+        .mouse-zoom-active #mouse-zoom-control input { width: 180px; transform: rotate(-90deg) translate(-80px, 0); transform-origin: left top; }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND -->
+    <div class="studio-bg"></div>
+    <div id="canvas-container"></div>
+    
+    <!-- CURSOR & VIDEO -->
+    <div id="hand-cursor"></div>
+    <video id="input_video" playsinline autoplay muted style="position: absolute; opacity: 0; pointer-events: none;"></video>
+
+    <!-- MOBILE WARNING (Added from Game) -->
+    <div id="mobile-warning">
+        <i class="fas fa-desktop warning-icon text-4xl text-red-500 mb-4"></i>
+        <h2 class="text-2xl font-bold text-white mt-4 font-['Montserrat']">PHIÊN BẢN MÁY TÍNH</h2>
+        <p class="text-slate-400 mt-2 text-sm">Chế độ Game yêu cầu màn hình lớn và Camera để trải nghiệm tốt nhất.</p>
+        <button onclick="goHome()" class="mt-6 px-6 py-3 bg-slate-800 rounded-xl text-white font-bold border border-slate-600">Quay lại</button>
+    </div>
+
+    <!-- PRIVACY POPUP (Updated Content - Full) -->
+    <div id="privacy-popup" class="modal-overlay">
+        <div class="modal-card">
+            <div class="icon-shield"><i class="fas fa-user-shield"></i></div>
+            <h2>CAM KẾT RIÊNG TƯ</h2>
+            <div class="privacy-content">
+                <p class="mb-4 text-justify">
+                    Tôi thầy Nguyên dùng AI xây dựng ứng dụng để phục vụ việc học và dạy học, quý thầy cô vui lòng đọc kĩ thông tin sau và chịu mọi trách nhiệm khi sử dụng.
+                </p>
+                <ul>
+                    <li>
+                        <i class="fas fa-microchip text-orange-500"></i> 
+                        <div><strong>Xử lý tại chỗ:</strong> Ứng dụng chỉ xử lý hình ảnh tại chỗ trên thiết bị của thầy cô.</div>
+                    </li>
+                    <li>
+                        <i class="fas fa-video-slash text-orange-500"></i> 
+                        <div><strong>Không lưu trữ:</strong> Ứng dụng tuyệt đối không ghi lại hay lưu trữ bất kỳ hình ảnh nào.</div>
+                    </li>
+                    <li>
+                        <i class="fas fa-paper-plane text-orange-500"></i> 
+                        <div><strong>Không gửi đi:</strong> Dữ liệu không bao giờ được gửi đến máy chủ hay bên thứ ba.</div>
+                    </li>
+                </ul>
+                <p class="trust-note mt-4">
+                    Ứng dụng làm sạch hoàn toàn để thầy cô yên tâm không lo mất thông tin. Khi thầy cô sử dụng đồng nghĩa với việc chịu hoàn toàn mọi trách nhiệm.
+                </p>
+            </div>
+            <button class="privacy-btn" onclick="acceptPrivacy()">HIỂU VÀ ĐỒNG Ý VỚI NỘI DUNG TRÊN</button>
+        </div>
+    </div>
+
+    <!-- GUIDE POPUP (New) -->
+    <div id="guide-popup" class="modal-overlay">
+        <div class="modal-card" style="max-width: 700px;">
+            <button class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors" onclick="toggleGuide(false)">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            <h2 class="text-orange-500 mb-6">HƯỚNG DẪN SỬ DỤNG</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <!-- Hand Mode Guide -->
+                <div class="guide-section">
+                    <h3 class="flex items-center"><i class="fas fa-hand-sparkles text-orange-400 mr-2"></i> CHẾ ĐỘ TAY (CAMERA)</h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <span>1 Ngón (Trỏ)</span>
+                            <span class="action">Di chuyển / Chọn</span>
+                        </li>
+                        <li>
+                            <span>Chụm (Cái + Trỏ)</span>
+                            <span class="action">Xoay Hình 3D</span>
+                        </li>
+                        <li>
+                            <span>2 Bàn Tay (Kéo)</span>
+                            <span class="action">Phóng To / Thu Nhỏ</span>
+                        </li>
+                        <li>
+                            <span>Nắm Tay (Game)</span>
+                            <span class="action">Xác Nhận / Chọn</span>
+                        </li>
+                        <li>
+                            <span>3 Ngón (Co lại)</span>
+                            <span class="action">Reset Góc Nhìn</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Mouse Mode Guide -->
+                <div class="guide-section">
+                    <h3 class="flex items-center text-blue-400 border-blue-500/30"><i class="fas fa-mouse mr-2"></i> CHẾ ĐỘ CHUỘT</h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <span>Chuột Trái (Giữ)</span>
+                            <span class="action">Xoay Hình</span>
+                        </li>
+                        <li>
+                            <span>Lăn Chuột</span>
+                            <span class="action">Zoom</span>
+                        </li>
+                        <li>
+                            <span>Click (Game)</span>
+                            <span class="action">Chọn Đáp Án</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <p class="text-xs text-slate-500 italic mb-4">Lưu ý: Để camera cách xa khoảng 0.5m - 1m và đủ ánh sáng để nhận diện tốt nhất.</p>
+                <button class="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold uppercase tracking-wider transition-all" onclick="toggleGuide(false)">ĐÃ HIỂU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEVEL SELECTION SCREEN (Added from Game) -->
+    <div id="level-select-screen">
+        <h2 class="text-3xl font-black text-white font-['Montserrat'] mb-6 tracking-wide text-center drop-shadow-lg">
+            CHỌN <span class="text-orange-500">THỬ THÁCH</span>
+        </h2>
+        <div class="level-grid" id="level-grid">
+            <!-- Items injected by JS -->
+        </div>
+        <p class="text-xs text-slate-400 mt-6 font-mono animate-pulse drop-shadow-md">
+            <i class="fas fa-hand-rock mr-2"></i>Nắm chặt tay để chọn
+        </p>
+    </div>
+
+    <!-- GAME HUD (Added from Game) -->
+    <div class="game-hud" id="game-hud" style="display: none;">
+        <div class="game-panel glass-panel">
+            <div id="game-level-info" class="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-1">MÀN 1/6</div>
+            <div id="game-task" class="game-task">TẠO: TAM GIÁC</div>
+            <div id="game-timer" class="game-timer">60</div>
+            <div id="game-score" class="game-score">Điểm: 0</div>
+            
+            <div id="game-feedback" class="game-feedback">CHÍNH XÁC!</div>
+        </div>
+        <button onclick="GAME_LOGIC.quitGame()" class="mt-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/50 rounded-lg text-xs font-bold transition-all">
+            <i class="fas fa-sign-out-alt mr-1"></i> THOÁT
+        </button>
+    </div>
+
+    <!-- MOBILE HAMBURGER BUTTON -->
+    <button id="mobile-menu-btn" class="ui-element" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- REFINED HOME BUTTON -->
+    <button id="home-btn" class="home-btn ui-element" onclick="goHome()" title="Về màn hình chính">
+        <i class="fas fa-home"></i>
+    </button>
+
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen">
+        <div class="intro-card">
+            <!-- Animated Glow -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-orange-500 rounded-full blur-[100px] opacity-30 animate-pulse"></div>
+            
+            <div class="relative mb-6 text-center">
+                <div class="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+                    <!-- RESTORED: Original Logo Image -->
+                    <img src="logo.png" class="w-full h-full object-contain breathing-logo" alt="Yersin Logo">
+                </div>
+                
+                <h1 class="text-4xl md:text-6xl font-black tracking-tighter text-white font-['Montserrat'] mb-2 leading-none">
+                    HÌNH HỌC<br>
+                    <span class="text-orange-500 text-5xl md:text-7xl">KHÔNG GIAN</span>
+                </h1>
+                <p class="text-slate-400 text-sm font-bold tracking-[3px] uppercase font-['Be_Vietnam_Pro']">Mô hình Giáo dục Tương tác</p>
+            </div>
+
+            <div class="w-full border-t border-white/10 py-6 mb-2 text-center">
+                <p class="text-[11px] text-slate-300 font-semibold tracking-wide uppercase leading-relaxed">
+                    Tác giả: <span class="text-white">Thầy Thái Minh Nguyên</span><br>
+                    <span class="text-slate-500">Trường TH, THCS & THPT Yersin Đà Lạt</span>
+                </p>
+            </div>
+
+            <!-- Buttons (REDESIGNED: GRID 2 COLS) -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button class="mode-btn primary" onclick="startApplication('hand')">
+                    <i class="fas fa-hand-sparkles text-2xl"></i> 
+                    <span class="text-sm">Học Tập<br>(Cử Chỉ)</span>
+                </button>
+                <button class="mode-btn game" onclick="startApplication('game')">
+                    <i class="fas fa-gamepad text-2xl"></i> 
+                    <span class="text-sm">Game<br>(Thử Thách)</span>
+                </button>
+                <button class="mode-btn" onclick="startApplication('mouse')">
+                    <i class="fas fa-mouse text-2xl"></i> 
+                    <span class="text-sm">Chuột<br>(Cơ Bản)</span>
+                </button>
+                <button class="mode-btn" onclick="toggleGuide(true)" style="border-color: rgba(255,255,255,0.3); color: #cbd5e1;">
+                    <i class="fas fa-book-open text-2xl text-slate-400"></i> 
+                    <span class="text-sm">Hướng Dẫn<br>& Thao Tác</span>
+                </button>
+            </div>
+            
+            <p id="loading-text" class="mt-6 text-[10px] text-slate-600 animate-pulse font-mono tracking-widest">INITIALIZING 3D ENGINE...</p>
+        </div>
+    </div>
+
+    <!-- MAIN SIDEBAR (Menu Items) -->
+    <div class="sidebar glass-panel ui-element custom-scrollbar" id="sidebar-panel">
+        <div class="border-b border-white/10 pb-4 mb-2 flex justify-between items-center sticky top-0 bg-transparent z-10">
+            <div class="flex items-center gap-3">
+                <!-- RESTORED: Sidebar Logo -->
+                <img src="logo.png" class="w-10 h-10 object-contain drop-shadow-lg" alt="Logo">
+                <div>
+                    <h1 class="text-lg font-black text-white font-['Montserrat'] tracking-tight">
+                        <span class="text-orange-500">GEO</span>METRY 12
+                    </h1>
+                    <p class="text-[9px] text-gray-400 uppercase tracking-widest">Yersin Dalat</p>
+                </div>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 cursor-pointer hover:bg-orange-500/20" onclick="resetView()">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </div>
+        </div>
+        
+        <div class="flex flex-col gap-2">
+            <!-- Shape Selector -->
+            <div class="mb-2">
+                <div class="relative">
+                    <select id="shape-select" onchange="createShape(this.value)">
+                        <optgroup label="Hình Chóp (Pyramids)">
+                            <option value="pyramid_rect" selected>Chóp S.ABCD (Đáy CN)</option>
+                            <option value="pyramid_para">Chóp S.ABCD (Đáy BH)</option>
+                            <option value="pyramid_trap">Chóp S.ABCD (Đáy Thang)</option>
+                            <option value="pyramid_tri">Chóp S.ABC (Đáy Tam Giác)</option>
+                            <option value="pyramid_penta">Chóp S.ABCDE (Đáy Ngũ Giác)</option>
+                        </optgroup>
+                        <optgroup label="Lăng Trụ & Hộp (Prisms)">
+                            <option value="cube">Hình Lập Phương</option>
+                            <option value="box_rect">Hình Hộp Chữ Nhật</option>
+                            <option value="prism_tri">Lăng Trụ Tam Giác Đều</option>
+                            <option value="prism_quad">Lăng Trụ Tứ Giác Đều</option>
+                            <option value="prism_penta">Lăng Trụ Ngũ Giác</option>
+                            <option value="prism_skew_tri">Lăng Trụ Tam Giác Xiên</option>
+                            <option value="prism_skew_quad">Lăng Trụ Tứ Giác Xiên</option>
+                        </optgroup>
+                        <optgroup label="Chóp Cụt (Frustums)">
+                            <option value="frustum_tri">Chóp Cụt Tam Giác</option>
+                            <option value="frustum_quad">Chóp Cụt Tứ Giác</option>
+                        </optgroup>
+                        <optgroup label="Khối Đa Diện Đều (Platon)">
+                            <option value="tetrahedron">Tứ Diện Đều</option>
+                            <option value="octahedron">Bát Diện Đều</option>
+                            <option value="dodecahedron">12 Mặt Đều</option>
+                            <option value="icosahedron">20 Mặt Đều</option>
+                        </optgroup>
+                        <optgroup label="Khối Tròn Xoay">
+                            <option value="cylinder">Hình Trụ</option>
+                            <option value="cone">Hình Nón</option>
+                            <option value="sphere">Hình Cầu</option>
+                        </optgroup>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <i class="fas fa-chevron-down text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCORDION 1: COLORING -->
+            <div class="accordion-btn" onclick="toggleAccordion('acc-color')">
+                <span><i class="fas fa-fill-drip mr-2 text-orange-400"></i> Tô Màu & Giao Tuyến</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="acc-color" class="accordion-content">
+                <div class="accordion-inner">
+                    <div id="face-list" class="max-h-[200px] overflow-y-auto custom-scrollbar p-1"></div>
+                </div>
+            </div>
+
+            <!-- ACCORDION 2: SECTIONING -->
+            <div class="accordion-btn" onclick="toggleAccordion('acc-section')">
+                <span><i class="fas fa-cut mr-2 text-pink-500"></i> Thiết Diện</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="acc-section" class="accordion-content">
+                <div class="accordion-inner">
+                    <div id="section-face-list" class="max-h-[180px] overflow-y-auto custom-scrollbar p-1 border border-white/5 rounded bg-black/20"></div>
+                    <button onclick="triggerSectionCalc()" class="w-full py-3 bg-pink-500/20 hover:bg-pink-500/40 border border-white/10 rounded-lg text-pink-400 font-bold text-xs uppercase tracking-widest transition-all mt-2 shadow-lg">
+                        <i class="fas fa-check mr-2"></i> Tạo Thiết Diện
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS DOCK (Sliders) -->
+    <div class="controls-dock glass-panel ui-element" id="controls-panel">
+        <div class="control-group">
+            <div class="flex justify-between mb-1">
+                <label class="text-[10px] text-pink-400 font-bold tracking-wider">MẶT CẮT</label>
+                <i class="fas fa-cut text-xs text-pink-500 md:hidden"></i>
+            </div>
+            <input type="range" id="slice-slider" min="-3" max="4" step="0.1" value="0">
+        </div>
+        <div class="control-group">
+            <div class="flex justify-between mb-1">
+                <label class="text-[10px] text-slate-300 font-bold tracking-wider">ĐỘ TRONG</label>
+                <i class="fas fa-ghost text-xs text-slate-500 md:hidden"></i>
+            </div>
+            <input type="range" id="op-slider" min="0.1" max="1" step="0.1" value="0.8">
+        </div>
+        <div class="control-group">
+            <div class="flex justify-between mb-1">
+                <label class="text-[10px] text-orange-400 font-bold tracking-wider">THU PHÓNG</label>
+                <i class="fas fa-search-plus text-xs text-orange-500 md:hidden"></i>
+            </div>
+            <input type="range" id="mobile-zoom-slider" min="0.3" max="3" step="0.1" value="1">
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel-container" id="right-panel">
+        <div class="formula-card glass-panel ui-element">
+            <h3 class="text-xs font-black text-orange-400 mb-2 border-b border-orange-500/20 pb-2 flex justify-between items-center tracking-widest font-['Montserrat']">
+                <span>CÔNG THỨC</span>
+                <i class="fas fa-square-root-variable text-lg opacity-80"></i>
+            </h3>
+            <div id="formula-content" class="text-lg text-slate-100 font-['Be_Vietnam_Pro'] space-y-2 font-bold leading-relaxed drop-shadow-md">Loading...</div>
+        </div>
+
+        <div class="intersect-info glass-panel ui-element" id="intersect-box">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.2)]">
+                    <i class="fas fa-bolt text-orange-400 text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-[9px] font-bold text-orange-400 uppercase tracking-widest mb-1">Giao Tuyến</h3>
+                    <div id="intersect-text" class="text-sm font-black text-white font-['Montserrat'] tracking-wide"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden Camera Box (Active in Hand/Game Mode) -->
+        <div class="cam-box ui-element" id="cam-box">
+            <canvas id="output_canvas" style="width:100%; height:100%; transform: scaleX(-1); object-fit: cover;"></canvas>
+            <div class="absolute bottom-0 w-full bg-black/60 backdrop-blur-sm p-1 flex justify-between items-center border-t border-white/10">
+                 <span id="ai-status" class="text-[8px] font-bold text-gray-500 px-2">Connecting...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MOUSE ZOOM CONTROLS -->
+    <div id="mouse-zoom-control" class="glass-panel p-2 ui-element">
+        <input type="range" id="mouse-zoom-slider" min="0.3" max="3" step="0.1" value="1">
+    </div>
+
+    <div id="labels-container"></div>
+
+    <!-- FOOTER -->
+    <div class="app-footer ui-element" id="app-footer">
+        <div class="footer-text">
+            <span>&copy; <span id="current-year"></span> Yersin Dalat</span>
+            <span class="text-orange-600 mx-2">///</span>
+            <span>Thiết kế: <span class="footer-highlight">Thầy Thái Minh Nguyên</span></span>
+        </div>
+    </div>
+
+<script src="3d-core.min.js"></script>
+</body>
+</html>
