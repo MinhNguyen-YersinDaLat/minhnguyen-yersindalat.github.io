@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oxyz Trực Quan - Giai đoạn 10: Cực trị & Hoàn thiện</title>
+    <!-- STAGE 1: UI MODERNIZATION - CSS OVERHAUL -->
+    <style>
+        :root {
+            --primary-bg: rgba(20, 20, 20, 0.95);
+            --glass-bg: rgba(30, 30, 30, 0.6);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --accent-color: #2196F3;
+            --text-color: #e0e0e0;
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: var(--text-color);
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* --- SIDEBAR MODERNIZATION --- */
+        #controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 380px;
+            height: 100vh;
+            background: var(--primary-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-right: var(--glass-border);
+            padding: 0;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+            /* PATCH 1: Perfect Hide - Adjust translate to hide full width + padding */
+            transform: translateX(-380px); 
+            transition: transform var(--transition-speed) cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #controls:hover {
+            transform: translateX(0); /* Expand on hover */
+        }
+
+        /* Handle visual indicator for the sidebar */
+        #controls::after {
+            content: 'MENU';
+            position: absolute;
+            /* PATCH 1: Adjust position to be visible when hidden */
+            right: -24px; 
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);
+            transform-origin: left center;
+            color: #888;
+            font-size: 10px;
+            letter-spacing: 2px;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.2s;
+            /* Add background for better visibility */
+            background: rgba(0,0,0,0.8);
+            padding: 4px 8px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        #controls:hover::after { opacity: 0; }
+
+        /* Header area */
+        .controls-header {
+            padding: 20px;
+            border-bottom: var(--glass-border);
+            background: linear-gradient(180deg, rgba(40,40,40,0.8) 0%, rgba(20,20,20,0) 100%);
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #4CAF50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        /* Content Scroll Area */
+        .controls-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            /* PATCH 9: Hide Scrollbar (Game-like style) */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE 10+ */
+        }
+
+        /* PATCH 9: Hide Scrollbar Webkit (Chrome/Safari/Edge) */
+        .controls-content::-webkit-scrollbar { 
+            display: none;
+            width: 0;
+            background: transparent;
+        }
+
+        /* --- ACCORDION SYSTEM for COMPACT UI --- */
+        details {
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            overflow: hidden;
+            border: var(--glass-border);
+        }
+
+        details[open] {
+            background: rgba(255,255,255,0.05);
+        }
+
+        summary {
+            padding: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            color: #fff;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        summary:hover { background: rgba(255,255,255,0.1); }
+        summary::after { content: '+'; font-size: 16px; color: #888; }
+        details[open] summary::after { content: '-'; }
+        
+        /* Specific Section Colors in Summary */
+        summary span.tag {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .section-content {
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* --- INPUTS & CONTROLS --- */
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .coeff-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .coeff-item {
+            flex: 1;
+            position: relative;
+        }
+
+        .coeff-item input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+            font-family: monospace;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .coeff-item input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        .coeff-item span {
+            position: absolute;
+            right: 4px;
+            bottom: 25px; /* Adjust based on input height */
+            font-size: 9px;
+            color: #666;
+            pointer-events: none;
+            display: none; /* Hide labels inside inputs for cleaner look */
+        }
+        
+        /* Placeholder-like label */
+        .coeff-item::before {
+            content: attr(data-label);
+            display: block;
+            font-size: 9px;
+            text-align: center;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+
+        /* Variant Buttons */
+        .btn-calc { background-color: #E91E63; }
+        .btn-sphere { background-color: #4CAF50; }
+        .btn-purple { background-color: #9C27B0; }
+        .btn-cyan { background-color: #00BCD4; color: #000; }
+        .btn-measure { background-color: #FF9800; color: #000; }
+        .btn-poly { background-color: #795548; }
+        .btn-util { background-color: #607D8B; }
+        .btn-minmax { background-color: #F44336; }
+
+        /* Measure Grid */
+        .measure-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Result Box */
+        .result-text {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #FFEB3B;
+            text-align: center;
+            min-height: 20px;
+            border: 1px solid rgba(255, 235, 59, 0.2);
+        }
+
+        /* --- VISIBILITY TOGGLES (Stage 2) --- */
+        .toggle-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .toggle-item:hover { border-color: rgba(255,255,255,0.3); }
+        .toggle-item input { margin-right: 6px; cursor: pointer; }
+
+        /* Label 3D */
+        .label-point {
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            pointer-events: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-family: monospace;
+        }
+
+        /* STAGE 4: VALIDATION FOOTER (NEW PATCH) */
+        .controls-footer {
+            padding: 10px;
+            border-top: var(--glass-border);
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 9px;
+            color: #666;
+            text-align: center;
+            letter-spacing: 1px;
+            font-family: monospace;
+            user-select: none;
+        }
+        
+        /* PATCH 4: Zoom Slider */
+        #zoom-slider-container {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 200px;
+            z-index: 90;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 5px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #zoom-slider {
+            writing-mode: bt-lr; /* IE */
+            -webkit-appearance: slider-vertical; /* WebKit */
+            width: 8px;
+            height: 100%;
+            outline: none;
+        }
+
+        /* PATCH 6: Math Display Area (Inline) - KEEPING for history, adding new MAIN display below */
+        .math-display {
+            font-size: 13px;
+            color: #81D4FA;
+            margin: 5px 0 10px 0;
+            padding: 5px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        /* PATCH 7: Main Math HUD */
+        #main-math-hud {
+            position: absolute;
+            top: 20px;
+            left: 400px; /* Offset from sidebar */
+            right: 20px;
+            pointer-events: none; /* Let clicks pass through */
+            z-index: 95;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* Align right */
+            gap: 10px;
+            max-height: 80vh; /* Limit height */
+            overflow-y: auto; /* Scroll if too many formulas */
+            /* PATCH 9: Hide Scrollbar for HUD */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        #main-math-hud::-webkit-scrollbar {
+            display: none;
+        }
+
+        .math-card {
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 15px; /* Compact padding */
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            max-width: 450px;
+            animation: slideIn 0.3s ease-out;
+            pointer-events: auto; /* Allow selecting text */
+            margin-bottom: 5px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .math-title {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            font-weight: 600;
+        }
+
+        .math-content {
+            font-size: 14px;
+            color: #fff;
+        }
+    </style>
+    
+    <!-- Import Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <!-- STAGE 5: MEDIAPIPE IMPORTS (NEW PATCH) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <!-- PATCH 3: MATHJAX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <div id="container"></div>
+    
+    <!-- PATCH 7: MAIN MATH HUD -->
+    <div id="main-math-hud">
+        <!-- Dynamic Content -->
+    </div>
+
+    <!-- PATCH 4: ZOOM SLIDER UI -->
+    <div id="zoom-slider-container">
+        <span style="font-size:16px; margin-bottom:5px;">🔍</span>
+        <input type="range" id="zoom-slider" min="5" max="100" value="40" step="1">
+    </div>
+
+    <!-- STAGE 5: AI INTERFACE ELEMENTS (NEW PATCH) -->
+    <div id="hand-cursor" style="position: absolute; width: 40px; height: 40px; border: 3px solid #00bcd4; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 999; box-shadow: 0 0 15px rgba(0,188,212,0.8); display: none; transition: background 0.2s;"></div>
+    <div id="cam-preview" style="position: absolute; bottom: 10px; right: 10px; width: 160px; height: 120px; border-radius: 8px; border: 2px solid #444; z-index: 90; opacity: 0; pointer-events: none; transform: scaleX(-1); background:#000; overflow:hidden; transition: opacity 0.5s;">
+        <canvas id="output_canvas" width="320" height="240" style="width:100%; height:100%"></canvas>
+    </div>
+    <video id="input_video" style="display:none"></video>
+
+    <!-- STAGE 1 & 2: RESTRUCTURED UI PANEL -->
+    <div id="controls">
+        <div class="controls-header">
+            <h2>OXYZ STUDIO</h2>
+            <div style="text-align:center; font-size:10px; color:#666; margin-top:5px;">Lớp 12 - Tọa độ không gian</div>
+        </div>
+
+        <div class="controls-content">
+            
+            <!-- STAGE 2: VISIBILITY CONTROL SYSTEM -->
+            <details>
+                <summary><span class="tag" style="background:#fff"></span>CÀI ĐẶT HIỂN THỊ</summary>
+                <div class="section-content">
+                    <div class="toggle-group">
+                        <label class="toggle-item"><input type="checkbox" id="chk-grid" checked> Lưới tọa độ</label>
+                        
+                        <!-- PATCH 7: Individual Plane Toggles -->
+                        <label class="toggle-item" style="border-bottom: 2px solid #0000ff;"><input type="checkbox" id="chk-oxy"> Oxy (z=0)</label>
+                        <label class="toggle-item" style="border-bottom: 2px solid #00ff00;"><input type="checkbox" id="chk-oxz"> Oxz (y=0)</label>
+                        <label class="toggle-item" style="border-bottom: 2px solid #ff0000;"><input type="checkbox" id="chk-oyz"> Oyz (x=0)</label>
+
+                        <label class="toggle-item"><input type="checkbox" id="chk-P" checked> MP (P)</label>
+                        <label class="toggle-item"><input type="checkbox" id="chk-Q"> MP (Q)</label>
+                        <label class="toggle-item"><input type="checkbox" id="chk-d" checked> Đường (d)</label>
+                        <label class="toggle-item"><input type="checkbox" id="chk-dp" checked> Đường (d')</label>
+                        <label class="toggle-item"><input type="checkbox" id="chk-S" checked> Mặt cầu (S)</label>
+                    </div>
+                </div>
+            </details>
+
+            <!-- STAGE 3: GESTURE CONTROL (NEW PATCH) -->
+            <details>
+                <summary><span class="tag" style="background:#888"></span>CAMERA & CỬ CHỈ</summary>
+                <div class="section-content">
+                    <div class="toggle-group">
+                        <label class="toggle-item"><input type="checkbox" id="chk-auto-rotate"> Tự động xoay</label>
+                        <label class="toggle-item"><input type="checkbox" id="chk-damping" checked> Mượt mà (Damping)</label>
+                        <!-- STAGE 5: AI TOGGLE -->
+                        <label class="toggle-item" style="border:1px solid #00bcd4; color:#00bcd4"><input type="checkbox" id="chk-ai-cam"> 📷 Bật Camera AI</label>
+                    </div>
+                    <button id="btn-reset-view" class="btn-util" style="margin-top:8px; background-color:#555;">Đặt lại góc nhìn chuẩn</button>
+                    <div style="font-size:10px; color:#aaa; margin-top:5px; font-style:italic; text-align:center;">
+                        * AI: 1 tay chụm = Xoay | 2 tay = Zoom
+                    </div>
+                </div>
+            </details>
+
+            <!-- PHẦN 1: MẶT PHẲNG (P) -->
+            <details open>
+                <!-- PATCH 3: LaTeX Label -->
+                <summary><span class="tag" style="background:#3498db"></span>1. Mặt Phẳng (P)</summary>
+                <div class="section-content">
+                    <!-- PATCH 6: Math Display -->
+                    <div id="math-P" class="math-display">\( (P): Ax + By + Cz + D = 0 \)</div>
+                    <div class="input-group">
+                        <div class="coeff-row">
+                            <div class="coeff-item" data-label="A"><input type="number" id="inpA" value="0"></div>
+                            <div class="coeff-item" data-label="B"><input type="number" id="inpB" value="0"></div>
+                            <div class="coeff-item" data-label="C"><input type="number" id="inpC" value="1"></div>
+                            <div class="coeff-item" data-label="D"><input type="number" id="inpD" value="-4"></div>
+                        </div>
+                        <button id="btn-draw-P">Cập nhật (P)</button>
+                    </div>
+                </div>
+            </details>
+
+            <!-- PHẦN 2: ĐƯỜNG THẲNG (d) -->
+            <details>
+                <summary><span class="tag" style="background:#ff5722"></span>2. Đường Thẳng (d)</summary>
+                <div class="section-content">
+                    <!-- PATCH 6: Math Display -->
+                    <div id="math-d" class="math-display">\( (d): \begin{cases} x = x_0 + at \\ y = y_0 + bt \\ z = z_0 + ct \end{cases} \)</div>
+                    <div class="input-group">
+                        <!-- PATCH 3: LaTeX Label -->
+                        <label>Điểm \(M(x_0; y_0; z_0)\):</label>
+                        <div class="coeff-row">
+                            <div class="coeff-item" data-label="x₀"><input type="number" id="inpX0" value="0"></div>
+                            <div class="coeff-item" data-label="y₀"><input type="number" id="inpY0" value="0"></div>
+                            <div class="coeff-item" data-label="z₀"><input type="number" id="inpZ0" value="0"></div>
+                        </div>
+                        <label>VTCP \(\vec{u} = (a; b; c)\):</label>
+                        <div class="coeff-row">
+                            <div class="coeff-item" data-label="a"><input type="number" id="inpUa" value="1"></div>
+                            <div class="coeff-item" data-label="b"><input type="number" id="inpUb" value="1"></div>
+                            <div class="coeff-item" data-label="c"><input type="number" id="inpUc" value="0"></div>
+                        </div>
+                        <button id="btn-draw-d">Cập nhật (d)</button>
+                        <div style="border-top:1px dashed #444; margin-top:8px; padding-top:8px;">
+                             <button id="btn-intersect-d-P" class="btn-calc">Giao điểm (d) ∩ (P)</button>
+                             <div id="result-intersect-d-P" class="result-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- PHẦN 3: MẶT CẦU (S) -->
+            <details>
+                <summary><span class="tag" style="background:#4CAF50"></span>3. Mặt Cầu (S)</summary>
+                <div class="section-content">
+                    <!-- PATCH 6: Math Display -->
+                    <div id="math-S" class="math-display">\( (S): (x-a)^2 + (y-b)^2 + (z-c)^2 = R^2 \)</div>
+                    <div class="input-group">
+                        <label>Tâm \(I(a; b; c)\) & \(R\):</label>
+                        <div class="coeff-row">
+                            <div class="coeff-item" data-label="a"><input type="number" id="inpIa" value="0"></div>
+                            <div class="coeff-item" data-label="b"><input type="number" id="inpIb" value="0"></div>
+                            <div class="coeff-item" data-label="c"><input type="number" id="inpIc" value="0"></div>
+                            <div class="coeff-item" data-label="R"><input type="number" id="inpR" value="5" min="0.1"></div>
+                        </div>
+                        <button id="btn-draw-S" class="btn-sphere">Cập nhật (S)</button>
+                        <div class="measure-grid" style="margin-top:8px;">
+                            <button id="btn-intersect-S-P" class="btn-calc">(S) & (P)</button>
+                            <button id="btn-intersect-S-d" class="btn-purple">(S) & (d)</button>
+                        </div>
+                        <div id="result-intersect-S-General" class="result-text"></div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- PHẦN 4: MẶT PHẲNG (Q) -->
+            <details>
+                <summary><span class="tag" style="background:#9b59b6"></span>4. Mặt Phẳng (Q)</summary>
+                <div class="section-content">
+                    <!-- PATCH 6: Math Display -->
+                    <div id="math-Q" class="math-display">\( (Q): A'x + B'y + C'z + D' = 0 \)</div>
+                    <div class="input-group">
+                        <div class="coeff-row">
+                            <div class="coeff-item" data-label="A'"><input type="number" id="inpQA" value="0"></div>
+                            <div class="coeff-item" data-label="B'"><input type="number" id="inpQB" value="1"></div>
+                            <div class="coeff-item" data-label="C'"><input type="number" id="inpQC" value="0"></div>
+                            <div class="coeff-item" data-label="D'"><input type="number" id="inpQD" value="-3"></div>
+                        </div>
+                        <button id="btn-draw-Q" class="btn-purple">Cập nhật (Q)</button>
+                        <button id="btn-intersect-P-Q" class="btn-calc">Vị trí (P) & (Q)</button>
+                        <div id="result-intersect-P-Q" class="result-text"></div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- PHẦN 5: ĐƯỜNG THẲNG (d') -->
+            <details>
+                <summary><span class="tag" style="background:#00bcd4"></span>5. Đường Thẳng (d')</summary>
+                <div class="section-content">
+                    <!-- PATCH 6: Math Display -->
+                    <div id="math-dp" class="math-display">\( (d'): M'(x'_0; y'_0; z'_0), \vec{u'}=(a';b';c') \)</div>
+                    <div class="input-group">
+                        <label>Điểm \(M'\) & VTCP \(\vec{u'}\):</label>
+                        <div class="coeff-row">
+                            <div class="coeff-item" data-label="x'₀"><input type="number" id="inpX0p" value="2"></div>
+                            <div class="coeff-item" data-label="y'₀"><input type="number" id="inpY0p" value="2"></div>
+                            <div class="coeff-item" data-label="z'₀"><input type="number" id="inpZ0p" value="2"></div>
+                        </div>
+                        <div class="coeff-row">
+                            <div class="coeff-item" data-label="a'"><input type="number" id="inpUap" value="0"></div>
+                            <div class="coeff-item" data-label="b'"><input type="number" id="inpUbp" value="1"></div>
+                            <div class="coeff-item" data-label="c'"><input type="number" id="inpUcp" value="1"></div>
+                        </div>
+                        <button id="btn-draw-dp" class="btn-cyan">Cập nhật (d')</button>
+                        <button id="btn-intersect-d-dp" class="btn-calc">Vị trí (d) & (d')</button>
+                        <div id="result-intersect-d-dp" class="result-text"></div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- PHẦN 6: GÓC & KHOẢNG CÁCH -->
+            <details>
+                <summary><span class="tag" style="background:#FF9800"></span>6. Góc & Khoảng cách</summary>
+                <div class="section-content">
+                    <div class="measure-grid">
+                        <button id="btn-angle-ddp" class="btn-measure">Góc \((d, d')\)</button>
+                        <button id="btn-angle-PQ" class="btn-measure">Góc \((P, Q)\)</button>
+                        <button id="btn-angle-dP" class="btn-measure">Góc \((d, P)\)</button>
+                        <button id="btn-dist-MP" class="btn-measure">\(d(M, P)\)</button>
+                        <button id="btn-dist-Md" class="btn-measure">\(d(M, d)\)</button>
+                        <button id="btn-dist-ddp" class="btn-measure" style="grid-column: span 2;">\(d(d, d')\) [Chéo]</button>
+                    </div>
+                    <div id="result-measure" class="result-text"></div>
+                </div>
+            </details>
+
+            <!-- PHẦN 7: TAM GIÁC & TỨ DIỆN -->
+            <details>
+                <summary><span class="tag" style="background:#795548"></span>7. Tam giác & Tứ diện</summary>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>Tọa độ 4 điểm \(A, B, C, D\):</label>
+                        <div class="coeff-row"><div class="coeff-item" data-label="Ax"><input type="number" id="ptAx" value="1"></div><div class="coeff-item" data-label="Ay"><input type="number" id="ptAy" value="0"></div><div class="coeff-item" data-label="Az"><input type="number" id="ptAz" value="0"></div></div>
+                        <div class="coeff-row"><div class="coeff-item" data-label="Bx"><input type="number" id="ptBx" value="0"></div><div class="coeff-item" data-label="By"><input type="number" id="ptBy" value="2"></div><div class="coeff-item" data-label="Bz"><input type="number" id="ptBz" value="0"></div></div>
+                        <div class="coeff-row"><div class="coeff-item" data-label="Cx"><input type="number" id="ptCx" value="0"></div><div class="coeff-item" data-label="Cy"><input type="number" id="ptCy" value="0"></div><div class="coeff-item" data-label="Cz"><input type="number" id="ptCz" value="3"></div></div>
+                        <div class="coeff-row"><div class="coeff-item" data-label="Dx"><input type="number" id="ptDx" value="2"></div><div class="coeff-item" data-label="Dy"><input type="number" id="ptDy" value="2"></div><div class="coeff-item" data-label="Dz"><input type="number" id="ptDz" value="2"></div></div>
+                        
+                        <div class="measure-grid" style="margin-top:5px;">
+                            <button id="btn-draw-ABC" class="btn-poly">Vẽ \(\Delta ABC\)</button>
+                            <button id="btn-calc-S-ABC" class="btn-measure">\(S_{ABC}\)</button>
+                            <button id="btn-draw-ABCD" class="btn-poly">Vẽ \(ABCD\)</button>
+                            <button id="btn-calc-V-ABCD" class="btn-measure">\(V_{ABCD}\)</button>
+                        </div>
+                        <div id="result-poly" class="result-text"></div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- PHẦN 8: TIỆN ÍCH -->
+            <details>
+                <summary><span class="tag" style="background:#607D8B"></span>8. Tiện ích</summary>
+                <div class="section-content">
+                    <label style="font-size:11px; color:#aaa; margin-bottom:5px; display:block;">*Sử dụng điểm A làm điểm gốc M</label>
+                    <div class="measure-grid">
+                        <button id="btn-sym-P" class="btn-util">Đ.Xứng qua (P)</button>
+                        <button id="btn-sym-d" class="btn-util">Đ.Xứng qua (d)</button>
+                    </div>
+                    <button id="btn-circum-sphere" class="btn-util" style="margin-top:5px; background-color:#673AB7;">Mặt cầu ngoại tiếp ABCD</button>
+                    <div id="result-util" class="result-text"></div>
+                </div>
+            </details>
+
+            <!-- PHẦN 9: CỰC TRỊ -->
+            <details>
+                <summary><span class="tag" style="background:#D32F2F"></span>9. Cực trị (Min/Max)</summary>
+                <div class="section-content">
+                    <label style="font-size:11px; color:#aaa; margin-bottom:5px; display:block;">*Xét M trên (P), với 2 điểm A, B</label>
+                    <div class="measure-grid">
+                        <button id="btn-min-sum" class="btn-minmax">MA + MB Min</button>
+                        <button id="btn-max-diff" class="btn-minmax">|MA - MB| Max</button>
+                    </div>
+                    <div id="result-minmax" class="result-text"></div>
+                </div>
+            </details>
+
+        </div>
+        
+        <!-- STAGE 4: STATUS INDICATOR (NEW PATCH) -->
+        <div class="controls-footer">
+            CORE: SGK-MATH-V1.0 | LOGIC: <span style="color:#4CAF50; font-weight:bold;">SECURE</span>
+        </div>
+    </div>
+
+    <!-- Script Logic (LOCKED STAGE 0) -->
+<script type="module" src="oxyz.js"></script>
+</body>
+</html>
