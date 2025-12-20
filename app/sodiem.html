@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sổ Điểm & Quản Lý Lớp - Liquid Glass Pro (TT22)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        glass: { 100: 'rgba(255, 255, 255, 0.1)', 200: 'rgba(255, 255, 255, 0.2)', 300: 'rgba(255, 255, 255, 0.3)', 400: 'rgba(255, 255, 255, 0.4)', 800: 'rgba(255, 255, 255, 0.8)' },
+                        primary: { 50:'#fff7ed', 100:'#ffedd5', 500:'#f97316', 600:'#ea580c', 700:'#c2410c' } 
+                    },
+                    // Sử dụng Be Vietnam Pro cho toàn bộ các loại font
+                    fontFamily: { 
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'], 
+                        display: ['"Be Vietnam Pro"', 'sans-serif'], 
+                        cute: ['"Be Vietnam Pro"', 'sans-serif']     
+                    },
+                    animation: { 
+                        'blob': 'blob 15s infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'wiggle': 'wiggle 1s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' }
+                        },
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        wiggle: { '0%, 100%': { transform: 'rotate(-3deg)' }, '50%': { transform: 'rotate(3deg)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- EXCEL EXPORT LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #e0e7ff; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        
+        /* --- LIQUID GLASS STYLES --- */
+        .liquid-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: #f0f2f5;
+            overflow: hidden;
+        }
+        .blob-c {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.8; animation: blob 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #ffc0cb; animation-delay: 0s; }
+        .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #87cefa; animation-delay: -5s; }
+        .blob-3 { top: 20%; left: 40%; width: 40vw; height: 40vw; background: #e0ffff; animation-delay: -10s; }
+
+        /* Glass Container Utility */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(1.02);
+        }
+        .glass-button-primary {
+            background: rgba(249, 115, 22, 0.85); /* Orange primary */
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+        }
+        .glass-button-primary:hover {
+            background: rgba(249, 115, 22, 1);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+        
+        .glass-table th { background-color: rgba(255,255,255,0.5); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 10; }
+        .glass-table tr { border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .glass-table tr:hover td { background-color: rgba(255,255,255,0.4); }
+
+        /* AVATAR RINGS ANIMATIONS (Preserved) */
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-medium { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+        @keyframes pulse-ring { 0% { transform: scale(0.85); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(0.85); opacity: 0.8; } }
+        @keyframes shockwave { 0% { transform: scale(1); opacity: 1; border-width: 2px; } 100% { transform: scale(1.5); opacity: 0; border-width: 0px; } }
+        @keyframes breathe-glow { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.03); filter: brightness(1.1); } }
+
+        /* Classes */
+        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+        .animate-spin-medium { animation: spin-medium 6s linear infinite; }
+        .animate-spin-reverse { animation: spin-reverse 8s linear infinite; }
+        .animate-pulse-ring { animation: pulse-ring 3s ease-in-out infinite; }
+        .animate-shockwave { animation: shockwave 2s infinite; }
+        .animate-breathe { animation: breathe-glow 3s ease-in-out infinite; }
+
+        /* Magic Borders */
+        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        @keyframes border-rotate { 0% { --angle: 0deg; } 100% { --angle: 360deg; } }
+        .magic-border-container { position: absolute; inset: -4px; border-radius: 50%; z-index: -1; overflow: hidden; }
+        .magic-border-layer { position: absolute; inset: -50%; width: 200%; height: 200%; background: conic-gradient(from var(--angle), transparent 20%, var(--border-color), transparent 80%); animation: border-rotate 3s linear infinite; }
+        .magic-border-layer.reverse { animation: border-rotate 5s linear infinite reverse; opacity: 0.7; }
+
+        /* Shimmer Text */
+        .shimmer-text { background: linear-gradient(to right, #ec4899 20%, #8b5cf6 40%, #ec4899 60%, #8b5cf6 80%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: border-flow 3s linear infinite; font-weight: 900; }
+        @keyframes border-flow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 100000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 16px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; items-center; gap: 10px; font-size: 13px; font-weight: 600; color: #334155; border-left: 4px solid #3b82f6; animation: fade-in-up 0.3s ease-out forwards; max-width: 300px; }
+        .toast.success { border-left-color: #10b981; } .toast.error { border-left-color: #ef4444; }
+        
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .status-dot.online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .status-dot.syncing { background-color: #eab308; animation: pulse 1s infinite; }
+        .status-dot.offline { background-color: #ef4444; }
+    </style>
+</head>
+<body>
+    <!-- LIQUID BACKGROUND -->
+    <div class="liquid-bg">
+        <div class="blob-c blob-1"></div>
+        <div class="blob-c blob-2"></div>
+        <div class="blob-c blob-3"></div>
+    </div>
+
+    <div id="root" class="relative z-10 h-screen flex flex-col"></div>
+    <div id="toast-container"></div>
+       <script type="text/babel" src="sodiem.js"></script>
+</body>
+</html>
