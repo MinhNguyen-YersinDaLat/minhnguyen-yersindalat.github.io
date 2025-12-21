@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition (Stats V4 - Dashboard Mode)</title>
+    <title>SmartSchedule - Yersin Pro Edition (Stats V4 - One Period Logic)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -370,7 +370,7 @@
             );
         });
 
-        // --- STATISTICS COMPONENT (WITH HOMEROOM LOGIC) ---
+        // --- STATISTICS COMPONENT (WITH TIME SLOT LOGIC) ---
         const StatisticsModal = memo(({ allRawData, teacherConfigs, classes, homeroomMap, onUpdateHomeroomMap, onClose }) => {
             const [search, setSearch] = useState('');
             const [sort, setSort] = useState('count'); 
@@ -378,6 +378,7 @@
 
             const stats = useMemo(() => {
                 const map = {};
+                const processed = new Set(); // Track unique time slots per teacher
                 
                 Object.keys(teacherConfigs).forEach(key => {
                      map[key] = {
@@ -403,6 +404,14 @@
 
                     if (!targetTeacherCanonical) return;
                     
+                    // --- ONE PERIOD PER TIME SLOT CHECK ---
+                    // Unique identifier for this time slot for this teacher: TeacherID + Day + Session + Period
+                    // This ensures even if a teacher teaches 3 classes simultaneously (merged cells), it counts as 1.
+                    const uniqueKey = `${targetTeacherCanonical}|${item.day}|${item.session}|${item.period}`;
+                    
+                    if (processed.has(uniqueKey)) return; 
+                    processed.add(uniqueKey);
+
                     if (!map[targetTeacherCanonical]) {
                         map[targetTeacherCanonical] = {
                             name: item.teacherRaw || targetTeacherCanonical, 
@@ -428,6 +437,7 @@
                         if (!map[targetTeacherCanonical].homeroomDetails[detailKey]) map[targetTeacherCanonical].homeroomDetails[detailKey] = 0;
                         map[targetTeacherCanonical].homeroomDetails[detailKey]++;
                     } else {
+                        // Trust item.teacherCanonical for teaching, unless it was a forced homeroom
                         if (item.teacherCanonical === targetTeacherCanonical) {
                              map[targetTeacherCanonical].teachingTotal++;
                             if (!map[targetTeacherCanonical].teachingDetails[detailKey]) map[targetTeacherCanonical].teachingDetails[detailKey] = 0;
@@ -457,7 +467,7 @@
                         <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                             <div>
                                 <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê Tiết Dạy & Chủ Nhiệm</h3>
-                                <div className="text-sm text-slate-500">Phân loại chi tiết. Sử dụng cấu hình để gán tiết chủ nhiệm.</div>
+                                <div className="text-sm text-slate-500">Phân loại chi tiết. Cứ 1 ô excel tính là 1 tiết.</div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button onClick={() => setShowConfig(true)} className="px-4 py-2 bg-brand-100 text-brand-700 rounded-lg font-bold hover:bg-brand-200 flex items-center gap-2 text-sm"><Icons.Cog /> Cấu hình GVCN</button>
@@ -854,6 +864,7 @@
                         Object.keys(classMap).forEach(colIdxStr => {
                             const colIdx = parseInt(colIdxStr);
                             const cellContent = row[colIdx]?.toString().trim();
+                            const cellKey = `${i}-${colIdx}`; // Use row index and column index as unique cell identifier
                             if (cellContent) {
                                 const parsedItems = parseMultiValueCell(cellContent, { day: currentDay, session: currentSession, period: period });
                                 parsedItems.forEach(item => {
@@ -867,7 +878,7 @@
                                     }
                                     let displayClass = classMap[colIdx];
                                     if (item.className && item.className !== displayClass) displayClass = `${displayClass} (${item.className})`;
-                                    extracted.push({ ...item, clazz: displayClass, isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)), signature: `${item.subject}|${item.teacherRaw}` });
+                                    extracted.push({ ...item, clazz: displayClass, cellKey: cellKey, isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)), signature: `${item.subject}|${item.teacherRaw}` });
                                 });
                             }
                         });
