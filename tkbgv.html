@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition (With Stats)</title>
+    <title>SmartSchedule - Yersin Pro Edition (Stats V4 - Dashboard Mode)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -103,7 +103,8 @@
             ChevronUp: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>,
             Bolt: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
             Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
-            Chart: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            Chart: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+            Save: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
         };
 
         const COLLECTIVE_KEYWORDS = ['CHÀO CỜ', 'CC', 'SINH HOẠT CỜ', 'LỄ', 'TẬP THỂ', 'TOÀN TRƯỜNG', 'SHDC', 'HỘI THAO', 'GOT TALENT'];
@@ -316,61 +317,155 @@
             );
         });
 
-        // --- NEW STATISTICS COMPONENT ---
-        const StatisticsModal = memo(({ allRawData, onClose }) => {
+        // --- HOMEROOM CONFIG MODAL ---
+        const HomeroomConfigModal = memo(({ classes, teacherConfigs, homeroomMap, onSave, onClose }) => {
+            const [localMap, setLocalMap] = useState({ ...homeroomMap });
+            const teacherList = useMemo(() => Object.keys(teacherConfigs).map(k => ({
+                key: k, name: teacherConfigs[k].displayName
+            })).sort((a,b) => a.name.localeCompare(b.name)), [teacherConfigs]);
+
+            const handleChange = (cls, teacherKey) => {
+                setLocalMap(prev => ({ ...prev, [cls]: teacherKey }));
+            };
+
+            const handleSave = () => {
+                onSave(localMap);
+            };
+
+            return (
+                 <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white w-full max-w-lg h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 border-b border-slate-200 bg-brand-600 text-white flex justify-between items-center">
+                            <h3 className="font-bold text-xl flex items-center gap-2"><Icons.Cog /> Cấu hình Giáo Viên Chủ Nhiệm</h3>
+                            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full"><Icons.X /></button>
+                        </div>
+                        <div className="p-4 bg-orange-50 text-xs text-orange-800 border-b border-orange-100">
+                            <strong>Lưu ý:</strong> Khi bạn gán GVCN cho một lớp, hệ thống sẽ tự động tính tất cả các tiết SHCN, SHTT, Chào cờ của lớp đó cho giáo viên này, kể cả khi trong TKB không ghi tên.
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
+                            <div className="grid gap-3">
+                                {classes.map(cls => (
+                                    <div key={cls} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                        <div className="font-bold text-slate-700 w-24">{cls}</div>
+                                        <select 
+                                            value={localMap[cls] || ''} 
+                                            onChange={(e) => handleChange(cls, e.target.value)}
+                                            className="flex-1 p-2 rounded border border-slate-300 text-sm focus:border-brand-500 outline-none"
+                                        >
+                                            <option value="">-- Chọn GVCN --</option>
+                                            {teacherList.map(t => (
+                                                <option key={t.key} value={t.key}>{t.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-slate-200 bg-white flex justify-end gap-3">
+                            <button onClick={onClose} className="px-4 py-2 rounded-lg text-slate-600 font-bold hover:bg-slate-100">Hủy</button>
+                            <button onClick={handleSave} className="px-6 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700 shadow-lg flex items-center gap-2"><Icons.Save /> Lưu Cấu Hình</button>
+                        </div>
+                    </div>
+                 </div>
+            );
+        });
+
+        // --- STATISTICS COMPONENT (WITH HOMEROOM LOGIC) ---
+        const StatisticsModal = memo(({ allRawData, teacherConfigs, classes, homeroomMap, onUpdateHomeroomMap, onClose }) => {
             const [search, setSearch] = useState('');
-            const [sort, setSort] = useState('count'); // 'count' or 'name'
+            const [sort, setSort] = useState('count'); 
+            const [showConfig, setShowConfig] = useState(false);
 
             const stats = useMemo(() => {
                 const map = {};
+                
+                Object.keys(teacherConfigs).forEach(key => {
+                     map[key] = {
+                            name: teacherConfigs[key].displayName,
+                            canonical: key,
+                            teachingTotal: 0,
+                            homeroomTotal: 0,
+                            teachingDetails: {},
+                            homeroomDetails: {}
+                     };
+                });
+
                 allRawData.forEach(item => {
-                    // Logic: Count all non-ambiguous entries with a valid canonical name
-                    if(!item.teacherCanonical) return;
+                    const isHomeroomSubject = HOMEROOM_KEYWORDS.some(k => item.subject.toUpperCase().includes(k) || item.raw.toUpperCase().includes(k));
+                    const cleanClass = item.clazz.replace(/\s*\([^)]+\)/, '').trim(); 
                     
-                    if (!map[item.teacherCanonical]) {
-                        map[item.teacherCanonical] = {
-                            name: item.teacherRaw,
-                            canonical: item.teacherCanonical,
-                            total: 0,
-                            details: {}
-                        };
-                    }
-                    // Update raw name to longest found (usually better formatted)
-                    if(item.teacherRaw.length > map[item.teacherCanonical].name.length) {
-                        map[item.teacherCanonical].name = item.teacherRaw;
+                    let targetTeacherCanonical = item.teacherCanonical;
+
+                    // --- FORCE ASSIGNMENT LOGIC ---
+                    if (isHomeroomSubject && homeroomMap[cleanClass]) {
+                        targetTeacherCanonical = homeroomMap[cleanClass];
                     }
 
-                    map[item.teacherCanonical].total++;
+                    if (!targetTeacherCanonical) return;
                     
-                    // Detail breakdown
-                    const classKey = item.clazz.replace(/\s*\([^)]+\)/, '').trim(); // Remove room info for cleaner stats
+                    if (!map[targetTeacherCanonical]) {
+                        map[targetTeacherCanonical] = {
+                            name: item.teacherRaw || targetTeacherCanonical, 
+                            canonical: targetTeacherCanonical,
+                            teachingTotal: 0,
+                            homeroomTotal: 0,
+                            teachingDetails: {},
+                            homeroomDetails: {}
+                        };
+                    }
+                    
+                    if(item.teacherRaw && item.teacherRaw.length > map[targetTeacherCanonical].name.length) {
+                        map[targetTeacherCanonical].name = item.teacherRaw;
+                    } else if (map[targetTeacherCanonical].name === targetTeacherCanonical && teacherConfigs[targetTeacherCanonical]) {
+                         map[targetTeacherCanonical].name = teacherConfigs[targetTeacherCanonical].displayName;
+                    }
+
                     const subjKey = item.subject;
-                    const detailKey = `${classKey} - ${subjKey}`;
-                    
-                    if(!map[item.teacherCanonical].details[detailKey]) map[item.teacherCanonical].details[detailKey] = 0;
-                    map[item.teacherCanonical].details[detailKey]++;
+                    const detailKey = `${cleanClass} - ${subjKey}`;
+
+                    if (isHomeroomSubject) {
+                        map[targetTeacherCanonical].homeroomTotal++;
+                        if (!map[targetTeacherCanonical].homeroomDetails[detailKey]) map[targetTeacherCanonical].homeroomDetails[detailKey] = 0;
+                        map[targetTeacherCanonical].homeroomDetails[detailKey]++;
+                    } else {
+                        if (item.teacherCanonical === targetTeacherCanonical) {
+                             map[targetTeacherCanonical].teachingTotal++;
+                            if (!map[targetTeacherCanonical].teachingDetails[detailKey]) map[targetTeacherCanonical].teachingDetails[detailKey] = 0;
+                            map[targetTeacherCanonical].teachingDetails[detailKey]++;
+                        }
+                    }
                 });
-                return Object.values(map);
-            }, [allRawData]);
+                
+                return Object.values(map).filter(s => (s.teachingTotal + s.homeroomTotal) > 0);
+            }, [allRawData, homeroomMap, teacherConfigs]);
 
             const filteredStats = useMemo(() => {
                 let res = stats.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
-                if (sort === 'count') res.sort((a,b) => b.total - a.total);
-                else res.sort((a,b) => a.name.localeCompare(b.name));
+                if (sort === 'count') {
+                    res.sort((a,b) => (b.teachingTotal + b.homeroomTotal) - (a.teachingTotal + a.homeroomTotal));
+                } else {
+                    res.sort((a,b) => a.name.localeCompare(b.name));
+                }
                 return res;
             }, [stats, search, sort]);
 
             return (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
-                    <div className="bg-white w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Header */}
                         <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                             <div>
-                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê Tiết Dạy</h3>
-                                <div className="text-sm text-slate-500">Tổng hợp toàn trường dựa trên file đã tải</div>
+                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê Tiết Dạy & Chủ Nhiệm</h3>
+                                <div className="text-sm text-slate-500">Phân loại chi tiết. Sử dụng cấu hình để gán tiết chủ nhiệm.</div>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-500"><Icons.X /></button>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setShowConfig(true)} className="px-4 py-2 bg-brand-100 text-brand-700 rounded-lg font-bold hover:bg-brand-200 flex items-center gap-2 text-sm"><Icons.Cog /> Cấu hình GVCN</button>
+                                <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-500"><Icons.X /></button>
+                            </div>
                         </div>
                         
+                        {/* Filters */}
                         <div className="p-4 bg-white border-b border-slate-100 flex gap-4 flex-col md:flex-row">
                             <div className="relative flex-1">
                                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
@@ -383,32 +478,61 @@
                             </div>
                         </div>
 
+                        {/* Table */}
                         <div className="flex-1 overflow-y-auto p-0">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-100 text-slate-600 uppercase text-xs sticky top-0 z-10 shadow-sm">
                                     <tr>
-                                        <th className="px-6 py-3 w-16 text-center">STT</th>
-                                        <th className="px-6 py-3">Giáo Viên</th>
-                                        <th className="px-6 py-3 w-24 text-center">Tổng Tiết</th>
-                                        <th className="px-6 py-3">Chi tiết (Lớp - Môn: Số tiết)</th>
+                                        <th className="px-4 py-3 w-12 text-center">STT</th>
+                                        <th className="px-4 py-3 w-48">Giáo Viên</th>
+                                        <th className="px-4 py-3 bg-brand-50/50 text-brand-800">Tiết Dạy</th>
+                                        <th className="px-4 py-3 w-64">Chi Tiết Dạy</th>
+                                        <th className="px-4 py-3 bg-orange-50/50 text-orange-800 border-l border-slate-200">Tiết CN</th>
+                                        <th className="px-4 py-3 w-48">Lớp CN</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {filteredStats.map((s, idx) => (
                                         <tr key={s.canonical} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-6 py-4 text-center font-mono text-slate-400">{idx + 1}</td>
-                                            <td className="px-6 py-4 font-bold text-slate-800 text-base">{s.name}</td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${s.total > 15 ? 'bg-red-100 text-red-700' : 'bg-brand-100 text-brand-700'}`}>{s.total}</span>
+                                            <td className="px-4 py-4 text-center font-mono text-slate-400">{idx + 1}</td>
+                                            <td className="px-4 py-4 font-bold text-slate-800 text-base">{s.name}</td>
+                                            
+                                            {/* Column: Teaching Total */}
+                                            <td className="px-4 py-4 bg-brand-50/30">
+                                                {s.teachingTotal > 0 ? (
+                                                     <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${s.teachingTotal > 15 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-600'}`}>{s.teachingTotal}</span>
+                                                ) : <span className="text-slate-300">-</span>}
                                             </td>
-                                            <td className="px-6 py-4 text-slate-600">
+
+                                            {/* Column: Teaching Details */}
+                                            <td className="px-4 py-4 text-slate-600">
                                                 <div className="flex flex-wrap gap-2">
-                                                    {Object.entries(s.details).map(([key, count]) => (
+                                                    {Object.entries(s.teachingDetails).map(([key, count]) => (
                                                         <span key={key} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs">
                                                             <span>{key}</span>
-                                                            <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded ml-1">{count}</span>
+                                                            {count > 1 && <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded ml-1">{count}</span>}
                                                         </span>
                                                     ))}
+                                                    {s.teachingTotal === 0 && <span className="text-xs text-slate-400 italic">Không có tiết dạy</span>}
+                                                </div>
+                                            </td>
+
+                                            {/* Column: Homeroom Total */}
+                                            <td className="px-4 py-4 border-l border-slate-200 bg-orange-50/30">
+                                                 {s.homeroomTotal > 0 ? (
+                                                     <span className="inline-block px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-700">{s.homeroomTotal}</span>
+                                                ) : <span className="text-slate-300">-</span>}
+                                            </td>
+
+                                             {/* Column: Homeroom Details */}
+                                            <td className="px-4 py-4 text-slate-600">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {Object.entries(s.homeroomDetails).map(([key, count]) => (
+                                                        <span key={key} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-orange-200 bg-orange-50 text-orange-800 text-xs font-bold">
+                                                            {key.split('-')[0].trim()} 
+                                                        </span>
+                                                    ))}
+                                                    {s.homeroomTotal === 0 && <span className="text-xs text-slate-400 italic">---</span>}
                                                 </div>
                                             </td>
                                         </tr>
@@ -417,6 +541,20 @@
                             </table>
                             {filteredStats.length === 0 && <div className="p-10 text-center text-slate-400">Không tìm thấy dữ liệu.</div>}
                         </div>
+
+                        {/* Nested Modal for Config */}
+                        {showConfig && (
+                            <HomeroomConfigModal 
+                                classes={classes}
+                                teacherConfigs={teacherConfigs}
+                                homeroomMap={homeroomMap}
+                                onSave={(newMap) => {
+                                    onUpdateHomeroomMap(newMap);
+                                    setShowConfig(false);
+                                }}
+                                onClose={() => setShowConfig(false)}
+                            />
+                        )}
                     </div>
                 </div>
             );
@@ -578,7 +716,7 @@
             )
         });
 
-        const ModeSelectionScreen = memo(({ onSelectMode, onBack }) => {
+        const ModeSelectionScreen = memo(({ onSelectMode, onViewStats, onBack }) => {
             return (
                 <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
                     <div className="w-full max-w-lg text-center">
@@ -605,6 +743,16 @@
                                 <div className="flex-1 relative z-10">
                                     <h3 className="text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors">Thủ Công (Chi tiết)</h3>
                                     <p className="text-sm text-slate-500 mt-1">Tự chọn từng môn/lớp dạy. Phù hợp nếu dạy thay hoặc trùng tên.</p>
+                                </div>
+                            </button>
+
+                            <button onClick={onViewStats} className="w-full p-6 bg-white rounded-2xl border-2 border-transparent hover:border-brand-500 shadow-soft hover:shadow-xl transition-all group text-left flex items-center gap-4 relative overflow-hidden">
+                                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-2xl group-hover:scale-110 transition-transform">
+                                    <Icons.Chart />
+                                </div>
+                                <div className="flex-1 relative z-10">
+                                    <h3 className="text-xl font-bold text-slate-800 group-hover:text-purple-600 transition-colors">Thống Kê (Tổng Hợp)</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Xem tổng số tiết dạy và chủ nhiệm của toàn trường.</p>
                                 </div>
                             </button>
                         </div>
@@ -634,7 +782,8 @@
             const [status, setStatus] = useState('');
             const [error, setError] = useState('');
             const [searchTerm, setSearchTerm] = useState('');
-            const [showStats, setShowStats] = useState(false); // New State for Stats Modal
+            const [showStats, setShowStats] = useState(false); 
+            const [homeroomMap, setHomeroomMap] = useState({}); // Stores Class -> Teacher Canonical Key
             const captureRef = useRef(null);
 
             useEffect(() => {
@@ -825,15 +974,31 @@
                 );
             }
 
+            // Create common stats modal trigger
+            const statsModal = showStats && (
+                <StatisticsModal 
+                    allRawData={allRawData} 
+                    teacherConfigs={teacherConfigs}
+                    classes={classes}
+                    homeroomMap={homeroomMap}
+                    onUpdateHomeroomMap={setHomeroomMap}
+                    onClose={() => setShowStats(false)} 
+                />
+            );
+
             if (stage === 'mode_select') {
                 return (
-                    <ModeSelectionScreen 
-                        onSelectMode={(mode) => {
-                            if (mode === 'auto') setStage('auto_select');
-                            else setStage('config');
-                        }}
-                        onBack={() => { setFile(null); setStage('upload'); setAllRawData([]); }}
-                    />
+                    <>
+                        {statsModal}
+                        <ModeSelectionScreen 
+                            onSelectMode={(mode) => {
+                                if (mode === 'auto') setStage('auto_select');
+                                else setStage('config');
+                            }}
+                            onViewStats={() => setShowStats(true)}
+                            onBack={() => { setFile(null); setStage('upload'); setAllRawData([]); }}
+                        />
+                    </>
                 )
             }
 
@@ -868,7 +1033,7 @@
 
             return (
                 <div className="min-h-screen pb-10 bg-[#f8fafc]">
-                    {showStats && <StatisticsModal allRawData={allRawData} onClose={() => setShowStats(false)} />}
+                    {statsModal}
                     {inspectData && (
                         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm" onClick={() => setInspectData(null)}>
                             <div className="bg-white w-full max-w-2xl md:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -954,4 +1119,3 @@
     </script>
 </body>
 </html>
-
