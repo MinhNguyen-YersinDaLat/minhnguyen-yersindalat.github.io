@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition</title>
+    <title>SmartSchedule - Yersin Pro Edition (With Stats)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,6 @@
                 extend: {
                     fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
                     colors: {
-                        // TÔNG CAM YERSIN
                         brand: { 50: '#fff7ed', 100: '#ffedd5', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412' },
                         slate: { 850: '#1e293b' }
                     },
@@ -103,7 +102,8 @@
             ChevronDown: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>,
             ChevronUp: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>,
             Bolt: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-            Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+            Chart: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
         };
 
         const COLLECTIVE_KEYWORDS = ['CHÀO CỜ', 'CC', 'SINH HOẠT CỜ', 'LỄ', 'TẬP THỂ', 'TOÀN TRƯỜNG', 'SHDC', 'HỘI THAO', 'GOT TALENT'];
@@ -316,6 +316,113 @@
             );
         });
 
+        // --- NEW STATISTICS COMPONENT ---
+        const StatisticsModal = memo(({ allRawData, onClose }) => {
+            const [search, setSearch] = useState('');
+            const [sort, setSort] = useState('count'); // 'count' or 'name'
+
+            const stats = useMemo(() => {
+                const map = {};
+                allRawData.forEach(item => {
+                    // Logic: Count all non-ambiguous entries with a valid canonical name
+                    if(!item.teacherCanonical) return;
+                    
+                    if (!map[item.teacherCanonical]) {
+                        map[item.teacherCanonical] = {
+                            name: item.teacherRaw,
+                            canonical: item.teacherCanonical,
+                            total: 0,
+                            details: {}
+                        };
+                    }
+                    // Update raw name to longest found (usually better formatted)
+                    if(item.teacherRaw.length > map[item.teacherCanonical].name.length) {
+                        map[item.teacherCanonical].name = item.teacherRaw;
+                    }
+
+                    map[item.teacherCanonical].total++;
+                    
+                    // Detail breakdown
+                    const classKey = item.clazz.replace(/\s*\([^)]+\)/, '').trim(); // Remove room info for cleaner stats
+                    const subjKey = item.subject;
+                    const detailKey = `${classKey} - ${subjKey}`;
+                    
+                    if(!map[item.teacherCanonical].details[detailKey]) map[item.teacherCanonical].details[detailKey] = 0;
+                    map[item.teacherCanonical].details[detailKey]++;
+                });
+                return Object.values(map);
+            }, [allRawData]);
+
+            const filteredStats = useMemo(() => {
+                let res = stats.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+                if (sort === 'count') res.sort((a,b) => b.total - a.total);
+                else res.sort((a,b) => a.name.localeCompare(b.name));
+                return res;
+            }, [stats, search, sort]);
+
+            return (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
+                    <div className="bg-white w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê Tiết Dạy</h3>
+                                <div className="text-sm text-slate-500">Tổng hợp toàn trường dựa trên file đã tải</div>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-500"><Icons.X /></button>
+                        </div>
+                        
+                        <div className="p-4 bg-white border-b border-slate-100 flex gap-4 flex-col md:flex-row">
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
+                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:border-brand-500 outline-none" 
+                                    value={search} onChange={e => setSearch(e.target.value)} />
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => setSort('count')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'count' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Nhiều tiết nhất</button>
+                                <button onClick={() => setSort('name')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'name' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Tên A-Z</button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-0">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-100 text-slate-600 uppercase text-xs sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th className="px-6 py-3 w-16 text-center">STT</th>
+                                        <th className="px-6 py-3">Giáo Viên</th>
+                                        <th className="px-6 py-3 w-24 text-center">Tổng Tiết</th>
+                                        <th className="px-6 py-3">Chi tiết (Lớp - Môn: Số tiết)</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {filteredStats.map((s, idx) => (
+                                        <tr key={s.canonical} className="hover:bg-slate-50 transition-colors">
+                                            <td className="px-6 py-4 text-center font-mono text-slate-400">{idx + 1}</td>
+                                            <td className="px-6 py-4 font-bold text-slate-800 text-base">{s.name}</td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${s.total > 15 ? 'bg-red-100 text-red-700' : 'bg-brand-100 text-brand-700'}`}>{s.total}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-600">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {Object.entries(s.details).map(([key, count]) => (
+                                                        <span key={key} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs">
+                                                            <span>{key}</span>
+                                                            <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded ml-1">{count}</span>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {filteredStats.length === 0 && <div className="p-10 text-center text-slate-400">Không tìm thấy dữ liệu.</div>}
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+
+
         const AutoSelectionScreen = memo(({ teacherConfigs, onSelectTeacher, onBack, searchTerm, setSearchTerm }) => {
             const sortedKeys = useMemo(() => {
                 return Object.keys(teacherConfigs).sort((a,b) => teacherConfigs[a].displayName.localeCompare(teacherConfigs[b].displayName));
@@ -527,6 +634,7 @@
             const [status, setStatus] = useState('');
             const [error, setError] = useState('');
             const [searchTerm, setSearchTerm] = useState('');
+            const [showStats, setShowStats] = useState(false); // New State for Stats Modal
             const captureRef = useRef(null);
 
             useEffect(() => {
@@ -665,18 +773,7 @@
                 return uniqueItems;
             }, [allRawData, selectedSignatures, selectedHomeroom]);
 
-            const getPeriodsForSession = (session) => {
-                const sessionItems = finalSchedule.filter(d => d.session.toUpperCase() === session);
-                let periods = [1,2,3,4,5]; 
-                if (sessionItems.length > 0) {
-                     const ps = [...new Set(sessionItems.map(d => d.period))].sort((a,b)=>a-b);
-                     if (ps.length > 0) periods = ps; 
-                }
-                while(periods.length < 5) periods.push((periods[periods.length-1] || 0) + 1);
-                return periods.filter(p => p !== 16 && p !== 17);
-            };
-
-             const handleInspect = (day, period, session) => {
+            const handleInspect = (day, period, session) => {
                 const rawItems = allRawData.filter(item => 
                     (item.day === day || item.day.includes(day)) &&
                     item.period === period &&
@@ -771,6 +868,7 @@
 
             return (
                 <div className="min-h-screen pb-10 bg-[#f8fafc]">
+                    {showStats && <StatisticsModal allRawData={allRawData} onClose={() => setShowStats(false)} />}
                     {inspectData && (
                         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm" onClick={() => setInspectData(null)}>
                             <div className="bg-white w-full max-w-2xl md:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -832,8 +930,9 @@
                                         {selectedHomeroom && <span className="ml-2 text-amber-600">★ CN: {selectedHomeroom}</span>}
                                     </div>
                                 </div>
-                                <div className="md:absolute md:right-0 no-capture">
-                                        <button onClick={handleExportImage} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all shadow-lg active:scale-95"><Icons.Camera /> Lưu Ảnh</button>
+                                <div className="md:absolute md:right-0 no-capture flex gap-2">
+                                    <button onClick={() => setShowStats(true)} className="flex items-center gap-2 bg-white text-brand-600 border border-brand-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-50 transition-all shadow-sm active:scale-95"><Icons.Chart /> Thống Kê</button>
+                                    <button onClick={handleExportImage} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all shadow-lg active:scale-95"><Icons.Camera /> Lưu Ảnh</button>
                                 </div>
                             </div>
                             <div className={`tab-content ${(activeSession === 'SÁNG' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}>
