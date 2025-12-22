@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition (V9 - Split Huy)</title>
+    <title>SmartSchedule - Yersin Pro Edition (V10 - Monthly Stats)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -429,7 +429,8 @@
                     if (!targetTeacherCanonical) return;
                     
                     // --- ONE PERIOD PER TIME SLOT CHECK ---
-                    const uniqueKey = `${targetTeacherCanonical}|${item.day}|${item.session}|${item.period}`;
+                    // Updated Key for Monthly: Include fileIndex to differentiate weeks
+                    const uniqueKey = `${targetTeacherCanonical}|${item.fileIndex}|${item.day}|${item.session}|${item.period}`;
                     
                     if (processed.has(uniqueKey)) return; 
                     processed.add(uniqueKey);
@@ -947,7 +948,7 @@
         // --- MAIN APP ---
         const App = () => {
             const [stage, setStage] = useState('upload'); 
-            const [file, setFile] = useState(null);
+            const [files, setFiles] = useState([]); // Changed from single file to array of files
             const [allRawData, setAllRawData] = useState([]); 
             const [teacherConfigs, setTeacherConfigs] = useState({}); 
             const [selectedSignatures, setSelectedSignatures] = useState(new Set()); 
@@ -973,91 +974,114 @@
             }, []);
 
             // --- PROCESS FILE ---
-            const processFile = async (uploadedFile) => {
+            const handleFiles = async (fileList) => {
+                if (!fileList || fileList.length === 0) return;
+                
                 setLoading(true); setError(''); setStatus('Đang đọc file...');
-                try {
-                    const data = await uploadedFile.arrayBuffer();
-                    const workbook = XLSX.read(data);
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const extractedAll = [];
+                let combinedClasses = new Set();
+                let combinedConfigs = {};
 
-                    if (worksheet['!merges']) {
-                        setStatus('Đang xử lý ô gộp...');
-                        worksheet['!merges'].forEach(range => {
-                            const startCell = worksheet[XLSX.utils.encode_cell(range.s)];
-                            if (startCell) {
-                                for (let R = range.s.r; R <= range.e.r; ++R) {
-                                    for (let C = range.s.c; C <= range.e.c; ++C) {
-                                        const addr = XLSX.utils.encode_cell({c: C, r: R});
-                                        if (!worksheet[addr]) worksheet[addr] = { ...startCell };
+                try {
+                    // Convert FileList to Array
+                    const files = Array.from(fileList);
+                    setFiles(files); // Store files
+
+                    for (let fIdx = 0; fIdx < files.length; fIdx++) {
+                        const file = files[fIdx];
+                        setStatus(`Đang xử lý file ${fIdx + 1}/${files.length}: ${file.name}...`);
+                        
+                        const data = await file.arrayBuffer();
+                        const workbook = XLSX.read(data);
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+                        if (worksheet['!merges']) {
+                            worksheet['!merges'].forEach(range => {
+                                const startCell = worksheet[XLSX.utils.encode_cell(range.s)];
+                                if (startCell) {
+                                    for (let R = range.s.r; R <= range.e.r; ++R) {
+                                        for (let C = range.s.c; C <= range.e.c; ++C) {
+                                            const addr = XLSX.utils.encode_cell({c: C, r: R});
+                                            if (!worksheet[addr]) worksheet[addr] = { ...startCell };
+                                        }
                                     }
                                 }
-                            }
-                        });
-                    }
-
-                    setStatus('Đang phân tích dữ liệu...');
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-                    let headerRowIndex = -1;
-                    for (let i = 0; i < Math.min(jsonData.length, 30); i++) {
-                        const rowStr = jsonData[i].join(' ').toUpperCase();
-                        if (rowStr.includes('THỨ') && rowStr.includes('TIẾT')) { headerRowIndex = i; break; }
-                    }
-                    if (headerRowIndex === -1) throw new Error("Không tìm thấy dòng tiêu đề chuẩn (Thứ/Tiết).");
-
-                    const classMap = {};
-                    const foundClasses = new Set();
-                    let dayCol = -1, periodCol = -1, sessionCol = -1;
-
-                    jsonData[headerRowIndex].forEach((cell, idx) => {
-                        const c = cell.toString().trim().toUpperCase();
-                        if (c.includes('THỨ')) dayCol = idx;
-                        else if (c.includes('TIẾT')) periodCol = idx;
-                        else if (c.includes('BUỔI')) sessionCol = idx;
-                        else if (c.length > 0 && c.length < 15 && !['SÁNG','CHIỀU'].includes(c)) {
-                            classMap[idx] = cell.toString().trim();
-                            foundClasses.add(cell.toString().trim());
+                            });
                         }
-                    });
 
-                    const extracted = [];
-                    const configs = {};
-                    let currentDay = '', currentSession = '';
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                        let headerRowIndex = -1;
+                        for (let i = 0; i < Math.min(jsonData.length, 30); i++) {
+                            const rowStr = jsonData[i].join(' ').toUpperCase();
+                            if (rowStr.includes('THỨ') && rowStr.includes('TIẾT')) { headerRowIndex = i; break; }
+                        }
+                        if (headerRowIndex === -1) throw new Error(`File ${file.name}: Không tìm thấy dòng tiêu đề chuẩn (Thứ/Tiết).`);
 
-                    for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
-                        const row = jsonData[i];
-                        if (row[dayCol]) currentDay = row[dayCol].toString().trim();
-                        const rawPeriod = row[periodCol]?.toString().trim();
-                        if (!rawPeriod || isNaN(parseInt(rawPeriod))) continue;
-                        const period = parseInt(rawPeriod);
-                        if (sessionCol !== -1 && row[sessionCol]) currentSession = row[sessionCol].toString().trim();
-                        else currentSession = period <= 5 ? 'SÁNG' : 'CHIỀU';
+                        const classMap = {};
+                        let dayCol = -1, periodCol = -1, sessionCol = -1;
 
-                        Object.keys(classMap).forEach(colIdxStr => {
-                            const colIdx = parseInt(colIdxStr);
-                            const cellContent = row[colIdx]?.toString().trim();
-                            const cellKey = `${i}-${colIdx}`; // Use row index and column index as unique cell identifier
-                            if (cellContent) {
-                                const parsedItems = parseMultiValueCell(cellContent, { day: currentDay, session: currentSession, period: period });
-                                parsedItems.forEach(item => {
-                                    if (item.teacherCanonical && !['gvcn','gvtg'].includes(item.teacherCanonical)) {
-                                        const key = item.teacherCanonical;
-                                        if (!configs[key]) configs[key] = { displayName: item.teacherRaw, options: {} };
-                                        if (item.teacherRaw.length > configs[key].displayName.length && item.teacherRaw.length < 30) configs[key].displayName = item.teacherRaw;
-                                        const sig = `${item.subject}|${item.teacherRaw}`;
-                                        if (!configs[key].options[sig]) configs[key].options[sig] = { label: `${item.subject} - ${item.teacherRaw}`, count: 0, raw: item.teacherRaw, subj: item.subject };
-                                        configs[key].options[sig].count++;
-                                    }
-                                    let displayClass = classMap[colIdx];
-                                    if (item.className && item.className !== displayClass) displayClass = `${displayClass} (${item.className})`;
-                                    extracted.push({ ...item, clazz: displayClass, cellKey: cellKey, isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)), signature: `${item.subject}|${item.teacherRaw}` });
-                                });
+                        jsonData[headerRowIndex].forEach((cell, idx) => {
+                            const c = cell.toString().trim().toUpperCase();
+                            if (c.includes('THỨ')) dayCol = idx;
+                            else if (c.includes('TIẾT')) periodCol = idx;
+                            else if (c.includes('BUỔI')) sessionCol = idx;
+                            else if (c.length > 0 && c.length < 15 && !['SÁNG','CHIỀU'].includes(c)) {
+                                classMap[idx] = cell.toString().trim();
+                                combinedClasses.add(cell.toString().trim());
                             }
                         });
+
+                        let currentDay = '', currentSession = '';
+
+                        for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
+                            const row = jsonData[i];
+                            if (row[dayCol]) currentDay = row[dayCol].toString().trim();
+                            const rawPeriod = row[periodCol]?.toString().trim();
+                            if (!rawPeriod || isNaN(parseInt(rawPeriod))) continue;
+                            const period = parseInt(rawPeriod);
+                            if (sessionCol !== -1 && row[sessionCol]) currentSession = row[sessionCol].toString().trim();
+                            else currentSession = period <= 5 ? 'SÁNG' : 'CHIỀU';
+
+                            Object.keys(classMap).forEach(colIdxStr => {
+                                const colIdx = parseInt(colIdxStr);
+                                const cellContent = row[colIdx]?.toString().trim();
+                                
+                                if (cellContent) {
+                                    // Pass fileIndex into meta data
+                                    const parsedItems = parseMultiValueCell(cellContent, { 
+                                        day: currentDay, 
+                                        session: currentSession, 
+                                        period: period,
+                                        fileIndex: fIdx  // CRITICAL ADDITION FOR MONTHLY STATS
+                                    });
+                                    
+                                    parsedItems.forEach(item => {
+                                        if (item.teacherCanonical && !['gvcn','gvtg'].includes(item.teacherCanonical)) {
+                                            const key = item.teacherCanonical;
+                                            if (!combinedConfigs[key]) combinedConfigs[key] = { displayName: item.teacherRaw, options: {} };
+                                            if (item.teacherRaw.length > combinedConfigs[key].displayName.length && item.teacherRaw.length < 30) combinedConfigs[key].displayName = item.teacherRaw;
+                                            const sig = `${item.subject}|${item.teacherRaw}`;
+                                            if (!combinedConfigs[key].options[sig]) combinedConfigs[key].options[sig] = { label: `${item.subject} - ${item.teacherRaw}`, count: 0, raw: item.teacherRaw, subj: item.subject };
+                                            combinedConfigs[key].options[sig].count++;
+                                        }
+                                        let displayClass = classMap[colIdx];
+                                        if (item.className && item.className !== displayClass) displayClass = `${displayClass} (${item.className})`;
+                                        
+                                        extractedAll.push({ 
+                                            ...item, 
+                                            clazz: displayClass, 
+                                            isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)), 
+                                            signature: `${item.subject}|${item.teacherRaw}` 
+                                        });
+                                    });
+                                }
+                            });
+                        }
                     }
 
-                    setAllRawData(extracted);
-                    setTeacherConfigs(configs);
-                    setClasses(Array.from(foundClasses).sort());
+                    setAllRawData(extractedAll);
+                    setTeacherConfigs(combinedConfigs);
+                    setClasses(Array.from(combinedClasses).sort());
                     setStage('mode_select'); // Go to mode selection
                     setStatus('');
                 } catch (err) { setError(err.message || 'Lỗi xử lý file.'); } finally { setLoading(false); }
@@ -1098,7 +1122,10 @@
                 const uniqueItems = [];
                 const seen = new Set();
                 candidates.forEach(item => {
-                    const id = `${item.day}-${item.session}-${item.period}-${item.clazz}-${item.subject}-${item.teacherCanonical}`;
+                    // For visualization, we treat items from different files as unique if they clash, 
+                    // but practically we usually view one week or they overlay.
+                    // Unique ID includes fileIndex so if week 1 and week 2 have same class, both appear (which is fine).
+                    const id = `${item.fileIndex}-${item.day}-${item.session}-${item.period}-${item.clazz}-${item.subject}-${item.teacherCanonical}`;
                     if (!seen.has(id)) { seen.add(id); uniqueItems.push(item); }
                 });
                 return uniqueItems;
@@ -1110,7 +1137,11 @@
                     item.period === period &&
                     item.session.toUpperCase() === session.toUpperCase()
                 );
-                rawItems.sort((a, b) => a.clazz.localeCompare(b.clazz));
+                // Sort by File Index first, then Class
+                rawItems.sort((a, b) => {
+                    if (a.fileIndex !== b.fileIndex) return a.fileIndex - b.fileIndex;
+                    return a.clazz.localeCompare(b.clazz);
+                });
                 setInspectData({ day, period, session, data: rawItems });
             };
 
@@ -1141,8 +1172,11 @@
                             <p className="text-slate-500 text-sm max-w-xs mx-auto mb-8">Nhanh chóng - Chính xác - Thông minh</p>
                             <label className="w-full max-w-xs px-6 py-4 bg-brand-600 text-white font-bold rounded-xl cursor-pointer shadow-lg shadow-brand-500/30 transition-all hover:bg-brand-700 hover:scale-105 active:scale-95 flex items-center justify-center gap-3">
                                 <Icons.Upload /> <span>Tải lên file Excel</span>
-                                <input type="file" className="hidden" accept=".xlsx, .xls" onChange={(e) => { setFile(e.target.files[0]); processFile(e.target.files[0]); }} />
+                                {/* Changed to allow multiple files */}
+                                <input type="file" multiple className="hidden" accept=".xlsx, .xls" onChange={(e) => { handleFiles(e.target.files); }} />
                             </label>
+                            <p className="mt-2 text-xs text-slate-400 italic">Mẹo: Bạn có thể chọn nhiều file cùng lúc để tính tổng tháng.</p>
+                            
                             {error && <div className="mt-4 text-red-600 bg-red-50 px-4 py-2 rounded-xl text-xs font-bold w-full">{error}</div>}
                             {loading && <div className="mt-4 text-brand-600 font-bold animate-pulse text-sm">{status}</div>}
                             
@@ -1178,7 +1212,7 @@
                                 else setStage('config');
                             }}
                             onViewStats={() => setShowStats(true)}
-                            onBack={() => { setFile(null); setStage('upload'); setAllRawData([]); }}
+                            onBack={() => { setFiles([]); setStage('upload'); setAllRawData([]); }}
                         />
                     </>
                 )
@@ -1234,6 +1268,9 @@
                                                 <div key={i} className={`p-2 rounded border text-sm ${isMine ? 'bg-brand-50 border-brand-200 shadow-sm ring-1 ring-brand-100' : 'bg-slate-50 border-slate-100'}`}>
                                                     <div className="font-bold text-slate-800">{item.clazz}</div>
                                                     <div className="text-xs text-slate-500 truncate">{item.subject} - {item.teacherRaw || "---"}</div>
+                                                    {item.fileIndex !== undefined && files.length > 1 && (
+                                                        <div className="text-[10px] text-slate-400 mt-1">File {item.fileIndex + 1}</div>
+                                                    )}
                                                 </div>
                                             )
                                         })}
@@ -1262,7 +1299,7 @@
                                         <button onClick={() => setActiveSession('SÁNG')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'SÁNG' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-400'}`}>Sáng</button>
                                         <button onClick={() => setActiveSession('CHIỀU')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'CHIỀU' ? 'bg-white text-orange-700 shadow-sm' : 'text-slate-400'}`}>Chiều</button>
                                     </div>
-                                    <button onClick={() => { setFile(null); setStage('upload'); setAllRawData([]); }} className="p-2 bg-white border border-slate-200 text-slate-500 hover:text-red-500 rounded-lg" title="Tải lại file"><Icons.Reload /></button>
+                                    <button onClick={() => { setFiles([]); setStage('upload'); setAllRawData([]); }} className="p-2 bg-white border border-slate-200 text-slate-500 hover:text-red-500 rounded-lg" title="Tải lại file"><Icons.Reload /></button>
                                 </div>
                             </div>
                         </div>
@@ -1275,6 +1312,7 @@
                                     <div className="text-sm text-slate-500 font-bold mt-1">
                                         GV: {currentTeacherKey && teacherConfigs[currentTeacherKey] ? teacherConfigs[currentTeacherKey].displayName : (selectedSignatures.size > 0 ? 'Đã chọn nhiều GV' : 'Tùy chỉnh')}
                                         {selectedHomeroom && <span className="ml-2 text-amber-600">★ CN: {selectedHomeroom}</span>}
+                                        {files.length > 1 && <div className="text-xs text-brand-600 mt-1">(Đang xem tổng hợp {files.length} file)</div>}
                                     </div>
                                 </div>
                                 <div className="md:absolute md:right-0 no-capture flex gap-2">
