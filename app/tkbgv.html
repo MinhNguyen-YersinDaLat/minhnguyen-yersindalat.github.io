@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition (V8 - Compact Stats)</title>
+    <title>SmartSchedule - Yersin Pro Edition (V9 - Split Huy)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -160,6 +160,8 @@
                 token = token.replace(/__P(\d+)__/g, (m, i) => ph[i]);
                 const parenMatch = token.match(/^([^\(\)]+?)\s*\(([^)]+)\)$/);
                 
+                let item = null;
+
                 if (parenMatch) {
                     const subjectRaw = parenMatch[1].trim();
                     const insideRaw = parenMatch[2].trim(); 
@@ -178,7 +180,7 @@
                             className = insideParts.slice(1).join(' - ');
                         }
                     }
-                    results.push({ subject: subjectRaw, teacherRaw, teacherCanonical: getCanonicalName(teacherRaw), className, raw: token, ...baseMeta });
+                    item = { subject: subjectRaw, teacherRaw, teacherCanonical: getCanonicalName(teacherRaw), className, raw: token, ...baseMeta };
                 } else {
                     const parts = token.split(/\s*[-–]\s*/);
                     if (parts.length >= 2) {
@@ -187,20 +189,34 @@
                             const teacherRaw = parts[tIdx];
                             const subject = parts.slice(0, tIdx).join(' - ');
                             const className = parts.slice(tIdx + 1).join(' - ');
-                            results.push({ subject: subject || parts[0], teacherRaw, teacherCanonical: getCanonicalName(teacherRaw), className, raw: token, ...baseMeta });
+                            item = { subject: subject || parts[0], teacherRaw, teacherCanonical: getCanonicalName(teacherRaw), className, raw: token, ...baseMeta };
                         } else {
                             if (parts[0].toUpperCase().includes('GVCN')) {
-                                results.push({ subject: parts[0], teacherRaw: parts[1], teacherCanonical: getCanonicalName(parts[1]), className: '', raw: token, ...baseMeta });
+                                item = { subject: parts[0], teacherRaw: parts[1], teacherCanonical: getCanonicalName(parts[1]), className: '', raw: token, ...baseMeta };
                             } else {
                                 const teacherRaw = parts[parts.length-1];
                                 const subject = parts.slice(0, parts.length-1).join(' - ');
-                                results.push({ subject, teacherRaw, teacherCanonical: getCanonicalName(teacherRaw), className: '', raw: token, ...baseMeta });
+                                item = { subject, teacherRaw, teacherCanonical: getCanonicalName(teacherRaw), className: '', raw: token, ...baseMeta };
                             }
                         }
                     } else {
-                        results.push({ subject: token, teacherRaw: '', teacherCanonical: '', className: '', raw: token, ambiguous: true, ...baseMeta });
+                        item = { subject: token, teacherRaw: '', teacherCanonical: '', className: '', raw: token, ambiguous: true, ...baseMeta };
                     }
                 }
+
+                // --- SPECIAL LOGIC: SPLIT HUY (QP vs GDKTPL) ---
+                if (item && item.teacherCanonical === 'huy') {
+                    const s = item.subject.toUpperCase();
+                    if (s.includes('QP') || s.includes('QUỐC PHÒNG')) {
+                        item.teacherCanonical = 'huy_qp';
+                        if (!item.teacherRaw.includes('(QP)')) item.teacherRaw = `${item.teacherRaw} (QP)`;
+                    } else if (s.includes('KTPL') || s.includes('GDKTPL') || s.includes('PHÁP LUẬT') || s.includes('GD KINH TẾ')) {
+                        item.teacherCanonical = 'huy_ktpl';
+                        if (!item.teacherRaw.includes('(KTPL)')) item.teacherRaw = `${item.teacherRaw} (KTPL)`;
+                    }
+                }
+
+                if(item) results.push(item);
             }
             return results;
         }
@@ -559,10 +575,8 @@
                             
                             // Center align numeric columns
                             // STT(0), Total(2), Lim(4), Stem(5), HDTN(6), CN(7), Grand Total(9)
-                            if ([0, 2, 4, 5, 6, 7].includes(C)) { 
-                                ws[addr].s = centerStyle;
-                            } else if (C === 9) { // Grand Total
-                                ws[addr].s = boldCenterStyle;
+                            if ([0, 2, 4, 5, 6, 7, 9].includes(C)) { 
+                                ws[addr].s = (C === 9) ? boldCenterStyle : centerStyle;
                             } else {
                                 ws[addr].s = cellStyle;
                             }
