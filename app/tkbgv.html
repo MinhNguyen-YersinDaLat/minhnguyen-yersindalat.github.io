@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition (Stats V4 - One Period Logic)</title>
+    <title>SmartSchedule - Yersin Pro Edition (V5 - Excel Export)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,8 +15,8 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- SheetJS (XLSX) -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- XLSX-JS-STYLE (Hỗ trợ xuất Excel có màu sắc/border) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <!-- HTML2Canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -104,7 +104,8 @@
             Bolt: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
             Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
             Chart: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
-            Save: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+            Save: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>,
+            Excel: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
         };
 
         const COLLECTIVE_KEYWORDS = ['CHÀO CỜ', 'CC', 'SINH HOẠT CỜ', 'LỄ', 'TẬP THỂ', 'TOÀN TRƯỜNG', 'SHDC', 'HỘI THAO', 'GOT TALENT'];
@@ -404,9 +405,11 @@
 
                     if (!targetTeacherCanonical) return;
                     
-                    // --- ONE PERIOD PER TIME SLOT CHECK ---
-                    // Unique identifier for this time slot for this teacher: TeacherID + Day + Session + Period
-                    // This ensures even if a teacher teaches 3 classes simultaneously (merged cells), it counts as 1.
+                    // --- ONE PERIOD PER TIME SLOT CHECK (Correct Logic) ---
+                    // Unique identifier: Teacher + Day + Session + Period
+                    // This ensures if a cell spans Period 3 & 4 (merged), SheetJS expanded it into 2 rows in 'allRawData'.
+                    // So we get: Row for Per 3, Row for Per 4.
+                    // uniqueKey will be distinct for each -> Counts as 2.
                     const uniqueKey = `${targetTeacherCanonical}|${item.day}|${item.session}|${item.period}`;
                     
                     if (processed.has(uniqueKey)) return; 
@@ -437,7 +440,6 @@
                         if (!map[targetTeacherCanonical].homeroomDetails[detailKey]) map[targetTeacherCanonical].homeroomDetails[detailKey] = 0;
                         map[targetTeacherCanonical].homeroomDetails[detailKey]++;
                     } else {
-                        // Trust item.teacherCanonical for teaching, unless it was a forced homeroom
                         if (item.teacherCanonical === targetTeacherCanonical) {
                              map[targetTeacherCanonical].teachingTotal++;
                             if (!map[targetTeacherCanonical].teachingDetails[detailKey]) map[targetTeacherCanonical].teachingDetails[detailKey] = 0;
@@ -459,6 +461,105 @@
                 return res;
             }, [stats, search, sort]);
 
+            // --- EXPORT TO EXCEL FUNCTION ---
+            const handleExportExcel = () => {
+                try {
+                    // 1. Prepare Data
+                    const header = ["STT", "Giáo Viên", "Tổng Dạy", "Chi Tiết Dạy", "Tổng CN", "Chi Tiết CN"];
+                    const rows = filteredStats.map((s, idx) => {
+                        // Format Teaching Details: "10A1 - Toán (2 tiết)"
+                        const tDetails = Object.entries(s.teachingDetails).map(([k, v]) => {
+                            return `${k}${v > 1 ? ` (${v} tiết)` : ''}`;
+                        }).join(', ');
+
+                        // Format Homeroom Details
+                        const hDetails = Object.entries(s.homeroomDetails).map(([k, v]) => {
+                            return `${k.split('-')[0].trim()}${v > 1 ? ` (${v} tiết)` : ''}`;
+                        }).join(', ');
+
+                        return [
+                            idx + 1,
+                            s.name,
+                            s.teachingTotal || 0,
+                            tDetails || "-",
+                            s.homeroomTotal || 0,
+                            hDetails || "-"
+                        ];
+                    });
+
+                    // 2. Create Workbook & Worksheet
+                    const wb = XLSX.utils.book_new();
+                    const ws_data = [header, ...rows];
+                    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+                    // 3. Styling
+                    // Define styles
+                    const headerStyle = {
+                        font: { bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "EA580C" } }, // Brand Orange
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } }
+                        }
+                    };
+
+                    const cellStyle = {
+                        border: {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } }
+                        },
+                        alignment: { vertical: "center", wrapText: true }
+                    };
+
+                    const centerStyle = { ...cellStyle, alignment: { horizontal: "center", vertical: "center" } };
+
+                    // Apply styles to Header (Row 0)
+                    const range = XLSX.utils.decode_range(ws['!ref']);
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+                        if (!ws[addr]) continue;
+                        ws[addr].s = headerStyle;
+                    }
+
+                    // Apply styles to Data Rows
+                    for (let R = 1; R <= range.e.r; ++R) {
+                        for (let C = 0; C <= range.e.c; ++C) {
+                            const addr = XLSX.utils.encode_cell({ r: R, c: C });
+                            if (!ws[addr]) ws[addr] = { v: "", t: 's' }; // Init empty cell if null
+                            
+                            // Center align STT, Counts
+                            if (C === 0 || C === 2 || C === 4) {
+                                ws[addr].s = centerStyle;
+                            } else {
+                                ws[addr].s = cellStyle;
+                            }
+                        }
+                    }
+
+                    // Set Column Widths
+                    ws['!cols'] = [
+                        { wch: 5 },  // STT
+                        { wch: 25 }, // Name
+                        { wch: 10 }, // Total Teach
+                        { wch: 50 }, // Details Teach
+                        { wch: 10 }, // Total HR
+                        { wch: 30 }  // Details HR
+                    ];
+
+                    XLSX.utils.book_append_sheet(wb, ws, "Thống Kê");
+                    XLSX.writeFile(wb, "ThongKe_TKB_Yersin.xlsx");
+
+                } catch (err) {
+                    console.error("Export Error:", err);
+                    alert("Lỗi xuất file: " + err.message);
+                }
+            };
+
             return (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
                     <div className="bg-white w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -471,6 +572,7 @@
                             </div>
                             <div className="flex items-center gap-2">
                                 <button onClick={() => setShowConfig(true)} className="px-4 py-2 bg-brand-100 text-brand-700 rounded-lg font-bold hover:bg-brand-200 flex items-center gap-2 text-sm"><Icons.Cog /> Cấu hình GVCN</button>
+                                <button onClick={handleExportExcel} className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 text-sm shadow-md transition-all active:scale-95"><Icons.Excel /> Xuất Excel</button>
                                 <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-500"><Icons.X /></button>
                             </div>
                         </div>
@@ -520,7 +622,7 @@
                                                     {Object.entries(s.teachingDetails).map(([key, count]) => (
                                                         <span key={key} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs">
                                                             <span>{key}</span>
-                                                            {count > 1 && <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded ml-1">{count}</span>}
+                                                            {count > 1 && <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded ml-1">({count} tiết)</span>}
                                                         </span>
                                                     ))}
                                                     {s.teachingTotal === 0 && <span className="text-xs text-slate-400 italic">Không có tiết dạy</span>}
@@ -540,6 +642,7 @@
                                                     {Object.entries(s.homeroomDetails).map(([key, count]) => (
                                                         <span key={key} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-orange-200 bg-orange-50 text-orange-800 text-xs font-bold">
                                                             {key.split('-')[0].trim()} 
+                                                            {count > 1 && <span className="font-normal opacity-80 ml-1">({count} tiết)</span>}
                                                         </span>
                                                     ))}
                                                     {s.homeroomTotal === 0 && <span className="text-xs text-slate-400 italic">---</span>}
