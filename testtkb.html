@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition (Final Fix)</title>
+    <title>SmartSchedule - Yersin Pro (Hybrid Core)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,8 +24,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getDatabase, ref, set, get, child, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        window.firebaseModules = { initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously, getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query, updateDoc, deleteDoc };
+        // Expose Firebase to Global Scope
+        window.firebaseModules = { 
+            initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously,
+            getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query, updateDoc, deleteDoc,
+            getDatabase, ref, set, get, child, remove
+        };
     </script>
 
     <!-- Google Fonts -->
@@ -84,7 +90,8 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef, memo } = React;
         
-        // --- FIREBASE CONFIGURATION STRATEGY ---
+        // --- HYBRID CONFIGURATION ---
+        // 1. Check for Canvas Environment
         const getEnvConfig = () => {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 try { return JSON.parse(__firebase_config); } catch (e) { return null; }
@@ -95,6 +102,7 @@
         const envConfig = getEnvConfig();
         const isCanvasEnv = !!envConfig; 
 
+        // 2. Local Fallback (RTDB Compatible)
         const localConfig = {
             apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
             authDomain: "hanhkiem-d853b.firebaseapp.com",
@@ -106,21 +114,27 @@
             measurementId: "G-M1Z8X4FX8L"
         };
 
+        // Select Config
         const firebaseConfig = isCanvasEnv ? envConfig : localConfig;
         const appId = (isCanvasEnv && typeof __app_id !== 'undefined') ? __app_id : 'hanhkiem-d853b';
         
-        let auth, db, googleProvider;
+        // Firebase Instances
+        let auth, db, rtdb, googleProvider;
         let firebaseReady = false;
 
         const initFirebase = async () => {
             if (window.firebaseModules && !firebaseReady) {
-                const { initializeApp, getAuth, getFirestore, GoogleAuthProvider } = window.firebaseModules;
+                const { initializeApp, getAuth, getFirestore, getDatabase, GoogleAuthProvider } = window.firebaseModules;
                 try {
                     let app;
-                    try { app = initializeApp(firebaseConfig); } catch(e) { /* existing app */ }
+                    try { app = initializeApp(firebaseConfig); } catch(e) { /* Ignore if already exists */ }
                     
                     auth = getAuth();
-                    db = getFirestore();
+                    if (isCanvasEnv) {
+                        db = getFirestore(); // Use Firestore on Canvas
+                    } else {
+                        rtdb = getDatabase(); // Use Realtime DB on Local
+                    }
                     googleProvider = new GoogleAuthProvider();
                     googleProvider.setCustomParameters({ prompt: 'select_account' });
                     firebaseReady = true;
@@ -149,7 +163,7 @@
             Trash: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
             Plus: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>,
             Bolt: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-            Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+            Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
             Chart: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
             Save: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
         };
@@ -623,161 +637,6 @@
             );
         });
 
-        const AutoSelectionScreen = memo(({ teacherConfigs, onSelectTeacher, onBack, searchTerm, setSearchTerm }) => {
-            const sortedKeys = useMemo(() => {
-                return Object.keys(teacherConfigs).sort((a,b) => teacherConfigs[a].displayName.localeCompare(teacherConfigs[b].displayName));
-            }, [teacherConfigs]);
-
-            const filteredKeys = sortedKeys.filter(key => {
-                return teacherConfigs[key].displayName.toLowerCase().includes(searchTerm.toLowerCase());
-            });
-
-            return (
-                <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
-                    <div className="w-full max-w-lg bg-white rounded-[2rem] border border-white shadow-soft overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-6 bg-brand-600 text-white">
-                            <h2 className="text-2xl font-bold flex items-center gap-2"><Icons.Bolt /> <span className="ml-2">Chế độ Tự Động</span></h2>
-                            <p className="opacity-90 text-sm mt-1 ml-8">Chọn tên giáo viên để xem TKB ngay.</p>
-                        </div>
-                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex gap-4 items-center">
-                            <div className="relative flex-1">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
-                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 outline-none shadow-sm"
-                                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                            </div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
-                            <div className="space-y-2">
-                                {filteredKeys.map(key => (
-                                    <button 
-                                        key={key} 
-                                        onClick={() => onSelectTeacher(key)}
-                                        className="w-full text-left p-4 rounded-xl border border-white bg-white hover:border-brand-300 hover:shadow-md transition-all flex items-center justify-between group"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
-                                                {teacherConfigs[key].displayName.charAt(0).toUpperCase()}
-                                            </div>
-                                            <span className="font-bold text-slate-700 text-lg group-hover:text-brand-700">{teacherConfigs[key].displayName}</span>
-                                        </div>
-                                        <div className="text-slate-300 group-hover:text-brand-500"><Icons.ArrowRight /></div>
-                                    </button>
-                                ))}
-                                {filteredKeys.length === 0 && <div className="text-center py-10 text-slate-400">Không tìm thấy kết quả.</div>}
-                            </div>
-                        </div>
-                        <div className="p-4 border-t border-slate-200 bg-white">
-                            <button onClick={onBack} className="w-full py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Quay lại</button>
-                        </div>
-                    </div>
-                </div>
-            );
-        });
-
-        const ConfigScreen = memo(({ teacherConfigs, selectedSignatures, handleToggleOption, handleSelectAll, searchTerm, setSearchTerm, expandedKey, setExpandedKey, onBack, onView }) => {
-            const sortedKeys = useMemo(() => {
-                const keys = Object.keys(teacherConfigs);
-                const isSelected = (key) => {
-                    const options = teacherConfigs[key].options;
-                    return Object.keys(options).some(sig => selectedSignatures.has(sig));
-                };
-                return keys.sort((a,b) => {
-                    const selA = isSelected(a);
-                    const selB = isSelected(b);
-                    if (selA && !selB) return -1;
-                    if (!selA && selB) return 1;
-                    return teacherConfigs[a].displayName.localeCompare(teacherConfigs[b].displayName);
-                });
-            }, [teacherConfigs, selectedSignatures]);
-            
-            const filteredKeys = sortedKeys.filter(key => {
-                const group = teacherConfigs[key];
-                const searchLower = searchTerm.toLowerCase();
-                if (group.displayName.toLowerCase().includes(searchLower)) return true;
-                return Object.values(group.options).some(opt => opt.label.toLowerCase().includes(searchLower));
-            });
-
-            return (
-                <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
-                    <div className="w-full max-w-4xl bg-white rounded-[2rem] border border-white shadow-soft overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-6 bg-brand-600 text-white">
-                            <h2 className="text-2xl font-bold flex items-center gap-2"><Icons.Cog /> <span className="ml-2">Cấu hình Thủ Công</span></h2>
-                            <p className="opacity-90 text-sm mt-1 ml-9">Chọn chính xác các lớp bạn dạy để loại bỏ trùng tên.</p>
-                        </div>
-                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex gap-4 items-center">
-                            <div className="relative flex-1">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
-                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 outline-none shadow-sm"
-                                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                            </div>
-                            <div className="text-sm text-slate-500 font-bold">Đã chọn: <span className="text-brand-600 text-lg">{selectedSignatures.size}</span> mục</div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
-                            <div className="space-y-3">
-                                {filteredKeys.map(key => {
-                                    const group = teacherConfigs[key];
-                                    const isExpanded = expandedKey === key;
-                                    const options = Object.entries(group.options);
-                                    const isAnySelected = options.some(([sig]) => selectedSignatures.has(sig));
-
-                                    return (
-                                        <div key={key} className={`bg-white rounded-xl border transition-all overflow-hidden ${isAnySelected ? 'border-brand-500 ring-1 ring-brand-200' : 'border-slate-200 hover:border-brand-300'}`}>
-                                            <div 
-                                                className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50"
-                                                onClick={() => setExpandedKey(isExpanded ? null : key)}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors ${isAnySelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                                                        {group.displayName.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-800">{group.displayName} {isAnySelected && <span className="text-brand-600 text-xs ml-2">(Đã chọn)</span>}</div>
-                                                        <div className="text-xs text-slate-500">{options.length} nhóm môn học</div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-slate-400">
-                                                    {isExpanded ? <Icons.ChevronUp /> : <Icons.ChevronDown />}
-                                                </div>
-                                            </div>
-                                            
-                                            {isExpanded && (
-                                                <div className="border-t border-slate-100 bg-slate-50/50 p-4 animate-fade-in" onClick={e => e.stopPropagation()}>
-                                                    <div className="flex justify-end mb-2">
-                                                        <button onClick={() => handleSelectAll(key)} className="text-xs font-bold text-brand-600 hover:underline">Chọn tất cả</button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                        {options.map(([sig, data]) => (
-                                                            <label key={sig} className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-brand-300 transition-all select-none">
-                                                                <input 
-                                                                    type="checkbox" 
-                                                                    className="custom-checkbox w-5 h-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 mt-0.5"
-                                                                    checked={selectedSignatures.has(sig)}
-                                                                    onChange={(e) => handleToggleOption(sig, e.target.checked, key)}
-                                                                />
-                                                                <div className="flex-1">
-                                                                    <div className="font-bold text-slate-700 text-sm">{data.label}</div>
-                                                                    <div className="text-xs text-slate-500 mt-1">Xuất hiện: {data.count} lần</div>
-                                                                </div>
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )
-                                })}
-                                {filteredKeys.length === 0 && <div className="text-center py-10 text-slate-400">Không tìm thấy giáo viên nào khớp với từ khóa.</div>}
-                            </div>
-                        </div>
-                        <div className="p-4 border-t border-slate-200 bg-white flex justify-between items-center">
-                            <button onClick={onBack} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Quay lại</button>
-                            <button onClick={onView} disabled={selectedSignatures.size === 0} className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg flex items-center gap-2 ${selectedSignatures.size === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all'}`}>Xem TKB <Icons.ArrowRight /></button>
-                        </div>
-                    </div>
-                </div>
-            )
-        });
-
         const DiaryScreen = memo(({ user, onBack }) => {
             const [range, setRange] = useState({ start: '', end: '' });
             const [logs, setLogs] = useState([]);
@@ -787,16 +646,45 @@
 
             useEffect(() => { const date = new Date(); setRange({ start: new Date(date.getFullYear(), date.getMonth(), 1).toISOString().split('T')[0], end: new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().split('T')[0] }); }, []);
 
+            // --- HYBRID DATA FETCH ---
             const fetchLogs = async () => {
                 if (!range.start || !range.end) return;
                 setLoading(true);
                 try {
-                    const { getFirestore, collection, getDocs, query } = window.firebaseModules;
-                    const db = getFirestore();
-                    const q = collection(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs');
-                    const snapshot = await getDocs(q);
                     let flatLogs = [];
-                    snapshot.forEach(doc => { const weekData = doc.data(); if (weekData.items) { const validItems = weekData.items.filter(item => item.date >= range.start && item.date <= range.end); validItems.forEach(i => i._weekId = doc.id); flatLogs = flatLogs.concat(validItems); } });
+
+                    if (isCanvasEnv) {
+                        // FIRESTORE
+                        const { getFirestore, collection, getDocs } = window.firebaseModules;
+                        const db = getFirestore();
+                        const q = collection(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs');
+                        const snapshot = await getDocs(q);
+                        snapshot.forEach(doc => { 
+                            const weekData = doc.data(); 
+                            if (weekData.items) { 
+                                const validItems = weekData.items.filter(item => item.date >= range.start && item.date <= range.end); 
+                                validItems.forEach(i => i._weekId = doc.id); 
+                                flatLogs = flatLogs.concat(validItems); 
+                            } 
+                        });
+                    } else {
+                        // REALTIME DATABASE
+                        const { getDatabase, ref, get, child } = window.firebaseModules;
+                        const rtdb = getDatabase();
+                        const logsRef = ref(rtdb, `users/${user.uid}/weekly_logs`);
+                        const snapshot = await get(logsRef);
+                        if (snapshot.exists()) {
+                            snapshot.forEach(childSnap => {
+                                const weekData = childSnap.val();
+                                if (weekData.items) {
+                                    const validItems = weekData.items.filter(item => item.date >= range.start && item.date <= range.end);
+                                    validItems.forEach(i => i._weekId = childSnap.key);
+                                    flatLogs = flatLogs.concat(validItems);
+                                }
+                            });
+                        }
+                    }
+
                     flatLogs.sort((a, b) => a.date.localeCompare(b.date) || a.period - b.period);
                     setLogs(flatLogs);
                 } catch (e) { console.error(e); alert("Lỗi tải dữ liệu: " + e.message); } finally { setLoading(false); }
@@ -805,15 +693,62 @@
 
             const handleUpdateLog = async (newLogData) => {
                 try {
-                    const { getFirestore, doc, getDoc, setDoc } = window.firebaseModules;
-                    const db = getFirestore();
-                    const d = new Date(newLogData.date); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); const monday = new Date(d.setDate(diff)).toISOString().split('T')[0]; const targetWeekId = `week_${monday}`;
-                    const weekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', targetWeekId);
-                    
-                    if (editingLog && editingLog._weekId) { const oldWeekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', editingLog._weekId); const oldSnap = await getDoc(oldWeekRef); if (oldSnap.exists()) { const filteredItems = oldSnap.data().items.filter(i => i.id !== editingLog.id); await setDoc(oldWeekRef, { ...oldSnap.data(), items: filteredItems, updatedAt: new Date() }); } }
-                    const targetSnap = await getDoc(weekRef); let targetItems = targetSnap.exists() ? (targetSnap.data().items || []) : [];
-                    targetItems = targetItems.filter(i => i.id !== newLogData.id); targetItems.push(newLogData);
-                    await setDoc(weekRef, { weekStart: monday, totalPeriods: targetItems.length, items: targetItems, updatedAt: new Date() });
+                    const d = new Date(newLogData.date); 
+                    const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); 
+                    const monday = new Date(d.setDate(diff)).toISOString().split('T')[0]; 
+                    const targetWeekId = `week_${monday}`;
+
+                    if (isCanvasEnv) {
+                        // FIRESTORE UPDATE
+                        const { getFirestore, doc, getDoc, setDoc } = window.firebaseModules;
+                        const db = getFirestore();
+                        const weekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', targetWeekId);
+                        
+                        if (editingLog && editingLog._weekId) { 
+                            const oldWeekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', editingLog._weekId); 
+                            const oldSnap = await getDoc(oldWeekRef); 
+                            if (oldSnap.exists()) { 
+                                const filteredItems = oldSnap.data().items.filter(i => i.id !== editingLog.id); 
+                                await setDoc(oldWeekRef, { ...oldSnap.data(), items: filteredItems, updatedAt: new Date() }); 
+                            } 
+                        }
+                        
+                        const targetSnap = await getDoc(weekRef); 
+                        let targetItems = targetSnap.exists() ? (targetSnap.data().items || []) : [];
+                        targetItems = targetItems.filter(i => i.id !== newLogData.id); 
+                        targetItems.push(newLogData);
+                        await setDoc(weekRef, { weekStart: monday, totalPeriods: targetItems.length, items: targetItems, updatedAt: new Date() });
+                    } else {
+                        // RTDB UPDATE
+                        const { getDatabase, ref, get, set, child } = window.firebaseModules;
+                        const rtdb = getDatabase();
+                        
+                        // Remove Old
+                        if (editingLog && editingLog._weekId) {
+                            const oldRef = ref(rtdb, `users/${user.uid}/weekly_logs/${editingLog._weekId}`);
+                            const oldSnap = await get(oldRef);
+                            if (oldSnap.exists()) {
+                                const oldData = oldSnap.val();
+                                const filteredItems = (oldData.items || []).filter(i => i.id !== editingLog.id);
+                                await set(oldRef, { ...oldData, items: filteredItems, updatedAt: Date.now() });
+                            }
+                        }
+
+                        // Add New
+                        const targetRef = ref(rtdb, `users/${user.uid}/weekly_logs/${targetWeekId}`);
+                        const targetSnap = await get(targetRef);
+                        let targetItems = targetSnap.exists() ? (targetSnap.val().items || []) : [];
+                        targetItems = targetItems.filter(i => i.id !== newLogData.id);
+                        targetItems.push(newLogData);
+                        
+                        await set(targetRef, {
+                            weekStart: monday,
+                            totalPeriods: targetItems.length,
+                            items: targetItems,
+                            updatedAt: Date.now()
+                        });
+                    }
+
                     setShowModal(false); setEditingLog(null); fetchLogs();
                 } catch (e) { console.error(e); alert("Lỗi lưu dữ liệu: " + e.message); }
             };
@@ -821,11 +756,29 @@
             const handleDeleteLog = async (log) => {
                 if (!confirm("Bạn chắc chắn muốn xóa tiết dạy này?")) return;
                 try {
-                    const { getFirestore, doc, getDoc, setDoc } = window.firebaseModules;
-                    const db = getFirestore();
-                    const weekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', log._weekId);
-                    const snap = await getDoc(weekRef);
-                    if (snap.exists()) { const newItems = snap.data().items.filter(i => i.id !== log.id); await setDoc(weekRef, { ...snap.data(), items: newItems, updatedAt: new Date() }); fetchLogs(); }
+                    if (isCanvasEnv) {
+                        // FIRESTORE
+                        const { getFirestore, doc, getDoc, setDoc } = window.firebaseModules;
+                        const db = getFirestore();
+                        const weekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', log._weekId);
+                        const snap = await getDoc(weekRef);
+                        if (snap.exists()) { 
+                            const newItems = snap.data().items.filter(i => i.id !== log.id); 
+                            await setDoc(weekRef, { ...snap.data(), items: newItems, updatedAt: new Date() }); 
+                        }
+                    } else {
+                        // RTDB
+                        const { getDatabase, ref, get, set } = window.firebaseModules;
+                        const rtdb = getDatabase();
+                        const weekRef = ref(rtdb, `users/${user.uid}/weekly_logs/${log._weekId}`);
+                        const snap = await get(weekRef);
+                        if (snap.exists()) {
+                            const data = snap.val();
+                            const newItems = (data.items || []).filter(i => i.id !== log.id);
+                            await set(weekRef, { ...data, items: newItems, updatedAt: Date.now() });
+                        }
+                    }
+                    fetchLogs();
                 } catch (e) { alert("Lỗi xóa: " + e.message); }
             };
 
@@ -963,9 +916,17 @@
                 if (!user) { alert("Vui lòng đăng nhập để lưu dữ liệu!"); return; }
                 if (!currentTeacherKey && selectedSignatures.size === 0) { alert("Chưa có dữ liệu cấu hình để lưu!"); return; }
                 try {
-                    const { setDoc, doc, getFirestore, serverTimestamp } = window.firebaseModules;
-                    const configData = { currentTeacherKey, selectedSignatures: Array.from(selectedSignatures), homeroomMap, selectedHomeroom, updatedAt: serverTimestamp() };
-                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'default'), configData);
+                    const configData = { currentTeacherKey, selectedSignatures: Array.from(selectedSignatures), homeroomMap, selectedHomeroom, updatedAt: Date.now() };
+
+                    if (isCanvasEnv) {
+                         const { setDoc, doc, getFirestore, serverTimestamp } = window.firebaseModules;
+                         const db = getFirestore();
+                         await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'default'), { ...configData, updatedAt: serverTimestamp() });
+                    } else {
+                         const { getDatabase, ref, set } = window.firebaseModules;
+                         const rtdb = getDatabase();
+                         await set(ref(rtdb, `users/${user.uid}/config`), configData);
+                    }
                     alert("Đã lưu cấu hình lên đám mây thành công!");
                 } catch (e) { console.error("Sync error:", e); alert("Lỗi lưu dữ liệu: " + e.message); }
             };
@@ -973,12 +934,25 @@
             const handleSaveWeeklyLogs = async (weekStartDate, logs) => {
                 if (!user) return alert("Vui lòng đăng nhập!");
                 try {
-                    const { setDoc, doc, getDoc, getFirestore, serverTimestamp } = window.firebaseModules;
                     const weekId = `week_${weekStartDate}`;
-                    const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', weekId);
-                    const snap = await getDoc(docRef);
-                    if (snap.exists()) { if (!confirm(`Tuần bắt đầu ngày ${weekStartDate.split('-').reverse().join('/')} đã được lưu trước đó. Bạn có muốn GHI ĐÈ không?`)) { return; } }
-                    await setDoc(docRef, { weekStart: weekStartDate, totalPeriods: logs.length, items: logs, updatedAt: serverTimestamp() });
+                    const dataToSave = { weekStart: weekStartDate, totalPeriods: logs.length, items: logs, updatedAt: Date.now() };
+
+                    if (isCanvasEnv) {
+                         const { setDoc, doc, getDoc, getFirestore, serverTimestamp } = window.firebaseModules;
+                         const db = getFirestore();
+                         const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', weekId);
+                         const snap = await getDoc(docRef);
+                         if (snap.exists()) { if (!confirm(`Tuần bắt đầu ngày ${weekStartDate.split('-').reverse().join('/')} đã được lưu trước đó. Bạn có muốn GHI ĐÈ không?`)) { return; } }
+                         await setDoc(docRef, { ...dataToSave, updatedAt: serverTimestamp() });
+                    } else {
+                         const { getDatabase, ref, get, set } = window.firebaseModules;
+                         const rtdb = getDatabase();
+                         const weekRef = ref(rtdb, `users/${user.uid}/weekly_logs/${weekId}`);
+                         const snap = await get(weekRef);
+                         if (snap.exists()) { if (!confirm(`Tuần bắt đầu ngày ${weekStartDate.split('-').reverse().join('/')} đã được lưu trước đó. Bạn có muốn GHI ĐÈ không?`)) { return; } }
+                         await set(weekRef, dataToSave);
+                    }
+
                     alert("Đã chốt sổ thành công! Dữ liệu đã được lưu.");
                     setShowLogModal(false);
                 } catch (e) { console.error("Log save error:", e); alert("Lỗi khi lưu nhật ký: " + e.message); }
