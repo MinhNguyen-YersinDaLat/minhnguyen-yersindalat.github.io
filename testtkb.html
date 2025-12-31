@@ -111,8 +111,32 @@
         const { useState, useEffect, useMemo, useRef, memo } = React;
         
         // --- FIREBASE INIT ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // FIX: Ưu tiên lấy config từ môi trường Canvas nếu có, ngược lại dùng fallback
+        const getEnvConfig = () => {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                try {
+                    return JSON.parse(__firebase_config);
+                } catch (e) {
+                    console.error("Error parsing env config", e);
+                    return null;
+                }
+            }
+            return null;
+        };
+
+        const envConfig = getEnvConfig();
+        const firebaseConfig = envConfig || {
+            apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
+            authDomain: "hanhkiem-d853b.firebaseapp.com",
+            databaseURL: "https://hanhkiem-d853b-default-rtdb.firebaseio.com",
+            projectId: "hanhkiem-d853b",
+            storageBucket: "hanhkiem-d853b.firebasestorage.app",
+            messagingSenderId: "208584372826",
+            appId: "1:208584372826:web:6e55373d25ca0ffeb59e63",
+            measurementId: "G-M1Z8X4FX8L"
+        };
+        
+        const appId = (envConfig && typeof __app_id !== 'undefined') ? __app_id : 'hanhkiem-d853b';
         
         // Modules from window (loaded via module script)
         let auth, db, googleProvider;
@@ -121,6 +145,7 @@
         const initFirebase = async () => {
             if (window.firebaseModules && !firebaseReady) {
                 const { initializeApp, getAuth, getFirestore, GoogleAuthProvider } = window.firebaseModules;
+                
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
@@ -1528,7 +1553,7 @@
                     await initFirebase();
                     const { onAuthStateChanged, signInWithCustomToken, signInAnonymously } = window.firebaseModules;
                     
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    if (envConfig && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         try {
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } catch (e) {
