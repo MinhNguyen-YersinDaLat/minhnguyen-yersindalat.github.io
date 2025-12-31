@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro (Hybrid Core)</title>
+    <title>SmartSchedule - Yersin Pro Edition (V11 - Monthly Log)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,24 +15,11 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- XLSX & HTML2Canvas -->
+    <!-- XLSX-JS-STYLE (Hỗ trợ xuất Excel có màu sắc/border) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <!-- HTML2Canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-
-    <!-- Firebase SDK (Modular) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref, set, get, child, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
-
-        // Expose Firebase to Global Scope
-        window.firebaseModules = { 
-            initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously,
-            getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query, updateDoc, deleteDoc,
-            getDatabase, ref, set, get, child, remove
-        };
-    </script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -68,10 +55,18 @@
         body { background-color: #fff7ed; -webkit-tap-highlight-color: transparent; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-checkbox:checked { background-color: #ea580c; border-color: #ea580c; }
+        
+        /* Custom Checkbox */
+        .custom-checkbox:checked {
+            background-color: #ea580c;
+            border-color: #ea580c;
+        }
+
+        /* Sticky Columns for Table */
         .sticky-col-1 { position: sticky; left: 0; z-index: 10; background-color: inherit; }
         .sticky-col-2 { position: sticky; left: 48px; z-index: 10; background-color: inherit; }
         .sticky-header { position: sticky; top: 0; z-index: 20; }
+
         @media print {
             @page { margin: 5mm; size: landscape; }
             body { background: white !important; }
@@ -81,7 +76,6 @@
             .mobile-view { display: none !important; }
             .desktop-view { display: block !important; }
         }
-        .start-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
     </style>
 </head>
 <body class="text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
@@ -89,58 +83,6 @@
 
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef, memo } = React;
-        
-        // --- HYBRID CONFIGURATION ---
-        // 1. Check for Canvas Environment
-        const getEnvConfig = () => {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                try { return JSON.parse(__firebase_config); } catch (e) { return null; }
-            }
-            return null;
-        };
-
-        const envConfig = getEnvConfig();
-        const isCanvasEnv = !!envConfig; 
-
-        // 2. Local Fallback (RTDB Compatible)
-        const localConfig = {
-            apiKey: "AIzaSyBivJqcFx_JZhVpjuFJjV786Ug9nDpPBWg",
-            authDomain: "hanhkiem-d853b.firebaseapp.com",
-            databaseURL: "https://hanhkiem-d853b-default-rtdb.firebaseio.com",
-            projectId: "hanhkiem-d853b",
-            storageBucket: "hanhkiem-d853b.firebasestorage.app",
-            messagingSenderId: "208584372826",
-            appId: "1:208584372826:web:6e55373d25ca0ffeb59e63",
-            measurementId: "G-M1Z8X4FX8L"
-        };
-
-        // Select Config
-        const firebaseConfig = isCanvasEnv ? envConfig : localConfig;
-        const appId = (isCanvasEnv && typeof __app_id !== 'undefined') ? __app_id : 'hanhkiem-d853b';
-        
-        // Firebase Instances
-        let auth, db, rtdb, googleProvider;
-        let firebaseReady = false;
-
-        const initFirebase = async () => {
-            if (window.firebaseModules && !firebaseReady) {
-                const { initializeApp, getAuth, getFirestore, getDatabase, GoogleAuthProvider } = window.firebaseModules;
-                try {
-                    let app;
-                    try { app = initializeApp(firebaseConfig); } catch(e) { /* Ignore if already exists */ }
-                    
-                    auth = getAuth();
-                    if (isCanvasEnv) {
-                        db = getFirestore(); // Use Firestore on Canvas
-                    } else {
-                        rtdb = getDatabase(); // Use Realtime DB on Local
-                    }
-                    googleProvider = new GoogleAuthProvider();
-                    googleProvider.setCustomParameters({ prompt: 'select_account' });
-                    firebaseReady = true;
-                } catch (e) { console.error("Firebase Init Error", e); }
-            }
-        };
 
         // --- ICONS ---
         const Icons = {
@@ -153,25 +95,23 @@
             Camera: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
             Check: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>,
             ArrowRight: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>,
+            UserGroup: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
             Search: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
             Reload: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
-            Excel: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>,
-            Google: () => <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/><path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/><path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/><path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/></svg>,
-            Logout: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
-            Calendar: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-            Edit: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
-            Trash: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
-            Plus: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>,
+            ChevronDown: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>,
+            ChevronUp: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>,
             Bolt: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
             Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
             Chart: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
-            Save: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+            Save: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>,
+            Excel: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
         };
 
         const COLLECTIVE_KEYWORDS = ['CHÀO CỜ', 'CC', 'SINH HOẠT CỜ', 'LỄ', 'TẬP THỂ', 'TOÀN TRƯỜNG', 'SHDC', 'HỘI THAO', 'GOT TALENT'];
         const HOMEROOM_KEYWORDS = ['GVCN', 'SHTT', 'SHCN', 'SINH HOẠT LỚP', 'HĐTN', 'SHL', 'SHTT'].filter(k => k !== 'HĐTN');
         const HDTN_KEYWORDS = ['HĐTN', 'HOẠT ĐỘNG TRẢI NGHIỆM', 'HN', 'HƯỚNG NGHIỆP'];
 
+        // --- HELPER FUNCTIONS ---
         const getCanonicalName = (rawName) => {
             if (!rawName) return '';
             let name = rawName.trim().toLowerCase();
@@ -205,6 +145,29 @@
             return periods.filter(p => p !== 16 && p !== 17);
         };
 
+        // --- NEW HELPERS FOR DATE (STAGE 1) ---
+        function parseDateFromStr(str) {
+            if (!str) return null;
+            // Tìm dạng dd.mm.yyyy hoặc dd/mm/yyyy
+            const matchFull = str.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/);
+            if (matchFull) {
+                return new Date(parseInt(matchFull[3]), parseInt(matchFull[2]) - 1, parseInt(matchFull[1]));
+            }
+            // Tìm dạng dd.mm hoặc dd/mm (lấy năm hiện tại)
+            const matchShort = str.match(/(\d{1,2})[.\/-](\d{1,2})/);
+            if (matchShort) {
+                return new Date(new Date().getFullYear(), parseInt(matchShort[2]) - 1, parseInt(matchShort[1]));
+            }
+            return null;
+        }
+
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+        // --------------------------------------
+
         function parseMultiValueCell(cellText, baseMeta = {}){
             if(!cellText || typeof cellText !== 'string') return [];
             let raw = cellText.trim();
@@ -219,15 +182,17 @@
             for (let token of tokens) {
                 token = token.replace(/__P(\d+)__/g, (m, i) => ph[i]);
                 const parenMatch = token.match(/^([^\(\)]+?)\s*\(([^)]+)\)$/);
+                
                 let item = null;
+
                 if (parenMatch) {
                     const subjectRaw = parenMatch[1].trim();
                     const insideRaw = parenMatch[2].trim(); 
                     let teacherRaw = '', className = '';
                     const insideParts = insideRaw.split(/\s*[-–]\s*/);
                     if (insideParts.length === 1) {
-                         if (isTeacherNameLikely(insideParts[0]) || insideParts[0].length > 3) teacherRaw = insideParts[0];
-                         else className = insideParts[0];
+                          if (isTeacherNameLikely(insideParts[0]) || insideParts[0].length > 3) teacherRaw = insideParts[0];
+                          else className = insideParts[0];
                     } else {
                         const tIdx = insideParts.findIndex(p => isTeacherNameLikely(p));
                         if (tIdx !== -1) {
@@ -261,6 +226,8 @@
                         item = { subject: token, teacherRaw: '', teacherCanonical: '', className: '', raw: token, ambiguous: true, ...baseMeta };
                     }
                 }
+
+                // --- SPECIAL LOGIC: SPLIT HUY (QP vs GDKTPL) ---
                 if (item && item.teacherCanonical === 'huy') {
                     const s = item.subject.toUpperCase();
                     if (s.includes('QP') || s.includes('QUỐC PHÒNG')) {
@@ -271,10 +238,13 @@
                         if (!item.teacherRaw.includes('(KTPL)')) item.teacherRaw = `${item.teacherRaw} (KTPL)`;
                     }
                 }
+
                 if(item) results.push(item);
             }
             return results;
         }
+
+        // --- SUB-COMPONENTS (DEFINED BEFORE APP) ---
 
         const PeriodCell = memo(({ matches, day, period, session, handleInspect, selectedHomeroom }) => {
             const groups = {};
@@ -387,14 +357,20 @@
             );
         });
 
+        // --- HOMEROOM CONFIG MODAL ---
         const HomeroomConfigModal = memo(({ classes, teacherConfigs, homeroomMap, onSave, onClose }) => {
             const [localMap, setLocalMap] = useState({ ...homeroomMap });
             const teacherList = useMemo(() => Object.keys(teacherConfigs).map(k => ({
                 key: k, name: teacherConfigs[k].displayName
             })).sort((a,b) => a.name.localeCompare(b.name)), [teacherConfigs]);
 
-            const handleChange = (cls, teacherKey) => { setLocalMap(prev => ({ ...prev, [cls]: teacherKey })); };
-            const handleSave = () => { onSave(localMap); };
+            const handleChange = (cls, teacherKey) => {
+                setLocalMap(prev => ({ ...prev, [cls]: teacherKey }));
+            };
+
+            const handleSave = () => {
+                onSave(localMap);
+            };
 
             return (
                  <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={e => e.stopPropagation()}>
@@ -411,9 +387,15 @@
                                 {classes.map(cls => (
                                     <div key={cls} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
                                         <div className="font-bold text-slate-700 w-24">{cls}</div>
-                                        <select value={localMap[cls] || ''} onChange={(e) => handleChange(cls, e.target.value)} className="flex-1 p-2 rounded border border-slate-300 text-sm focus:border-brand-500 outline-none">
+                                        <select 
+                                            value={localMap[cls] || ''} 
+                                            onChange={(e) => handleChange(cls, e.target.value)}
+                                            className="flex-1 p-2 rounded border border-slate-300 text-sm focus:border-brand-500 outline-none"
+                                        >
                                             <option value="">-- Chọn GVCN --</option>
-                                            {teacherList.map(t => (<option key={t.key} value={t.key}>{t.name}</option>))}
+                                            {teacherList.map(t => (
+                                                <option key={t.key} value={t.key}>{t.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 ))}
@@ -428,84 +410,386 @@
             );
         });
 
+        // --- STATISTICS COMPONENT (COMPACT) ---
         const StatisticsModal = memo(({ allRawData, teacherConfigs, classes, homeroomMap, onUpdateHomeroomMap, onClose }) => {
             const [search, setSearch] = useState('');
             const [sort, setSort] = useState('count'); 
             const [showConfig, setShowConfig] = useState(false);
+            
+            // --- NEW: MONTHLY LOCK STATE ---
+            const [lockMonth, setLockMonth] = useState(new Date().toISOString().slice(0, 7)); // Default YYYY-MM
 
-            const stats = useMemo(() => {
+            // --- NEW: HANDLE LOCK MONTH ---
+            const handleLockMonthData = () => {
+                if (!lockMonth) { alert("Vui lòng chọn tháng."); return; }
+                const [year, month] = lockMonth.split('-').map(Number);
+                
+                // 1. Filter items by actualDate
+                const monthlyItems = allRawData.filter(item => {
+                    if (!item.actualDate) return false;
+                    const d = new Date(item.actualDate);
+                    return d.getMonth() === (month - 1) && d.getFullYear() === year;
+                });
+
+                if (monthlyItems.length === 0) {
+                    alert(`Không tìm thấy tiết dạy nào có ngày thực tế trong tháng ${month}/${year}.\n(Vui lòng kiểm tra lại file Excel xem đã nhận diện đúng ngày chưa)`);
+                    return;
+                }
+
+                if (!confirm(`Tìm thấy ${monthlyItems.length} tiết trong tháng ${lockMonth}.\nBạn có chắc chắn muốn CHỐT SỔ tháng này?\n\nDữ liệu sẽ được lưu riêng và không đổi kể cả khi xóa file TKB.`)) return;
+
+                // 2. Aggregate Data (Logic replicated strictly from stats useMemo)
                 const map = {};
                 const processed = new Set();
+                
                 Object.keys(teacherConfigs).forEach(key => {
-                      map[key] = { name: teacherConfigs[key].displayName, canonical: key, teachingTotal: 0, homeroomTotal: 0, hdtnTotal: 0, limCount: 0, stemCount: 0, generalSubjects: {}, homeroomDetails: {} };
+                      map[key] = {
+                            name: teacherConfigs[key].displayName,
+                            canonical: key,
+                            teachingTotal: 0, homeroomTotal: 0, hdtnTotal: 0, limCount: 0, stemCount: 0,
+                            generalSubjects: {}, homeroomDetails: {}
+                      };
                 });
-                allRawData.forEach(item => {
+
+                monthlyItems.forEach(item => {
                     const isHomeroomSubject = HOMEROOM_KEYWORDS.some(k => item.subject.toUpperCase().includes(k) || item.raw.toUpperCase().includes(k));
                     const isHDTN = HDTN_KEYWORDS.some(k => item.subject.toUpperCase().includes(k));
                     const cleanClass = item.clazz.replace(/\s*\([^)]+\)/, '').trim(); 
+                    
                     let targetTeacherCanonical = item.teacherCanonical;
-                    if (isHomeroomSubject && homeroomMap[cleanClass]) { targetTeacherCanonical = homeroomMap[cleanClass]; }
+                    if (isHomeroomSubject && homeroomMap[cleanClass]) targetTeacherCanonical = homeroomMap[cleanClass];
+
                     if (!targetTeacherCanonical) return;
+                    
                     const uniqueKey = `${targetTeacherCanonical}|${item.fileIndex}|${item.day}|${item.session}|${item.period}`;
                     if (processed.has(uniqueKey)) return; 
                     processed.add(uniqueKey);
-                    if (!map[targetTeacherCanonical]) { map[targetTeacherCanonical] = { name: item.teacherRaw || targetTeacherCanonical, canonical: targetTeacherCanonical, teachingTotal: 0, homeroomTotal: 0, hdtnTotal: 0, limCount: 0, stemCount: 0, generalSubjects: {}, homeroomDetails: {} }; }
-                    if(item.teacherRaw && item.teacherRaw.length > map[targetTeacherCanonical].name.length) { map[targetTeacherCanonical].name = item.teacherRaw; } else if (map[targetTeacherCanonical].name === targetTeacherCanonical && teacherConfigs[targetTeacherCanonical]) { map[targetTeacherCanonical].name = teacherConfigs[targetTeacherCanonical].displayName; }
-                    const subjKey = item.subject.trim(); const detailKey = `${cleanClass}`; const upperSubj = subjKey.toUpperCase();
+
+                    if (!map[targetTeacherCanonical]) {
+                        map[targetTeacherCanonical] = {
+                            name: item.teacherRaw || targetTeacherCanonical, canonical: targetTeacherCanonical,
+                            teachingTotal: 0, homeroomTotal: 0, hdtnTotal: 0, limCount: 0, stemCount: 0,
+                            generalSubjects: {}, homeroomDetails: {}
+                        };
+                    }
+
+                    const subjKey = item.subject.trim();
+                    const upperSubj = subjKey.toUpperCase();
+                    const detailKey = `${cleanClass}`;
+
                     if (isHomeroomSubject) {
                         map[targetTeacherCanonical].homeroomTotal++;
                         if (!map[targetTeacherCanonical].homeroomDetails[detailKey]) map[targetTeacherCanonical].homeroomDetails[detailKey] = 0;
                         map[targetTeacherCanonical].homeroomDetails[detailKey]++;
                     } else {
                         if (item.teacherCanonical === targetTeacherCanonical) {
-                             if (isHDTN) { map[targetTeacherCanonical].hdtnTotal++; } else if (upperSubj.includes('LIM')) { map[targetTeacherCanonical].limCount++; map[targetTeacherCanonical].teachingTotal++; } else if (upperSubj.includes('STEM')) { map[targetTeacherCanonical].stemCount++; map[targetTeacherCanonical].teachingTotal++; } else { map[targetTeacherCanonical].teachingTotal++; if (!map[targetTeacherCanonical].generalSubjects[subjKey]) map[targetTeacherCanonical].generalSubjects[subjKey] = 0; map[targetTeacherCanonical].generalSubjects[subjKey]++; }
+                             if (isHDTN) map[targetTeacherCanonical].hdtnTotal++;
+                             else if (upperSubj.includes('LIM')) { map[targetTeacherCanonical].limCount++; map[targetTeacherCanonical].teachingTotal++; }
+                             else if (upperSubj.includes('STEM')) { map[targetTeacherCanonical].stemCount++; map[targetTeacherCanonical].teachingTotal++; }
+                             else {
+                                 map[targetTeacherCanonical].teachingTotal++;
+                                 if (!map[targetTeacherCanonical].generalSubjects[subjKey]) map[targetTeacherCanonical].generalSubjects[subjKey] = 0;
+                                 map[targetTeacherCanonical].generalSubjects[subjKey]++;
+                             }
                         }
                     }
                 });
+                
+                const finalData = Object.values(map).filter(s => (s.teachingTotal + s.homeroomTotal + s.hdtnTotal) > 0);
+
+                // 3. Save to LocalStorage
+                const snapshot = {
+                    id: `MONTH_${lockMonth}`,
+                    month: lockMonth,
+                    createdAt: new Date().toISOString(),
+                    data: finalData
+                };
+
+                try {
+                    const STORAGE_KEY = 'SMART_SCHEDULE_MONTHLY_LOG';
+                    const existingRaw = localStorage.getItem(STORAGE_KEY);
+                    let logs = existingRaw ? JSON.parse(existingRaw) : {};
+                    
+                    if (logs[lockMonth] && !confirm(`Tháng ${lockMonth} đã được chốt trước đó vào ${new Date(logs[lockMonth].createdAt).toLocaleString()}.\nBạn có muốn GHI ĐÈ không?`)) return;
+                    
+                    logs[lockMonth] = snapshot;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+                    alert(`✅ Đã chốt sổ tháng ${lockMonth} thành công!\n(Đã lưu trữ ${finalData.length} giáo viên)`);
+                } catch (e) {
+                    alert('Lỗi lưu trữ: ' + e.message);
+                }
+            };
+
+            // Special subjects that get their own columns
+            const SPECIAL_SUBJECTS = ['LIM', 'STEM'];
+
+            const stats = useMemo(() => {
+                const map = {};
+                const processed = new Set(); // Track unique time slots per teacher
+                
+                Object.keys(teacherConfigs).forEach(key => {
+                      map[key] = {
+                            name: teacherConfigs[key].displayName,
+                            canonical: key,
+                            teachingTotal: 0,
+                            homeroomTotal: 0,
+                            hdtnTotal: 0,
+                            limCount: 0,
+                            stemCount: 0,
+                            generalSubjects: {}, // Stores other subjects { "Toán": 5, "Văn": 3 }
+                            homeroomDetails: {}
+                      };
+                });
+
+                allRawData.forEach(item => {
+                    const isHomeroomSubject = HOMEROOM_KEYWORDS.some(k => item.subject.toUpperCase().includes(k) || item.raw.toUpperCase().includes(k));
+                    const isHDTN = HDTN_KEYWORDS.some(k => item.subject.toUpperCase().includes(k));
+                    const cleanClass = item.clazz.replace(/\s*\([^)]+\)/, '').trim(); 
+                    
+                    let targetTeacherCanonical = item.teacherCanonical;
+
+                    // --- FORCE ASSIGNMENT LOGIC ---
+                    if (isHomeroomSubject && homeroomMap[cleanClass]) {
+                        targetTeacherCanonical = homeroomMap[cleanClass];
+                    }
+
+                    if (!targetTeacherCanonical) return;
+                    
+                    // --- ONE PERIOD PER TIME SLOT CHECK ---
+                    // Updated Key for Monthly: Include fileIndex to differentiate weeks
+                    const uniqueKey = `${targetTeacherCanonical}|${item.fileIndex}|${item.day}|${item.session}|${item.period}`;
+                    
+                    if (processed.has(uniqueKey)) return; 
+                    processed.add(uniqueKey);
+
+                    if (!map[targetTeacherCanonical]) {
+                        map[targetTeacherCanonical] = {
+                            name: item.teacherRaw || targetTeacherCanonical, 
+                            canonical: targetTeacherCanonical,
+                            teachingTotal: 0,
+                            homeroomTotal: 0,
+                            hdtnTotal: 0,
+                            limCount: 0,
+                            stemCount: 0,
+                            generalSubjects: {},
+                            homeroomDetails: {}
+                        };
+                    }
+                    
+                    if(item.teacherRaw && item.teacherRaw.length > map[targetTeacherCanonical].name.length) {
+                        map[targetTeacherCanonical].name = item.teacherRaw;
+                    } else if (map[targetTeacherCanonical].name === targetTeacherCanonical && teacherConfigs[targetTeacherCanonical]) {
+                         map[targetTeacherCanonical].name = teacherConfigs[targetTeacherCanonical].displayName;
+                    }
+
+                    const subjKey = item.subject.trim(); // Normalize subject
+                    const detailKey = `${cleanClass}`;
+                    const upperSubj = subjKey.toUpperCase();
+
+                    if (isHomeroomSubject) {
+                        map[targetTeacherCanonical].homeroomTotal++;
+                        if (!map[targetTeacherCanonical].homeroomDetails[detailKey]) map[targetTeacherCanonical].homeroomDetails[detailKey] = 0;
+                        map[targetTeacherCanonical].homeroomDetails[detailKey]++;
+                    } else {
+                        // Trust item.teacherCanonical for teaching
+                        if (item.teacherCanonical === targetTeacherCanonical) {
+                             if (isHDTN) {
+                                 map[targetTeacherCanonical].hdtnTotal++;
+                             } else if (upperSubj.includes('LIM')) {
+                                 map[targetTeacherCanonical].limCount++;
+                                 map[targetTeacherCanonical].teachingTotal++;
+                             } else if (upperSubj.includes('STEM')) {
+                                 map[targetTeacherCanonical].stemCount++;
+                                 map[targetTeacherCanonical].teachingTotal++;
+                             } else {
+                                 // General Subjects
+                                 map[targetTeacherCanonical].teachingTotal++;
+                                 if (!map[targetTeacherCanonical].generalSubjects[subjKey]) map[targetTeacherCanonical].generalSubjects[subjKey] = 0;
+                                 map[targetTeacherCanonical].generalSubjects[subjKey]++;
+                             }
+                        }
+                    }
+                });
+                
                 return Object.values(map).filter(s => (s.teachingTotal + s.homeroomTotal + s.hdtnTotal) > 0);
             }, [allRawData, homeroomMap, teacherConfigs]);
 
             const filteredStats = useMemo(() => {
                 let res = stats.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
-                if (sort === 'count') { res.sort((a,b) => (b.teachingTotal + b.homeroomTotal + b.hdtnTotal) - (a.teachingTotal + a.homeroomTotal + a.hdtnTotal)); } else { res.sort((a,b) => a.name.localeCompare(b.name)); }
+                if (sort === 'count') {
+                    res.sort((a,b) => (b.teachingTotal + b.homeroomTotal + b.hdtnTotal) - (a.teachingTotal + a.homeroomTotal + a.hdtnTotal));
+                } else {
+                    res.sort((a,b) => a.name.localeCompare(b.name));
+                }
                 return res;
             }, [stats, search, sort]);
 
+            // --- EXPORT TO EXCEL FUNCTION (COMPACT) ---
             const handleExportExcel = () => {
                 try {
+                    // 1. Prepare Data
                     const header = ["STT", "Giáo Viên", "Tổng Dạy", "Các Môn Khác (Chi tiết)", "Lim", "Stem", "HĐTN", "Tiết CN", "Lớp CN", "TỔNG CỘNG"];
+                    
                     const rows = filteredStats.map((s, idx) => {
-                        const generalDetails = Object.entries(s.generalSubjects).map(([subj, count]) => `${subj}: ${count}`).join(', ');
-                        const hDetails = Object.entries(s.homeroomDetails).map(([k, v]) => `${k}`).join(', ');
+                        // Format General Subjects Details: "Toán: 5, Lý: 3"
+                        const generalDetails = Object.entries(s.generalSubjects).map(([subj, count]) => {
+                            return `${subj}: ${count}`;
+                        }).join(', ');
+
+                        // Format Homeroom Details
+                        const hDetails = Object.entries(s.homeroomDetails).map(([k, v]) => {
+                            return `${k}`;
+                        }).join(', ');
+
                         const grandTotal = s.teachingTotal + s.homeroomTotal + s.hdtnTotal;
-                        return [ idx + 1, s.name, s.teachingTotal || 0, generalDetails || "-", s.limCount || 0, s.stemCount || 0, s.hdtnTotal || 0, s.homeroomTotal || 0, hDetails || "-", grandTotal ];
+
+                        return [
+                            idx + 1,
+                            s.name,
+                            s.teachingTotal || 0,
+                            generalDetails || "-",
+                            s.limCount || 0,
+                            s.stemCount || 0,
+                            s.hdtnTotal || 0,
+                            s.homeroomTotal || 0,
+                            hDetails || "-",
+                            grandTotal
+                        ];
                     });
+
+                    // 2. Create Workbook & Worksheet
                     const wb = XLSX.utils.book_new();
-                    const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+                    const ws_data = [header, ...rows];
+                    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+                    // 3. Styling
+                    const headerStyle = {
+                        font: { bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "EA580C" } }, 
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } }
+                        }
+                    };
+
+                    const cellStyle = {
+                        border: {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } }
+                        },
+                        alignment: { vertical: "center", wrapText: true }
+                    };
+
+                    const centerStyle = { ...cellStyle, alignment: { horizontal: "center", vertical: "center" } };
+                    const boldCenterStyle = { ...centerStyle, font: { bold: true } };
+
+                    // Apply styles
+                    const range = XLSX.utils.decode_range(ws['!ref']);
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+                        if (!ws[addr]) continue;
+                        ws[addr].s = headerStyle;
+                    }
+
+                    for (let R = 1; R <= range.e.r; ++R) {
+                        for (let C = 0; C <= range.e.c; ++C) {
+                            const addr = XLSX.utils.encode_cell({ r: R, c: C });
+                            if (!ws[addr]) ws[addr] = { v: "", t: 's' }; 
+                            
+                            // Center align numeric columns
+                            // STT(0), Total(2), Lim(4), Stem(5), HDTN(6), CN(7), Grand Total(9)
+                            if ([0, 2, 4, 5, 6, 7, 9].includes(C)) { 
+                                ws[addr].s = (C === 9) ? boldCenterStyle : centerStyle;
+                            } else {
+                                ws[addr].s = cellStyle;
+                            }
+                        }
+                    }
+
+                    // Set Column Widths
+                    ws['!cols'] = [
+                        { wch: 5 },  // STT
+                        { wch: 25 }, // Name
+                        { wch: 10 }, // Total Teach
+                        { wch: 40 }, // General Details
+                        { wch: 8 },  // Lim
+                        { wch: 8 },  // Stem
+                        { wch: 8 },  // HDTN
+                        { wch: 10 }, // Total CN
+                        { wch: 20 }, // Details CN
+                        { wch: 12 }  // Grand Total
+                    ];
+
                     XLSX.utils.book_append_sheet(wb, ws, "ThongKe_Gon");
                     XLSX.writeFile(wb, "ThongKe_TKB_Yersin_Compact.xlsx");
-                } catch (err) { alert("Lỗi xuất file: " + err.message); }
+
+                } catch (err) {
+                    console.error("Export Error:", err);
+                    alert("Lỗi xuất file: " + err.message);
+                }
             };
 
             return (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
                     <div className="bg-white w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Header */}
                         <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                            <div><h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê Gọn (Compact)</h3><div className="text-sm text-slate-500">Chỉ chia cột riêng cho Lim, Stem và HĐTN.</div></div>
-                            <div className="flex items-center gap-2"><button onClick={() => setShowConfig(true)} className="px-4 py-2 bg-brand-100 text-brand-700 rounded-lg font-bold hover:bg-brand-200 flex items-center gap-2 text-sm"><Icons.Cog /> Cấu hình GVCN</button><button onClick={handleExportExcel} className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 text-sm shadow-md transition-all active:scale-95"><Icons.Excel /> Xuất Excel</button><button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-500"><Icons.X /></button></div>
+                            <div>
+                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê Gọn (Compact)</h3>
+                                <div className="text-sm text-slate-500">Chỉ chia cột riêng cho Lim, Stem và HĐTN.</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {/* --- NEW: MONTH LOCK UI --- */}
+                                <div className="hidden md:flex items-center gap-2 border-r border-slate-200 pr-2 mr-2">
+                                    <input 
+                                        type="month" 
+                                        value={lockMonth} 
+                                        onChange={e => setLockMonth(e.target.value)} 
+                                        className="p-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-bold outline-none focus:border-brand-500"
+                                    />
+                                    <button 
+                                        onClick={handleLockMonthData} 
+                                        className="px-3 py-2 bg-red-50 text-red-600 border border-red-100 rounded-lg font-bold hover:bg-red-100 flex items-center gap-1 text-sm transition-colors"
+                                        title="Lưu cố định số liệu tháng này"
+                                    >
+                                        📌 Chốt sổ
+                                    </button>
+                                </div>
+                                {/* -------------------------- */}
+                                <button onClick={() => setShowConfig(true)} className="px-4 py-2 bg-brand-100 text-brand-700 rounded-lg font-bold hover:bg-brand-200 flex items-center gap-2 text-sm"><Icons.Cog /> Cấu hình GVCN</button>
+                                <button onClick={handleExportExcel} className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 text-sm shadow-md transition-all active:scale-95"><Icons.Excel /> Xuất Excel</button>
+                                <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-500"><Icons.X /></button>
+                            </div>
                         </div>
+                        
+                        {/* Filters */}
                         <div className="p-4 bg-white border-b border-slate-100 flex gap-4 flex-col md:flex-row">
-                            <div className="relative flex-1"><div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div><input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:border-brand-500 outline-none" value={search} onChange={e => setSearch(e.target.value)} /></div>
-                            <div className="flex gap-2"><button onClick={() => setSort('count')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'count' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Nhiều tiết nhất</button><button onClick={() => setSort('name')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'name' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Tên A-Z</button></div>
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
+                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:border-brand-500 outline-none" 
+                                    value={search} onChange={e => setSearch(e.target.value)} />
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => setSort('count')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'count' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Nhiều tiết nhất</button>
+                                <button onClick={() => setSort('name')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'name' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Tên A-Z</button>
+                            </div>
                         </div>
+
+                        {/* Table */}
                         <div className="flex-1 overflow-auto p-0 relative">
                             <table className="min-w-max text-sm text-left border-collapse">
                                 <thead className="bg-slate-100 text-slate-600 uppercase text-xs shadow-sm sticky-header">
                                     <tr>
-                                        <th className="px-4 py-3 w-12 text-center sticky-col-1 bg-slate-100 border-r border-slate-200">STT</th>
-                                        <th className="px-4 py-3 w-48 sticky-col-2 bg-slate-100 border-r border-slate-200">Giáo Viên</th>
+                                        <th className="px-4 py-3 w-12 text-center sticky-col-1 bg-slate-100 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">STT</th>
+                                        <th className="px-4 py-3 w-48 sticky-col-2 bg-slate-100 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Giáo Viên</th>
                                         <th className="px-4 py-3 bg-brand-50/50 text-brand-800 w-20 text-center border-r border-slate-200">Tổng Dạy</th>
-                                        <th className="px-4 py-3 w-64 border-r border-slate-200">Các Môn Khác</th>
+                                        <th className="px-4 py-3 w-64 border-r border-slate-200">Các Môn Khác (Chi tiết)</th>
                                         <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Lim</th>
                                         <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Stem</th>
                                         <th className="px-2 py-3 bg-purple-50 text-purple-800 w-20 text-center border-r border-slate-200">HĐTN</th>
@@ -517,298 +801,452 @@
                                 <tbody className="divide-y divide-slate-100">
                                     {filteredStats.map((s, idx) => (
                                         <tr key={s.canonical} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-4 py-3 text-center font-mono text-slate-400 sticky-col-1 bg-white border-r border-slate-100">{idx + 1}</td>
-                                            <td className="px-4 py-3 font-bold text-slate-800 text-base sticky-col-2 bg-white border-r border-slate-100">{s.name}</td>
-                                            <td className="px-4 py-3 text-center bg-brand-50/30 font-bold text-brand-700 border-r border-slate-100">{s.teachingTotal > 0 ? s.teachingTotal : '-'}</td>
-                                            <td className="px-4 py-3 text-slate-600 border-r border-slate-100">
-                                                <div className="flex flex-wrap gap-1">{Object.entries(s.generalSubjects).map(([subj, count]) => (<span key={subj} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs"><span className="font-semibold text-slate-700">{subj}:</span><span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded">{count}</span></span>))}{Object.keys(s.generalSubjects).length === 0 && <span className="text-xs text-slate-300 italic">-</span>}</div>
+                                            <td className="px-4 py-3 text-center font-mono text-slate-400 sticky-col-1 bg-white hover:bg-slate-50 border-r border-slate-100">{idx + 1}</td>
+                                            <td className="px-4 py-3 font-bold text-slate-800 text-base sticky-col-2 bg-white hover:bg-slate-50 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">{s.name}</td>
+                                            
+                                            {/* Total Teaching */}
+                                            <td className="px-4 py-3 text-center bg-brand-50/30 font-bold text-brand-700 border-r border-slate-100">
+                                                {s.teachingTotal > 0 ? s.teachingTotal : '-'}
                                             </td>
-                                            <td className="px-2 py-3 text-center border-r border-slate-100">{s.limCount > 0 ? <span className="font-bold text-slate-700">{s.limCount}</span> : <span className="text-slate-200">-</span>}</td>
-                                            <td className="px-2 py-3 text-center border-r border-slate-100">{s.stemCount > 0 ? <span className="font-bold text-slate-700">{s.stemCount}</span> : <span className="text-slate-200">-</span>}</td>
-                                            <td className="px-2 py-3 bg-purple-50/30 border-r border-slate-100 text-center">{s.hdtnTotal > 0 ? (<span className="font-bold text-purple-700">{s.hdtnTotal}</span>) : <span className="text-slate-200">-</span>}</td>
-                                            <td className="px-2 py-3 border-r border-slate-100 bg-orange-50/30 text-center">{s.homeroomTotal > 0 ? (<span className="font-bold text-orange-700">{s.homeroomTotal}</span>) : <span className="text-slate-200">-</span>}</td>
-                                            <td className="px-4 py-3 text-slate-600 border-r border-slate-100 text-xs"><div className="flex flex-wrap gap-1">{Object.entries(s.homeroomDetails).map(([key, count]) => (<span key={key} className="inline-block px-1.5 py-0.5 rounded border border-orange-100 bg-orange-50 text-orange-800 font-bold">{key}</span>))}</div></td>
-                                            <td className="px-4 py-3 text-center bg-slate-50"><span className="font-black text-slate-800 text-lg">{s.teachingTotal + s.homeroomTotal + s.hdtnTotal}</span></td>
+
+                                            {/* General Subjects Details */}
+                                            <td className="px-4 py-3 text-slate-600 border-r border-slate-100">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {Object.entries(s.generalSubjects).map(([subj, count]) => (
+                                                        <span key={subj} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs">
+                                                            <span className="font-semibold text-slate-700">{subj}:</span>
+                                                            <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded">{count}</span>
+                                                        </span>
+                                                    ))}
+                                                    {Object.keys(s.generalSubjects).length === 0 && <span className="text-xs text-slate-300 italic">-</span>}
+                                                </div>
+                                            </td>
+
+                                            {/* Lim */}
+                                            <td className="px-2 py-3 text-center border-r border-slate-100">
+                                                {s.limCount > 0 ? <span className="font-bold text-slate-700">{s.limCount}</span> : <span className="text-slate-200">-</span>}
+                                            </td>
+
+                                            {/* Stem */}
+                                            <td className="px-2 py-3 text-center border-r border-slate-100">
+                                                {s.stemCount > 0 ? <span className="font-bold text-slate-700">{s.stemCount}</span> : <span className="text-slate-200">-</span>}
+                                            </td>
+
+                                            {/* HDTN */}
+                                            <td className="px-2 py-3 bg-purple-50/30 border-r border-slate-100 text-center">
+                                                {s.hdtnTotal > 0 ? (
+                                                     <span className="font-bold text-purple-700">{s.hdtnTotal}</span>
+                                                ) : <span className="text-slate-200">-</span>}
+                                            </td>
+
+                                            {/* Homeroom Total */}
+                                            <td className="px-2 py-3 border-r border-slate-100 bg-orange-50/30 text-center">
+                                                 {s.homeroomTotal > 0 ? (
+                                                     <span className="font-bold text-orange-700">{s.homeroomTotal}</span>
+                                                ) : <span className="text-slate-200">-</span>}
+                                            </td>
+
+                                             {/* Homeroom Details */}
+                                            <td className="px-4 py-3 text-slate-600 border-r border-slate-100 text-xs">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {Object.entries(s.homeroomDetails).map(([key, count]) => (
+                                                        <span key={key} className="inline-block px-1.5 py-0.5 rounded border border-orange-100 bg-orange-50 text-orange-800 font-bold">
+                                                            {key}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </td>
+
+                                            {/* Grand Total */}
+                                            <td className="px-4 py-3 text-center bg-slate-50">
+                                                <span className="font-black text-slate-800 text-lg">{s.teachingTotal + s.homeroomTotal + s.hdtnTotal}</span>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                             {filteredStats.length === 0 && <div className="p-10 text-center text-slate-400">Không tìm thấy dữ liệu.</div>}
                         </div>
-                        {showConfig && (<HomeroomConfigModal classes={classes} teacherConfigs={teacherConfigs} homeroomMap={homeroomMap} onSave={(newMap) => { onUpdateHomeroomMap(newMap); setShowConfig(false); }} onClose={() => setShowConfig(false)} />)}
+
+                        {/* Nested Modal for Config */}
+                        {showConfig && (
+                            <HomeroomConfigModal 
+                                classes={classes}
+                                teacherConfigs={teacherConfigs}
+                                homeroomMap={homeroomMap}
+                                onSave={(newMap) => {
+                                    onUpdateHomeroomMap(newMap);
+                                    setShowConfig(false);
+                                }}
+                                onClose={() => setShowConfig(false)}
+                            />
+                        )}
                     </div>
                 </div>
             );
         });
 
-        const TeachingLogModal = memo(({ isOpen, onClose, schedule, onSave, teacherName }) => {
-            const [selectedDate, setSelectedDate] = useState('');
-            const [logs, setLogs] = useState([]);
+        // --- STAGE 3: SNAPSHOT DETAIL MODAL (READ-ONLY) ---
+        const SnapshotDetailModal = memo(({ snapshot, onClose }) => {
+            const [search, setSearch] = useState('');
+            const [sort, setSort] = useState('count'); // 'count' | 'name'
 
-            useEffect(() => {
-                if (isOpen && !selectedDate) {
-                    const d = new Date();
-                    const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
-                    const monday = new Date(d.setDate(diff));
-                    setSelectedDate(monday.toISOString().split('T')[0]);
+            const processedData = useMemo(() => {
+                if (!snapshot || !snapshot.data) return [];
+                let res = [...snapshot.data];
+                // Filter
+                if (search) res = res.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+                // Sort
+                if (sort === 'count') {
+                    res.sort((a,b) => (b.teachingTotal + b.homeroomTotal + b.hdtnTotal) - (a.teachingTotal + a.homeroomTotal + a.hdtnTotal));
+                } else {
+                    res.sort((a,b) => a.name.localeCompare(b.name));
                 }
-            }, [isOpen]);
+                return res;
+            }, [snapshot, search, sort]);
 
-            useEffect(() => {
-                if (!selectedDate || !schedule.length) return;
-                const start = new Date(selectedDate);
-                if (isNaN(start.getTime())) return;
-
-                const newLogs = [];
-                schedule.forEach(item => {
-                    const dayMatch = String(item.day).match(/\d+/);
-                    if (!dayMatch) return;
-                    const dayNum = parseInt(dayMatch[0], 10);
-                    const dayOffset = dayNum - 2; 
-                    if (dayOffset < 0 || dayOffset > 6) return;
-
-                    const currentD = new Date(start);
-                    currentD.setDate(start.getDate() + dayOffset);
-                    if (isNaN(currentD.getTime())) return;
-                    
-                    const dateStr = currentD.toISOString().split('T')[0];
-                    const dayStr = `Thứ ${dayNum}`;
-                    let type = 'culture'; 
-                    const subj = item.subject ? item.subject.toUpperCase() : '';
-                    if (subj.includes('SHCN') || subj.includes('SHTT') || subj.includes('CHÀO CỜ') || subj.includes('CC')) type = 'homeroom';
-                    else if (subj.includes('HĐTN') || subj.includes('HN') || subj.includes('TN')) type = 'hdtn';
-                    else if (subj.includes('STEM')) type = 'stem';
-                    else if (subj.includes('LIM')) type = 'lim';
-
-                    newLogs.push({ date: dateStr, day: dayStr, period: item.period, clazz: item.clazz, subject: item.subject, type: type, id: `${dateStr}_${item.period}_${item.clazz}` });
-                });
-                newLogs.sort((a, b) => { if (a.date !== b.date) return a.date.localeCompare(b.date); return a.period - b.period; });
-                setLogs(newLogs);
-            }, [selectedDate, schedule]);
-
-            if (!isOpen) return null;
-
-            return (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
-                    <div className="bg-white w-full max-w-4xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                        <div className="p-4 border-b border-slate-200 bg-brand-600 text-white flex justify-between items-center"><h3 className="font-bold text-xl flex items-center gap-2"><Icons.Bolt /> Chốt Sổ Đầu Bài & Nhật Ký</h3><button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full"><Icons.X /></button></div>
-                        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between">
-                            <div className="flex items-center gap-3 w-full md:w-auto"><label className="font-bold text-slate-700 whitespace-nowrap">Chọn Thứ 2 đầu tuần:</label><input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="p-2 rounded-lg border border-slate-300 font-bold text-brand-600 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm" /></div>
-                            <div className="text-sm text-slate-500 italic">Hệ thống sẽ tự động tạo {logs.length} dòng nhật ký từ TKB hiện tại.</div>
-                        </div>
-                        <div className="flex-1 overflow-auto p-0">
-                            <table className="w-full text-sm text-left"><thead className="bg-slate-100 text-slate-600 font-bold sticky top-0 shadow-sm"><tr><th className="p-3 border-b">Ngày</th><th className="p-3 border-b text-center">Thứ</th><th className="p-3 border-b text-center">Tiết</th><th className="p-3 border-b">Lớp</th><th className="p-3 border-b">Môn</th><th className="p-3 border-b">Phân loại</th></tr></thead>
-                                <tbody className="divide-y divide-slate-100">{logs.map((log) => (<tr key={log.id} className="hover:bg-brand-50/50 transition-colors"><td className="p-3 font-mono text-slate-500">{log.date.split('-').reverse().join('/')}</td><td className="p-3 text-center font-bold">{log.day}</td><td className="p-3 text-center font-bold text-brand-600">{log.period}</td><td className="p-3 font-bold text-slate-800">{log.clazz}</td><td className="p-3">{log.subject}</td><td className="p-3"><span className={`px-2 py-1 rounded text-xs font-bold uppercase ${log.type === 'culture' ? 'bg-slate-100 text-slate-600' : log.type === 'homeroom' ? 'bg-orange-100 text-orange-600' : 'bg-brand-100 text-brand-600'}`}>{log.type}</span></td></tr>))}</tbody>
-                            </table>
-                            {logs.length === 0 && <div className="p-10 text-center text-slate-400">Chưa có dữ liệu TKB để ánh xạ.</div>}
-                        </div>
-                        <div className="p-4 border-t border-slate-200 bg-white flex justify-end gap-3"><button onClick={onClose} className="px-4 py-2 rounded-lg text-slate-600 font-bold hover:bg-slate-100">Hủy</button><button onClick={() => onSave(selectedDate, logs)} disabled={logs.length === 0} className="px-6 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"><Icons.Check /> Xác nhận Lưu</button></div>
-                    </div>
-                </div>
-            );
-        });
-
-        const ManualLogModal = memo(({ isOpen, onClose, onSave, initialData }) => {
-            const [form, setForm] = useState({ date: '', period: '1', clazz: '', subject: '', type: 'culture' });
-            useEffect(() => {
-                if (isOpen) {
-                    if (initialData) { setForm(initialData); } else { const today = new Date().toISOString().split('T')[0]; setForm({ date: today, period: '1', clazz: '', subject: '', type: 'culture' }); }
-                }
-            }, [isOpen, initialData]);
-            const handleSubmit = () => {
-                if (!form.date || !form.clazz || !form.subject) return alert("Vui lòng điền đủ thông tin!");
-                const d = new Date(form.date); const day = d.getDay() === 0 ? 'CN' : (d.getDay() + 1).toString();
-                onSave({ ...form, day: day, id: initialData ? initialData.id : `manual_${Date.now()}` });
+            // Reuse Export Logic for Snapshot
+            const handleExportExcel = () => {
+                try {
+                    const header = ["STT", "Giáo Viên", "Tổng Dạy", "Các Môn Khác (Chi tiết)", "Lim", "Stem", "HĐTN", "Tiết CN", "Lớp CN", "TỔNG CỘNG"];
+                    const rows = processedData.map((s, idx) => {
+                         const generalDetails = s.generalSubjects ? Object.entries(s.generalSubjects).map(([k,v]) => `${k}: ${v}`).join(', ') : "";
+                         const hDetails = s.homeroomDetails ? Object.entries(s.homeroomDetails).map(([k,v]) => `${k}`).join(', ') : "";
+                         const grandTotal = s.teachingTotal + s.homeroomTotal + s.hdtnTotal;
+                         return [idx + 1, s.name, s.teachingTotal, generalDetails || "-", s.limCount, s.stemCount, s.hdtnTotal, s.homeroomTotal, hDetails || "-", grandTotal];
+                    });
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+                    // (Simplified styling for snapshot export to save code space - or copy styling from StatisticsModal if strict consistency needed)
+                    XLSX.utils.book_append_sheet(wb, ws, "ChiTietThang");
+                    XLSX.writeFile(wb, `ChiTiet_${snapshot.month}.xlsx`);
+                } catch (err) { alert("Lỗi xuất file: " + err.message); }
             };
-            if (!isOpen) return null;
+
             return (
                 <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6" onClick={e => e.stopPropagation()}>
-                        <h3 className="font-bold text-xl text-slate-800 mb-4">{initialData ? 'Sửa Tiết Dạy' : 'Thêm Tiết Dạy Mới'}</h3>
-                        <div className="space-y-3">
-                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày dạy</label><input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="w-full p-2 border rounded-lg font-bold" /></div>
-                            <div className="flex gap-3"><div className="flex-1"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tiết</label><select value={form.period} onChange={e => setForm({...form, period: parseInt(e.target.value)})} className="w-full p-2 border rounded-lg">{[1,2,3,4,5,6,7,8,9,10].map(p => <option key={p} value={p}>{p}</option>)}</select></div><div className="flex-1"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Loại tiết</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full p-2 border rounded-lg"><option value="culture">Văn hóa</option><option value="homeroom">Chủ nhiệm/CC</option><option value="stem">STEM</option><option value="lim">LIM</option><option value="hdtn">HĐTN</option></select></div></div>
-                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Lớp</label><input type="text" value={form.clazz} onChange={e => setForm({...form, clazz: e.target.value})} className="w-full p-2 border rounded-lg" placeholder="VD: 10A1" /></div>
-                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Môn học / Nội dung</label><input type="text" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} className="w-full p-2 border rounded-lg" placeholder="VD: Toán" /></div>
+                    <div className="bg-white w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">
+                                    <Icons.Save /> Chi Tiết Tháng {snapshot.month}
+                                </h3>
+                                <div className="text-sm text-slate-500">Dữ liệu đã chốt lúc: {new Date(snapshot.createdAt).toLocaleString()}</div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={handleExportExcel} className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 text-sm"><Icons.Excel /> Xuất Excel</button>
+                                <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full"><Icons.X /></button>
+                            </div>
                         </div>
-                        <div className="flex justify-end gap-2 mt-6"><button onClick={onClose} className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg">Hủy</button><button onClick={handleSubmit} className="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 shadow-lg">Lưu</button></div>
+                        {/* Filter Bar */}
+                        <div className="p-4 bg-white border-b border-slate-100 flex gap-4">
+                            <input type="text" placeholder="Tìm tên giáo viên..." className="flex-1 px-4 py-2 rounded-lg border border-slate-300 outline-none focus:border-brand-500" value={search} onChange={e => setSearch(e.target.value)} />
+                            <select className="px-4 py-2 rounded-lg border border-slate-300 outline-none" value={sort} onChange={e => setSort(e.target.value)}>
+                                <option value="count">Nhiều tiết nhất</option>
+                                <option value="name">Tên A-Z</option>
+                            </select>
+                        </div>
+                        {/* Table (Reusing styles from StatisticsModal) */}
+                        <div className="flex-1 overflow-auto">
+                            <table className="min-w-max text-sm text-left border-collapse w-full">
+                                <thead className="bg-slate-100 text-slate-600 uppercase text-xs sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th className="px-4 py-3 text-center border-r border-slate-200">STT</th>
+                                        <th className="px-4 py-3 border-r border-slate-200">Giáo Viên</th>
+                                        <th className="px-4 py-3 text-center border-r border-slate-200 bg-brand-50 text-brand-800">Tổng Dạy</th>
+                                        <th className="px-4 py-3 border-r border-slate-200">Chi tiết môn</th>
+                                        <th className="px-2 py-3 text-center border-r border-slate-200">Lim</th>
+                                        <th className="px-2 py-3 text-center border-r border-slate-200">Stem</th>
+                                        <th className="px-2 py-3 text-center border-r border-slate-200 bg-purple-50 text-purple-800">HĐTN</th>
+                                        <th className="px-2 py-3 text-center border-r border-slate-200 bg-orange-50 text-orange-800">CN</th>
+                                        <th className="px-4 py-3 border-r border-slate-200">Lớp CN</th>
+                                        <th className="px-4 py-3 text-center font-black bg-slate-200">TỔNG</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {processedData.map((s, idx) => (
+                                        <tr key={idx} className="hover:bg-slate-50">
+                                            <td className="px-4 py-3 text-center text-slate-400 border-r border-slate-100">{idx+1}</td>
+                                            <td className="px-4 py-3 font-bold text-slate-800 border-r border-slate-100">{s.name}</td>
+                                            <td className="px-4 py-3 text-center font-bold text-brand-700 bg-brand-50/30 border-r border-slate-100">{s.teachingTotal||'-'}</td>
+                                            <td className="px-4 py-3 text-slate-600 border-r border-slate-100 text-xs">
+                                                {s.generalSubjects && Object.entries(s.generalSubjects).map(([k,v]) => <span key={k} className="mr-2 inline-block bg-slate-100 px-1 rounded border border-slate-200">{k}: <b>{v}</b></span>)}
+                                            </td>
+                                            <td className="px-2 py-3 text-center border-r border-slate-100">{s.limCount||'-'}</td>
+                                            <td className="px-2 py-3 text-center border-r border-slate-100">{s.stemCount||'-'}</td>
+                                            <td className="px-2 py-3 text-center font-bold text-purple-700 bg-purple-50/30 border-r border-slate-100">{s.hdtnTotal||'-'}</td>
+                                            <td className="px-2 py-3 text-center font-bold text-orange-700 bg-orange-50/30 border-r border-slate-100">{s.homeroomTotal||'-'}</td>
+                                            <td className="px-4 py-3 text-xs border-r border-slate-100">
+                                                 {s.homeroomDetails && Object.keys(s.homeroomDetails).map(k => <span key={k} className="mr-1 bg-orange-100 text-orange-800 px-1 rounded">{k}</span>)}
+                                            </td>
+                                            <td className="px-4 py-3 text-center font-black text-slate-800 bg-slate-50">{s.teachingTotal + s.homeroomTotal + s.hdtnTotal}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             );
         });
 
-        const DiaryScreen = memo(({ user, onBack }) => {
-            const [range, setRange] = useState({ start: '', end: '' });
-            const [logs, setLogs] = useState([]);
-            const [loading, setLoading] = useState(false);
-            const [editingLog, setEditingLog] = useState(null);
-            const [showModal, setShowModal] = useState(false);
+        // --- STAGE 3: MONTHLY LOG SCREEN ---
+        const MonthlyLogScreen = memo(({ onBack }) => {
+            const [logs, setLogs] = useState({});
+            const [viewingSnapshot, setViewingSnapshot] = useState(null);
 
-            useEffect(() => { const date = new Date(); setRange({ start: new Date(date.getFullYear(), date.getMonth(), 1).toISOString().split('T')[0], end: new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().split('T')[0] }); }, []);
+            useEffect(() => {
+                const raw = localStorage.getItem('SMART_SCHEDULE_MONTHLY_LOG');
+                if (raw) setLogs(JSON.parse(raw));
+            }, []);
 
-            // --- HYBRID DATA FETCH ---
-            const fetchLogs = async () => {
-                if (!range.start || !range.end) return;
-                setLoading(true);
-                try {
-                    let flatLogs = [];
-
-                    if (isCanvasEnv) {
-                        // FIRESTORE
-                        const { getFirestore, collection, getDocs } = window.firebaseModules;
-                        const db = getFirestore();
-                        const q = collection(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs');
-                        const snapshot = await getDocs(q);
-                        snapshot.forEach(doc => { 
-                            const weekData = doc.data(); 
-                            if (weekData.items) { 
-                                const validItems = weekData.items.filter(item => item.date >= range.start && item.date <= range.end); 
-                                validItems.forEach(i => i._weekId = doc.id); 
-                                flatLogs = flatLogs.concat(validItems); 
-                            } 
-                        });
-                    } else {
-                        // REALTIME DATABASE
-                        const { getDatabase, ref, get, child } = window.firebaseModules;
-                        const rtdb = getDatabase();
-                        const logsRef = ref(rtdb, `users/${user.uid}/weekly_logs`);
-                        const snapshot = await get(logsRef);
-                        if (snapshot.exists()) {
-                            snapshot.forEach(childSnap => {
-                                const weekData = childSnap.val();
-                                if (weekData.items) {
-                                    const validItems = weekData.items.filter(item => item.date >= range.start && item.date <= range.end);
-                                    validItems.forEach(i => i._weekId = childSnap.key);
-                                    flatLogs = flatLogs.concat(validItems);
-                                }
-                            });
-                        }
-                    }
-
-                    flatLogs.sort((a, b) => a.date.localeCompare(b.date) || a.period - b.period);
-                    setLogs(flatLogs);
-                } catch (e) { console.error(e); alert("Lỗi tải dữ liệu: " + e.message); } finally { setLoading(false); }
-            };
-            useEffect(() => { if(user) fetchLogs(); }, [range, user]);
-
-            const handleUpdateLog = async (newLogData) => {
-                try {
-                    const d = new Date(newLogData.date); 
-                    const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); 
-                    const monday = new Date(d.setDate(diff)).toISOString().split('T')[0]; 
-                    const targetWeekId = `week_${monday}`;
-
-                    if (isCanvasEnv) {
-                        // FIRESTORE UPDATE
-                        const { getFirestore, doc, getDoc, setDoc } = window.firebaseModules;
-                        const db = getFirestore();
-                        const weekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', targetWeekId);
-                        
-                        if (editingLog && editingLog._weekId) { 
-                            const oldWeekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', editingLog._weekId); 
-                            const oldSnap = await getDoc(oldWeekRef); 
-                            if (oldSnap.exists()) { 
-                                const filteredItems = oldSnap.data().items.filter(i => i.id !== editingLog.id); 
-                                await setDoc(oldWeekRef, { ...oldSnap.data(), items: filteredItems, updatedAt: new Date() }); 
-                            } 
-                        }
-                        
-                        const targetSnap = await getDoc(weekRef); 
-                        let targetItems = targetSnap.exists() ? (targetSnap.data().items || []) : [];
-                        targetItems = targetItems.filter(i => i.id !== newLogData.id); 
-                        targetItems.push(newLogData);
-                        await setDoc(weekRef, { weekStart: monday, totalPeriods: targetItems.length, items: targetItems, updatedAt: new Date() });
-                    } else {
-                        // RTDB UPDATE
-                        const { getDatabase, ref, get, set, child } = window.firebaseModules;
-                        const rtdb = getDatabase();
-                        
-                        // Remove Old
-                        if (editingLog && editingLog._weekId) {
-                            const oldRef = ref(rtdb, `users/${user.uid}/weekly_logs/${editingLog._weekId}`);
-                            const oldSnap = await get(oldRef);
-                            if (oldSnap.exists()) {
-                                const oldData = oldSnap.val();
-                                const filteredItems = (oldData.items || []).filter(i => i.id !== editingLog.id);
-                                await set(oldRef, { ...oldData, items: filteredItems, updatedAt: Date.now() });
-                            }
-                        }
-
-                        // Add New
-                        const targetRef = ref(rtdb, `users/${user.uid}/weekly_logs/${targetWeekId}`);
-                        const targetSnap = await get(targetRef);
-                        let targetItems = targetSnap.exists() ? (targetSnap.val().items || []) : [];
-                        targetItems = targetItems.filter(i => i.id !== newLogData.id);
-                        targetItems.push(newLogData);
-                        
-                        await set(targetRef, {
-                            weekStart: monday,
-                            totalPeriods: targetItems.length,
-                            items: targetItems,
-                            updatedAt: Date.now()
-                        });
-                    }
-
-                    setShowModal(false); setEditingLog(null); fetchLogs();
-                } catch (e) { console.error(e); alert("Lỗi lưu dữ liệu: " + e.message); }
+            const handleDelete = (key) => {
+                if (confirm(`Bạn có chắc chắn muốn xóa dữ liệu tháng ${key}? Hành động này không thể hoàn tác.`)) {
+                    const newLogs = { ...logs };
+                    delete newLogs[key];
+                    setLogs(newLogs);
+                    localStorage.setItem('SMART_SCHEDULE_MONTHLY_LOG', JSON.stringify(newLogs));
+                }
             };
 
-            const handleDeleteLog = async (log) => {
-                if (!confirm("Bạn chắc chắn muốn xóa tiết dạy này?")) return;
-                try {
-                    if (isCanvasEnv) {
-                        // FIRESTORE
-                        const { getFirestore, doc, getDoc, setDoc } = window.firebaseModules;
-                        const db = getFirestore();
-                        const weekRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', log._weekId);
-                        const snap = await getDoc(weekRef);
-                        if (snap.exists()) { 
-                            const newItems = snap.data().items.filter(i => i.id !== log.id); 
-                            await setDoc(weekRef, { ...snap.data(), items: newItems, updatedAt: new Date() }); 
-                        }
-                    } else {
-                        // RTDB
-                        const { getDatabase, ref, get, set } = window.firebaseModules;
-                        const rtdb = getDatabase();
-                        const weekRef = ref(rtdb, `users/${user.uid}/weekly_logs/${log._weekId}`);
-                        const snap = await get(weekRef);
-                        if (snap.exists()) {
-                            const data = snap.val();
-                            const newItems = (data.items || []).filter(i => i.id !== log.id);
-                            await set(weekRef, { ...data, items: newItems, updatedAt: Date.now() });
-                        }
-                    }
-                    fetchLogs();
-                } catch (e) { alert("Lỗi xóa: " + e.message); }
+            const handleUpdateNote = (key, note) => {
+                const newLogs = { ...logs };
+                newLogs[key].note = note;
+                setLogs(newLogs);
+                localStorage.setItem('SMART_SCHEDULE_MONTHLY_LOG', JSON.stringify(newLogs));
+            };
+            
+            const handleExportJSON = (key) => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs[key], null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `Data_Thang_${key}.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
             };
 
-            const stats = useMemo(() => { const s = { culture: 0, homeroom: 0, stem: 0, lim: 0, hdtn: 0, total: 0 }; logs.forEach(l => { if (s[l.type] !== undefined) s[l.type]++; s.total++; }); return s; }, [logs]);
-
-            const handleExport = () => {
-                try {
-                    const wb = XLSX.utils.book_new();
-                    const summaryData = [ ["BÁO CÁO TỔNG HỢP TIẾT DẠY"], [`Từ ngày: ${range.start}`, `Đến ngày: ${range.end}`], [""], ["Loại Tiết", "Số Tiết"], ["Văn hóa", stats.culture], ["Chủ nhiệm/CC", stats.homeroom], ["STEM", stats.stem], ["LIM", stats.lim], ["HĐTN", stats.hdtn], ["TỔNG CỘNG", stats.total] ];
-                    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData); XLSX.utils.book_append_sheet(wb, wsSummary, "TongHop");
-                    const detailData = [ ["Ngày", "Thứ", "Tiết", "Lớp", "Môn", "Loại", "Ghi chú"], ...logs.map(l => [ l.date, l.day, l.period, l.clazz, l.subject, l.type === 'culture' ? 'Văn hóa' : l.type.toUpperCase(), l.id.includes('manual') ? 'Thủ công' : '' ]) ];
-                    const wsDetail = XLSX.utils.aoa_to_sheet(detailData); XLSX.utils.book_append_sheet(wb, wsDetail, "ChiTiet");
-                    XLSX.writeFile(wb, `BaoCao_DayHoc_${range.start}_${range.end}.xlsx`);
-                } catch (e) { alert("Lỗi xuất file: " + e.message); }
-            };
+            const sortedKeys = Object.keys(logs).sort().reverse(); // Newest months first
 
             return (
-                <div className="min-h-screen bg-slate-50 flex flex-col">
-                    <div className="bg-white border-b border-slate-200 sticky top-0 z-20"><div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center"><button onClick={onBack} className="flex items-center gap-2 text-slate-500 font-bold hover:text-slate-800"><span className="text-xl">←</span> Quay lại</button><h2 className="text-lg font-black text-slate-800 flex items-center gap-2"><Icons.Calendar /> NHẬT KÝ & THU NHẬP</h2><button onClick={() => { setEditingLog(null); setShowModal(true); }} className="bg-brand-600 text-white px-3 py-1.5 rounded-lg font-bold text-sm shadow hover:bg-brand-700 flex items-center gap-1"><Icons.Plus /> Thêm</button></div></div>
-                    <div className="flex-1 max-w-6xl mx-auto w-full p-4 space-y-6">
-                        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-end md:items-center justify-between"><div className="flex gap-4 items-center w-full md:w-auto"><div><label className="block text-[10px] font-bold text-slate-400 uppercase">Từ ngày</label><input type="date" value={range.start} onChange={e => setRange({...range, start: e.target.value})} className="border border-slate-300 rounded p-1.5 text-sm font-bold text-slate-700" /></div><div><label className="block text-[10px] font-bold text-slate-400 uppercase">Đến ngày</label><input type="date" value={range.end} onChange={e => setRange({...range, end: e.target.value})} className="border border-slate-300 rounded p-1.5 text-sm font-bold text-slate-700" /></div></div><button onClick={handleExport} className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-emerald-700 flex items-center gap-2"><Icons.Excel /> Xuất Báo Cáo</button></div>
-                        <div className="grid grid-cols-2 md:grid-cols-6 gap-3"><div className="bg-slate-800 text-white p-4 rounded-xl shadow-lg col-span-2 md:col-span-1 flex flex-col justify-center"><span className="text-xs opacity-70 font-bold uppercase">Tổng Số Tiết</span><span className="text-3xl font-black">{stats.total}</span></div>{[{ l: 'Văn hóa', v: stats.culture, c: 'bg-white text-slate-800 border-slate-200' }, { l: 'Chủ nhiệm', v: stats.homeroom, c: 'bg-orange-50 text-orange-700 border-orange-200' }, { l: 'STEM', v: stats.stem, c: 'bg-blue-50 text-blue-700 border-blue-200' }, { l: 'LIM', v: stats.lim, c: 'bg-green-50 text-green-700 border-green-200' }, { l: 'HĐTN', v: stats.hdtn, c: 'bg-purple-50 text-purple-700 border-purple-200' }].map(item => (<div key={item.l} className={`p-3 rounded-xl border shadow-sm flex flex-col justify-center ${item.c}`}><span className="text-[10px] font-bold uppercase opacity-80">{item.l}</span><span className="text-2xl font-black">{item.v}</span></div>))}</div>
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div className="p-4 border-b border-slate-100 bg-slate-50 font-bold text-slate-600 text-sm">Chi tiết nhật ký ({logs.length} bản ghi)</div><div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="text-slate-400 bg-white text-xs uppercase border-b border-slate-100"><tr><th className="px-4 py-3">Ngày</th><th className="px-4 py-3 w-16 text-center">Tiết</th><th className="px-4 py-3">Lớp</th><th className="px-4 py-3">Môn</th><th className="px-4 py-3">Loại</th><th className="px-4 py-3 text-right">Thao tác</th></tr></thead><tbody className="divide-y divide-slate-50">{logs.map(log => (<tr key={log.id} className="hover:bg-slate-50 transition-colors"><td className="px-4 py-3 font-medium text-slate-700">{log.date.split('-').reverse().join('/')} <span className="text-slate-400 text-xs font-normal">({log.day})</span></td><td className="px-4 py-3 text-center font-bold text-brand-600 bg-brand-50/50">{log.period}</td><td className="px-4 py-3 font-bold">{log.clazz}</td><td className="px-4 py-3">{log.subject}</td><td className="px-4 py-3"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${log.type === 'culture' ? 'bg-slate-100 text-slate-500' : log.type === 'homeroom' ? 'bg-orange-100 text-orange-600' : 'bg-brand-100 text-brand-600'}`}>{log.type}</span></td><td className="px-4 py-3 text-right"><div className="flex justify-end gap-2"><button onClick={() => { setEditingLog(log); setShowModal(true); }} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Icons.Edit /></button><button onClick={() => handleDeleteLog(log)} className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-600 transition-colors"><Icons.Trash /></button></div></td></tr>))}</tbody></table>{loading && <div className="p-10 text-center text-slate-400 animate-pulse">Đang tải dữ liệu...</div>}{!loading && logs.length === 0 && <div className="p-10 text-center text-slate-400">Không có dữ liệu trong khoảng thời gian này.</div>}</div></div>
+                <div className="min-h-screen bg-slate-50 flex flex-col p-4 animate-fade-in">
+                    {viewingSnapshot && <SnapshotDetailModal snapshot={viewingSnapshot} onClose={() => setViewingSnapshot(null)} />}
+                    
+                    <div className="max-w-4xl w-full mx-auto bg-white rounded-2xl shadow-soft flex flex-col h-[90vh]">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><Icons.Save /> Sổ Tiết Dạy</h2>
+                                <p className="text-slate-500 text-sm">Quản lý dữ liệu các tháng đã chốt sổ</p>
+                            </div>
+                            <button onClick={onBack} className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm">Quay lại</button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                            {sortedKeys.length === 0 ? (
+                                <div className="text-center py-20 text-slate-400">
+                                    <div className="text-4xl mb-4 opacity-20"><Icons.Save /></div>
+                                    Chưa có dữ liệu tháng nào được chốt.<br/>
+                                    Vui lòng vào phần "Thống Kê" để chốt sổ.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {sortedKeys.map(key => {
+                                        const log = logs[key];
+                                        return (
+                                            <div key={key} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                    <div>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="bg-brand-100 text-brand-700 px-3 py-1 rounded-lg font-bold text-lg">Tháng {key}</div>
+                                                            <div className="text-xs text-slate-400">Ngày chốt: {new Date(log.createdAt).toLocaleString()}</div>
+                                                        </div>
+                                                        <div className="mt-2 text-sm text-slate-600">
+                                                            Đã lưu trữ: <b>{log.data.length}</b> giáo viên
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={() => setViewingSnapshot(log)} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 flex items-center gap-2"><Icons.Eye /> Xem Chi Tiết</button>
+                                                        <button onClick={() => handleExportJSON(key)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg" title="Tải file JSON backup"><Icons.Upload className="rotate-180" /></button>
+                                                        <button onClick={() => handleDelete(key)} className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg" title="Xóa dữ liệu"><Icons.X /></button>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4 pt-3 border-t border-slate-100">
+                                                    <label className="text-xs font-bold text-slate-400 uppercase">Ghi chú:</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="w-full mt-1 bg-slate-50 border-none rounded p-2 text-sm text-slate-700 focus:ring-1 focus:ring-brand-300 placeholder:italic"
+                                                        placeholder="Nhập ghi chú cho tháng này (VD: Đã nộp báo cáo...)"
+                                                        defaultValue={log.note || ''}
+                                                        onBlur={(e) => handleUpdateNote(key, e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <ManualLogModal isOpen={showModal} onClose={() => setShowModal(false)} onSave={handleUpdateLog} initialData={editingLog} />
                 </div>
             );
         });
 
-        const ModeSelectionScreen = memo(({ onSelectMode, onViewStats, onBack }) => {
+        const AutoSelectionScreen = memo(({ teacherConfigs, onSelectTeacher, onBack, searchTerm, setSearchTerm }) => {
+            const sortedKeys = useMemo(() => {
+                return Object.keys(teacherConfigs).sort((a,b) => teacherConfigs[a].displayName.localeCompare(teacherConfigs[b].displayName));
+            }, [teacherConfigs]);
+
+            const filteredKeys = sortedKeys.filter(key => {
+                return teacherConfigs[key].displayName.toLowerCase().includes(searchTerm.toLowerCase());
+            });
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
+                    <div className="w-full max-w-lg bg-white rounded-[2rem] border border-white shadow-soft overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 bg-brand-600 text-white">
+                            <h2 className="text-2xl font-bold flex items-center gap-2"><Icons.Bolt /> <span className="ml-2">Chế độ Tự Động</span></h2>
+                            <p className="opacity-90 text-sm mt-1 ml-8">Chọn tên giáo viên để xem TKB ngay.</p>
+                        </div>
+                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex gap-4 items-center">
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
+                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 outline-none shadow-sm"
+                                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
+                            <div className="space-y-2">
+                                {filteredKeys.map(key => (
+                                    <button 
+                                        key={key} 
+                                        onClick={() => onSelectTeacher(key)}
+                                        className="w-full text-left p-4 rounded-xl border border-white bg-white hover:border-brand-300 hover:shadow-md transition-all flex items-center justify-between group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
+                                                {teacherConfigs[key].displayName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <span className="font-bold text-slate-700 text-lg group-hover:text-brand-700">{teacherConfigs[key].displayName}</span>
+                                        </div>
+                                        <div className="text-slate-300 group-hover:text-brand-500"><Icons.ArrowRight /></div>
+                                    </button>
+                                ))}
+                                {filteredKeys.length === 0 && <div className="text-center py-10 text-slate-400">Không tìm thấy kết quả.</div>}
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-slate-200 bg-white">
+                            <button onClick={onBack} className="w-full py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Quay lại</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+
+        const ConfigScreen = memo(({ teacherConfigs, selectedSignatures, handleToggleOption, handleSelectAll, searchTerm, setSearchTerm, expandedKey, setExpandedKey, onBack, onView }) => {
+            const sortedKeys = useMemo(() => {
+                const keys = Object.keys(teacherConfigs);
+                const isSelected = (key) => {
+                    const options = teacherConfigs[key].options;
+                    return Object.keys(options).some(sig => selectedSignatures.has(sig));
+                };
+                return keys.sort((a,b) => {
+                    const selA = isSelected(a);
+                    const selB = isSelected(b);
+                    if (selA && !selB) return -1;
+                    if (!selA && selB) return 1;
+                    return teacherConfigs[a].displayName.localeCompare(teacherConfigs[b].displayName);
+                });
+            }, [teacherConfigs, selectedSignatures]);
+            
+            const filteredKeys = sortedKeys.filter(key => {
+                const group = teacherConfigs[key];
+                const searchLower = searchTerm.toLowerCase();
+                if (group.displayName.toLowerCase().includes(searchLower)) return true;
+                return Object.values(group.options).some(opt => opt.label.toLowerCase().includes(searchLower));
+            });
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4">
+                    <div className="w-full max-w-4xl bg-white rounded-[2rem] border border-white shadow-soft overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 bg-brand-600 text-white">
+                            <h2 className="text-2xl font-bold flex items-center gap-2"><Icons.Cog /> <span className="ml-2">Cấu hình Thủ Công</span></h2>
+                            <p className="opacity-90 text-sm mt-1 ml-9">Chọn chính xác các lớp bạn dạy để loại bỏ trùng tên.</p>
+                        </div>
+                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex gap-4 items-center">
+                            <div className="relative flex-1">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
+                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-brand-500 outline-none shadow-sm"
+                                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            </div>
+                            <div className="text-sm text-slate-500 font-bold">Đã chọn: <span className="text-brand-600 text-lg">{selectedSignatures.size}</span> mục</div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
+                            <div className="space-y-3">
+                                {filteredKeys.map(key => {
+                                    const group = teacherConfigs[key];
+                                    const isExpanded = expandedKey === key;
+                                    const options = Object.entries(group.options);
+                                    const isAnySelected = options.some(([sig]) => selectedSignatures.has(sig));
+
+                                    return (
+                                        <div key={key} className={`bg-white rounded-xl border transition-all overflow-hidden ${isAnySelected ? 'border-brand-500 ring-1 ring-brand-200' : 'border-slate-200 hover:border-brand-300'}`}>
+                                            <div 
+                                                className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50"
+                                                onClick={() => setExpandedKey(isExpanded ? null : key)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors ${isAnySelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                                                        {group.displayName.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-slate-800">{group.displayName} {isAnySelected && <span className="text-brand-600 text-xs ml-2">(Đã chọn)</span>}</div>
+                                                        <div className="text-xs text-slate-500">{options.length} nhóm môn học</div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-slate-400">
+                                                    {isExpanded ? <Icons.ChevronUp /> : <Icons.ChevronDown />}
+                                                </div>
+                                            </div>
+                                            
+                                            {isExpanded && (
+                                                <div className="border-t border-slate-100 bg-slate-50/50 p-4 animate-fade-in" onClick={e => e.stopPropagation()}>
+                                                    <div className="flex justify-end mb-2">
+                                                        <button onClick={() => handleSelectAll(key)} className="text-xs font-bold text-brand-600 hover:underline">Chọn tất cả</button>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                        {options.map(([sig, data]) => (
+                                                            <label key={sig} className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-brand-300 transition-all select-none">
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    className="custom-checkbox w-5 h-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 mt-0.5"
+                                                                    checked={selectedSignatures.has(sig)}
+                                                                    onChange={(e) => handleToggleOption(sig, e.target.checked, key)}
+                                                                />
+                                                                <div className="flex-1">
+                                                                    <div className="font-bold text-slate-700 text-sm">{data.label}</div>
+                                                                    <div className="text-xs text-slate-500 mt-1">Xuất hiện: {data.count} lần</div>
+                                                                </div>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                                {filteredKeys.length === 0 && <div className="text-center py-10 text-slate-400">Không tìm thấy giáo viên nào khớp với từ khóa.</div>}
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-slate-200 bg-white flex justify-between items-center">
+                            <button onClick={onBack} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Quay lại</button>
+                            <button onClick={onView} disabled={selectedSignatures.size === 0} className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg flex items-center gap-2 ${selectedSignatures.size === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all'}`}>Xem TKB <Icons.ArrowRight /></button>
+                        </div>
+                    </div>
+                </div>
+            )
+        });
+
+        const ModeSelectionScreen = memo(({ onSelectMode, onViewStats, onViewLogs, onBack }) => {
             return (
                 <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
                     <div className="w-full max-w-lg text-center">
@@ -816,20 +1254,51 @@
                             <h1 className="text-3xl font-black text-slate-800 mb-2">Chọn Chế Độ</h1>
                             <p className="text-slate-500">Bạn muốn xem thời khóa biểu theo cách nào?</p>
                         </div>
+                        
                         <div className="space-y-4">
                             <button onClick={() => onSelectMode('auto')} className="w-full p-6 bg-white rounded-2xl border-2 border-transparent hover:border-brand-500 shadow-soft hover:shadow-xl transition-all group text-left flex items-center gap-4 relative overflow-hidden">
-                                <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-2xl group-hover:scale-110 transition-transform"><Icons.Bolt /></div>
-                                <div className="flex-1 relative z-10"><h3 className="text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors">Tự Động (Nhanh)</h3><p className="text-sm text-slate-500 mt-1">Chỉ cần chọn tên giáo viên. Hệ thống tự động gom tất cả lớp.</p></div>
+                                <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-2xl group-hover:scale-110 transition-transform">
+                                    <Icons.Bolt />
+                                </div>
+                                <div className="flex-1 relative z-10">
+                                    <h3 className="text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors">Tự Động (Nhanh)</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Chỉ cần chọn tên giáo viên. Hệ thống tự động gom tất cả lớp.</p>
+                                </div>
                             </button>
+
                             <button onClick={() => onSelectMode('manual')} className="w-full p-6 bg-white rounded-2xl border-2 border-transparent hover:border-brand-500 shadow-soft hover:shadow-xl transition-all group text-left flex items-center gap-4 relative overflow-hidden">
-                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 text-2xl group-hover:scale-110 transition-transform"><Icons.Cog /></div>
-                                <div className="flex-1 relative z-10"><h3 className="text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors">Thủ Công (Chi tiết)</h3><p className="text-sm text-slate-500 mt-1">Tự chọn từng môn/lớp dạy. Phù hợp nếu dạy thay hoặc trùng tên.</p></div>
+                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 text-2xl group-hover:scale-110 transition-transform">
+                                    <Icons.Cog />
+                                </div>
+                                <div className="flex-1 relative z-10">
+                                    <h3 className="text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors">Thủ Công (Chi tiết)</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Tự chọn từng môn/lớp dạy. Phù hợp nếu dạy thay hoặc trùng tên.</p>
+                                </div>
                             </button>
-                            <button onClick={onViewStats} className="w-full p-6 bg-white rounded-2xl border-2 border-transparent hover:border-brand-500 shadow-soft hover:shadow-xl transition-all group text-left flex items-center gap-4 relative overflow-hidden">
-                                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-2xl group-hover:scale-110 transition-transform"><Icons.Chart /></div>
-                                <div className="flex-1 relative z-10"><h3 className="text-xl font-bold text-slate-800 group-hover:text-purple-600 transition-colors">Thống Kê (Tổng Hợp)</h3><p className="text-sm text-slate-500 mt-1">Xem tổng số tiết dạy và chủ nhiệm của toàn trường.</p></div>
-                            </button>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <button onClick={onViewStats} className="w-full p-4 bg-white rounded-2xl border-2 border-transparent hover:border-purple-500 shadow-soft hover:shadow-xl transition-all group text-left flex flex-col items-center justify-center gap-2 relative overflow-hidden">
+                                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-xl group-hover:scale-110 transition-transform">
+                                        <Icons.Chart />
+                                    </div>
+                                    <div className="relative z-10 text-center">
+                                        <h3 className="font-bold text-slate-800 group-hover:text-purple-600 transition-colors">Thống Kê</h3>
+                                        <p className="text-xs text-slate-500 mt-1">Tổng hợp tiết dạy</p>
+                                    </div>
+                                </button>
+                                
+                                <button onClick={onViewLogs} className="w-full p-4 bg-white rounded-2xl border-2 border-transparent hover:border-blue-500 shadow-soft hover:shadow-xl transition-all group text-left flex flex-col items-center justify-center gap-2 relative overflow-hidden">
+                                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl group-hover:scale-110 transition-transform">
+                                        <Icons.Save />
+                                    </div>
+                                    <div className="relative z-10 text-center">
+                                        <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Sổ Tiết Dạy</h3>
+                                        <p className="text-xs text-slate-500 mt-1">Dữ liệu đã chốt</p>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
+
                         <button onClick={onBack} className="mt-8 text-slate-400 font-bold hover:text-slate-600 transition-colors">Quay lại tải file</button>
                     </div>
                 </div>
@@ -838,12 +1307,8 @@
 
         // --- MAIN APP ---
         const App = () => {
-            const [user, setUser] = useState(null);
-            const [isAuthLoading, setIsAuthLoading] = useState(true);
-            const [showLogModal, setShowLogModal] = useState(false);
-            const [view, setView] = useState('schedule'); 
             const [stage, setStage] = useState('upload'); 
-            const [files, setFiles] = useState([]);
+            const [files, setFiles] = useState([]); 
             const [allRawData, setAllRawData] = useState([]); 
             const [teacherConfigs, setTeacherConfigs] = useState({}); 
             const [selectedSignatures, setSelectedSignatures] = useState(new Set()); 
@@ -860,141 +1325,130 @@
             const [error, setError] = useState('');
             const [searchTerm, setSearchTerm] = useState('');
             const [showStats, setShowStats] = useState(false); 
-            const [homeroomMap, setHomeroomMap] = useState({});
+            const [homeroomMap, setHomeroomMap] = useState({}); 
             const captureRef = useRef(null);
 
             useEffect(() => {
-                const initAuth = async () => {
-                    await initFirebase();
-                    const { onAuthStateChanged, signInWithCustomToken, signInAnonymously } = window.firebaseModules;
-                    
-                    if (isCanvasEnv && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        try {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } catch (e) {
-                            console.error("Token login failed", e);
-                            setIsAuthLoading(false); 
-                        }
-                    } else if (!isCanvasEnv) {
-                        setIsAuthLoading(false);
-                    } else {
-                        setIsAuthLoading(false);
-                    }
-
-                    const unsubscribe = onAuthStateChanged(auth, (u) => {
-                        setUser(u);
-                        if(u) setIsAuthLoading(false);
-                    });
-                    return () => unsubscribe();
-                };
-                initAuth();
+                const h = new Date().getHours();
+                if (h >= 12) setActiveSession('CHIỀU');
             }, []);
 
-            const handleGoogleLogin = async () => {
-                if (!auth) await initFirebase();
-                const { signInWithPopup, GoogleAuthProvider } = window.firebaseModules;
-                try {
-                    await signInWithPopup(auth, googleProvider);
-                } catch (err) {
-                    alert("Lỗi đăng nhập: " + err.message);
-                }
-            };
-
-            const handleLogout = async () => {
-                if (!auth) return;
-                const { signOut } = window.firebaseModules;
-                if (confirm("Đăng xuất?")) {
-                    await signOut(auth);
-                    window.location.reload();
-                }
-            };
-
-            useEffect(() => { if(!user) setView('schedule'); }, [user]);
-            useEffect(() => { const h = new Date().getHours(); if (h >= 12) setActiveSession('CHIỀU'); }, []);
-
-            const handleManualSync = async () => {
-                if (!user) { alert("Vui lòng đăng nhập để lưu dữ liệu!"); return; }
-                if (!currentTeacherKey && selectedSignatures.size === 0) { alert("Chưa có dữ liệu cấu hình để lưu!"); return; }
-                try {
-                    const configData = { currentTeacherKey, selectedSignatures: Array.from(selectedSignatures), homeroomMap, selectedHomeroom, updatedAt: Date.now() };
-
-                    if (isCanvasEnv) {
-                         const { setDoc, doc, getFirestore, serverTimestamp } = window.firebaseModules;
-                         const db = getFirestore();
-                         await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'default'), { ...configData, updatedAt: serverTimestamp() });
-                    } else {
-                         const { getDatabase, ref, set } = window.firebaseModules;
-                         const rtdb = getDatabase();
-                         await set(ref(rtdb, `users/${user.uid}/config`), configData);
-                    }
-                    alert("Đã lưu cấu hình lên đám mây thành công!");
-                } catch (e) { console.error("Sync error:", e); alert("Lỗi lưu dữ liệu: " + e.message); }
-            };
-
-            const handleSaveWeeklyLogs = async (weekStartDate, logs) => {
-                if (!user) return alert("Vui lòng đăng nhập!");
-                try {
-                    const weekId = `week_${weekStartDate}`;
-                    const dataToSave = { weekStart: weekStartDate, totalPeriods: logs.length, items: logs, updatedAt: Date.now() };
-
-                    if (isCanvasEnv) {
-                         const { setDoc, doc, getDoc, getFirestore, serverTimestamp } = window.firebaseModules;
-                         const db = getFirestore();
-                         const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'weekly_logs', weekId);
-                         const snap = await getDoc(docRef);
-                         if (snap.exists()) { if (!confirm(`Tuần bắt đầu ngày ${weekStartDate.split('-').reverse().join('/')} đã được lưu trước đó. Bạn có muốn GHI ĐÈ không?`)) { return; } }
-                         await setDoc(docRef, { ...dataToSave, updatedAt: serverTimestamp() });
-                    } else {
-                         const { getDatabase, ref, get, set } = window.firebaseModules;
-                         const rtdb = getDatabase();
-                         const weekRef = ref(rtdb, `users/${user.uid}/weekly_logs/${weekId}`);
-                         const snap = await get(weekRef);
-                         if (snap.exists()) { if (!confirm(`Tuần bắt đầu ngày ${weekStartDate.split('-').reverse().join('/')} đã được lưu trước đó. Bạn có muốn GHI ĐÈ không?`)) { return; } }
-                         await set(weekRef, dataToSave);
-                    }
-
-                    alert("Đã chốt sổ thành công! Dữ liệu đã được lưu.");
-                    setShowLogModal(false);
-                } catch (e) { console.error("Log save error:", e); alert("Lỗi khi lưu nhật ký: " + e.message); }
-            };
-
+            // --- PROCESS FILE ---
             const handleFiles = async (fileList) => {
                 if (!fileList || fileList.length === 0) return;
+                
                 setLoading(true); setError(''); setStatus('Đang đọc file...');
                 const extractedAll = [];
                 let combinedClasses = new Set();
                 let combinedConfigs = {};
 
                 try {
+                    // Convert FileList to Array
                     const files = Array.from(fileList);
-                    setFiles(files); 
+                    setFiles(files); // Store files
+
                     for (let fIdx = 0; fIdx < files.length; fIdx++) {
                         const file = files[fIdx];
                         setStatus(`Đang xử lý file ${fIdx + 1}/${files.length}: ${file.name}...`);
+                        
+                        // --- GIAI ĐOẠN 1: XÁC ĐỊNH NGÀY BẮT ĐẦU TUẦN ---
+                        let weekStartDate = parseDateFromStr(file.name);
+                        
+                        // Nếu không tìm thấy ngày trong tên file, hỏi người dùng
+                        if (!weekStartDate) {
+                            // Dùng window.prompt để an toàn tuyệt đối cho layout hiện tại (Surgical Mode)
+                            const userDateStr = window.prompt(
+                                `Không tìm thấy ngày trong tên file "${file.name}".\nVui lòng nhập ngày Thứ 2 đầu tuần (dd.mm.yyyy):`, 
+                                new Date().toLocaleDateString('vi-VN')
+                            );
+                            if (userDateStr) {
+                                weekStartDate = parseDateFromStr(userDateStr);
+                            }
+                        }
+                        
+                        // Fallback: Nếu vẫn null hoặc invalid, dùng ngày hiện tại (hoặc xử lý lỗi tùy ý)
+                        // Ở đây ta mặc định là Thứ 2 của tuần hiện tại nếu không nhập
+                        if (!weekStartDate || isNaN(weekStartDate.getTime())) {
+                            const d = new Date();
+                            const day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1); 
+                            weekStartDate = new Date(d.setDate(diff));
+                            console.warn(`File ${file.name}: Không xác định được ngày, mặc định dùng ${weekStartDate.toLocaleDateString()}`);
+                        }
+                        // ------------------------------------------------
+
                         const data = await file.arrayBuffer();
                         const workbook = XLSX.read(data);
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        if (worksheet['!merges']) { worksheet['!merges'].forEach(range => { const startCell = worksheet[XLSX.utils.encode_cell(range.s)]; if (startCell) { for (let R = range.s.r; R <= range.e.r; ++R) { for (let C = range.s.c; C <= range.e.c; ++C) { const addr = XLSX.utils.encode_cell({c: C, r: R}); if (!worksheet[addr]) worksheet[addr] = { ...startCell }; } } } }); }
+
+                        if (worksheet['!merges']) {
+                            worksheet['!merges'].forEach(range => {
+                                const startCell = worksheet[XLSX.utils.encode_cell(range.s)];
+                                if (startCell) {
+                                    for (let R = range.s.r; R <= range.e.r; ++R) {
+                                        for (let C = range.s.c; C <= range.e.c; ++C) {
+                                            const addr = XLSX.utils.encode_cell({c: C, r: R});
+                                            if (!worksheet[addr]) worksheet[addr] = { ...startCell };
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
                         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
                         let headerRowIndex = -1;
-                        for (let i = 0; i < Math.min(jsonData.length, 30); i++) { const rowStr = jsonData[i].join(' ').toUpperCase(); if (rowStr.includes('THỨ') && rowStr.includes('TIẾT')) { headerRowIndex = i; break; } }
+                        for (let i = 0; i < Math.min(jsonData.length, 30); i++) {
+                            const rowStr = jsonData[i].join(' ').toUpperCase();
+                            if (rowStr.includes('THỨ') && rowStr.includes('TIẾT')) { headerRowIndex = i; break; }
+                        }
                         if (headerRowIndex === -1) throw new Error(`File ${file.name}: Không tìm thấy dòng tiêu đề chuẩn (Thứ/Tiết).`);
+
                         const classMap = {};
                         let dayCol = -1, periodCol = -1, sessionCol = -1;
-                        jsonData[headerRowIndex].forEach((cell, idx) => { const c = cell.toString().trim().toUpperCase(); if (c.includes('THỨ')) dayCol = idx; else if (c.includes('TIẾT')) periodCol = idx; else if (c.includes('BUỔI')) sessionCol = idx; else if (c.length > 0 && c.length < 15 && !['SÁNG','CHIỀU'].includes(c)) { classMap[idx] = cell.toString().trim(); combinedClasses.add(cell.toString().trim()); } });
+
+                        jsonData[headerRowIndex].forEach((cell, idx) => {
+                            const c = cell.toString().trim().toUpperCase();
+                            if (c.includes('THỨ')) dayCol = idx;
+                            else if (c.includes('TIẾT')) periodCol = idx;
+                            else if (c.includes('BUỔI')) sessionCol = idx;
+                            else if (c.length > 0 && c.length < 15 && !['SÁNG','CHIỀU'].includes(c)) {
+                                classMap[idx] = cell.toString().trim();
+                                combinedClasses.add(cell.toString().trim());
+                            }
+                        });
+
                         let currentDay = '', currentSession = '';
+
                         for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
                             const row = jsonData[i];
                             if (row[dayCol]) currentDay = row[dayCol].toString().trim();
                             const rawPeriod = row[periodCol]?.toString().trim();
                             if (!rawPeriod || isNaN(parseInt(rawPeriod))) continue;
                             const period = parseInt(rawPeriod);
-                            if (sessionCol !== -1 && row[sessionCol]) currentSession = row[sessionCol].toString().trim(); else currentSession = period <= 5 ? 'SÁNG' : 'CHIỀU';
+                            if (sessionCol !== -1 && row[sessionCol]) currentSession = row[sessionCol].toString().trim();
+                            else currentSession = period <= 5 ? 'SÁNG' : 'CHIỀU';
+
+                            // --- GIAI ĐOẠN 1: TÍNH ACTUAL DATE ---
+                            // Thứ 2 -> offset 0, Thứ 3 -> offset 1...
+                            const dayInt = parseInt(currentDay.replace(/\D/g, '')); // Lấy số từ "Thứ 2" -> 2
+                            const dateOffset = !isNaN(dayInt) ? dayInt - 2 : 0;
+                            const actualDate = addDays(weekStartDate, dateOffset).toISOString();
+                            // -------------------------------------
+
                             Object.keys(classMap).forEach(colIdxStr => {
                                 const colIdx = parseInt(colIdxStr);
                                 const cellContent = row[colIdx]?.toString().trim();
+                                
                                 if (cellContent) {
-                                    const parsedItems = parseMultiValueCell(cellContent, { day: currentDay, session: currentSession, period: period, fileIndex: fIdx });
+                                    // Pass fileIndex, weekStartDate, actualDate into meta data
+                                    const parsedItems = parseMultiValueCell(cellContent, { 
+                                        day: currentDay, 
+                                        session: currentSession, 
+                                        period: period,
+                                        fileIndex: fIdx,
+                                        weekStartDate: weekStartDate.toISOString(), // Mới
+                                        actualDate: actualDate // Mới
+                                    });
+                                    
                                     parsedItems.forEach(item => {
                                         if (item.teacherCanonical && !['gvcn','gvtg'].includes(item.teacherCanonical)) {
                                             const key = item.teacherCanonical;
@@ -1006,83 +1460,219 @@
                                         }
                                         let displayClass = classMap[colIdx];
                                         if (item.className && item.className !== displayClass) displayClass = `${displayClass} (${item.className})`;
-                                        extractedAll.push({ ...item, clazz: displayClass, isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)), signature: `${item.subject}|${item.teacherRaw}` });
+                                        
+                                        extractedAll.push({ 
+                                            ...item, 
+                                            clazz: displayClass, 
+                                            isCollective: COLLECTIVE_KEYWORDS.some(k => item.raw.toUpperCase().includes(k)), 
+                                            signature: `${item.subject}|${item.teacherRaw}` 
+                                        });
                                     });
                                 }
                             });
                         }
                     }
+
                     setAllRawData(extractedAll);
                     setTeacherConfigs(combinedConfigs);
                     setClasses(Array.from(combinedClasses).sort());
-                    setStage('mode_select');
+                    setStage('mode_select'); // Go to mode selection
                     setStatus('');
                 } catch (err) { setError(err.message || 'Lỗi xử lý file.'); } finally { setLoading(false); }
             };
 
-            const handleToggleOption = (sig, isChecked, teacherKey) => { const newSet = new Set(selectedSignatures); if (isChecked) newSet.add(sig); else newSet.delete(sig); setSelectedSignatures(newSet); setCurrentTeacherKey(teacherKey); };
-            const handleSelectAll = (key) => { const newSet = new Set(selectedSignatures); Object.keys(teacherConfigs[key].options).forEach(sig => newSet.add(sig)); setSelectedSignatures(newSet); setCurrentTeacherKey(key); };
-            const handleAutoSelectTeacher = (key) => { const newSet = new Set(); Object.keys(teacherConfigs[key].options).forEach(sig => newSet.add(sig)); setSelectedSignatures(newSet); setCurrentTeacherKey(key); setStage('view'); };
-            const finalSchedule = useMemo(() => { if (selectedSignatures.size === 0) return []; const candidates = allRawData.filter(item => { if (item.isCollective) return true; if (selectedSignatures.has(item.signature)) return true; if (selectedHomeroom && item.clazz.includes(selectedHomeroom) && HOMEROOM_KEYWORDS.some(k => item.raw.toUpperCase().includes(k))) return true; return false; }); const uniqueItems = []; const seen = new Set(); candidates.forEach(item => { const id = `${item.fileIndex}-${item.day}-${item.session}-${item.period}-${item.clazz}-${item.subject}-${item.teacherCanonical}`; if (!seen.has(id)) { seen.add(id); uniqueItems.push(item); } }); return uniqueItems; }, [allRawData, selectedSignatures, selectedHomeroom]);
-            const handleInspect = (day, period, session) => { const rawItems = allRawData.filter(item => (item.day === day || item.day.includes(day)) && item.period === period && item.session.toUpperCase() === session.toUpperCase()); rawItems.sort((a, b) => { if (a.fileIndex !== b.fileIndex) return a.fileIndex - b.fileIndex; return a.clazz.localeCompare(b.clazz); }); setInspectData({ day, period, session, data: rawItems }); };
-            const handleExportImage = async () => { if (captureRef.current) { setIsCapturing(true); await new Promise(resolve => setTimeout(resolve, 100)); try { const displayNames = currentTeacherKey ? teacherConfigs[currentTeacherKey]?.displayName : 'TKB'; const canvas = await html2canvas(captureRef.current, { scale: 2, backgroundColor: '#ffffff', useCORS: true, ignoreElements: (el) => el.classList.contains('no-capture') }); const link = document.createElement('a'); link.download = `TKB-${displayNames}.png`; link.href = canvas.toDataURL('image/png'); link.click(); } catch (err) { console.error(err); } finally { setIsCapturing(false); } } };
+            const handleToggleOption = (sig, isChecked, teacherKey) => {
+                const newSet = new Set(selectedSignatures);
+                if (isChecked) newSet.add(sig);
+                else newSet.delete(sig);
+                setSelectedSignatures(newSet);
+                setCurrentTeacherKey(teacherKey); 
+            };
 
-            // Render
-            if (isAuthLoading && isCanvasEnv) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white"><div className="text-center"><div className="inline-block w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4"></div><p>Đang đồng bộ dữ liệu...</p></div></div>;
-            
-            if (!user) {
-                return <StartScreen onLogin={handleGoogleLogin} isCanvas={isCanvasEnv} />;
-            }
+            const handleSelectAll = (key) => {
+                const newSet = new Set(selectedSignatures);
+                Object.keys(teacherConfigs[key].options).forEach(sig => newSet.add(sig));
+                setSelectedSignatures(newSet);
+                setCurrentTeacherKey(key);
+            };
 
-            if (view === 'diary') {
-                return <DiaryScreen user={user} onBack={() => setView('schedule')} />;
-            }
+            const handleAutoSelectTeacher = (key) => {
+                const newSet = new Set();
+                Object.keys(teacherConfigs[key].options).forEach(sig => newSet.add(sig));
+                setSelectedSignatures(newSet);
+                setCurrentTeacherKey(key);
+                setStage('view');
+            };
 
+            const finalSchedule = useMemo(() => {
+                if (selectedSignatures.size === 0) return [];
+                const candidates = allRawData.filter(item => {
+                    if (item.isCollective) return true;
+                    if (selectedSignatures.has(item.signature)) return true;
+                    if (selectedHomeroom && item.clazz.includes(selectedHomeroom) && HOMEROOM_KEYWORDS.some(k => item.raw.toUpperCase().includes(k))) return true;
+                    return false;
+                });
+                
+                const uniqueItems = [];
+                const seen = new Set();
+                candidates.forEach(item => {
+                    const id = `${item.fileIndex}-${item.day}-${item.session}-${item.period}-${item.clazz}-${item.subject}-${item.teacherCanonical}`;
+                    if (!seen.has(id)) { seen.add(id); uniqueItems.push(item); }
+                });
+                return uniqueItems;
+            }, [allRawData, selectedSignatures, selectedHomeroom]);
+
+            const handleInspect = (day, period, session) => {
+                const rawItems = allRawData.filter(item => 
+                    (item.day === day || item.day.includes(day)) &&
+                    item.period === period &&
+                    item.session.toUpperCase() === session.toUpperCase()
+                );
+                // Sort by File Index first, then Class
+                rawItems.sort((a, b) => {
+                    if (a.fileIndex !== b.fileIndex) return a.fileIndex - b.fileIndex;
+                    return a.clazz.localeCompare(b.clazz);
+                });
+                setInspectData({ day, period, session, data: rawItems });
+            };
+
+            const handleExportImage = async () => {
+                if (captureRef.current) {
+                    setIsCapturing(true); 
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    try {
+                        const displayNames = currentTeacherKey ? teacherConfigs[currentTeacherKey]?.displayName : 'TKB';
+                        const canvas = await html2canvas(captureRef.current, { scale: 2, backgroundColor: '#ffffff', useCORS: true, ignoreElements: (el) => el.classList.contains('no-capture') });
+                        const link = document.createElement('a');
+                        link.download = `TKB-${displayNames}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    } catch (err) { console.error(err); } finally { setIsCapturing(false); }
+                }
+            };
+
+            // RENDER LOGIC
             if (stage === 'upload') {
                 return (
                     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 to-slate-200">
-                        <div className="fixed top-4 right-4 flex items-center gap-3 z-50">
-                            <button onClick={() => setView('diary')} className="bg-white px-4 py-2 rounded-full shadow-md font-bold text-slate-700 hover:text-brand-600 transition-colors flex items-center gap-2"><Icons.Calendar /> Nhật Ký</button>
-                            <div className="bg-white px-4 py-2 rounded-full shadow-md flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold">{user.displayName ? user.displayName.charAt(0) : 'U'}</div><span className="text-sm font-bold text-slate-700 hidden md:block">{user.displayName || 'Người dùng'}</span></div>
-                            <button onClick={handleLogout} className="bg-white p-2 rounded-full shadow-md text-slate-500 hover:text-red-500 transition-colors"><Icons.Logout /></button>
-                        </div>
                         <div className="flex flex-col items-center justify-center p-8 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white shadow-soft text-center animate-fade-in max-w-lg w-full">
-                            <div className="mb-6 w-full flex justify-center"><img src="logo.png" alt="Logo" className="h-28 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150x150?text=LOGO"; }} /></div>
+                            <div className="mb-6 w-full flex justify-center">
+                                <img src="logo.png" alt="Logo" className="h-28 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150x150?text=LOGO"; }} />
+                            </div>
                             <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase mb-2">Tra Cứu Thời Khóa Biểu</h1>
                             <p className="text-slate-500 text-sm max-w-xs mx-auto mb-8">Nhanh chóng - Chính xác - Thông minh</p>
-                            <label className="w-full max-w-xs px-6 py-4 bg-brand-600 text-white font-bold rounded-xl cursor-pointer shadow-lg shadow-brand-500/30 transition-all hover:bg-brand-700 hover:scale-105 active:scale-95 flex items-center justify-center gap-3"><Icons.Upload /> <span>Tải lên file Excel</span><input type="file" multiple className="hidden" accept=".xlsx, .xls" onChange={(e) => { handleFiles(e.target.files); }} /></label>
+                            <label className="w-full max-w-xs px-6 py-4 bg-brand-600 text-white font-bold rounded-xl cursor-pointer shadow-lg shadow-brand-500/30 transition-all hover:bg-brand-700 hover:scale-105 active:scale-95 flex items-center justify-center gap-3">
+                                <Icons.Upload /> <span>Tải lên file Excel</span>
+                                <input type="file" multiple className="hidden" accept=".xlsx, .xls" onChange={(e) => { handleFiles(e.target.files); }} />
+                            </label>
                             <p className="mt-2 text-xs text-slate-400 italic">Mẹo: Bạn có thể chọn nhiều file cùng lúc để tính tổng tháng.</p>
+                            
                             {error && <div className="mt-4 text-red-600 bg-red-50 px-4 py-2 rounded-xl text-xs font-bold w-full">{error}</div>}
                             {loading && <div className="mt-4 text-brand-600 font-bold animate-pulse text-sm">{status}</div>}
-                            <div className="mt-8 pt-4 border-t border-slate-200 w-full text-center"><p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Tác giả</p><p className="text-sm font-bold text-slate-600">Thầy Thái Minh Nguyên</p><p className="text-xs text-slate-500">Trường TH, THCS & THPT Yersin Đà Lạt</p></div>
+                            
+                            <div className="mt-8 pt-4 border-t border-slate-200 w-full text-center">
+                                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Tác giả</p>
+                                <p className="text-sm font-bold text-slate-600">Thầy Thái Minh Nguyên</p>
+                                <p className="text-xs text-slate-500">Trường TH, THCS & THPT Yersin Đà Lạt</p>
+                            </div>
                         </div>
                     </div>
                 );
             }
 
-            const statsModal = showStats && ( <StatisticsModal allRawData={allRawData} teacherConfigs={teacherConfigs} classes={classes} homeroomMap={homeroomMap} onUpdateHomeroomMap={setHomeroomMap} onClose={() => setShowStats(false)} /> );
+            const statsModal = showStats && (
+                <StatisticsModal 
+                    allRawData={allRawData} 
+                    teacherConfigs={teacherConfigs}
+                    classes={classes}
+                    homeroomMap={homeroomMap}
+                    onUpdateHomeroomMap={setHomeroomMap}
+                    onClose={() => setShowStats(false)} 
+                />
+            );
 
             if (stage === 'mode_select') {
-                return ( <> {statsModal} <ModeSelectionScreen onSelectMode={(mode) => { if (mode === 'auto') setStage('auto_select'); else setStage('config'); }} onViewStats={() => setShowStats(true)} onBack={() => { setFiles([]); setStage('upload'); setAllRawData([]); }} /> </> )
+                return (
+                    <>
+                        {statsModal}
+                        <ModeSelectionScreen 
+                            onSelectMode={(mode) => {
+                                if (mode === 'auto') setStage('auto_select');
+                                else setStage('config');
+                            }}
+                            onViewStats={() => setShowStats(true)}
+                            onViewLogs={() => setStage('monthly_log')}
+                            onBack={() => { setFiles([]); setStage('upload'); setAllRawData([]); }}
+                        />
+                    </>
+                )
             }
 
+            // --- STAGE 3 LOGIC ---
+            if (stage === 'monthly_log') {
+                return <MonthlyLogScreen onBack={() => setStage('mode_select')} />;
+            }
+            // --------------------
+
             if (stage === 'auto_select') {
-                return ( <AutoSelectionScreen teacherConfigs={teacherConfigs} onSelectTeacher={handleAutoSelectTeacher} onBack={() => setStage('mode_select')} searchTerm={searchTerm} setSearchTerm={setSearchTerm} /> )
+                return (
+                    <AutoSelectionScreen 
+                        teacherConfigs={teacherConfigs}
+                        onSelectTeacher={handleAutoSelectTeacher}
+                        onBack={() => setStage('mode_select')}
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                    />
+                )
             }
 
             if (stage === 'config') {
-                return ( <ConfigScreen teacherConfigs={teacherConfigs} selectedSignatures={selectedSignatures} handleToggleOption={handleToggleOption} handleSelectAll={handleSelectAll} searchTerm={searchTerm} setSearchTerm={setSearchTerm} expandedKey={expandedKey} setExpandedKey={setExpandedKey} onBack={() => setStage('mode_select')} onView={() => setStage('view')} /> );
+                return (
+                    <ConfigScreen 
+                        teacherConfigs={teacherConfigs}
+                        selectedSignatures={selectedSignatures}
+                        handleToggleOption={handleToggleOption}
+                        handleSelectAll={handleSelectAll}
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        expandedKey={expandedKey}
+                        setExpandedKey={setExpandedKey}
+                        onBack={() => setStage('mode_select')}
+                        onView={() => setStage('view')}
+                    />
+                );
             }
 
             return (
                 <div className="min-h-screen pb-10 bg-[#f8fafc]">
                     {statsModal}
-                    <TeachingLogModal isOpen={showLogModal} onClose={() => setShowLogModal(false)} schedule={finalSchedule} onSave={handleSaveWeeklyLogs} teacherName={currentTeacherKey ? teacherConfigs[currentTeacherKey]?.displayName : ''} />
                     {inspectData && (
                         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/40 backdrop-blur-sm" onClick={() => setInspectData(null)}>
                             <div className="bg-white w-full max-w-2xl md:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up" onClick={e => e.stopPropagation()}>
-                                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50"><div><h3 className="font-bold text-slate-800 flex items-center gap-2"><Icons.Eye /> X-Ray Scanner</h3><div className="text-xs text-slate-500 font-medium">Thứ {inspectData.day} &bull; Tiết {inspectData.period}</div></div><button onClick={() => setInspectData(null)} className="p-2 hover:bg-slate-200 rounded-full"><Icons.X /></button></div>
-                                <div className="p-4 overflow-y-auto flex-1 bg-white"><div className="grid grid-cols-2 md:grid-cols-4 gap-2">{inspectData.data.map((item, i) => { const isMine = selectedSignatures.has(item.signature); return ( <div key={i} className={`p-2 rounded border text-sm ${isMine ? 'bg-brand-50 border-brand-200 shadow-sm ring-1 ring-brand-100' : 'bg-slate-50 border-slate-100'}`}><div className="font-bold text-slate-800">{item.clazz}</div><div className="text-xs text-slate-500 truncate">{item.subject} - {item.teacherRaw || "---"}</div>{item.fileIndex !== undefined && files.length > 1 && (<div className="text-[10px] text-slate-400 mt-1">File {item.fileIndex + 1}</div>)}</div> ) })}</div>{inspectData.data.length === 0 && <div className="text-center py-8 text-slate-400">Trống tiết toàn trường</div>}</div>
+                                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2"><Icons.Eye /> X-Ray Scanner</h3>
+                                        <div className="text-xs text-slate-500 font-medium">Thứ {inspectData.day} &bull; Tiết {inspectData.period}</div>
+                                    </div>
+                                    <button onClick={() => setInspectData(null)} className="p-2 hover:bg-slate-200 rounded-full"><Icons.X /></button>
+                                </div>
+                                <div className="p-4 overflow-y-auto flex-1 bg-white">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        {inspectData.data.map((item, i) => {
+                                            const isMine = selectedSignatures.has(item.signature);
+                                            return (
+                                                <div key={i} className={`p-2 rounded border text-sm ${isMine ? 'bg-brand-50 border-brand-200 shadow-sm ring-1 ring-brand-100' : 'bg-slate-50 border-slate-100'}`}>
+                                                    <div className="font-bold text-slate-800">{item.clazz}</div>
+                                                    <div className="text-xs text-slate-500 truncate">{item.subject} - {item.teacherRaw || "---"}</div>
+                                                    {item.fileIndex !== undefined && files.length > 1 && (
+                                                        <div className="text-[10px] text-slate-400 mt-1">File {item.fileIndex + 1}</div>
+                                                    )}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                    {inspectData.data.length === 0 && <div className="text-center py-8 text-slate-400">Trống tiết toàn trường</div>}
+                                </div>
                                 <div className="p-4 border-t border-slate-100"><button onClick={() => setInspectData(null)} className="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">Đóng</button></div>
                             </div>
                         </div>
@@ -1092,13 +1682,19 @@
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                                 <div className="flex-1 flex gap-2">
                                     <button onClick={() => { setStage('mode_select'); setSelectedSignatures(new Set()); setSearchTerm(''); }} className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-sm whitespace-nowrap transition-colors border border-slate-200"><Icons.Filter /> Chọn lại GV</button>
-                                    <button onClick={() => setView('diary')} className="flex items-center gap-2 px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg font-bold text-sm whitespace-nowrap transition-colors border border-purple-200 shadow-sm"><Icons.Calendar /> Nhật Ký</button>
-                                    <div className="w-32 md:w-40 relative group"><div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Home /></div><select value={selectedHomeroom} onChange={e => setSelectedHomeroom(e.target.value)} className="w-full pl-9 pr-8 py-2 bg-slate-50 rounded-lg font-bold text-slate-700 text-sm outline-none border border-slate-200 focus:border-brand-500 appearance-none cursor-pointer"><option value="">Lớp CN...</option>{classes.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                                    <button onClick={handleManualSync} className="flex items-center gap-2 px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg font-bold text-sm whitespace-nowrap transition-colors border border-emerald-200" title="Lưu cấu hình lên đám mây"><Icons.Save /> Lưu</button>
+                                    <div className="w-32 md:w-40 relative group">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Home /></div>
+                                        <select value={selectedHomeroom} onChange={e => setSelectedHomeroom(e.target.value)} className="w-full pl-9 pr-8 py-2 bg-slate-50 rounded-lg font-bold text-slate-700 text-sm outline-none border border-slate-200 focus:border-brand-500 appearance-none cursor-pointer">
+                                            <option value="">Lớp CN...</option>
+                                            {classes.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setShowLogModal(true)} className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold text-sm shadow-md transition-all active:scale-95" title="Chuyển đổi sang Nhật Ký Dạy"><Icons.Check /> Chốt Sổ</button>
-                                    <div className="flex bg-slate-100 p-1 rounded-lg"><button onClick={() => setActiveSession('SÁNG')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'SÁNG' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-400'}`}>Sáng</button><button onClick={() => setActiveSession('CHIỀU')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'CHIỀU' ? 'bg-white text-orange-700 shadow-sm' : 'text-slate-400'}`}>Chiều</button></div>
+                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                        <button onClick={() => setActiveSession('SÁNG')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'SÁNG' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-400'}`}>Sáng</button>
+                                        <button onClick={() => setActiveSession('CHIỀU')} className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSession === 'CHIỀU' ? 'bg-white text-orange-700 shadow-sm' : 'text-slate-400'}`}>Chiều</button>
+                                    </div>
                                     <button onClick={() => { setFiles([]); setStage('upload'); setAllRawData([]); }} className="p-2 bg-white border border-slate-200 text-slate-500 hover:text-red-500 rounded-lg" title="Tải lại file"><Icons.Reload /></button>
                                 </div>
                             </div>
@@ -1106,9 +1702,28 @@
                     </div>
                     <div className="max-w-6xl mx-auto px-4 py-6">
                         <div ref={captureRef} className={`p-4 bg-white md:bg-transparent rounded-xl border border-slate-200 md:border-none shadow-sm md:shadow-none ${isCapturing ? 'w-[1280px] mx-auto bg-white p-8' : ''}`}>
-                            <div className="text-center mb-6 flex flex-col md:flex-row items-center justify-center gap-4 relative"><div><h1 className="text-2xl font-black uppercase text-slate-800">Thời Khóa Biểu</h1><div className="text-sm text-slate-500 font-bold mt-1">GV: {currentTeacherKey && teacherConfigs[currentTeacherKey] ? teacherConfigs[currentTeacherKey].displayName : (selectedSignatures.size > 0 ? 'Đã chọn nhiều GV' : 'Tùy chỉnh')} {selectedHomeroom && <span className="ml-2 text-amber-600">★ CN: {selectedHomeroom}</span>} {files.length > 1 && <div className="text-xs text-brand-600 mt-1">(Đang xem tổng hợp {files.length} file)</div>}</div></div><div className="md:absolute md:right-0 no-capture flex gap-2"><button onClick={() => setShowStats(true)} className="flex items-center gap-2 bg-white text-brand-600 border border-brand-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-50 transition-all shadow-sm active:scale-95"><Icons.Chart /> Thống Kê</button><button onClick={handleExportImage} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all shadow-lg active:scale-95"><Icons.Camera /> Lưu Ảnh</button></div></div>
-                            <div className={`tab-content ${(activeSession === 'SÁNG' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}><div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="SÁNG" finalSchedule={finalSchedule} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div><div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="SÁNG" finalSchedule={finalSchedule} activeMobileDay={activeMobileDay} setActiveMobileDay={setActiveMobileDay} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div></div>
-                            <div className={`tab-content ${(activeSession === 'CHIỀU' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}><div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="CHIỀU" finalSchedule={finalSchedule} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div><div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="CHIỀU" finalSchedule={finalSchedule} activeMobileDay={activeMobileDay} setActiveMobileDay={setActiveMobileDay} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div></div>
+                            <div className="text-center mb-6 flex flex-col md:flex-row items-center justify-center gap-4 relative">
+                                <div>
+                                    <h1 className="text-2xl font-black uppercase text-slate-800">Thời Khóa Biểu</h1>
+                                    <div className="text-sm text-slate-500 font-bold mt-1">
+                                        GV: {currentTeacherKey && teacherConfigs[currentTeacherKey] ? teacherConfigs[currentTeacherKey].displayName : (selectedSignatures.size > 0 ? 'Đã chọn nhiều GV' : 'Tùy chỉnh')}
+                                        {selectedHomeroom && <span className="ml-2 text-amber-600">★ CN: {selectedHomeroom}</span>}
+                                        {files.length > 1 && <div className="text-xs text-brand-600 mt-1">(Đang xem tổng hợp {files.length} file)</div>}
+                                    </div>
+                                </div>
+                                <div className="md:absolute md:right-0 no-capture flex gap-2">
+                                    <button onClick={() => setShowStats(true)} className="flex items-center gap-2 bg-white text-brand-600 border border-brand-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-50 transition-all shadow-sm active:scale-95"><Icons.Chart /> Thống Kê</button>
+                                    <button onClick={handleExportImage} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-900 transition-all shadow-lg active:scale-95"><Icons.Camera /> Lưu Ảnh</button>
+                                </div>
+                            </div>
+                            <div className={`tab-content ${(activeSession === 'SÁNG' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}>
+                                <div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="SÁNG" finalSchedule={finalSchedule} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                                <div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="SÁNG" finalSchedule={finalSchedule} activeMobileDay={activeMobileDay} setActiveMobileDay={setActiveMobileDay} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                            </div>
+                            <div className={`tab-content ${(activeSession === 'CHIỀU' || isCapturing) ? 'block' : 'hidden md:hidden print:block'}`}>
+                                <div className={`${isCapturing ? 'block' : 'hidden md:block'}`}><DesktopTable session="CHIỀU" finalSchedule={finalSchedule} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                                <div className={`${isCapturing ? 'hidden' : 'md:hidden'}`}><MobileListView session="CHIỀU" finalSchedule={finalSchedule} activeMobileDay={activeMobileDay} setActiveMobileDay={setActiveMobileDay} handleInspect={handleInspect} selectedHomeroom={selectedHomeroom} /></div>
+                            </div>
                         </div>
                     </div>
                 </div>
