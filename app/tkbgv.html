@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartSchedule - Yersin Pro Edition (V10 - Monthly Stats)</title>
+    <title>SmartSchedule - Yersin Pro Edition (V11 - Class Stats)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,7 +15,7 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- XLSX-JS-STYLE (Hỗ trợ xuất Excel có màu sắc/border) -->
+    <!-- XLSX-JS-STYLE -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <!-- HTML2Canvas -->
@@ -40,7 +40,6 @@
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-out',
                         'slide-up': 'slideUp 0.3s ease-out',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -95,7 +94,7 @@
             Camera: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
             Check: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>,
             ArrowRight: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>,
-            UserGroup: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+            UserGroup: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
             Search: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
             Reload: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
             ChevronDown: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>,
@@ -104,7 +103,8 @@
             Cog: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
             Chart: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
             Save: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>,
-            Excel: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+            Excel: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>,
+            Switch: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
         };
 
         const COLLECTIVE_KEYWORDS = ['CHÀO CỜ', 'CC', 'SINH HOẠT CỜ', 'LỄ', 'TẬP THỂ', 'TOÀN TRƯỜNG', 'SHDC', 'HỘI THAO', 'GOT TALENT'];
@@ -387,21 +387,20 @@
             );
         });
 
-        // --- STATISTICS COMPONENT (COMPACT) ---
+        // --- STATISTICS COMPONENT (COMPACT & CLASS MODE) ---
         const StatisticsModal = memo(({ allRawData, teacherConfigs, classes, homeroomMap, onUpdateHomeroomMap, onClose }) => {
             const [search, setSearch] = useState('');
             const [sort, setSort] = useState('count'); 
+            const [viewMode, setViewMode] = useState('teacher'); // 'teacher' or 'class'
             const [showConfig, setShowConfig] = useState(false);
 
-            // Special subjects that get their own columns
-            const SPECIAL_SUBJECTS = ['LIM', 'STEM'];
-
-            const stats = useMemo(() => {
+            // --- TEACHER STATS CALCULATION ---
+            const teacherStats = useMemo(() => {
                 const map = {};
-                const processed = new Set(); // Track unique time slots per teacher
+                const processed = new Set();
                 
                 Object.keys(teacherConfigs).forEach(key => {
-                     map[key] = {
+                      map[key] = {
                             name: teacherConfigs[key].displayName,
                             canonical: key,
                             teachingTotal: 0,
@@ -409,9 +408,9 @@
                             hdtnTotal: 0,
                             limCount: 0,
                             stemCount: 0,
-                            generalSubjects: {}, // Stores other subjects { "Toán": 5, "Văn": 3 }
+                            generalSubjects: {}, 
                             homeroomDetails: {}
-                     };
+                      };
                 });
 
                 allRawData.forEach(item => {
@@ -420,18 +419,10 @@
                     const cleanClass = item.clazz.replace(/\s*\([^)]+\)/, '').trim(); 
                     
                     let targetTeacherCanonical = item.teacherCanonical;
-
-                    // --- FORCE ASSIGNMENT LOGIC ---
-                    if (isHomeroomSubject && homeroomMap[cleanClass]) {
-                        targetTeacherCanonical = homeroomMap[cleanClass];
-                    }
-
+                    if (isHomeroomSubject && homeroomMap[cleanClass]) targetTeacherCanonical = homeroomMap[cleanClass];
                     if (!targetTeacherCanonical) return;
                     
-                    // --- ONE PERIOD PER TIME SLOT CHECK ---
-                    // Updated Key for Monthly: Include fileIndex to differentiate weeks
                     const uniqueKey = `${targetTeacherCanonical}|${item.fileIndex}|${item.day}|${item.session}|${item.period}`;
-                    
                     if (processed.has(uniqueKey)) return; 
                     processed.add(uniqueKey);
 
@@ -439,23 +430,15 @@
                         map[targetTeacherCanonical] = {
                             name: item.teacherRaw || targetTeacherCanonical, 
                             canonical: targetTeacherCanonical,
-                            teachingTotal: 0,
-                            homeroomTotal: 0,
-                            hdtnTotal: 0,
-                            limCount: 0,
-                            stemCount: 0,
-                            generalSubjects: {},
-                            homeroomDetails: {}
+                            teachingTotal: 0, homeroomTotal: 0, hdtnTotal: 0, limCount: 0, stemCount: 0,
+                            generalSubjects: {}, homeroomDetails: {}
                         };
                     }
                     
-                    if(item.teacherRaw && item.teacherRaw.length > map[targetTeacherCanonical].name.length) {
-                        map[targetTeacherCanonical].name = item.teacherRaw;
-                    } else if (map[targetTeacherCanonical].name === targetTeacherCanonical && teacherConfigs[targetTeacherCanonical]) {
-                         map[targetTeacherCanonical].name = teacherConfigs[targetTeacherCanonical].displayName;
-                    }
+                    if(item.teacherRaw && item.teacherRaw.length > map[targetTeacherCanonical].name.length) map[targetTeacherCanonical].name = item.teacherRaw;
+                    else if (map[targetTeacherCanonical].name === targetTeacherCanonical && teacherConfigs[targetTeacherCanonical]) map[targetTeacherCanonical].name = teacherConfigs[targetTeacherCanonical].displayName;
 
-                    const subjKey = item.subject.trim(); // Normalize subject
+                    const subjKey = item.subject.trim();
                     const detailKey = `${cleanClass}`;
                     const upperSubj = subjKey.toUpperCase();
 
@@ -464,7 +447,6 @@
                         if (!map[targetTeacherCanonical].homeroomDetails[detailKey]) map[targetTeacherCanonical].homeroomDetails[detailKey] = 0;
                         map[targetTeacherCanonical].homeroomDetails[detailKey]++;
                     } else {
-                        // Trust item.teacherCanonical for teaching
                         if (item.teacherCanonical === targetTeacherCanonical) {
                              if (isHDTN) {
                                  map[targetTeacherCanonical].hdtnTotal++;
@@ -475,7 +457,6 @@
                                  map[targetTeacherCanonical].stemCount++;
                                  map[targetTeacherCanonical].teachingTotal++;
                              } else {
-                                 // General Subjects
                                  map[targetTeacherCanonical].teachingTotal++;
                                  if (!map[targetTeacherCanonical].generalSubjects[subjKey]) map[targetTeacherCanonical].generalSubjects[subjKey] = 0;
                                  map[targetTeacherCanonical].generalSubjects[subjKey]++;
@@ -483,126 +464,117 @@
                         }
                     }
                 });
-                
                 return Object.values(map).filter(s => (s.teachingTotal + s.homeroomTotal + s.hdtnTotal) > 0);
             }, [allRawData, homeroomMap, teacherConfigs]);
 
+            // --- CLASS STATS CALCULATION (NEW) ---
+            const classStats = useMemo(() => {
+                const map = {};
+                const processed = new Set();
+                
+                // Reverse homeroomMap to get Homeroom Teacher for each class
+                const classToTeacher = {};
+                Object.entries(homeroomMap).forEach(([c, tKey]) => {
+                     classToTeacher[c] = teacherConfigs[tKey]?.displayName || tKey;
+                });
+
+                allRawData.forEach(item => {
+                    // Extract clean class name
+                    const cleanClass = item.clazz.replace(/\s*\([^)]+\)/, '').trim(); 
+                    if (!cleanClass) return;
+
+                    // Unique check per class
+                    const uniqueKey = `${cleanClass}|${item.fileIndex}|${item.day}|${item.session}|${item.period}`;
+                    if (processed.has(uniqueKey)) return;
+                    processed.add(uniqueKey);
+
+                    if (!map[cleanClass]) {
+                        map[cleanClass] = {
+                            name: cleanClass,
+                            totalPeriods: 0,
+                            limCount: 0, stemCount: 0, hdtnCount: 0,
+                            subjects: {},
+                            homeroomTeacher: classToTeacher[cleanClass] || ""
+                        };
+                    }
+
+                    const subjKey = item.subject.trim();
+                    const upperSubj = subjKey.toUpperCase();
+
+                    map[cleanClass].totalPeriods++;
+
+                    if (upperSubj.includes('LIM')) map[cleanClass].limCount++;
+                    else if (upperSubj.includes('STEM')) map[cleanClass].stemCount++;
+                    else if (HDTN_KEYWORDS.some(k => upperSubj.includes(k))) map[cleanClass].hdtnCount++;
+                    else if (!HOMEROOM_KEYWORDS.some(k => upperSubj.includes(k) || item.raw.toUpperCase().includes(k))) {
+                        // General Subjects (Math, Lit, etc.)
+                        if (!map[cleanClass].subjects[subjKey]) map[cleanClass].subjects[subjKey] = 0;
+                        map[cleanClass].subjects[subjKey]++;
+                    }
+                });
+
+                return Object.values(map).sort((a,b) => a.name.localeCompare(b.name));
+            }, [allRawData, homeroomMap, teacherConfigs]);
+
+
             const filteredStats = useMemo(() => {
-                let res = stats.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
-                if (sort === 'count') {
-                    res.sort((a,b) => (b.teachingTotal + b.homeroomTotal + b.hdtnTotal) - (a.teachingTotal + a.homeroomTotal + a.hdtnTotal));
-                } else {
-                    res.sort((a,b) => a.name.localeCompare(b.name));
+                const source = viewMode === 'teacher' ? teacherStats : classStats;
+                let res = source.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+                
+                if (viewMode === 'teacher') {
+                    if (sort === 'count') res.sort((a,b) => (b.teachingTotal + b.homeroomTotal + b.hdtnTotal) - (a.teachingTotal + a.homeroomTotal + a.hdtnTotal));
+                    else res.sort((a,b) => a.name.localeCompare(b.name));
                 }
                 return res;
-            }, [stats, search, sort]);
+            }, [teacherStats, classStats, search, sort, viewMode]);
 
-            // --- EXPORT TO EXCEL FUNCTION (COMPACT) ---
+            // --- EXPORT TO EXCEL ---
             const handleExportExcel = () => {
                 try {
-                    // 1. Prepare Data
-                    const header = ["STT", "Giáo Viên", "Tổng Dạy", "Các Môn Khác (Chi tiết)", "Lim", "Stem", "HĐTN", "Tiết CN", "Lớp CN", "TỔNG CỘNG"];
-                    
-                    const rows = filteredStats.map((s, idx) => {
-                        // Format General Subjects Details: "Toán: 5, Lý: 3"
-                        const generalDetails = Object.entries(s.generalSubjects).map(([subj, count]) => {
-                            return `${subj}: ${count}`;
-                        }).join(', ');
-
-                        // Format Homeroom Details
-                        const hDetails = Object.entries(s.homeroomDetails).map(([k, v]) => {
-                            return `${k}`;
-                        }).join(', ');
-
-                        const grandTotal = s.teachingTotal + s.homeroomTotal + s.hdtnTotal;
-
-                        return [
-                            idx + 1,
-                            s.name,
-                            s.teachingTotal || 0,
-                            generalDetails || "-",
-                            s.limCount || 0,
-                            s.stemCount || 0,
-                            s.hdtnTotal || 0,
-                            s.homeroomTotal || 0,
-                            hDetails || "-",
-                            grandTotal
-                        ];
-                    });
-
-                    // 2. Create Workbook & Worksheet
                     const wb = XLSX.utils.book_new();
-                    const ws_data = [header, ...rows];
-                    const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
-                    // 3. Styling
-                    const headerStyle = {
-                        font: { bold: true, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "EA580C" } }, 
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: "thin", color: { rgb: "000000" } },
-                            bottom: { style: "thin", color: { rgb: "000000" } },
-                            left: { style: "thin", color: { rgb: "000000" } },
-                            right: { style: "thin", color: { rgb: "000000" } }
+                    // --- SHEET 1: TEACHER STATS ---
+                    if (viewMode === 'teacher') {
+                        const header = ["STT", "Giáo Viên", "Tổng Dạy", "Các Môn Khác (Chi tiết)", "Lim", "Stem", "HĐTN", "Tiết CN", "Lớp CN", "TỔNG CỘNG"];
+                        const rows = filteredStats.map((s, idx) => {
+                            const generalDetails = Object.entries(s.generalSubjects).map(([subj, count]) => `${subj}: ${count}`).join(', ');
+                            const hDetails = Object.entries(s.homeroomDetails).map(([k, v]) => `${k}`).join(', ');
+                            const grandTotal = s.teachingTotal + s.homeroomTotal + s.hdtnTotal;
+                            return [ idx + 1, s.name, s.teachingTotal, generalDetails || "-", s.limCount, s.stemCount, s.hdtnTotal, s.homeroomTotal, hDetails || "-", grandTotal ];
+                        });
+                        const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+                         // Basic Styling for Header
+                        const range = XLSX.utils.decode_range(ws['!ref']);
+                        for(let C = range.s.c; C <= range.e.c; ++C) {
+                            const addr = XLSX.utils.encode_cell({r:0, c:C});
+                            if(!ws[addr]) continue;
+                            ws[addr].s = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "EA580C" } }, alignment: { horizontal: "center" } };
                         }
-                    };
-
-                    const cellStyle = {
-                        border: {
-                            top: { style: "thin", color: { rgb: "000000" } },
-                            bottom: { style: "thin", color: { rgb: "000000" } },
-                            left: { style: "thin", color: { rgb: "000000" } },
-                            right: { style: "thin", color: { rgb: "000000" } }
-                        },
-                        alignment: { vertical: "center", wrapText: true }
-                    };
-
-                    const centerStyle = { ...cellStyle, alignment: { horizontal: "center", vertical: "center" } };
-                    const boldCenterStyle = { ...centerStyle, font: { bold: true } };
-
-                    // Apply styles
-                    const range = XLSX.utils.decode_range(ws['!ref']);
-                    for (let C = range.s.c; C <= range.e.c; ++C) {
-                        const addr = XLSX.utils.encode_cell({ r: 0, c: C });
-                        if (!ws[addr]) continue;
-                        ws[addr].s = headerStyle;
+                         // Column Widths
+                        ws['!cols'] = [{wch:5}, {wch:25}, {wch:10}, {wch:40}, {wch:8}, {wch:8}, {wch:8}, {wch:10}, {wch:20}, {wch:12}];
+                        XLSX.utils.book_append_sheet(wb, ws, "ThongKe_GiaoVien");
+                    } 
+                    // --- SHEET 2: CLASS STATS ---
+                    else {
+                        const header = ["STT", "Lớp", "GVCN", "Tổng Tiết", "Chi tiết các môn", "Lim", "Stem", "HĐTN"];
+                        const rows = filteredStats.map((s, idx) => {
+                            const subjDetails = Object.entries(s.subjects).map(([subj, count]) => `${subj}: ${count}`).join(', ');
+                            return [ idx + 1, s.name, s.homeroomTeacher || "-", s.totalPeriods, subjDetails, s.limCount, s.stemCount, s.hdtnCount ];
+                        });
+                        const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+                        // Basic Styling
+                        const range = XLSX.utils.decode_range(ws['!ref']);
+                        for(let C = range.s.c; C <= range.e.c; ++C) {
+                            const addr = XLSX.utils.encode_cell({r:0, c:C});
+                            if(!ws[addr]) continue;
+                            ws[addr].s = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "0284C7" } }, alignment: { horizontal: "center" } };
+                        }
+                        ws['!cols'] = [{wch:5}, {wch:10}, {wch:25}, {wch:10}, {wch:50}, {wch:8}, {wch:8}, {wch:8}];
+                        XLSX.utils.book_append_sheet(wb, ws, "ThongKe_Lop");
                     }
 
-                    for (let R = 1; R <= range.e.r; ++R) {
-                        for (let C = 0; C <= range.e.c; ++C) {
-                            const addr = XLSX.utils.encode_cell({ r: R, c: C });
-                            if (!ws[addr]) ws[addr] = { v: "", t: 's' }; 
-                            
-                            // Center align numeric columns
-                            // STT(0), Total(2), Lim(4), Stem(5), HDTN(6), CN(7), Grand Total(9)
-                            if ([0, 2, 4, 5, 6, 7, 9].includes(C)) { 
-                                ws[addr].s = (C === 9) ? boldCenterStyle : centerStyle;
-                            } else {
-                                ws[addr].s = cellStyle;
-                            }
-                        }
-                    }
-
-                    // Set Column Widths
-                    ws['!cols'] = [
-                        { wch: 5 },  // STT
-                        { wch: 25 }, // Name
-                        { wch: 10 }, // Total Teach
-                        { wch: 40 }, // General Details
-                        { wch: 8 },  // Lim
-                        { wch: 8 },  // Stem
-                        { wch: 8 },  // HDTN
-                        { wch: 10 }, // Total CN
-                        { wch: 20 }, // Details CN
-                        { wch: 12 }  // Grand Total
-                    ];
-
-                    XLSX.utils.book_append_sheet(wb, ws, "ThongKe_Gon");
-                    XLSX.writeFile(wb, "ThongKe_TKB_Yersin_Compact.xlsx");
-
+                    XLSX.writeFile(wb, viewMode === 'teacher' ? "ThongKe_GiaoVien.xlsx" : "ThongKe_Lop.xlsx");
                 } catch (err) {
-                    console.error("Export Error:", err);
                     alert("Lỗi xuất file: " + err.message);
                 }
             };
@@ -614,8 +586,8 @@
                         {/* Header */}
                         <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
                             <div>
-                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê Gọn (Compact)</h3>
-                                <div className="text-sm text-slate-500">Chỉ chia cột riêng cho Lim, Stem và HĐTN.</div>
+                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2"><Icons.Chart /> Thống Kê & Báo Cáo</h3>
+                                <div className="text-sm text-slate-500">Xem tổng hợp số tiết dạy.</div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button onClick={() => setShowConfig(true)} className="px-4 py-2 bg-brand-100 text-brand-700 rounded-lg font-bold hover:bg-brand-200 flex items-center gap-2 text-sm"><Icons.Cog /> Cấu hình GVCN</button>
@@ -624,17 +596,30 @@
                             </div>
                         </div>
                         
-                        {/* Filters */}
-                        <div className="p-4 bg-white border-b border-slate-100 flex gap-4 flex-col md:flex-row">
-                            <div className="relative flex-1">
+                        {/* Filters & View Toggle */}
+                        <div className="p-4 bg-white border-b border-slate-100 flex gap-4 flex-col md:flex-row items-center">
+                             {/* View Mode Toggle */}
+                            <div className="bg-slate-100 p-1 rounded-lg flex shrink-0">
+                                <button onClick={() => setViewMode('teacher')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'teacher' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    <Icons.UserGroup /> Theo Giáo Viên
+                                </button>
+                                <button onClick={() => setViewMode('class')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'class' ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    <Icons.Home /> Theo Lớp
+                                </button>
+                            </div>
+
+                            <div className="relative flex-1 w-full">
                                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></div>
-                                <input type="text" placeholder="Tìm tên giáo viên..." className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:border-brand-500 outline-none" 
+                                <input type="text" placeholder={viewMode === 'teacher' ? "Tìm tên giáo viên..." : "Tìm tên lớp..."} className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:border-brand-500 outline-none" 
                                     value={search} onChange={e => setSearch(e.target.value)} />
                             </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => setSort('count')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'count' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Nhiều tiết nhất</button>
-                                <button onClick={() => setSort('name')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'name' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Tên A-Z</button>
-                            </div>
+                            
+                            {viewMode === 'teacher' && (
+                                <div className="flex gap-2 shrink-0">
+                                    <button onClick={() => setSort('count')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'count' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Nhiều tiết nhất</button>
+                                    <button onClick={() => setSort('name')} className={`px-4 py-2 rounded-lg font-bold text-sm border ${sort === 'name' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-slate-300 text-slate-600'}`}>Tên A-Z</button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Table */}
@@ -642,81 +627,86 @@
                             <table className="min-w-max text-sm text-left border-collapse">
                                 <thead className="bg-slate-100 text-slate-600 uppercase text-xs shadow-sm sticky-header">
                                     <tr>
-                                        <th className="px-4 py-3 w-12 text-center sticky-col-1 bg-slate-100 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">STT</th>
-                                        <th className="px-4 py-3 w-48 sticky-col-2 bg-slate-100 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Giáo Viên</th>
-                                        <th className="px-4 py-3 bg-brand-50/50 text-brand-800 w-20 text-center border-r border-slate-200">Tổng Dạy</th>
-                                        <th className="px-4 py-3 w-64 border-r border-slate-200">Các Môn Khác (Chi tiết)</th>
-                                        <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Lim</th>
-                                        <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Stem</th>
-                                        <th className="px-2 py-3 bg-purple-50 text-purple-800 w-20 text-center border-r border-slate-200">HĐTN</th>
-                                        <th className="px-2 py-3 bg-orange-50 text-orange-800 w-20 text-center border-r border-slate-200">Tiết CN</th>
-                                        <th className="px-4 py-3 w-32 border-r border-slate-200">Lớp CN</th>
-                                        <th className="px-4 py-3 w-24 text-center font-black bg-slate-200">TỔNG</th>
+                                        {viewMode === 'teacher' ? (
+                                            <>
+                                                <th className="px-4 py-3 w-12 text-center sticky-col-1 bg-slate-100 border-r border-slate-200">STT</th>
+                                                <th className="px-4 py-3 w-48 sticky-col-2 bg-slate-100 border-r border-slate-200">Giáo Viên</th>
+                                                <th className="px-4 py-3 bg-brand-50/50 text-brand-800 w-20 text-center border-r border-slate-200">Tổng Dạy</th>
+                                                <th className="px-4 py-3 w-64 border-r border-slate-200">Các Môn Khác (Chi tiết)</th>
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Lim</th>
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Stem</th>
+                                                <th className="px-2 py-3 bg-purple-50 text-purple-800 w-20 text-center border-r border-slate-200">HĐTN</th>
+                                                <th className="px-2 py-3 bg-orange-50 text-orange-800 w-20 text-center border-r border-slate-200">Tiết CN</th>
+                                                <th className="px-4 py-3 w-32 border-r border-slate-200">Lớp CN</th>
+                                                <th className="px-4 py-3 w-24 text-center font-black bg-slate-200">TỔNG</th>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <th className="px-4 py-3 w-12 text-center sticky-col-1 bg-slate-100 border-r border-slate-200">STT</th>
+                                                <th className="px-4 py-3 w-24 sticky-col-2 bg-slate-100 border-r border-slate-200">Lớp</th>
+                                                <th className="px-4 py-3 w-40 border-r border-slate-200 text-orange-700">GVCN</th>
+                                                <th className="px-4 py-3 bg-sky-50 text-sky-800 w-24 text-center border-r border-slate-200 font-bold">Tổng Tiết</th>
+                                                <th className="px-4 py-3 w-auto border-r border-slate-200">Chi Tiết Môn Học (Số tiết)</th>
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Lim</th>
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Stem</th>
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200 text-purple-700">HĐTN</th>
+                                            </>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {filteredStats.map((s, idx) => (
-                                        <tr key={s.canonical} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-4 py-3 text-center font-mono text-slate-400 sticky-col-1 bg-white hover:bg-slate-50 border-r border-slate-100">{idx + 1}</td>
-                                            <td className="px-4 py-3 font-bold text-slate-800 text-base sticky-col-2 bg-white hover:bg-slate-50 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">{s.name}</td>
-                                            
-                                            {/* Total Teaching */}
-                                            <td className="px-4 py-3 text-center bg-brand-50/30 font-bold text-brand-700 border-r border-slate-100">
-                                                {s.teachingTotal > 0 ? s.teachingTotal : '-'}
-                                            </td>
-
-                                            {/* General Subjects Details */}
-                                            <td className="px-4 py-3 text-slate-600 border-r border-slate-100">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {Object.entries(s.generalSubjects).map(([subj, count]) => (
-                                                        <span key={subj} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs">
-                                                            <span className="font-semibold text-slate-700">{subj}:</span>
-                                                            <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded">{count}</span>
-                                                        </span>
-                                                    ))}
-                                                    {Object.keys(s.generalSubjects).length === 0 && <span className="text-xs text-slate-300 italic">-</span>}
-                                                </div>
-                                            </td>
-
-                                            {/* Lim */}
-                                            <td className="px-2 py-3 text-center border-r border-slate-100">
-                                                {s.limCount > 0 ? <span className="font-bold text-slate-700">{s.limCount}</span> : <span className="text-slate-200">-</span>}
-                                            </td>
-
-                                            {/* Stem */}
-                                            <td className="px-2 py-3 text-center border-r border-slate-100">
-                                                {s.stemCount > 0 ? <span className="font-bold text-slate-700">{s.stemCount}</span> : <span className="text-slate-200">-</span>}
-                                            </td>
-
-                                            {/* HDTN */}
-                                            <td className="px-2 py-3 bg-purple-50/30 border-r border-slate-100 text-center">
-                                                {s.hdtnTotal > 0 ? (
-                                                     <span className="font-bold text-purple-700">{s.hdtnTotal}</span>
-                                                ) : <span className="text-slate-200">-</span>}
-                                            </td>
-
-                                            {/* Homeroom Total */}
-                                            <td className="px-2 py-3 border-r border-slate-100 bg-orange-50/30 text-center">
-                                                 {s.homeroomTotal > 0 ? (
-                                                     <span className="font-bold text-orange-700">{s.homeroomTotal}</span>
-                                                ) : <span className="text-slate-200">-</span>}
-                                            </td>
-
-                                             {/* Homeroom Details */}
-                                            <td className="px-4 py-3 text-slate-600 border-r border-slate-100 text-xs">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {Object.entries(s.homeroomDetails).map(([key, count]) => (
-                                                        <span key={key} className="inline-block px-1.5 py-0.5 rounded border border-orange-100 bg-orange-50 text-orange-800 font-bold">
-                                                            {key}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </td>
-
-                                            {/* Grand Total */}
-                                            <td className="px-4 py-3 text-center bg-slate-50">
-                                                <span className="font-black text-slate-800 text-lg">{s.teachingTotal + s.homeroomTotal + s.hdtnTotal}</span>
-                                            </td>
+                                        <tr key={viewMode === 'teacher' ? s.canonical : s.name} className="hover:bg-slate-50 transition-colors">
+                                            {viewMode === 'teacher' ? (
+                                                <>
+                                                    <td className="px-4 py-3 text-center font-mono text-slate-400 sticky-col-1 bg-white hover:bg-slate-50 border-r border-slate-100">{idx + 1}</td>
+                                                    <td className="px-4 py-3 font-bold text-slate-800 text-base sticky-col-2 bg-white hover:bg-slate-50 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">{s.name}</td>
+                                                    <td className="px-4 py-3 text-center bg-brand-50/30 font-bold text-brand-700 border-r border-slate-100">{s.teachingTotal > 0 ? s.teachingTotal : '-'}</td>
+                                                    <td className="px-4 py-3 text-slate-600 border-r border-slate-100">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {Object.entries(s.generalSubjects).map(([subj, count]) => (
+                                                                <span key={subj} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs">
+                                                                    <span className="font-semibold text-slate-700">{subj}:</span>
+                                                                    <span className="font-bold text-slate-900 bg-slate-100 px-1.5 rounded">{count}</span>
+                                                                </span>
+                                                            ))}
+                                                            {Object.keys(s.generalSubjects).length === 0 && <span className="text-xs text-slate-300 italic">-</span>}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.limCount > 0 ? <span className="font-bold text-slate-700">{s.limCount}</span> : <span className="text-slate-200">-</span>}</td>
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.stemCount > 0 ? <span className="font-bold text-slate-700">{s.stemCount}</span> : <span className="text-slate-200">-</span>}</td>
+                                                    <td className="px-2 py-3 bg-purple-50/30 border-r border-slate-100 text-center">{s.hdtnTotal > 0 ? <span className="font-bold text-purple-700">{s.hdtnTotal}</span> : <span className="text-slate-200">-</span>}</td>
+                                                    <td className="px-2 py-3 border-r border-slate-100 bg-orange-50/30 text-center">{s.homeroomTotal > 0 ? <span className="font-bold text-orange-700">{s.homeroomTotal}</span> : <span className="text-slate-200">-</span>}</td>
+                                                    <td className="px-4 py-3 text-slate-600 border-r border-slate-100 text-xs">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {Object.entries(s.homeroomDetails).map(([key, count]) => (
+                                                                <span key={key} className="inline-block px-1.5 py-0.5 rounded border border-orange-100 bg-orange-50 text-orange-800 font-bold">{key}</span>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center bg-slate-50"><span className="font-black text-slate-800 text-lg">{s.teachingTotal + s.homeroomTotal + s.hdtnTotal}</span></td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td className="px-4 py-3 text-center font-mono text-slate-400 sticky-col-1 bg-white hover:bg-slate-50 border-r border-slate-100">{idx + 1}</td>
+                                                    <td className="px-4 py-3 font-bold text-slate-800 text-base sticky-col-2 bg-white hover:bg-slate-50 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">{s.name}</td>
+                                                    <td className="px-4 py-3 text-orange-700 font-semibold text-sm border-r border-slate-100">{s.homeroomTeacher || <span className="text-slate-300 italic">--</span>}</td>
+                                                    <td className="px-4 py-3 text-center font-black text-sky-700 bg-sky-50/30 border-r border-slate-100">{s.totalPeriods}</td>
+                                                    <td className="px-4 py-3 border-r border-slate-100">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {Object.entries(s.subjects).map(([subj, count]) => (
+                                                                <span key={subj} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs shadow-sm hover:border-brand-300">
+                                                                    <span className="font-semibold text-slate-700">{subj}:</span>
+                                                                    <span className="font-bold text-white bg-slate-600 px-1.5 rounded">{count}</span>
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.limCount > 0 ? <span className="font-bold text-slate-700">{s.limCount}</span> : <span className="text-slate-200">-</span>}</td>
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.stemCount > 0 ? <span className="font-bold text-slate-700">{s.stemCount}</span> : <span className="text-slate-200">-</span>}</td>
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.hdtnCount > 0 ? <span className="font-bold text-purple-700">{s.hdtnCount}</span> : <span className="text-slate-200">-</span>}</td>
+                                                </>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
