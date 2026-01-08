@@ -111,6 +111,33 @@
         const HOMEROOM_KEYWORDS = ['GVCN', 'SHTT', 'SHCN', 'SINH HOẠT LỚP', 'HĐTN', 'SHL', 'SHTT'].filter(k => k !== 'HĐTN');
         const HDTN_KEYWORDS = ['HĐTN', 'HOẠT ĐỘNG TRẢI NGHIỆM', 'HN', 'HƯỚNG NGHIỆP'];
 
+        // --- SUBJECT DEFINITIONS ---
+        const SUBJECT_MAPPING = [
+            { key: 'TOAN', label: 'Toán', keywords: ['TOÁN'] },
+            { key: 'LY', label: 'Lý', keywords: ['LÝ', 'LÍ', 'VẬT LÝ', 'VẬT LÍ'] },
+            { key: 'HOA', label: 'Hóa', keywords: ['HÓA'] },
+            { key: 'SINH', label: 'Sinh', keywords: ['SINH'] },
+            { key: 'TIN', label: 'Tin', keywords: ['TIN'] },
+            { key: 'VAN', label: 'Văn', keywords: ['VĂN', 'NGỮ VĂN', 'TV'] },
+            { key: 'SU', label: 'Sử', keywords: ['SỬ', 'LỊCH SỬ'] },
+            { key: 'DIA', label: 'Địa', keywords: ['ĐỊA'] },
+            { key: 'ANH', label: 'Anh', keywords: ['ANH', 'TIẾNG ANH'] },
+            { key: 'GDCD', label: 'GDCD/KTPL', keywords: ['GDCD', 'KTPL', 'GIÁO DỤC CÔNG DÂN', 'KINH TẾ PHÁP LUẬT', 'GDKTPL'] },
+            { key: 'CN', label: 'CN', keywords: ['CÔNG NGHỆ', 'CN'] },
+            { key: 'TD', label: 'Thể Dục', keywords: ['THỂ DỤC', 'TD'] },
+            { key: 'QP', label: 'QP-AN', keywords: ['QP', 'QUỐC PHÒNG', 'AN NINH', 'GDQP'] },
+            { key: 'NHAC', label: 'Âm Nhạc', keywords: ['ÂM NHẠC', 'NHẠC'] },
+            { key: 'MT', label: 'Mỹ Thuật', keywords: ['MỸ THUẬT', 'HỌA', 'MT'] },
+        ];
+
+        const getStandardSubject = (rawSubject) => {
+            const upper = rawSubject.toUpperCase();
+            for (const subj of SUBJECT_MAPPING) {
+                if (subj.keywords.some(k => upper.includes(k))) return subj.key;
+            }
+            return null;
+        }
+
         // --- HELPER FUNCTIONS ---
         const getCanonicalName = (rawName) => {
             if (!rawName) return '';
@@ -508,8 +535,11 @@
                     else if (HDTN_KEYWORDS.some(k => upperSubj.includes(k))) map[cleanClass].hdtnCount++;
                     else if (!HOMEROOM_KEYWORDS.some(k => upperSubj.includes(k) || item.raw.toUpperCase().includes(k))) {
                         // General Subjects (Math, Lit, etc.)
-                        if (!map[cleanClass].subjects[subjKey]) map[cleanClass].subjects[subjKey] = 0;
-                        map[cleanClass].subjects[subjKey]++;
+                        const stdKey = getStandardSubject(upperSubj);
+                        if (stdKey) {
+                            if (!map[cleanClass].subjects[stdKey]) map[cleanClass].subjects[stdKey] = 0;
+                            map[cleanClass].subjects[stdKey]++;
+                        }
                     }
                 });
 
@@ -556,10 +586,11 @@
                     } 
                     // --- SHEET 2: CLASS STATS ---
                     else {
-                        const header = ["STT", "Lớp", "GVCN", "Tổng Tiết", "Chi tiết các môn", "Lim", "Stem", "HĐTN"];
+                        const subjHeaders = SUBJECT_MAPPING.map(s => s.label);
+                        const header = ["STT", "Lớp", "GVCN", "Tổng Tiết", ...subjHeaders, "Lim", "Stem", "HĐTN"];
                         const rows = filteredStats.map((s, idx) => {
-                            const subjDetails = Object.entries(s.subjects).map(([subj, count]) => `${subj}: ${count}`).join(', ');
-                            return [ idx + 1, s.name, s.homeroomTeacher || "-", s.totalPeriods, subjDetails, s.limCount, s.stemCount, s.hdtnCount ];
+                            const subjCounts = SUBJECT_MAPPING.map(subj => s.subjects[subj.key] || "");
+                            return [ idx + 1, s.name, s.homeroomTeacher || "-", s.totalPeriods, ...subjCounts, s.limCount || "", s.stemCount || "", s.hdtnCount || "" ];
                         });
                         const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
                         // Basic Styling
@@ -569,7 +600,14 @@
                             if(!ws[addr]) continue;
                             ws[addr].s = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "0284C7" } }, alignment: { horizontal: "center" } };
                         }
-                        ws['!cols'] = [{wch:5}, {wch:10}, {wch:25}, {wch:10}, {wch:50}, {wch:8}, {wch:8}, {wch:8}];
+                        
+                        // Dynamic cols: 4 fixed + numSubjects + 3 special
+                        const colWidths = [
+                            {wch:5}, {wch:10}, {wch:25}, {wch:10}, 
+                            ...SUBJECT_MAPPING.map(() => ({wch: 8})),
+                            {wch:8}, {wch:8}, {wch:8}
+                        ];
+                        ws['!cols'] = colWidths;
                         XLSX.utils.book_append_sheet(wb, ws, "ThongKe_Lop");
                     }
 
@@ -646,10 +684,12 @@
                                                 <th className="px-4 py-3 w-24 sticky-col-2 bg-slate-100 border-r border-slate-200">Lớp</th>
                                                 <th className="px-4 py-3 w-40 border-r border-slate-200 text-orange-700">GVCN</th>
                                                 <th className="px-4 py-3 bg-sky-50 text-sky-800 w-24 text-center border-r border-slate-200 font-bold">Tổng Tiết</th>
-                                                <th className="px-4 py-3 w-auto border-r border-slate-200">Chi Tiết Môn Học (Số tiết)</th>
-                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Lim</th>
-                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200">Stem</th>
-                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200 text-purple-700">HĐTN</th>
+                                                {SUBJECT_MAPPING.map(subj => (
+                                                    <th key={subj.key} className="px-2 py-3 w-12 text-center border-r border-slate-200">{subj.label}</th>
+                                                ))}
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200 bg-slate-50">Lim</th>
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200 bg-slate-50">Stem</th>
+                                                <th className="px-2 py-3 w-16 text-center border-r border-slate-200 text-purple-700 bg-purple-50">HĐTN</th>
                                             </>
                                         )}
                                     </tr>
@@ -692,19 +732,14 @@
                                                     <td className="px-4 py-3 font-bold text-slate-800 text-base sticky-col-2 bg-white hover:bg-slate-50 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">{s.name}</td>
                                                     <td className="px-4 py-3 text-orange-700 font-semibold text-sm border-r border-slate-100">{s.homeroomTeacher || <span className="text-slate-300 italic">--</span>}</td>
                                                     <td className="px-4 py-3 text-center font-black text-sky-700 bg-sky-50/30 border-r border-slate-100">{s.totalPeriods}</td>
-                                                    <td className="px-4 py-3 border-r border-slate-100">
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {Object.entries(s.subjects).map(([subj, count]) => (
-                                                                <span key={subj} className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 bg-white text-xs shadow-sm hover:border-brand-300">
-                                                                    <span className="font-semibold text-slate-700">{subj}:</span>
-                                                                    <span className="font-bold text-white bg-slate-600 px-1.5 rounded">{count}</span>
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.limCount > 0 ? <span className="font-bold text-slate-700">{s.limCount}</span> : <span className="text-slate-200">-</span>}</td>
-                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.stemCount > 0 ? <span className="font-bold text-slate-700">{s.stemCount}</span> : <span className="text-slate-200">-</span>}</td>
-                                                    <td className="px-2 py-3 text-center border-r border-slate-100">{s.hdtnCount > 0 ? <span className="font-bold text-purple-700">{s.hdtnCount}</span> : <span className="text-slate-200">-</span>}</td>
+                                                    {SUBJECT_MAPPING.map(subj => (
+                                                        <td key={subj.key} className="px-2 py-3 text-center border-r border-slate-100 text-slate-600">
+                                                            {s.subjects[subj.key] ? <span className="font-bold text-slate-800">{s.subjects[subj.key]}</span> : ''}
+                                                        </td>
+                                                    ))}
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100 bg-slate-50/50">{s.limCount > 0 ? <span className="font-bold text-slate-700">{s.limCount}</span> : ''}</td>
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100 bg-slate-50/50">{s.stemCount > 0 ? <span className="font-bold text-slate-700">{s.stemCount}</span> : ''}</td>
+                                                    <td className="px-2 py-3 text-center border-r border-slate-100 bg-purple-50/30">{s.hdtnCount > 0 ? <span className="font-bold text-purple-700">{s.hdtnCount}</span> : ''}</td>
                                                 </>
                                             )}
                                         </tr>
