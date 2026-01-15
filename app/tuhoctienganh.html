@@ -176,6 +176,19 @@ JSON Structure:
 ]
 `;
 
+        // --- TTS HOOK (NEW FEATURE) ---
+        const useTTS = () => {
+            const speak = (text) => {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel(); // Stop previous
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; // English US
+                utterance.rate = 0.9; // Tốc độ vừa phải
+                window.speechSynthesis.speak(utterance);
+            };
+            return { speak };
+        };
+
         // --- SOUND MANAGER ---
         const useSound = () => {
             const [isMuted, setIsMuted] = useState(false);
@@ -217,15 +230,12 @@ JSON Structure:
         // --- HELPER: CHECK ANSWER ROBUSTLY ---
         const checkAnswer = (type, userAns, correctAns) => {
             if (type === 'mc') {
-                // So sánh số với số, hoặc chuỗi số với số
                 return Number(userAns) === Number(correctAns);
             }
             if (type === 'tf') {
-                // So sánh boolean
                 return userAns === correctAns || String(userAns).toLowerCase() === String(correctAns).toLowerCase();
             }
             if (type === 'fill' || type === 'order') {
-                // So sánh chuỗi (bỏ khoảng trắng thừa, không phân biệt hoa thường)
                 return String(userAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase();
             }
             return false;
@@ -244,6 +254,7 @@ JSON Structure:
 
         const FeedbackPopup = ({ feedback, data, onNext, isLast, playSound }) => {
             if (!feedback) return null;
+            const { speak } = useTTS(); // Use TTS hook
 
             useEffect(() => {
                 if(feedback.isCorrect) playSound('correct');
@@ -295,7 +306,9 @@ JSON Structure:
                                         <h4 className="flex items-center gap-2 font-bold text-yellow-600 text-base mb-3"><Sparkles size={20}/> Vocabulary:</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {data.vocabulary.map((v, i) => (
-                                                <span key={i} className="bg-white px-3 py-1.5 rounded-lg text-base font-bold text-slate-700 shadow-sm border border-yellow-200">{v}</span>
+                                                <button key={i} onClick={() => speak(v.split(':')[0])} className="bg-white px-3 py-1.5 rounded-lg text-base font-bold text-slate-700 shadow-sm border border-yellow-200 hover:bg-yellow-100 transition flex items-center gap-1 group">
+                                                    {v} <Volume2 size={16} className="text-yellow-500 opacity-50 group-hover:opacity-100"/>
+                                                </button>
                                             ))}
                                         </div>
                                     </div>
@@ -550,6 +563,7 @@ JSON Structure:
 
         const QuestionCard = ({ data, onAnswer, feedback, sound }) => {
             const [userAnswer, setUserAnswer] = useState(null);
+            const { speak } = useTTS(); // Use TTS hook
             
             useEffect(() => { setUserAnswer(null); }, [data]);
 
@@ -639,12 +653,17 @@ JSON Structure:
 
             return (
                 <div className="bg-white/90 backdrop-blur-xl p-6 md:p-10 rounded-[3rem] shadow-2xl relative z-10 w-full max-w-5xl border-4 border-white mx-auto mt-4">
-                    <div className="mb-6 md:mb-8">
+                    <div className="mb-6 md:mb-8 relative">
                         <span className={`inline-block px-4 py-2 rounded-xl text-sm font-black uppercase mb-4 tracking-wider shadow-sm
                             ${data.type === 'mc' ? 'bg-blue-100 text-blue-600' : data.type === 'tf' ? 'bg-purple-100 text-purple-600' : data.type === 'fill' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
                             {data.type === 'mc' ? 'Multiple Choice' : data.type === 'tf' ? 'True / False' : data.type === 'fill' ? 'Fill in Blank' : 'Sentence Order'}
                         </span>
-                        <h3 className="text-2xl md:text-4xl font-black text-slate-800 leading-snug">{data.question}</h3>
+                        <div className="flex gap-4 items-start mt-2">
+                            <h3 className="text-2xl md:text-4xl font-black text-slate-800 leading-snug flex-1">{data.question}</h3>
+                            <button onClick={() => speak(data.question)} className="p-3 bg-white border-2 border-slate-100 rounded-full text-slate-400 hover:text-rose-500 hover:border-rose-200 transition shadow-sm flex-shrink-0">
+                                <Volume2 size={24}/>
+                            </button>
+                        </div>
                     </div>
                     {renderContent()}
                 </div>
@@ -731,6 +750,58 @@ JSON Structure:
             );
         };
 
+        const HistoryDetailModal = ({ session, onClose, sound }) => {
+            if (!session) return null;
+            const allVocab = [...new Set(session.details.flatMap(d => d.vocab))];
+            const { speak } = useTTS(); // Use TTS hook
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/50 backdrop-blur-md">
+                    <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} className="bg-white w-full sm:max-w-4xl h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl border-4 border-white">
+                        <div className="bg-slate-50 p-6 flex justify-between items-center border-b border-slate-100">
+                            <h2 className="text-2xl font-black text-rose-600 flex items-center gap-2"><BookOpen size={28}/> Chi Tiết Bài Học</h2>
+                            <button onClick={() => { sound.play('click'); onClose(); }} className="bg-white p-3 rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition shadow-sm"><X size={24}/></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-white custom-scrollbar">
+                            <section>
+                                <h3 className="font-bold text-rose-500 mb-4 text-lg uppercase flex items-center gap-2 tracking-wider"><Sparkles size={20}/> Từ vựng IELTS ({allVocab.length})</h3>
+                                {allVocab.length > 0 ? (
+                                    <div className="flex flex-wrap gap-3">
+                                        {allVocab.map((v, i) => (
+                                            <button key={i} onClick={() => speak(v.split(':')[0])} className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-200 text-base font-bold text-slate-700 hover:bg-yellow-100 flex items-center gap-2 group transition">
+                                                {v} <Volume2 size={16} className="text-yellow-600 opacity-50 group-hover:opacity-100"/>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : <p className="text-slate-400 italic">Không có từ vựng nào.</p>}
+                            </section>
+                            <section>
+                                <h3 className="font-bold text-blue-500 mb-4 text-lg uppercase flex items-center gap-2 tracking-wider"><Lightbulb size={20}/> Phân Tích Câu Hỏi</h3>
+                                <div className="space-y-6">
+                                    {session.details.map((item, idx) => (
+                                        <div key={idx} className={`p-6 rounded-3xl border-2 ${item.isCorrect ? 'border-green-100 bg-green-50/30' : 'border-rose-100 bg-rose-50/30'}`}>
+                                            <div className="flex gap-4 mb-3 items-start">
+                                                <div className={`w-4 min-w-[16px] h-4 rounded-full mt-1.5 ${item.isCorrect ? 'bg-green-400' : 'bg-rose-400'}`}></div>
+                                                <h4 className="font-bold text-slate-800 text-lg leading-snug flex-1">{item.question}</h4>
+                                                <button onClick={() => speak(item.question)} className="p-2 text-slate-400 hover:text-blue-500"><Volume2 size={20}/></button>
+                                            </div>
+                                            <div className="text-sm text-slate-600 pl-8 space-y-1 mb-4">
+                                                <div className="flex gap-2"><span className="font-bold bg-white px-2 rounded border border-slate-200">Đáp án:</span> {String(item.correctAns)}</div>
+                                                {!item.isCorrect && <div className="flex gap-2"><span className="font-bold text-rose-500 bg-white px-2 rounded border border-rose-200">Bạn chọn:</span> <span className="text-rose-600 line-through">{String(item.userAns)}</span></div>}
+                                            </div>
+                                            <div className="bg-white p-5 rounded-2xl text-base text-slate-700 border border-slate-100 leading-relaxed font-medium shadow-sm">
+                                                <span className="text-blue-500 font-bold mr-1">Giải thích:</span> {item.explanation || "..."}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+
         const App = () => {
             const [screen, setScreen] = useState('dashboard');
             const [learnHistory, setLearnHistory] = useLocalStorage('english_meow_history', []);
@@ -804,51 +875,6 @@ JSON Structure:
                     {screen === 'learning' && <LearningSession questions={currentQuestions} topic={currentTopic} onFinish={finishSession} sound={sound} />}
                     {screen === 'summary' && sessionResult && <Summary score={sessionResult.score} total={sessionResult.total} detailHistory={sessionResult.detail} onHome={() => setScreen('dashboard')} sound={sound} />}
                     {viewingHistory && <HistoryDetailModal session={viewingHistory} onClose={() => setViewingHistory(null)} sound={sound} />}
-                </div>
-            );
-        };
-
-        const HistoryDetailModal = ({ session, onClose, sound }) => {
-            if (!session) return null;
-            const allVocab = [...new Set(session.details.flatMap(d => d.vocab))];
-            return (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/50 backdrop-blur-md">
-                    <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} className="bg-white w-full sm:max-w-4xl h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl border-4 border-white">
-                        <div className="bg-slate-50 p-6 flex justify-between items-center border-b border-slate-100">
-                            <h2 className="text-2xl font-black text-rose-600 flex items-center gap-2"><BookOpen size={28}/> Chi Tiết Bài Học</h2>
-                            <button onClick={() => { sound.play('click'); onClose(); }} className="bg-white p-3 rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition shadow-sm"><X size={24}/></button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-white custom-scrollbar">
-                            <section>
-                                <h3 className="font-bold text-rose-500 mb-4 text-lg uppercase flex items-center gap-2 tracking-wider"><Sparkles size={20}/> Từ vựng IELTS ({allVocab.length})</h3>
-                                {allVocab.length > 0 ? (
-                                    <div className="flex flex-wrap gap-3">
-                                        {allVocab.map((v, i) => <span key={i} className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-200 text-base font-bold text-slate-700">{v}</span>)}
-                                    </div>
-                                ) : <p className="text-slate-400 italic">Không có từ vựng nào.</p>}
-                            </section>
-                            <section>
-                                <h3 className="font-bold text-blue-500 mb-4 text-lg uppercase flex items-center gap-2 tracking-wider"><Lightbulb size={20}/> Phân Tích Câu Hỏi</h3>
-                                <div className="space-y-6">
-                                    {session.details.map((item, idx) => (
-                                        <div key={idx} className={`p-6 rounded-3xl border-2 ${item.isCorrect ? 'border-green-100 bg-green-50/30' : 'border-rose-100 bg-rose-50/30'}`}>
-                                            <div className="flex gap-4 mb-3">
-                                                <div className={`w-4 min-w-[16px] h-4 rounded-full mt-1.5 ${item.isCorrect ? 'bg-green-400' : 'bg-rose-400'}`}></div>
-                                                <h4 className="font-bold text-slate-800 text-lg leading-snug">{item.question}</h4>
-                                            </div>
-                                            <div className="text-sm text-slate-600 pl-8 space-y-1 mb-4">
-                                                <div className="flex gap-2"><span className="font-bold bg-white px-2 rounded border border-slate-200">Đáp án:</span> {String(item.correctAns)}</div>
-                                                {!item.isCorrect && <div className="flex gap-2"><span className="font-bold text-rose-500 bg-white px-2 rounded border border-rose-200">Bạn chọn:</span> <span className="text-rose-600 line-through">{String(item.userAns)}</span></div>}
-                                            </div>
-                                            <div className="bg-white p-5 rounded-2xl text-base text-slate-700 border border-slate-100 leading-relaxed font-medium shadow-sm">
-                                                <span className="text-blue-500 font-bold mr-1">Giải thích:</span> {item.explanation || "..."}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        </div>
-                    </motion.div>
                 </div>
             );
         };
