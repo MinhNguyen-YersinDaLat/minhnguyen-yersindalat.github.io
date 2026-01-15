@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAME GIÁO DỤC - THẦY THÁI MINH NGUYÊN</title>
+    <title>GAME GIÁO DỤC - PHASE 7.1: RANDOM STUDENT</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -102,26 +102,28 @@
         }
     </style>
 
-    <!-- SCRIPT BẢO VỆ MÃ NGUỒN (CHỐNG F12/CHUỘT PHẢI) -->
+    <!-- SCRIPT BẢO VỆ MÃ NGUỒN (ĐÃ FIX LỖI ENTER HOÀN TOÀN) -->
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123) { // F12
+        
+        document.addEventListener('keydown', function(e) {
+            // Cho phép phím Enter (keyCode 13) và các phím điều hướng hoạt động bình thường
+            if (e.key === 'Enter' || e.keyCode === 13) return true;
+
+            // Chỉ chặn các phím tắt Developer Tools
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
                 return false;
             }
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { // Ctrl+Shift+I
+            if (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key.toUpperCase())) {
+                e.preventDefault();
                 return false;
             }
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { // Ctrl+Shift+C
+            if (e.ctrlKey && e.key.toUpperCase() === 'U') {
+                e.preventDefault();
                 return false;
             }
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { // Ctrl+Shift+J
-                return false;
-            }
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { // Ctrl+U
-                return false;
-            }
-        }
+        });
     </script>
 </head>
 <body class="bg-orange-50">
@@ -977,7 +979,58 @@
             const handleFileUpload = (e) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload=(ev)=>{ try{ setQuestions(validateImportedQuestions(JSON.parse(ev.target.result))); setWizardStep(4); }catch(err){setErrorMsg(err.message)} }; r.readAsText(f); };
             const handleDownloadTemplate = () => { const t = [{"question": "1+1=?", "options": ["1","2","3","4"], "correctAnswer": 1, "explanation": "..."}]; const d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(t, null, 2)); const a = document.createElement('a'); a.href = d; a.download = "mau.json"; a.click(); };
             const handleExportQuestions = () => { const d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(questions, null, 2)); const a = document.createElement('a'); a.href = d; a.download = "data.json"; a.click(); };
-            const handleCopyPrompt = () => { navigator.clipboard.writeText(`Tạo JSON trắc nghiệm...`); alert("Đã copy!"); };
+            const handleCopyPrompt = () => { 
+                const currentTopic = topic.trim() || "[ĐIỀN CHỦ ĐỀ CỦA BẠN VÀO ĐÂY]";
+                const promptText = `Hãy đóng vai trò là một chuyên gia soạn thảo dữ liệu giáo dục và lập trình viên JSON. Tôi cần bạn tạo ra một bộ câu hỏi trắc nghiệm cho phần mềm "Game Giáo Dục".
+
+1. NHIỆM VỤ:
+Hãy soạn ${numQuestions} câu hỏi trắc nghiệm về chủ đề: "${currentTopic}".
+Nếu tôi cung cấp nội dung thô bên dưới, hãy chuyển đổi nó. Nếu không, hãy tự sáng tạo câu hỏi dựa trên chủ đề.
+
+2. CẤU TRÚC DỮ LIỆU (QUAN TRỌNG):
+Kết quả trả về PHẢI là một JSON Array hợp lệ (mảng các đối tượng), tuyệt đối không thêm text dẫn dắt hay giải thích bên ngoài JSON. Cấu trúc mỗi câu hỏi như sau:
+
+{
+  "question": "Nội dung câu hỏi. Dùng LaTeX kẹp giữa dấu $ nếu là công thức toán.",
+  "options": ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
+  "correctAnswer": 0,  // Số nguyên: 0=A, 1=B, 2=C, 3=D
+  "explanation": "Giải thích chi tiết ngắn gọn.",
+  "visualType": "none", // Chọn 1 trong: "none", "graph", "chemistry", "table", "svg"
+  "visualData": ""      // Dữ liệu hiển thị (xem hướng dẫn bên dưới)
+}
+
+3. HƯỚNG DẪN VISUAL DATA (Rất quan trọng):
+Hãy cố gắng tạo sự đa dạng bằng cách sử dụng các loại visual sau (nếu phù hợp với chủ đề):
+
+- Loại "graph" (Đồ thị Toán):
+  visualData: Chỉ viết vế phải của hàm số theo biến x.
+  Ví dụ: "x^2 - 4*x" hoặc "sin(x) + 2". (KHÔNG viết y=).
+
+- Loại "chemistry" (Hóa học):
+  visualData: Viết chuỗi SMILES chuẩn của chất hóa học.
+  Ví dụ: "CC(=O)O" (Axit Axetic), "c1ccccc1" (Benzen).
+
+- Loại "table" (Bảng số liệu):
+  visualData: Dữ liệu dạng CSV, các cột cách nhau dấu phẩy, dòng cách nhau bởi \\n.
+  Ví dụ: "Năm,Dân số\\n2020,98 triệu\\n2021,99 triệu"
+
+- Loại "svg" (Hình vẽ Vector):
+  visualData: Mã nguồn thẻ <svg> đầy đủ. Giữ đơn giản, kích thước viewbox 0 0 100 100 hoặc tương tự.
+  Ví dụ: "<svg viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='red'/></svg>"
+
+- Loại "none":
+  visualData: Để chuỗi rỗng "".
+
+4. YÊU CẦU ĐẶC BIỆT:
+- Đảm bảo JSON hợp lệ, không lỗi dấu phẩy cuối cùng.
+- Nội dung Tiếng Việt chuẩn.
+- Các công thức toán học trong text phải dùng LaTeX chuẩn, ví dụ: $x^2$.
+- correctAnswer bắt buộc là số (0, 1, 2, 3), không phải chữ cái.
+
+Hãy bắt đầu tạo ngay bây giờ. Chỉ trả về JSON.`;
+                navigator.clipboard.writeText(promptText); 
+                alert("Đã copy Prompt mẫu! Hãy dán vào ChatGPT/Gemini để tạo câu hỏi."); 
+            };
 
             // --- RENDERERS ---
             const renderIntro = () => (
@@ -1097,17 +1150,51 @@
                             ) : (
                                 <div className="space-y-4">
                                     <h3 className="font-bold text-purple-600 text-lg">📝 Thủ Công / File:</h3>
-                                    <div className="flex gap-2 mb-2">
-                                        <button onClick={handleDownloadTemplate} className="flex-1 bg-gray-100 hover:bg-gray-200 border text-gray-600 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1"><Download size={14}/> Tải Mẫu</button>
-                                        <button onClick={handleCopyPrompt} className="flex-1 bg-gray-100 hover:bg-gray-200 border text-gray-600 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1"><Copy size={14}/> Copy Prompt</button>
+                                    
+                                    {/* MỚI: PHẦN TẠO PROMPT NHANH */}
+                                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                                        <label className="block text-xs font-bold text-purple-700 mb-2 uppercase">1. Tạo Prompt nhanh (để dán vào AI):</label>
+                                        <div className="flex gap-2 mb-3">
+                                            <input 
+                                                type="text" 
+                                                value={topic} 
+                                                onChange={e => setTopic(e.target.value)} 
+                                                className="flex-[2] p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none" 
+                                                placeholder="Nhập chủ đề (VD: Vật lý 10...)" 
+                                            />
+                                            <input 
+                                                type="number"
+                                                min="1" max="50"
+                                                value={numQuestions} 
+                                                onChange={e => setNumQuestions(Number(e.target.value))} 
+                                                className="w-24 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none text-center"
+                                                placeholder="Số câu"
+                                                title="Số lượng câu hỏi"
+                                            />
+                                            <button onClick={handleCopyPrompt} className="bg-purple-600 text-white px-4 rounded-lg font-bold text-sm hover:bg-purple-700 whitespace-nowrap flex items-center gap-1">
+                                                <Copy size={16}/> Copy
+                                            </button>
+                                        </div>
+                                        <div className="flex gap-2 justify-center">
+                                            <a href="https://chatgpt.com/" target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] font-bold bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-50 text-slate-600">ChatGPT 🤖</a>
+                                            <a href="https://gemini.google.com/" target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] font-bold bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-50 text-slate-600">Gemini ✨</a>
+                                            <a href="https://copilot.microsoft.com/" target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] font-bold bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-50 text-slate-600">Copilot ✈️</a>
+                                        </div>
                                     </div>
-                                    <textarea value={jsonInput} onChange={e => setJsonInput(e.target.value)} className="w-full p-3 border rounded-lg font-mono text-xs h-24" placeholder='Dán chuỗi JSON vào đây: [{"question": "...", "options": [...]}]'></textarea>
-                                    <div className="flex gap-2">
-                                        <button onClick={handleJsonImport} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold shadow-md transition">Xử lý Text</button>
-                                        <label className="flex-1 bg-white border-2 border-purple-600 text-purple-600 py-3 rounded-lg font-bold shadow-md text-center cursor-pointer hover:bg-purple-50 transition flex items-center justify-center gap-2">
-                                            <Upload size={18}/> Upload File
-                                            <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
-                                        </label>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase">2. Dán kết quả JSON từ AI vào đây:</label>
+                                        <div className="flex gap-2 mb-2">
+                                            <button onClick={handleDownloadTemplate} className="flex-1 bg-gray-100 hover:bg-gray-200 border text-gray-600 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1"><Download size={14}/> Tải Mẫu</button>
+                                        </div>
+                                        <textarea value={jsonInput} onChange={e => setJsonInput(e.target.value)} className="w-full p-3 border rounded-lg font-mono text-xs h-24" placeholder='Dán chuỗi JSON vào đây: [{"question": "...", "options": [...]}]'></textarea>
+                                        <div className="flex gap-2">
+                                            <button onClick={handleJsonImport} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold shadow-md transition">Xử lý Text</button>
+                                            <label className="flex-1 bg-white border-2 border-purple-600 text-purple-600 py-3 rounded-lg font-bold shadow-md text-center cursor-pointer hover:bg-purple-50 transition flex items-center justify-center gap-2">
+                                                <Upload size={18}/> Upload File
+                                                <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -1145,14 +1232,20 @@
                                                 <label className="text-xs font-bold text-gray-400 uppercase">Hình ảnh minh họa</label>
                                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 h-full">
                                                     <div className="flex gap-2 mb-2">
-                                                        <select value={q.visualType} onChange={(e) => handleQuestionChange(q.id, 'visualType', e.target.value)} className="p-2 border rounded-lg bg-white text-sm flex-1">
+                                                        <select value={q.visualType} onChange={(e) => handleQuestionChange(q.id, 'visualType', e.target.value)} className="p-2 border rounded-lg bg-white text-sm flex-1 h-[42px]">
                                                             <option value="none">Không có</option>
                                                             <option value="graph">Đồ thị</option>
                                                             <option value="chemistry">Hóa học</option>
                                                             <option value="table">Bảng</option>
                                                             <option value="svg">SVG</option>
                                                         </select>
-                                                        <input type="text" value={q.visualData} onChange={(e) => handleQuestionChange(q.id, 'visualData', e.target.value)} className="p-2 border rounded-lg bg-white text-sm flex-[2]" placeholder="Dữ liệu (vd: x^2)"/>
+                                                        <textarea 
+                                                            value={q.visualData} 
+                                                            onChange={(e) => handleQuestionChange(q.id, 'visualData', e.target.value)} 
+                                                            className="p-2 border rounded-lg bg-white text-sm flex-[2] font-mono min-h-[42px] focus:ring-2 focus:ring-orange-400 outline-none resize-y" 
+                                                            placeholder="Dữ liệu (vd: x^2, SVG code, CSV table...)"
+                                                            rows={1}
+                                                        />
                                                     </div>
                                                     {q.visualType !== 'none' && <div className="flex justify-center p-2"><VisualContent type={q.visualType} data={q.visualData} isTV={false}/></div>}
                                                 </div>
