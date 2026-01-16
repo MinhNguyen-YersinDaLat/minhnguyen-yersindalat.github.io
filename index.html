@@ -293,6 +293,17 @@
                 { filename: "tkbvnedu.html", path: "./", title: "Chuyển đổi TKB sang VNEDU", desc: "Đồng bộ TKB định dạng VNEDU", iconType: "ToolConvert", color: "text-orange-500" },
                 { filename: "thongke.html", title: "Thống kê", desc: "Phân tích số liệu thống kê", iconType: "ToolGraph", color: "text-teal-400" },
                 { filename: "OXYZ.html", title: "Hệ tọa độ Oxyz", desc: "Mô phỏng không gian Oxyz", iconType: "Tool3D", color: "text-indigo-500" },
+                // MỚI: Công cụ tạo game
+                { filename: "makegame.html", title: "Công cụ tạo game", desc: "Tạo game trắc nghiệm ôn tập thú vị", iconType: "ToolGameMaker", color: "text-yellow-500" },
+                // CÁC CÔNG CỤ DẠY HỌC MỚI THÊM
+                { filename: "nguyenham.html", path: "app/", title: "Nguyên Hàm", desc: "Công cụ tính và ôn tập nguyên hàm", iconType: "ToolIntegral", color: "text-emerald-500" },
+                { filename: "kshs.html", path: "app/", title: "Khảo Sát Hàm Số", desc: "Vẽ và phân tích đồ thị hàm số", iconType: "ToolCurve", color: "text-pink-500" },
+                { filename: "vectokg.html", path: "app/", title: "Tọa độ Oxyz", desc: "Tính toán và trực quan hóa vectơ", iconType: "ToolVector", color: "text-cyan-500" },
+            ],
+            selfStudy: [
+                { filename: "tuhoctienganh.html", path: "app/", title: "Học Từ Vựng Thông Minh", desc: "Mở rộng vốn từ vựng tiếng Anh mỗi ngày", iconType: "StudyEnglish", color: "from-blue-500 to-indigo-500" },
+                { filename: "toantienganh.html", path: "app/", title: "Từ Vựng Toán Tiếng Anh", desc: "Chinh phục thuật ngữ Toán học", iconType: "StudyMathEng", color: "from-violet-500 to-fuchsia-500" },
+                { filename: "tuhoctoan.html", path: "app/", title: "Tự Học Toán", desc: "Rèn luyện tư duy tự học toán", iconType: "StudyMath", color: "from-emerald-500 to-teal-500" }
             ],
             projects: [
                 { 
@@ -387,6 +398,7 @@
             MenuDocuments: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><path d="M20 30 Q50 30 50 50 Q50 30 80 30 V80 Q50 80 50 100 Q50 80 20 80 V30 Z" stroke="#34d399" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/><path d="M50 50 V100" stroke="#34d399" strokeWidth="6" strokeLinecap="round"/><path d="M25 45 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/><path d="M25 55 H45" stroke="#34d399" strokeWidth="4" opacity="0.5"/><path d="M55 45 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/><path d="M55 55 H75" stroke="#34d399" strokeWidth="4" opacity="0.5"/></svg>),
             MenuGames: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="15" y="35" width="70" height="40" rx="10" stroke="#a855f7" strokeWidth="6"/><path d="M30 55 H40 M35 50 V60" stroke="#a855f7" strokeWidth="6" strokeLinecap="round"/><circle cx="65" cy="50" r="4" fill="#a855f7"/><circle cx="75" cy="55" r="4" fill="#a855f7"/></svg>),
             MenuTools: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="25" y="20" width="50" height="70" rx="5" stroke="#38bdf8" strokeWidth="6"/><rect x="35" y="30" width="30" height="20" fill="#38bdf8" opacity="0.3"/><circle cx="40" cy="65" r="4" fill="#38bdf8"/><circle cx="60" cy="65" r="4" fill="#38bdf8"/><circle cx="40" cy="75" r="4" fill="#38bdf8"/><circle cx="60" cy="75" r="4" fill="#38bdf8"/></svg>),
+            MenuSelfStudy: ({ size = 24, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><path d="M20 20 L50 10 L80 20 L80 80 L50 90 L20 80 Z" stroke="#ec4899" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/><line x1="50" y1="10" x2="50" y2="90" stroke="#ec4899" strokeWidth="6" strokeLinecap="round"/><path d="M30 35 L40 40 M30 50 L40 55" stroke="#ec4899" strokeWidth="4" strokeLinecap="round" opacity="0.6"/><circle cx="65" cy="40" r="4" fill="#ec4899" opacity="0.6"/></svg>),
             InfographicIcon: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><rect x="15" y="15" width="70" height="70" rx="5" stroke="#fbbf24" strokeWidth="4" fill="none" /><rect x="25" y="25" width="50" height="30" rx="2" fill="#fbbf24" opacity="0.2"/><line x1="25" y1="65" x2="75" y2="65" stroke="#fbbf24" strokeWidth="4" strokeLinecap="round"/><line x1="25" y1="75" x2="55" y2="75" stroke="#fbbf24" strokeWidth="4" strokeLinecap="round"/><circle cx="85" cy="85" r="10" fill="#f59e0b"><animate attributeName="r" values="10;12;10" dur="2s" repeatCount="indefinite"/></circle><path d="M85 80 L85 90 M80 85 L90 85" stroke="black" strokeWidth="3"/></svg>),
             ProjectTobacco: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><circle cx="50" cy="50" r="45" stroke="#f43f5e" strokeWidth="4" fill="none"/><path d="M25,25 L75,75" stroke="#f43f5e" strokeWidth="8" strokeLinecap="round"/><rect x="30" y="45" width="40" height="10" fill="#cbd5e1" rx="2" transform="rotate(-15 50 50)"/><rect x="60" y="45" width="10" height="10" fill="#f59e0b" rx="2" transform="rotate(-15 50 50)"/><path d="M65,35 Q70,25 65,15" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.5"><animate attributeName="d" values="M65,35 Q70,25 65,15; M65,35 Q60,25 65,15; M65,35 Q70,25 65,15" dur="2s" repeatCount="indefinite"/></path></svg>),
             GameSnake: ({ size = 48, className }) => (<svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none"><defs><linearGradient id="snakeBody" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#10b981"/><stop offset="100%" stopColor="#34d399"/></linearGradient></defs><pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/></pattern><rect width="100" height="100" fill="url(#smallGrid)" rx="10"/><path d="M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70" stroke="url(#snakeBody)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"><animate attributeName="d" values="M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70; M30,50 H50 Q60,50 60,40 V30 Q60,20 70,20 H80; M20,50 H40 Q50,50 50,40 V30 Q50,20 60,20 H70" dur="2s" repeatCount="indefinite" /></path><circle cx="80" cy="50" r="6" fill="#ef4444"><animate attributeName="r" values="6;8;6" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.7;1" dur="1s" repeatCount="indefinite"/></circle></svg>),
@@ -414,6 +426,17 @@
                     </circle>
                 </svg>
             ),
+            // NEW ICON: ToolGameMaker (Game creation tool)
+            ToolGameMaker: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <rect x="15" y="30" width="70" height="40" rx="20" stroke="currentColor" strokeWidth="3" fill="none"/>
+                    <circle cx="30" cy="50" r="5" fill="currentColor"/>
+                    <circle cx="70" cy="50" r="5" fill="currentColor"/>
+                    <path d="M30 40 L30 30 L45 15" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                    <path d="M40 10 L50 20 L40 30 L30 20 Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <line x1="48" y1="12" x2="42" y2="18" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+            ),
             // NEW ICON: ToolConvert (Data conversion)
             ToolConvert: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
@@ -439,6 +462,52 @@
                      <path d="M45 90 L40 100 M55 90 L60 100" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round">
                         <animate attributeName="d" values="M45 90 L40 95 M55 90 L60 95; M45 90 L35 100 M55 90 L65 100; M45 90 L40 95 M55 90 L60 95" dur="0.5s" repeatCount="indefinite"/>
                      </path>
+                </svg>
+            ),
+            // NEW ICONS FOR SELF STUDY
+            StudyEnglish: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <rect x="15" y="20" width="70" height="60" rx="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                    <path d="M15 20 L50 45 L85 20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                    <text x="50" y="65" textAnchor="middle" fill="currentColor" fontSize="30" fontWeight="bold">AZ</text>
+                </svg>
+            ),
+            StudyMathEng: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                     <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="3" fill="none"/>
+                     <text x="35" y="55" textAnchor="middle" fill="currentColor" fontSize="24" fontWeight="bold">∑</text>
+                     <text x="65" y="55" textAnchor="middle" fill="currentColor" fontSize="24" fontWeight="bold">A</text>
+                </svg>
+            ),
+            StudyMath: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <path d="M20 50 Q35 20 50 50 T80 50" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round"/>
+                    <path d="M20 30 L80 30" stroke="currentColor" strokeWidth="3" strokeDasharray="5,5"/>
+                    <path d="M50 20 L50 80" stroke="currentColor" strokeWidth="3" strokeDasharray="5,5"/>
+                </svg>
+            ),
+            // --- NEW TEACHING TOOLS ICONS ---
+            ToolIntegral: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <path d="M60 20 C60 10 55 10 50 10 C40 10 40 30 40 50 C40 70 40 90 50 90 C55 90 60 90 60 80" stroke="currentColor" strokeWidth="6" strokeLinecap="round" fill="none" />
+                    <text x="70" y="60" fontSize="30" fontWeight="bold" fill="currentColor">dx</text>
+                </svg>
+            ),
+            ToolCurve: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <path d="M10 90 L90 90" stroke="currentColor" strokeWidth="2" />
+                    <path d="M10 90 L10 10" stroke="currentColor" strokeWidth="2" />
+                    <path d="M15 80 Q30 20 50 50 T85 30" stroke="currentColor" strokeWidth="4" strokeLinecap="round" fill="none" />
+                    <circle cx="50" cy="50" r="4" fill="currentColor" />
+                </svg>
+            ),
+            ToolVector: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <line x1="20" y1="80" x2="80" y2="80" stroke="currentColor" strokeWidth="2" />
+                    <line x1="20" y1="80" x2="20" y2="20" stroke="currentColor" strokeWidth="2" />
+                    <line x1="20" y1="80" x2="60" y2="40" stroke="currentColor" strokeWidth="2" />
+                    <path d="M20 80 L70 30" stroke="currentColor" strokeWidth="4" strokeLinecap="round" marker-end="url(#arrow)" />
+                    <path d="M65 35 L70 30 L65 25" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             ),
             DocPDF: ({size=24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><text x="8" y="18" fontSize="6" fill="#f43f5e" fontWeight="bold">PDF</text></svg>,
@@ -480,6 +549,7 @@
             MenuDocuments: (p) => <CustomIcons.MenuDocuments {...p} />,
             MenuGames: (p) => <CustomIcons.MenuGames {...p} />,
             MenuTools: (p) => <CustomIcons.MenuTools {...p} />,
+            MenuSelfStudy: (p) => <CustomIcons.MenuSelfStudy {...p} />,
             MenuLeader: (p) => <CustomIcons.MenuLeader {...p} />,
             ToolPrompt: (p) => <CustomIcons.ToolPrompt {...p} />,
             ToolConduct: (p) => <CustomIcons.ToolConduct {...p} />,
@@ -489,6 +559,14 @@
             Tool3D: (p) => <CustomIcons.Tool3D {...p} />,
             ToolConvert: (p) => <CustomIcons.ToolConvert {...p} />,
             GameJoyride: (p) => <CustomIcons.GameJoyride {...p} />,
+            ToolGameMaker: (p) => <CustomIcons.ToolGameMaker {...p} />,
+            StudyEnglish: (p) => <CustomIcons.StudyEnglish {...p} />,
+            StudyMathEng: (p) => <CustomIcons.StudyMathEng {...p} />,
+            StudyMath: (p) => <CustomIcons.StudyMath {...p} />,
+            // Add new icons to the map
+            ToolIntegral: (p) => <CustomIcons.ToolIntegral {...p} />,
+            ToolCurve: (p) => <CustomIcons.ToolCurve {...p} />,
+            ToolVector: (p) => <CustomIcons.ToolVector {...p} />,
             Sun: (p) => <CustomIcons.Sun {...p} />,
             Moon: (p) => <CustomIcons.Moon {...p} />,
         };
@@ -539,13 +617,14 @@
         const Sidebar = ({ currentView, setView, mobileOpen, setMobileOpen }) => {
             const menuItems = [
                 { id: 'dashboard', label: 'Tổng Quan', icon: Icons.MenuDashboard },
-                { id: 'mathhall', label: 'Đại Sảnh Toán', icon: Icons.MenuMathHall }, 
-                { id: 'leaderinme', label: 'Leader in me', icon: Icons.MenuLeader },
-                { id: 'lifeskills', label: 'Kỹ Năng Sống', icon: Icons.MenuLifeSkills },
+                { id: 'tools', label: 'Công Cụ', icon: Icons.MenuTools },
+                { id: 'selfstudy', label: 'Tự Học', icon: Icons.MenuSelfStudy },
+                { id: 'games', label: 'Game Tư Duy', icon: Icons.MenuGames },
                 { id: 'infographics', label: 'Infographic Toán', icon: Icons.Infographic }, 
                 { id: 'documents', label: 'Kho Tài Liệu', icon: Icons.MenuDocuments },
-                { id: 'games', label: 'Game Tư Duy', icon: Icons.MenuGames },
-                { id: 'tools', label: 'Công Cụ', icon: Icons.MenuTools },
+                { id: 'leaderinme', label: 'Leader in me', icon: Icons.MenuLeader },
+                { id: 'lifeskills', label: 'Kỹ Năng Sống', icon: Icons.MenuLifeSkills },
+                { id: 'mathhall', label: 'Đại Sảnh Toán', icon: Icons.MenuMathHall }, 
             ];
 
             return (
@@ -638,6 +717,7 @@
                 const matchedProjects = allData.projects.filter(p => p.title.toLowerCase().includes(lowerQ) || p.desc.toLowerCase().includes(lowerQ));
                 const matchedInfographics = allData.infographics.filter(i => i.title.toLowerCase().includes(lowerQ) || i.desc.toLowerCase().includes(lowerQ));
                 const matchedLeader = allData.leaderInMe ? allData.leaderInMe.filter(l => l.title.toLowerCase().includes(lowerQ)) : [];
+                const matchedSelfStudy = allData.selfStudy ? allData.selfStudy.filter(s => s.title.toLowerCase().includes(lowerQ)) : [];
 
                 return (
                     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
@@ -645,7 +725,7 @@
                             <Icons.Search className="text-cyan-400"/> Kết quả: "{searchQuery}"
                         </h2>
                         
-                        {matchedDocs.length === 0 && matchedGames.length === 0 && matchedTools.length === 0 && matchedProjects.length === 0 && matchedInfographics.length === 0 && matchedLeader.length === 0 && (
+                        {matchedDocs.length === 0 && matchedGames.length === 0 && matchedTools.length === 0 && matchedProjects.length === 0 && matchedInfographics.length === 0 && matchedLeader.length === 0 && matchedSelfStudy.length === 0 && (
                             <div className="text-center py-10 text-[var(--text-secondary)]">
                                 <p className="text-lg">Không tìm thấy kết quả nào.</p>
                             </div>
@@ -668,11 +748,11 @@
                             </div>
                         )}
 
-                        {(matchedGames.length > 0 || matchedTools.length > 0 || matchedProjects.length > 0 || matchedLeader.length > 0) && (
+                        {(matchedGames.length > 0 || matchedTools.length > 0 || matchedProjects.length > 0 || matchedLeader.length > 0 || matchedSelfStudy.length > 0) && (
                             <div className="mb-8">
                                 <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3 border-l-4 border-purple-500 pl-3">Ứng dụng & Game</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {[...matchedGames, ...matchedTools, ...matchedProjects, ...matchedLeader].map((item, i) => {
+                                    {[...matchedGames, ...matchedTools, ...matchedProjects, ...matchedLeader, ...matchedSelfStudy].map((item, i) => {
                                         const ItemIcon = CustomIcons[item.iconType] || Icons.Gamepad2;
                                         return (
                                             <div key={i} onClick={() => openViewer({...item, category: item.category || (item.desc ? 'tool' : 'game')})} className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-3 p-3 rounded-lg glass-card cursor-pointer">
@@ -767,6 +847,44 @@
                                         <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
                                             <div className={`h-full w-1/3 bg-current ${item.color} group-hover:w-full transition-all duration-700`}></div>
                                         </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            );
+        };
+        
+        const SelfStudyView = ({ openViewer, allData }) => {
+            return (
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
+                    <div className="mb-8 text-center">
+                        <h2 className="text-2xl md:text-3xl font-black text-[var(--text-primary)] flex items-center justify-center gap-3 font-math mb-2">
+                            <Icons.MenuSelfStudy className="text-pink-500"/> GÓC TỰ HỌC
+                        </h2>
+                        <p className="text-[var(--text-secondary)] text-xs md:text-sm">Nâng cao kiến thức với các công cụ hỗ trợ tự học hiệu quả.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {allData.selfStudy.map((item, i) => {
+                            const ItemIcon = CustomIcons[item.iconType] || Icons.BookOpen;
+                            return (
+                                <div key={i} onClick={() => openViewer({...item, category: 'tool'})} 
+                                     className="group relative overflow-hidden rounded-2xl p-1 cursor-pointer hover:-translate-y-2 transition-transform duration-300">
+                                    {/* Gradient Border/Glow */}
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-30 group-hover:opacity-100 blur-sm transition-opacity`}></div>
+                                    
+                                    <div className="relative h-full bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl p-6 flex flex-col items-center text-center border border-white/10 group-hover:border-transparent transition-colors">
+                                        <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${item.color} p-0.5 mb-4 shadow-lg`}>
+                                            <div className="w-full h-full bg-[var(--bg-deep)] rounded-full flex items-center justify-center">
+                                                 <ItemIcon size={40} className={`text-transparent bg-clip-text bg-gradient-to-br ${item.color}`} />
+                                            </div>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-white transition-colors">{item.title}</h3>
+                                        <p className="text-sm text-[var(--text-secondary)] mb-6">{item.desc}</p>
+                                        <button className={`px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider bg-gradient-to-r ${item.color} text-white shadow-lg opacity-90 group-hover:opacity-100 transform group-hover:scale-105 transition-all`}>
+                                            Bắt đầu ngay
+                                        </button>
                                     </div>
                                 </div>
                             )
@@ -901,27 +1019,81 @@
         };
 
         const ToolsView = ({ searchQuery, openViewer, allData }) => {
+            const [activeTab, setActiveTab] = useState('management'); // 'management' | 'teaching'
             const filtered = allData.tools.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
+            
+            // Phân loại công cụ
+            const managementFiles = ['tkb.html', 'quanlihocsinh.html', 'sodiem.html', 'tkbgv.html', 'tkbvnedu.html'];
+            
+            const managementTools = filtered.filter(t => managementFiles.includes(t.filename));
+            const teachingTools = filtered.filter(t => !managementFiles.includes(t.filename));
+
+            const renderToolCard = (tool, i) => {
+                const ToolIcon = CustomIcons[tool.iconType] || Icons.Calculator;
+                return (
+                    <div key={i} onClick={() => openViewer({...tool, category: 'tool'})} className="glass-card p-4 md:p-6 rounded-2xl flex flex-col gap-3 group cursor-pointer hover:bg-white/5 border border-white/10 animate-fade-in fade-in-up">
+                        <div className={`icon-box w-10 h-10 md:w-16 md:h-16 bg-[var(--glass-bg)] ${tool.color} border border-white/10 shadow-lg group-hover:border-current p-2 md:p-3`}>
+                            <ToolIcon size={32} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm md:text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-purple-300 transition-colors">{tool.title}</h3>
+                            <p className="text-[var(--text-secondary)] text-[10px] md:text-xs mb-2 md:mb-4 leading-relaxed font-medium line-clamp-2">{tool.desc}</p>
+                            <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
+                                <div className={`h-full w-1/3 bg-current ${tool.color} group-hover:w-full transition-all duration-700`}></div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
             return (
                 <div className="p-4 md:p-8 max-w-7xl mx-auto w-full fade-in-up main-content">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                        {filtered.length > 0 ? filtered.map((tool, i) => {
-                            const ToolIcon = CustomIcons[tool.iconType] || Icons.Calculator;
-                            return (
-                                <div key={i} onClick={() => openViewer({...tool, category: 'tool'})} className="glass-card p-4 md:p-6 rounded-2xl flex flex-col gap-3 group cursor-pointer hover:bg-white/5 border border-white/10">
-                                    <div className={`icon-box w-10 h-10 md:w-16 md:h-16 bg-[var(--glass-bg)] ${tool.color} border border-white/10 shadow-lg group-hover:border-current p-2 md:p-3`}>
-                                        <ToolIcon size={32} />
+                    {/* Tab Navigation */}
+                    <div className="flex items-center justify-center mb-8">
+                        <div className="p-1 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 flex items-center gap-1">
+                            <button 
+                                onClick={() => setActiveTab('management')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'management' ? 'bg-blue-500/20 text-blue-400 shadow-sm border border-blue-500/30' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'}`}
+                            >
+                                <Icons.MenuDashboard size={16}/> Công Cụ Quản Lý
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('teaching')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'teaching' ? 'bg-emerald-500/20 text-emerald-400 shadow-sm border border-emerald-500/30' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'}`}
+                            >
+                                <Icons.GraduationCap size={16}/> Công Cụ Dạy Học
+                            </button>
+                        </div>
+                    </div>
+
+                    {filtered.length === 0 && <div className="text-center text-slate-500">Không tìm thấy công cụ.</div>}
+
+                    <div className="min-h-[300px]">
+                        {/* Nhóm Công Cụ Quản Lý */}
+                        {activeTab === 'management' && (
+                            <div className="animate-fade-in fade-in-up">
+                                {managementTools.length > 0 ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                                        {managementTools.map((tool, i) => renderToolCard(tool, `m-${i}`))}
                                     </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-sm md:text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-purple-300 transition-colors">{tool.title}</h3>
-                                        <p className="text-[var(--text-secondary)] text-[10px] md:text-xs mb-2 md:mb-4 leading-relaxed font-medium line-clamp-2">{tool.desc}</p>
-                                        <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
-                                            <div className={`h-full w-1/3 bg-current ${tool.color} group-hover:w-full transition-all duration-700`}></div>
-                                        </div>
+                                ) : (
+                                    <div className="text-center py-10 text-[var(--text-secondary)] opacity-50">Không có công cụ quản lý nào phù hợp.</div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Nhóm Công Cụ Dạy Học */}
+                        {activeTab === 'teaching' && (
+                            <div className="animate-fade-in fade-in-up">
+                                {teachingTools.length > 0 ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                                        {teachingTools.map((tool, i) => renderToolCard(tool, `t-${i}`))}
                                     </div>
-                                </div>
-                            )
-                        }) : <div className="col-span-3 text-center text-slate-500">Không tìm thấy công cụ.</div>}
+                                ) : (
+                                    <div className="text-center py-10 text-[var(--text-secondary)] opacity-50">Không có công cụ dạy học nào phù hợp.</div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             );
@@ -987,6 +1159,7 @@
                     case 'documents': return 'Tài Liệu';
                     case 'games': return 'Game Zone';
                     case 'tools': return 'Công Cụ';
+                    case 'selfstudy': return 'Góc Tự Học';
                     default: return 'Trang Chủ';
                 }
             };
@@ -1011,6 +1184,7 @@
                             {currentView === 'documents' && <DocumentsView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
                             {currentView === 'games' && <GamesView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
                             {currentView === 'tools' && <ToolsView searchQuery={searchQuery} openViewer={handleOpenResource} allData={DATA_CONFIG} />}
+                            {currentView === 'selfstudy' && <SelfStudyView openViewer={handleOpenResource} allData={DATA_CONFIG} />}
                         </main>
                         <Footer />
                     </div>
