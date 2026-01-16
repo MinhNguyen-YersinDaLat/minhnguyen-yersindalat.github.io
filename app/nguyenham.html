@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MÁY TÍNH NGUYÊN HÀM - Thầy Thái Minh Nguyên</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- MathLive (ES Module for Stability) -->
+    <script type="module" src="https://unpkg.com/mathlive?module"></script>
+
+    <!-- Algebrite (Math Engine) -->
+    <script src="https://cdn.jsdelivr.net/npm/algebrite@1.4.0/dist/algebrite.bundle-for-browser.min.js"></script>
+
+    <!-- MathJax Configuration -->
+    <script>
+    window.MathJax = {
+      loader: { load: ['[tex]/ams'] },
+      tex: {
+        packages: {'[+]': ['ams']},
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      // QUAN TRỌNG: Tự động chạy MathJax khi tải trang
+      startup: { typeset: true } 
+    };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+
+    <style>
+        :root { --app-height: 100dvh; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fff7ed;
+            margin: 0; padding: 0;
+            overflow: hidden;
+            height: var(--app-height);
+            width: 100vw;
+        }
+        
+        /* MathField Styling */
+        math-field {
+            font-size: 1.5rem;
+            padding: 10px 14px;
+            background: transparent;
+            width: 100%;
+            outline: none; border: none;
+            color: #0f172a;
+            --caret-color: #f97316;
+            --selection-background-color: #fed7aa;
+        }
+        /* Hide default keyboard */
+        math-field::part(virtual-keyboard-toggle) { display: none; }
+        math-field:focus-within { outline: none; }
+
+        .app-container { width: 100%; height: 100%; position: relative; overflow: hidden; }
+        
+        .screen-view {
+            position: absolute; inset: 0;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; flex-direction: column;
+            background: #fff7ed; z-index: 10;
+        }
+        .screen-view.hidden-right { transform: translateX(100%); pointer-events: none; }
+        .screen-view.hidden-left { transform: translateX(-100%); pointer-events: none; }
+
+        .calculator-wrapper {
+            flex: 1; display: flex; flex-direction: column;
+            max-width: 600px; width: 100%; margin: 0 auto;
+            height: 100%; background: #ffffff;
+        }
+        @media (min-width: 768px) {
+            .calculator-wrapper {
+                border-radius: 24px; height: 96%; margin-top: 2vh;
+                border: 1px solid #fed7aa; box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.1);
+            }
+        }
+
+        .casio-screen {
+            background: linear-gradient(180deg, #ffffff 0%, #fef3c7 100%);
+            border-bottom: 2px solid #f97316;
+            padding: 16px; display: flex; flex-direction: column; gap: 8px;
+            box-shadow: inset 0 -4px 6px -4px rgba(0,0,0,0.05);
+            min-height: 140px;
+        }
+
+        .input-wrapper {
+            background: white; border: 2px solid #fdba74;
+            border-radius: 12px; display: flex; align-items: center;
+            position: relative; min-height: 64px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            transition: border-color 0.2s;
+        }
+        .input-wrapper:focus-within { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+
+        .keypad-container {
+            flex: 1; padding: 8px; background: #fff7ed;
+            overflow-y: auto; display: flex; flex-direction: column;
+        }
+
+        .key-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr);
+            gap: 8px; flex: 1; min-height: 380px;
+        }
+
+        .calc-btn {
+            border-radius: 10px; font-weight: 700; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; user-select: none;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+            transition: transform 0.05s, background-color 0.1s;
+            background: white; color: #334155; border: 1px solid #f1f5f9;
+        }
+        .calc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.05); }
+        .calc-btn.dark { background: #f8fafc; color: #0f172a; border-color: #e2e8f0; }
+        .calc-btn.orange { background: #f97316; color: white; border-color: #ea580c; box-shadow: 0 4px 0 #c2410c; }
+        .calc-btn.orange:active { box-shadow: 0 1px 0 #c2410c; }
+        .calc-btn.gray { background: #94a3b8; color: white; }
+        .calc-btn.blue { background: #3b82f6; color: white; font-weight: 700; }
+        .btn-sm { font-size: 0.95rem; }
+
+        /* Result View */
+        .result-wrapper {
+            flex: 1; display: flex; flex-direction: column;
+            width: 100%; height: 100%; background: #ffffff;
+            max-width: 800px; margin: 0 auto;
+        }
+        @media (min-width: 768px) {
+            .result-wrapper {
+                border-radius: 24px; height: 96%; margin-top: 2vh;
+                box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+                border: 1px solid #fed7aa;
+            }
+        }
+
+        .step-card { animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
+
+        .modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal.open { opacity: 1; pointer-events: auto; }
+        .modal-bg { position: absolute; inset: 0; background: rgba(255, 237, 213, 0.8); backdrop-filter: blur(8px); }
+        .modal-content { background: white; width: 95%; max-width: 900px; max-height: 90vh; border-radius: 24px; position: relative; z-index: 10; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); transition: transform 0.2s; box-shadow: 0 25px 50px -12px rgba(249, 115, 22, 0.25); border: 1px solid #fed7aa; }
+        .modal.open .modal-content { transform: scale(1); }
+
+        .tab-btn { padding: 16px; cursor: pointer; border-bottom: 4px solid transparent; font-weight: 700; color: #94a3b8; transition: all 0.2s; }
+        .tab-btn.active { border-color: #f97316; color: #ea580c; background: #fff7ed; }
+        
+        #errorToast { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- VIEW 1: CALCULATOR -->
+        <div id="view-calculator" class="screen-view">
+            <div class="calculator-wrapper">
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-5 flex justify-between items-center shadow-lg z-10">
+                    <div>
+                        <h1 class="font-extrabold text-xl tracking-wider uppercase drop-shadow-sm">MÁY TÍNH NGUYÊN HÀM</h1>
+                        <p class="text-[11px] text-orange-100 font-medium tracking-wide mt-0.5">CÔNG CỤ HỖ TRỢ TỰ HỌC NGUYÊN HÀM</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="bg-white/20 px-3 py-1 rounded-full border border-white/30 backdrop-blur-sm">
+                            <p class="text-[10px] font-bold uppercase text-white">Thầy Thái Minh Nguyên</p>
+                        </div>
+                        <p class="text-[10px] text-orange-100 mt-1 font-medium">TH, THCS & THPT YERSIN ĐÀ LẠT</p>
+                    </div>
+                </div>
+
+                <div class="casio-screen">
+                    <div class="flex justify-between text-[11px] text-orange-800 font-bold uppercase tracking-wider mb-1 opacity-70">
+                        <span>Standard Mode</span>
+                        <span>$\int f(x)dx$</span>
+                    </div>
+                    <div class="input-wrapper group">
+                        <!-- MathField -->
+                        <math-field id="mathInput" virtual-keyboard-mode="manual"></math-field>
+                        <div class="absolute right-4 bottom-3 text-lg text-slate-400 italic pointer-events-none font-serif">dx</div>
+                    </div>
+                </div>
+
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b border-orange-100">
+                    <button onclick="toggleExamples()" class="text-xs font-bold text-slate-600 hover:text-orange-600 flex items-center gap-2 bg-orange-50 border border-orange-100 px-4 py-2.5 rounded-xl transition active:scale-95 shadow-sm">
+                        <span class="text-yellow-600 bg-yellow-100 px-1.5 rounded">SHIFT</span> THƯ VIỆN VÍ DỤ
+                    </button>
+                    <button onclick="toggleModal()" class="text-xs font-bold text-slate-600 hover:text-orange-600 flex items-center gap-2 bg-orange-50 border border-orange-100 px-4 py-2.5 rounded-xl transition active:scale-95 shadow-sm">
+                        <span class="text-red-500 bg-red-100 px-1.5 rounded">ALPHA</span> TRA CỨU CÔNG THỨC
+                    </button>
+                </div>
+
+                <div class="keypad-container">
+                    <div class="key-grid">
+                        <button class="calc-btn text-slate-500 bg-slate-50" onclick="exec('moveToPreviousChar')">←</button>
+                        <button class="calc-btn text-slate-500 bg-slate-50" onclick="exec('moveToNextChar')"> →</button>
+                        <button class="calc-btn btn-sm" onclick="insert('\\left|#0\\right|')">$|x|$</button>
+                        <button class="calc-btn btn-sm" onclick="insert('\\sqrt{#0}')">$\sqrt{\square}$</button>
+                        <button class="calc-btn orange font-bold tracking-wider" onclick="clearInput()">AC</button>
+                        <button class="calc-btn orange font-bold tracking-wider" onclick="exec('deleteBackward')">DEL</button>
+
+                        <button class="calc-btn" onclick="insert('\\frac{#0}{#?}')">$\frac{\square}{\square}$</button>
+                        <button class="calc-btn" onclick="insert('^2')">$x^2$</button>
+                        <button class="calc-btn" onclick="insert('^{#?}')">$x^\square$</button>
+                        <button class="calc-btn btn-sm" onclick="insert('\\log')">$\log$</button>
+                        <button class="calc-btn btn-sm" onclick="insert('\\ln')">$\ln$</button>
+                        <button class="calc-btn font-serif text-red-600 italic text-2xl" onclick="insert('x')">$x$</button>
+
+                        <button class="calc-btn btn-sm" onclick="insert('\\sin')">$\sin$</button>
+                        <button class="calc-btn btn-sm" onclick="insert('\\cos')">$\cos$</button>
+                        <button class="calc-btn btn-sm" onclick="insert('\\tan')">$\tan$</button>
+                        <button class="calc-btn" onclick="insert('(')">$($</button>
+                        <button class="calc-btn" onclick="insert(')')">$)$</button>
+                        <button class="calc-btn text-xl" onclick="insert('/')">$\div$</button>
+
+                        <button class="calc-btn font-serif italic text-lg" onclick="insert('e')">$e$</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('7')">7</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('8')">8</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('9')">9</button>
+                        <button class="calc-btn font-serif text-lg" onclick="insert('\\pi')">$\pi$</button>
+                        <button class="calc-btn text-xl" onclick="insert('\\times')">$\times$</button>
+
+                        <button class="calc-btn btn-sm" onclick="insert('\\frac{1}{#?}')">$1/x$</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('4')">4</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('5')">5</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('6')">6</button>
+                        <button class="calc-btn text-xl" onclick="insert('+')">$+$</button>
+                        <button class="calc-btn text-xl" onclick="insert('-')">$-$</button>
+
+                        <button class="calc-btn btn-sm" onclick="insert('^3')">$x^3$</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('1')">1</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('2')">2</button>
+                        <button class="calc-btn dark font-mono text-lg" onclick="insert('3')">3</button>
+                        <button class="calc-btn orange col-span-2 row-span-2 text-xl shadow-lg border-b-4 border-orange-700 active:border-b-0 active:translate-y-1 font-extrabold tracking-widest" onclick="handleSolve()">SOLVE</button>
+
+                        <button class="calc-btn btn-sm" onclick="insert('10^{#?}')">$10^\square$</button>
+                        <button class="calc-btn dark col-span-2 font-mono text-lg" onclick="insert('0')">0</button>
+                        <button class="calc-btn dark font-bold text-xl" onclick="insert('.')">.</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: RESULT -->
+        <div id="view-result" class="screen-view hidden-right">
+            <div class="result-wrapper bg-orange-50/30">
+                <div class="bg-white border-b border-orange-100 px-5 py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                    <button onclick="switchView('calculator')" class="flex items-center gap-2 text-slate-600 bg-orange-50 hover:bg-orange-100 hover:text-orange-700 px-5 py-2.5 rounded-xl font-bold transition-all border border-orange-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        QUAY LẠI
+                    </button>
+                    <h2 class="text-lg font-extrabold text-orange-600 uppercase tracking-wider">Kết Quả Tính Toán</h2>
+                    <div class="w-12"></div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 md:p-8">
+                    <div class="max-w-3xl mx-auto space-y-8 pb-24">
+                        
+                        <!-- Main Result Card (BIG) -->
+                        <div class="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden relative">
+                            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 to-red-500"></div>
+                            <div class="p-8 text-center">
+                                <div class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Họ nguyên hàm $F(x)$ là:</div>
+                                <div id="latexFinalResult" class="text-4xl md:text-5xl font-serif text-slate-800 py-4 leading-relaxed overflow-x-auto"></div>
+                            </div>
+                        </div>
+
+                        <!-- Toggle Button -->
+                        <div class="text-center">
+                            <button onclick="toggleSteps()" class="group bg-white border-2 border-orange-100 hover:border-orange-300 text-orange-600 px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 mx-auto">
+                                <svg class="w-5 h-5 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                XEM HƯỚNG DẪN GIẢI CHI TIẾT
+                            </button>
+                        </div>
+
+                        <!-- Details Section (Hidden by default) -->
+                        <div id="detailedSteps" class="hidden space-y-6 animate-fade-in-down">
+                            <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex gap-3 text-blue-800 text-sm items-start">
+                                <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <div>Dưới đây là các gợi ý phương pháp giải theo chuẩn kiến thức Toán THPT.</div>
+                            </div>
+                            <div id="stepsContainer" class="space-y-4"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ERROR TOAST -->
+    <div id="errorToast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-full shadow-2xl translate-y-[-200%] transition-transform duration-300 flex items-center gap-3 z-50 font-bold w-max max-w-[90vw] border-2 border-white/20 backdrop-blur-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span id="errorMsg">Lỗi</span>
+    </div>
+
+    <!-- MODALS -->
+    <div id="formulaModal" class="modal">
+        <div class="modal-bg" onclick="toggleModal()"></div>
+        <div class="modal-content h-full">
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-5 flex justify-between items-center shadow-md">
+                <h3 class="font-bold text-lg uppercase tracking-wide">Bảng Nguyên Hàm</h3>
+                <button onclick="toggleModal()" class="text-orange-100 p-2 hover:text-white hover:bg-orange-700 rounded-full transition">✕</button>
+            </div>
+            <div class="flex border-b border-slate-200 bg-white sticky top-0 z-10">
+                <div class="tab-btn flex-1 text-center active" onclick="setTab('basic')">Cơ Bản</div>
+                <div class="tab-btn flex-1 text-center" onclick="setTab('trig_trans')">Lượng Giác</div>
+                <div class="tab-btn flex-1 text-center" onclick="setTab('advanced')">Nâng Cao</div>
+                <div class="tab-btn flex-1 text-center" onclick="setTab('part')">Từng Phần</div>
+            </div>
+            <div class="p-6 overflow-y-auto bg-orange-50 flex-1">
+                <div id="tab-basic" class="tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-orange-100">
+                        <h4 class="text-orange-600 font-bold mb-4 border-b border-orange-100 pb-2 text-sm uppercase">1. Lũy Thừa & Mũ</h4>
+                        <div class="space-y-4 text-xl text-slate-700 font-serif">
+                            <p>$\int x^\alpha dx = \frac{x^{\alpha+1}}{\alpha+1} + C \; (\alpha \ne -1)$</p>
+                            <p>$\int \frac{1}{x} dx = \ln|x| + C$</p>
+                            <p>$\int e^x dx = e^x + C$</p>
+                            <p>$\int a^x dx = \frac{a^x}{\ln a} + C$</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-orange-100">
+                        <h4 class="text-blue-600 font-bold mb-4 border-b border-blue-100 pb-2 text-sm uppercase">2. Lượng Giác Cơ Bản</h4>
+                        <div class="space-y-4 text-xl text-slate-700 font-serif">
+                            <p>$\int \cos x dx = \sin x + C$</p>
+                            <p>$\int \sin x dx = -\cos x + C$</p>
+                            <p>$\int \frac{1}{\cos^2 x} dx = \tan x + C$</p>
+                            <p>$\int \frac{1}{\sin^2 x} dx = -\cot x + C$</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-trig_trans" class="tab-content hidden grid grid-cols-1 gap-6">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-green-100">
+                        <h4 class="text-green-600 font-bold mb-4 border-b border-green-100 pb-2 text-sm uppercase">Công Thức Hạ Bậc</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xl text-slate-700 font-serif">
+                            <p>$\cos^2 x = \frac{1 + \cos 2x}{2}$</p>
+                            <p>$\sin^2 x = \frac{1 - \cos 2x}{2}$</p>
+                            <p>$\tan^2 x = \frac{1}{\cos^2 x} - 1$</p>
+                            <p>$\cot^2 x = \frac{1}{\sin^2 x} - 1$</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-green-100">
+                        <h4 class="text-green-600 font-bold mb-4 border-b border-green-100 pb-2 text-sm uppercase">Biến Đổi Tích Thành Tổng</h4>
+                        <div class="space-y-4 text-xl text-slate-700 font-serif">
+                            <p>$\cos a \cos b = \frac{1}{2}[\cos(a-b) + \cos(a+b)]$</p>
+                            <p>$\sin a \sin b = \frac{1}{2}[\cos(a-b) - \cos(a+b)]$</p>
+                            <p>$\sin a \cos b = \frac{1}{2}[\sin(a-b) + \sin(a+b)]$</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-advanced" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-purple-100">
+                        <h4 class="text-purple-600 font-bold mb-4 border-b border-purple-100 pb-2 text-sm uppercase">3. Hàm Hợp $(ax+b)$</h4>
+                        <div class="space-y-4 text-xl text-slate-700 font-serif">
+                            <p>$\int e^{ax+b} dx = \frac{1}{a}e^{ax+b}$</p>
+                            <p>$\int \cos(ax+b) dx = \frac{1}{a}\sin(ax+b)$</p>
+                            <p>$\int \frac{dx}{ax+b} = \frac{1}{a}\ln|ax+b|$</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-purple-100">
+                        <h4 class="text-purple-600 font-bold mb-4 border-b border-purple-100 pb-2 text-sm uppercase">4. Phân Thức & Lượng Giác Ngược</h4>
+                        <div class="space-y-4 text-xl text-slate-700 font-serif">
+                            <p>$\int \frac{dx}{x^2-a^2} = \frac{1}{2a}\ln\left|\frac{x-a}{x+a}\right|$</p>
+                            <p>$\int \frac{dx}{x^2+a^2} = \frac{1}{a}\arctan\frac{x}{a}$</p>
+                            <p>$\int \frac{dx}{\sqrt{a^2-x^2}} = \arcsin\frac{x}{a}$</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-part" class="tab-content hidden grid grid-cols-1 gap-6">
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-200 text-center">
+                        <h4 class="text-blue-700 font-bold text-lg mb-2">CÔNG THỨC TÍCH PHÂN TỪNG PHẦN</h4>
+                        <p class="text-2xl font-serif text-slate-800">$\int u \, dv = uv - \int v \, du$</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="text-slate-600 font-bold mb-4 text-sm uppercase">Thứ tự ưu tiên đặt u (Nhất Lô, Nhì Đa...)</h4>
+                        <ul class="list-decimal list-inside space-y-2 text-lg text-slate-700">
+                            <li><strong class="text-orange-600">Lô:</strong> Logarit ($\ln x, \log x$)</li>
+                            <li><strong class="text-orange-600">Đa:</strong> Đa thức ($x, x^2, 2x+1$)</li>
+                            <li><strong class="text-orange-600">Lượng:</strong> Lượng giác ($\sin x, \cos x$)</li>
+                            <li><strong class="text-orange-600">Mũ:</strong> Hàm mũ ($e^x$)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="examplesModal" class="modal">
+        <div class="modal-bg" onclick="toggleExamples()"></div>
+        <div class="modal-content h-full">
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-5 flex justify-between items-center shadow-md">
+                <h3 class="font-bold text-lg uppercase tracking-wide">Thư Viện Bài Tập Mẫu</h3>
+                <button onclick="toggleExamples()" class="text-orange-100 p-2 hover:text-white hover:bg-orange-700 rounded-full transition">✕</button>
+            </div>
+            <div class="p-6 overflow-y-auto bg-orange-50 flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-1 md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider mt-2 mb-1 pl-1">Cơ bản & Đa thức</div>
+                <div onclick="setExample('x^3 + 2x^2 - 5')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-orange-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-orange-500 mb-1 group-hover:text-orange-600">ĐA THỨC</div>
+                    <div class="text-xl font-serif">$\int (x^3 + 2x^2 - 5) dx$</div>
+                </div>
+                <div onclick="setExample('\\frac{1}{x}')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-orange-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-orange-500 mb-1 group-hover:text-orange-600">NGHỊCH ĐẢO (1/x)</div>
+                    <div class="text-xl font-serif">$\int \frac{1}{x} dx$</div>
+                </div>
+                <div onclick="setExample('\\sqrt{x} + \\frac{1}{\\sqrt{x}}')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-orange-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-orange-500 mb-1 group-hover:text-orange-600">CĂN THỨC</div>
+                    <div class="text-xl font-serif">$\int (\sqrt{x} + \frac{1}{\sqrt{x}}) dx$</div>
+                </div>
+                <div onclick="setExample('x\\sqrt{x}')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-orange-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-orange-500 mb-1 group-hover:text-orange-600">LŨY THỪA LẺ</div>
+                    <div class="text-xl font-serif">$\int x\sqrt{x} dx$</div>
+                </div>
+
+                <div class="col-span-1 md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-1 pl-1">Phân Thức Hữu Tỉ</div>
+                <div onclick="setExample('\\frac{2x+1}{x-1}')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-blue-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-blue-500 mb-1 group-hover:text-blue-600">BẬC TỬ $\ge$ BẬC MẪU</div>
+                    <div class="text-xl font-serif">$\int \frac{2x+1}{x-1} dx$</div>
+                </div>
+                <div onclick="setExample('\\frac{1}{x^2-1}')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-blue-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-blue-500 mb-1 group-hover:text-blue-600">MẪU CÓ 2 NGHIỆM</div>
+                    <div class="text-xl font-serif">$\int \frac{1}{x^2-1} dx$</div>
+                </div>
+                <div onclick="setExample('\\frac{1}{x^2+1}')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-blue-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-blue-500 mb-1 group-hover:text-blue-600">MẪU VÔ NGHIỆM (ARCTAN)</div>
+                    <div class="text-xl font-serif">$\int \frac{1}{x^2+1} dx$</div>
+                </div>
+
+                <div class="col-span-1 md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-1 pl-1">Lượng Giác & Mũ</div>
+                <div onclick="setExample('\\sin^2 x')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-purple-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-purple-500 mb-1 group-hover:text-purple-600">HẠ BẬC SIN</div>
+                    <div class="text-xl font-serif">$\int \sin^2 x dx$</div>
+                </div>
+                <div onclick="setExample('\\tan^2 x')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-purple-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-purple-500 mb-1 group-hover:text-purple-600">BIẾN ĐỔI TAN</div>
+                    <div class="text-xl font-serif">$\int \tan^2 x dx$</div>
+                </div>
+                <div onclick="setExample('e^{2x} + \\pi x')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-purple-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-purple-500 mb-1 group-hover:text-purple-600">HÀM MŨ MỞ RỘNG</div>
+                    <div class="text-xl font-serif">$\int (e^{2x} + \pi x) dx$</div>
+                </div>
+
+                <div class="col-span-1 md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-1 pl-1">Tích Phân Từng Phần</div>
+                <div onclick="setExample('x \\sin x')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-green-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-green-600 mb-1 group-hover:text-green-700">ĐA THỨC x LƯỢNG GIÁC</div>
+                    <div class="text-xl font-serif">$\int x \sin x dx$</div>
+                </div>
+                <div onclick="setExample('x e^x')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-green-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-green-600 mb-1 group-hover:text-green-700">ĐA THỨC x MŨ</div>
+                    <div class="text-xl font-serif">$\int x e^x dx$</div>
+                </div>
+                <div onclick="setExample('\\ln x')" class="example-card group p-4 bg-white border border-orange-100 rounded-xl hover:border-green-400 hover:shadow-lg cursor-pointer transition transform hover:-translate-y-1">
+                    <div class="text-xs font-bold text-green-600 mb-1 group-hover:text-green-700">LOGARIT</div>
+                    <div class="text-xl font-serif">$\int \ln x dx$</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        let mf, stepsContainer, latexResultProblem, latexFinalResult, detailedSteps, errorToast, errorMsg;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup DOM refs
+            stepsContainer = document.getElementById('stepsContainer');
+            latexResultProblem = document.getElementById('latexResultProblem');
+            latexFinalResult = document.getElementById('latexFinalResult');
+            detailedSteps = document.getElementById('detailedSteps');
+            errorToast = document.getElementById('errorToast');
+            errorMsg = document.getElementById('errorMsg');
+            
+            // Explicitly set up mathfield via JS to ensure it's ready
+            const container = document.querySelector('.input-wrapper');
+            const mathfield = document.querySelector('math-field');
+            if (mathfield) {
+                mf = mathfield;
+                mf.smartMode = true;
+                mf.virtualKeyboardMode = 'manual';
+            }
+        });
+
+        function insert(latex) { 
+            const mf = document.querySelector('math-field');
+            if (mf) {
+                mf.executeCommand(['insert', latex]);
+                mf.focus();
+            }
+        }
+        function exec(command) { 
+             const mf = document.querySelector('math-field');
+             if (mf) {
+                 mf.executeCommand(command);
+                 mf.focus();
+             }
+        }
+        function clearInput() { 
+            const mf = document.querySelector('math-field');
+            if(mf) { mf.setValue(''); mf.focus(); }
+        }
+        function setExample(latex) { 
+            const mf = document.querySelector('math-field');
+            if(mf) { mf.setValue(latex); } 
+            toggleExamples(); 
+        }
+
+        // --- UI UTILS ---
+        function switchView(viewName) {
+            const calcView = document.getElementById('view-calculator');
+            const resView = document.getElementById('view-result');
+            if (viewName === 'result') {
+                calcView.classList.add('hidden-left');
+                resView.classList.remove('hidden-right');
+            } else {
+                calcView.classList.remove('hidden-left');
+                resView.classList.add('hidden-right');
+            }
+        }
+        function toggleModal() { 
+            const el = document.getElementById('formulaModal');
+            if(el) {
+                el.classList.toggle('open');
+                if(el.classList.contains('open') && window.MathJax) MathJax.typesetPromise([el]).catch(()=>{});
+            }
+        }
+        function toggleExamples() { 
+            const el = document.getElementById('examplesModal');
+            if(el) {
+                el.classList.toggle('open');
+                if(el.classList.contains('open') && window.MathJax) MathJax.typesetPromise([el]).catch(()=>{});
+            }
+        }
+        function toggleSteps() {
+            detailedSteps.classList.toggle('hidden');
+        }
+        function setTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const btns = document.querySelectorAll('.tab-btn');
+            if(tabName === 'basic') btns[0].classList.add('active');
+            if(tabName === 'extended') btns[1].classList.add('active');
+            if(tabName === 'advanced') btns[2].classList.add('active');
+            if(tabName === 'part') btns[3].classList.add('active');
+            if(tabName === 'trig_trans') btns[1].classList.add('active');
+            if(window.MathJax) MathJax.typesetPromise([document.getElementById(`tab-${tabName}`)]).catch(()=>{});
+        }
+        function showError(msg) {
+            errorMsg.innerText = msg;
+            errorToast.classList.remove('translate-y-[-200%]');
+            errorToast.classList.add('translate-y-20');
+            setTimeout(() => {
+                errorToast.classList.remove('translate-y-20');
+                errorToast.classList.add('translate-y-[-200%]');
+            }, 3000);
+        }
+
+        // --- SOLVE MAIN HANDLER ---
+        function handleSolve() {
+            const mf = document.querySelector('math-field');
+            if (!mf) { showError("Đang tải tài nguyên..."); return; }
+            const latex = mf.value;
+            if (!latex) { showError("Vui lòng nhập hàm số"); return; }
+
+            if(latexResultProblem) latexResultProblem.innerHTML = `$$ \\int \\left( ${latex} \\right) dx $$`;
+            if(latexFinalResult) latexFinalResult.innerHTML = "";
+            if(detailedSteps) detailedSteps.classList.add('hidden');
+            if(stepsContainer) stepsContainer.innerHTML = "";
+
+            const linearInput = latexToAlgebrite(latex);
+            
+            try {
+                const resultExpr = Algebrite.run(`integral(${linearInput})`);
+                
+                // ULTIMATE FORMATTER CALL V12.1
+                let resultLatex = formatAlgebriteOutput(resultExpr);
+                
+                switchView('result');
+                if(latexFinalResult) latexFinalResult.innerHTML = `$$ F(x) = ${resultLatex} + C $$`;
+                analyzeAndGenerateSteps(linearInput, latex);
+                
+                if (window.MathJax) {
+                    MathJax.typesetPromise([document.getElementById('view-result')]).catch(()=>{});
+                }
+
+            } catch (error) {
+                console.error(error);
+                showError("Lỗi cú pháp hoặc thư viện chưa hỗ trợ dạng này.");
+            }
+        }
+
+        // --- ULTIMATE RECURSIVE PARSER V12.1 (FIXED) ---
+        function formatAlgebriteOutput(str) {
+            if (!str) return "";
+            str = str.replace(/\s/g, ''); 
+            
+            const terms = splitByPlusMinus(str);
+            
+            let latexParts = terms.map((term, index) => {
+                let formatted = formatTerm(term.body);
+                if (index === 0) {
+                    return term.sign === '-' ? '-' + formatted : formatted;
+                } else {
+                    return (term.sign === '-' ? ' - ' : ' + ') + formatted;
+                }
+            });
+            return latexParts.join('');
+        }
+
+        function splitByPlusMinus(str) {
+            let terms = [];
+            let current = "";
+            let depth = 0;
+            let currentSign = '+'; 
+            let startIdx = 0;
+            if (str.startsWith('-')) { currentSign = '-'; startIdx = 1; }
+            else if (str.startsWith('+')) { currentSign = '+'; startIdx = 1; }
+            
+            for(let i=startIdx; i<str.length; i++) {
+                let c = str[i];
+                if(c === '(') depth++;
+                else if(c === ')') depth--;
+                
+                if(depth === 0 && (c === '+' || c === '-')) {
+                    if(current) terms.push({ sign: currentSign, body: current });
+                    currentSign = c;
+                    current = "";
+                } else {
+                    current += c;
+                }
+            }
+            if(current) terms.push({ sign: currentSign, body: current });
+            return terms;
+        }
+
+        function formatTerm(str) {
+            // FIX: Split by * FIRST to separate coefficients from vars (e.g. 1/2 * ln(x))
+            let factors = splitByChar(str, '*');
+            
+            let formattedFactors = factors.map(f => {
+                // Check if factor is fraction: a/b
+                let divIdx = findTopLevelChar(f, '/');
+                if (divIdx !== -1) {
+                    let num = f.substring(0, divIdx);
+                    let den = f.substring(divIdx + 1);
+                    num = stripOuterParens(num);
+                    den = stripOuterParens(den);
+                    // Use \dfrac for better visibility
+                    return `\\dfrac{${formatAlgebriteOutput(num)}}{${formatAlgebriteOutput(den)}}`;
+                }
+                return formatComponent(f);
+            });
+            
+            // Join factors with space to prevent command merging (e.g. \pi x -> \pix)
+            return formattedFactors.join(' ');
+        }
+
+        function formatComponent(str) {
+             let caretIdx = findTopLevelChar(str, '^');
+             if (caretIdx !== -1) {
+                 let base = str.substring(0, caretIdx);
+                 let exp = str.substring(caretIdx + 1);
+                 
+                 if (exp === '1/2' || exp === '(1/2)') return `\\sqrt{${formatAtom(base)}}`;
+                 if (exp === '-1/2' || exp === '(-1/2)') return `\\dfrac{1}{\\sqrt{${formatAtom(base)}}}`;
+                 
+                 return `${formatAtom(base)}^{${formatAtom(stripOuterParens(exp))}}`;
+             }
+             return formatAtom(str);
+        }
+
+        function formatAtom(str) {
+            str = stripOuterParens(str);
+            if (str.startsWith('log(')) return `\\ln\\left|${formatAlgebriteOutput(str.slice(4,-1))}\\right|`; 
+            if (str.startsWith('sin(')) return `\\sin(${formatAlgebriteOutput(str.slice(4,-1))})`;
+            if (str.startsWith('cos(')) return `\\cos(${formatAlgebriteOutput(str.slice(4,-1))})`;
+            if (str.startsWith('tan(')) return `\\tan(${formatAlgebriteOutput(str.slice(4,-1))})`;
+            if (str.startsWith('asin(')) return `\\arcsin(${formatAlgebriteOutput(str.slice(5,-1))})`;
+            if (str.startsWith('acos(')) return `\\arccos(${formatAlgebriteOutput(str.slice(5,-1))})`;
+            if (str.startsWith('atan(')) return `\\arctan(${formatAlgebriteOutput(str.slice(5,-1))})`;
+            if (str.startsWith('exp(')) return `e^{${formatAlgebriteOutput(str.slice(4,-1))}}`;
+            
+            // FIX: Return pi with space to prevent merger
+            if (str === 'pi') return '\\pi ';
+            
+            return str;
+        }
+
+        function findTopLevelChar(str, charToFind) {
+            let depth = 0;
+            for(let i=0; i<str.length; i++) {
+                if(str[i] === '(') depth++;
+                else if(str[i] === ')') depth--;
+                else if(depth === 0 && str[i] === charToFind) return i;
+            }
+            return -1;
+        }
+
+        function splitByChar(str, charToSplit) {
+            let parts = [];
+            let current = "";
+            let depth = 0;
+            for(let i=0; i<str.length; i++) {
+                let c = str[i];
+                if(c === '(') depth++;
+                else if(c === ')') depth--;
+                if(depth === 0 && c === charToSplit) {
+                    if(current) parts.push(current);
+                    current = "";
+                } else {
+                    current += c;
+                }
+            }
+            if(current) parts.push(current);
+            return parts;
+        }
+
+        function stripOuterParens(str) {
+            if (str.startsWith('(') && str.endsWith(')')) {
+                let depth = 0;
+                for(let i=0; i<str.length-1; i++) {
+                    if(str[i] === '(') depth++;
+                    else if(str[i] === ')') depth--;
+                    if(depth === 0) return str;
+                }
+                return str.slice(1, -1);
+            }
+            return str;
+        }
+
+        // --- HEURISTIC STEP GENERATOR ---
+        function analyzeAndGenerateSteps(linearInput, originalLatex) {
+            if (linearInput.includes('log') || linearInput.includes('ln') || linearInput.includes('exp') || linearInput.includes('e^')) {
+                if (linearInput.match(/log.*\/.*x/)) {
+                     addStep(1, "Nhận dạng", "Biểu thức chứa $\\ln x$ và $\\frac{1}{x}$ &rarr; Dùng <strong>Phương pháp Đổi biến số</strong>.");
+                     addStep(2, "Thực hiện", "Đặt $t = \\ln x \\Rightarrow dt = \\frac{1}{x}dx$.");
+                     return;
+                }
+                if (linearInput.match(/x\*\(/) || linearInput.match(/x\*sin/) || linearInput.match(/x\*exp/) || linearInput.match(/log.*\*.*x/)) {
+                    if (linearInput.includes('exp') || linearInput.includes('e^')) {
+                        addStep(1, "Nhận dạng", "Dạng tích $P(x) \\cdot e^x$ &rarr; Dùng <strong>Phương pháp Tích phân từng phần</strong>.");
+                        addStep(2, "Đặt ẩn phụ", "$$ \\begin{cases} u = x \\\\ dv = e^x dx \\end{cases} \\Rightarrow \\begin{cases} du = dx \\\\ v = e^x \\end{cases} $$");
+                    }
+                    else if (linearInput.includes('log') || linearInput.includes('ln')) {
+                        addStep(1, "Nhận dạng", "Dạng $P(x) \\cdot \\ln x$ &rarr; Dùng <strong>Phương pháp Tích phân từng phần</strong> (Ưu tiên đặt $u=\\ln x$).");
+                        addStep(2, "Đặt ẩn phụ", "$$ \\begin{cases} u = \\ln x \\\\ dv = dx \\end{cases} \\Rightarrow \\begin{cases} du = \\frac{1}{x}dx \\\\ v = x \\end{cases} $$");
+                    }
+                    return;
+                }
+            }
+            if (originalLatex.includes('\\sqrt') && originalLatex.includes('1')) {
+                 addStep(1, "Biến đổi sơ cấp", "Biến đổi căn thức về dạng lũy thừa: <br> $$ \\sqrt{x} = x^{1/2} $$ <br> $$ \\frac{1}{\\sqrt{x}} = x^{-1/2} $$");
+                 addStep(2, "Áp dụng công thức", "Sử dụng công thức nguyên hàm lũy thừa: $$ \\int x^\\alpha dx = \\frac{x^{\\alpha+1}}{\\alpha+1} + C $$");
+                 addStep(3, "Thực hiện tính toán", "Ta có: <br> $$ \\int x^{1/2} dx = \\frac{x^{3/2}}{3/2} = \\frac{2}{3}x\\sqrt{x} $$ <br> $$ \\int x^{-1/2} dx = \\frac{x^{1/2}}{1/2} = 2\\sqrt{x} $$");
+                 return;
+            }
+            if (linearInput.includes('/')) {
+                if(originalLatex.includes('x^2') && (originalLatex.includes('x+1') || originalLatex.includes('x-1'))) {
+                    addStep(1, "Nhận xét", "Hàm phân thức có Bậc tử $\\ge$ Bậc mẫu (2 $\\ge$ 1).");
+                    addStep(2, "Phương pháp", "Thực hiện <strong>phép chia đa thức</strong> để tách phần nguyên và phần dư: $$ \\frac{P(x)}{Q(x)} = H(x) + \\frac{R(x)}{Q(x)} $$");
+                }
+                else if(originalLatex.includes('x^2-1')) {
+                    addStep(1, "Nhận xét", "Mẫu số là tam thức bậc 2 có 2 nghiệm phân biệt ($x = \\pm 1$).");
+                    addStep(2, "Phương pháp", "Sử dụng <strong>phương pháp đồng nhất thức</strong> để tách mẫu thành các phân thức đơn giản: $$ \\frac{1}{x^2-1} = \\frac{1}{2}\\left(\\frac{1}{x-1} - \\frac{1}{x+1}\\right) $$");
+                }
+                else {
+                    addStep(1, "Phương pháp", "Đây là hàm phân thức hữu tỉ. Hãy kiểm tra bậc của tử/mẫu để chọn phương pháp chia đa thức hoặc đổi biến số ($t$ = mẫu số).");
+                }
+                return;
+            }
+            if(originalLatex.includes('sin^2') || originalLatex.includes('cos^2')) {
+                addStep(1, "Phương pháp", "Gặp bậc chẵn của $\\sin, \\cos$ &rarr; Sử dụng công thức <strong>Hạ bậc</strong>: $$ \\sin^2 x = \\frac{1-\\cos 2x}{2} $$");
+                return;
+            }
+            addStep(1, "Phương pháp chung", "Sử dụng bảng nguyên hàm cơ bản và tính chất tuyến tính tách các hạng tử: $$\\int (f+g) = \\int f + \\int g$$.");
+        }
+
+        function addStep(idx, title, content) {
+            const card = document.createElement('div');
+            card.className = "bg-white border border-slate-200 rounded-xl p-6 shadow-sm relative pl-16";
+            card.innerHTML = `
+                <div class="absolute left-4 top-6 w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-sm font-bold shadow-md">${idx}</div>
+                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">${title}</div>
+                <div class="text-slate-800 text-xl leading-relaxed font-medium">${content}</div>
+            `;
+            stepsContainer.appendChild(card);
+        }
+
+        // --- PARSER FIX (NO FREEZE) ---
+        function parseLatexFractions(latex) {
+            let s = latex;
+            let maxLoop = 50; 
+            while (s.indexOf('\\frac') !== -1 && maxLoop > 0) {
+                maxLoop--;
+                let idx = s.indexOf('\\frac');
+                let startNum = s.indexOf('{', idx);
+                if (startNum === -1) break;
+                let endNum = findMatchingBrace(s, startNum);
+                if (endNum === -1) break;
+                let startDen = s.indexOf('{', endNum + 1);
+                if (startDen === -1) break;
+                let endDen = findMatchingBrace(s, startDen);
+                if (endDen === -1) break;
+                let num = s.substring(startNum + 1, endNum);
+                let den = s.substring(startDen + 1, endDen);
+                s = s.substring(0, idx) + "(" + num + ")/(" + den + ")" + s.substring(endDen + 1);
+            }
+            return s;
+        }
+
+        function findMatchingBrace(str, startIdx) {
+            let depth = 0;
+            for (let i = startIdx; i < str.length; i++) {
+                if (str[i] === '{') depth++;
+                if (str[i] === '}') depth--;
+                if (depth === 0) return i;
+            }
+            return -1;
+        }
+
+        function latexToAlgebrite(latex) {
+            let s = latex;
+            s = s.replace(/\\left/g, '').replace(/\\right/g, '').replace(/\\,/g, ''); 
+            s = parseLatexFractions(s);
+            s = s.replace(/\\sqrt{([^{}]+)}/g, 'sqrt($1)');
+            s = s.replace(/\^{([^{}]+)}/g, '^($1)');
+            s = s.replace(/\^([0-9]+)/g, '^$1');
+            s = s.replace(/\\sin/g, 'sin').replace(/\\cos/g, 'cos').replace(/\\tan/g, 'tan')
+                 .replace(/\\cot/g, 'cot').replace(/\\ln/g, 'log').replace(/\\log/g, 'log10');
+            s = s.replace(/\\pi/g, 'pi');
+            s = s.replace(/e/g, 'e'); 
+            s = s.replace(/\\cdot/g, '*').replace(/\\times/g, '*');
+            s = s.replace(/\s+/g, '');
+            s = s.replace(/(sin|cos|tan|cot)\^(\d+)\s*([a-z0-9]+)/g, '$1($3)^$2');
+            s = s.replace(/(sin|cos|tan|cot)\^(\d+)\(([^)]+)\)/g, '$1($3)^$2');
+            ['sin', 'cos', 'tan', 'cot', 'log', 'sqrt'].forEach(fn => {
+                let re = new RegExp(fn + '([a-z0-9]+)', 'g');
+                s = s.replace(re, fn + '($1)');
+            });
+            s = s.replace(/([x])(sin|cos|tan|cot|log|sqrt)/g, '$1*$2');
+            s = s.replace(/(\d)([a-z\(])/g, '$1*$2');
+            s = s.replace(/(\))([a-z0-9\(])/g, '$1*$2');
+            s = s.replace(/(pi|e)([a-z\(])/g, '$1*$2');
+            s = s.replace(/([a-z])(pi|e)/g, '$1*$2');
+            s = s.replace(/\*\*/g, '*');
+            s = s.replace(/\|(.+?)\|/g, 'abs($1)');
+            return s;
+        }
+    </script>
+</body>
+</html>

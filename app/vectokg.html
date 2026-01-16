@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMN Oxyz Ultimate Pro</title>
+    
+    <!-- MathJax -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- GeoGebra -->
+    <script src="https://www.geogebra.org/apps/deployggb.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #ea580c; /* Cam đậm chuẩn men */
+            --primary-hover: #c2410c;
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            --border: #fed7aa;
+            --text: #1e293b;
+            --radius: 12px;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #fff7ed; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: var(--text); }
+
+        /* --- SCREEN CONTROLLER --- */
+        .screen { display: none; height: 100%; width: 100%; flex-direction: column; animation: fadeEffect 0.3s; }
+        .screen.active { display: flex; }
+        @keyframes fadeEffect { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
+
+        /* --- SCREEN 1: WELCOME --- */
+        #screen-welcome { align-items: center; justify-content: center; text-align: center; background: radial-gradient(circle, #ffedd5 0%, #fff7ed 100%); }
+        .hero-icon { font-size: 5rem; color: var(--primary); margin-bottom: 20px; }
+        .hero-title { font-size: 3rem; font-weight: 900; color: var(--primary); margin: 0; text-transform: uppercase; letter-spacing: 2px; }
+        .hero-desc { font-size: 1.2rem; color: #64748b; margin-bottom: 40px; }
+        .btn-hero { padding: 15px 50px; font-size: 1.2rem; background: var(--primary); color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(234, 88, 12, 0.3); transition: 0.3s; font-weight: bold; }
+        .btn-hero:hover { transform: scale(1.05); background: var(--primary-hover); }
+
+        /* --- SCREEN 2: MENU GRID --- */
+        #screen-menu { padding: 30px; background: #fff; overflow-y: auto; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .menu-group-title { grid-column: 1 / -1; font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-top: 20px; border-bottom: 2px solid #fed7aa; padding-bottom: 5px; text-transform: uppercase; }
+        .menu-card { background: #fdfbf7; border: 1px solid #e5e7eb; border-radius: var(--radius); padding: 20px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 15px; }
+        .menu-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15); transform: translateY(-3px); background: #fff; }
+        .card-icon { width: 50px; height: 50px; background: #ffedd5; color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .card-info h4 { margin: 0; font-size: 1rem; color: var(--text); }
+        .card-info p { margin: 5px 0 0; font-size: 0.85rem; color: #64748b; }
+
+        /* --- SCREEN 3: INPUT --- */
+        #screen-input { align-items: center; justify-content: center; position: relative; }
+        .input-panel { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px dashed #ccc; padding-bottom: 15px; }
+        .panel-title { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .btn-back { background: none; border: none; font-size: 1rem; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .btn-back:hover { color: var(--primary); }
+
+        .input-row { display: grid; grid-template-columns: 80px 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; align-items: center; }
+        .lbl-point { font-weight: bold; font-size: 1.1rem; }
+        .inp-coord { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-size: 1.1rem; transition: 0.2s; box-sizing: border-box; }
+        .inp-coord:focus { border-color: var(--primary); outline: none; background: #fff7ed; }
+
+        .btn-group { display: flex; gap: 15px; margin-top: 30px; }
+        .btn-solve { flex: 2; background: var(--primary); color: white; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+        .btn-clear { flex: 1; background: #fee2e2; color: #ef4444; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-clear:hover { background: #fecaca; }
+
+        /* --- SCREEN 4: RESULT --- */
+        #screen-result { flex-direction: row; }
+        .res-left { width: 40%; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; z-index: 10; box-shadow: 5px 0 15px rgba(0,0,0,0.05); }
+        .res-header { padding: 15px 20px; background: #fff7ed; border-bottom: 2px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        .res-body { flex: 1; padding: 25px; overflow-y: auto; }
+        .res-right { width: 60%; position: relative; background: #f1f5f9; }
+        #ggb-element { width: 100%; height: 100%; }
+
+        /* MATH STYLES */
+        .step-block { margin-bottom: 20px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; }
+        .step-head { font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 1.05rem; }
+        .step-detail { font-size: 1rem; line-height: 1.6; color: #334155; }
+        .final-ans { background: #ecfccb; border: 2px solid #84cc16; color: #166534; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+        .warning-ans { background: #fee2e2; border: 2px solid #ef4444; color: #b91c1c; padding: 15px; border-radius: 8px; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 1. WELCOME SCREEN -->
+    <div id="screen-welcome" class="screen active">
+        <div class="hero-icon"><i class="fas fa-cubes"></i></div>
+        <h1 class="hero-title">TMN OXYZ ULTIMATE</h1>
+        <p class="hero-desc">Công cụ Hình học Không gian Toàn diện - Chuẩn SGK 2025</p>
+        <button class="btn-hero" onclick="nav('screen-menu')">BẮT ĐẦU NGAY</button>
+    </div>
+
+    <!-- 2. MENU SCREEN -->
+    <div id="screen-menu" class="screen">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: var(--primary); margin: 0;">DANH MỤC BÀI TOÁN</h2>
+            <p style="color: #64748b;">Chọn dạng toán thầy cần giải quyết</p>
+        </div>
+
+        <div class="menu-grid">
+            <!-- Group: Điểm & Vectơ -->
+            <div class="menu-group-title">1. Tọa độ điểm & Vectơ</div>
+            <div class="menu-card" onclick="setup('2pts_vec', 'Vectơ, Độ dài, Trung điểm')">
+                <div class="card-icon"><i class="fas fa-ruler-horizontal"></i></div>
+                <div class="card-info"><h4>2 Điểm A, B</h4><p>Tính vectơ AB, độ dài, trung điểm</p></div>
+            </div>
+            <div class="menu-card" onclick="setup('2vec_angle', 'Góc & Tích vô hướng')">
+                <div class="card-icon"><i class="fas fa-compress-arrows-alt"></i></div>
+                <div class="card-info"><h4>2 Vectơ u, v</h4><p>Tích vô hướng, góc, tích có hướng</p></div>
+            </div>
+            <div class="menu-card" onclick="setup('3pts_col', 'Kiểm tra 3 điểm thẳng hàng')">
+                <div class="card-icon"><i class="fas fa-ellipsis-h"></i></div>
+                <div class="card-info"><h4>3 Điểm A, B, C</h4><p>Kiểm tra thẳng hàng</p></div>
+            </div>
+
+            <!-- Group: Mặt phẳng & Tam giác -->
+            <div class="menu-group-title">2. Tam giác & Mặt phẳng</div>
+            <div class="menu-card" onclick="setup('3pts_area', 'Diện tích Tam giác')">
+                <div class="card-icon"><i class="fas fa-draw-polygon"></i></div>
+                <div class="card-info"><h4>Diện tích Tam giác</h4><p>Tính diện tích, đường cao</p></div>
+            </div>
+            <div class="menu-card" onclick="setup('plane_3pts', 'PT Mặt phẳng (ABC)')">
+                <div class="card-icon"><i class="fas fa-border-all"></i></div>
+                <div class="card-info"><h4>Mặt phẳng (ABC)</h4><p>Viết PT qua 3 điểm</p></div>
+            </div>
+            <div class="menu-card" onclick="setup('proj_pt_plane', 'Hình chiếu điểm lên MP')">
+                <div class="card-icon"><i class="fas fa-level-down-alt"></i></div>
+                <div class="card-info"><h4>Hình chiếu/Đối xứng</h4><p>Điểm M lên Mặt phẳng (P)</p></div>
+            </div>
+
+            <!-- Group: Đường thẳng & Mặt cầu -->
+            <div class="menu-group-title">3. Tứ diện, Đường thẳng & Mặt cầu</div>
+            <div class="menu-card" onclick="setup('4pts_vol', 'Thể tích Tứ diện')">
+                <div class="card-icon"><i class="fas fa-cube"></i></div>
+                <div class="card-info"><h4>Thể tích Tứ diện</h4><p>Tính thể tích, đường cao h</p></div>
+            </div>
+            <div class="menu-card" onclick="setup('sphere_4pts', 'Mặt cầu ngoại tiếp')">
+                <div class="card-icon"><i class="fas fa-globe"></i></div>
+                <div class="card-info"><h4>Mặt cầu qua 4 điểm</h4><p>Tìm tâm và bán kính R</p></div>
+            </div>
+            <div class="menu-card" onclick="setup('dist_pt_line', 'Khoảng cách Điểm - Đường')">
+                <div class="card-icon"><i class="fas fa-arrows-alt-h"></i></div>
+                <div class="card-info"><h4>KC Điểm đến Đường</h4><p>Khoảng cách từ M đến đường thẳng d</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. INPUT SCREEN -->
+    <div id="screen-input" class="screen">
+        <div class="input-panel">
+            <div class="panel-header">
+                <button class="btn-back" onclick="nav('screen-menu')"><i class="fas fa-arrow-left"></i> Danh mục</button>
+                <div class="panel-title" id="input-title">Tiêu đề</div>
+                <div style="width: 80px"></div>
+            </div>
+            
+            <div id="dynamic-inputs">
+                <!-- Javascript will inject inputs here -->
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-clear" onclick="clearAllData()">
+                    <i class="fas fa-trash-alt"></i> XÓA DỮ LIỆU
+                </button>
+                <button class="btn-solve" onclick="solve()">
+                    GIẢI CHI TIẾT <i class="fas fa-magic"></i>
+                </button>
+            </div>
+            <p style="text-align: center; color: #94a3b8; font-size: 0.9rem; margin-top: 15px;">
+                Mẹo: Bấm <b>Enter</b> để chuyển ô nhập liệu. Hỗ trợ nhập phân số (vd: 1/3).
+            </p>
+        </div>
+    </div>
+
+    <!-- 4. RESULT SCREEN -->
+    <div id="screen-result" class="screen">
+        <div class="res-left">
+            <div class="res-header">
+                <button class="btn-back" onclick="nav('screen-input')" style="color: var(--primary); font-weight: bold;">
+                    <i class="fas fa-arrow-left"></i> Sửa đề
+                </button>
+                <div style="font-weight: 800; color: var(--primary);">LỜI GIẢI CHI TIẾT</div>
+                <button class="btn-back" onclick="nav('screen-menu')" style="color: #64748b;">
+                    Menu <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="res-body" id="output-content">
+                <!-- Result here -->
+            </div>
+        </div>
+        <div class="res-right">
+            <div id="ggb-element"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. MATH ENGINE (SYMBOLIC - NO DECIMALS)
+        // ==========================================
+        class Frac {
+            constructor(n, d = 1) {
+                if (d === 0) throw new Error("Mẫu số không thể bằng 0");
+                if (d < 0) { n = -n; d = -d; }
+                const c = this.gcd(Math.abs(n), Math.abs(d));
+                this.n = n / c; this.d = d / c;
+            }
+            gcd(a, b) { return b ? this.gcd(b, a % b) : a; }
+            add(f) { return new Frac(this.n * f.d + f.n * this.d, this.d * f.d); }
+            sub(f) { return new Frac(this.n * f.d - f.n * this.d, this.d * f.d); }
+            mul(f) { return new Frac(this.n * f.n, this.d * f.d); }
+            div(f) { return new Frac(this.n * f.d, this.d * f.n); }
+            sq() { return new Frac(this.n * this.n, this.d * this.d); }
+            val() { return this.n / this.d; }
+            
+            tex() {
+                if (this.d === 1) return `${this.n}`;
+                if (this.n === 0) return "0";
+                return `\\frac{${this.n}}{${this.d}}`;
+            }
+            
+            // Static parse allows strings like "1/2", "-5", "3/-4"
+            static p(v) {
+                if (v === "" || v === undefined) return new Frac(0);
+                const s = v.toString().trim();
+                if (!s) return new Frac(0);
+                const parts = s.split('/');
+                const n = parseInt(parts[0]);
+                const d = parts[1] ? parseInt(parts[1]) : 1;
+                if (isNaN(n) || isNaN(d)) return new Frac(0);
+                return new Frac(n, d);
+            }
+        }
+
+        // Helper: Convert Square Root Fraction to LaTeX: sqrt(N/D)
+        function fmtSqrt(f) { // f is a Frac representing the squared value
+            const num = f.n * f.d; // Numerator inside sqrt after rationalizing denom
+            const den = f.d;       // Denominator outside
+            const s = Math.sqrt(num);
+            if (Number.isInteger(s)) return new Frac(s, den).tex();
+            if (den === 1) return `\\sqrt{${num}}`;
+            return `\\frac{\\sqrt{${num}}}{${den}}`;
+        }
+
+        class Vec3 {
+            constructor(x, y, z) { this.x = x; this.y = y; this.z = z; }
+            add(v) { return new Vec3(this.x.add(v.x), this.y.add(v.y), this.z.add(v.z)); }
+            sub(v) { return new Vec3(this.x.sub(v.x), this.y.sub(v.y), this.z.sub(v.z)); }
+            dot(v) { return this.x.mul(v.x).add(this.y.mul(v.y)).add(this.z.mul(v.z)); }
+            cross(v) {
+                return new Vec3(
+                    this.y.mul(v.z).sub(this.z.mul(v.y)),
+                    this.z.mul(v.x).sub(this.x.mul(v.z)),
+                    this.x.mul(v.y).sub(this.y.mul(v.x))
+                );
+            }
+            magSq() { return this.x.sq().add(this.y.sq()).add(this.z.sq()); }
+            tex() { return `(${this.x.tex()}; ${this.y.tex()}; ${this.z.tex()})`; }
+            isZero() { return this.x.n===0 && this.y.n===0 && this.z.n===0; }
+        }
+
+        // ==========================================
+        // 2. STATE & UI LOGIC
+        // ==========================================
+        let APP = {
+            topic: '',
+            labels: []
+        };
+
+        function nav(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            // Fix GeoGebra resize issue when showing result
+            if (screenId === 'screen-result' && window.ggbApplet) {
+                setTimeout(() => {
+                    const w = document.querySelector('.res-right').clientWidth;
+                    const h = document.querySelector('.res-right').clientHeight;
+                    ggbApplet.setSize(w, h);
+                }, 200);
+            }
+        }
+
+        function setup(topic, title) {
+            APP.topic = topic;
+            document.getElementById('input-title').innerText = title;
+            
+            // Define inputs
+            const configs = {
+                '2pts_vec': ['A', 'B'],
+                '2vec_angle': ['u', 'v'],
+                '3pts_col': ['A', 'B', 'C'],
+                '3pts_area': ['A', 'B', 'C'],
+                'plane_3pts': ['A', 'B', 'C'],
+                'proj_pt_plane': ['M', 'n_P', 'M_P'], // M: Point, n_P: Normal, M_P: Point on Plane. *Simplification: M, A, B, C (Plane ABC)*. Let's use Plane defined by Ax+By+Cz+D=0 for projection? 
+                // To keep it consistent with "Points", let's define Plane via Point A and Normal n for general projection, OR simply 3 points A, B, C.
+                // Let's stick to Standard Oxyz problems: Project M onto Plane (ABC) or Plane (Ax+By+Cz+D=0).
+                // For simplicity in this "Point-based" app, let's do: Project M onto Plane (ABC).
+                'proj_pt_plane': ['M', 'A', 'B', 'C'], // M project to Plane(ABC)
+                '4pts_vol': ['A', 'B', 'C', 'D'],
+                'sphere_4pts': ['A', 'B', 'C', 'D'],
+                'dist_pt_line': ['M', 'A', 'u'] // Dist M to line(A, u)
+            };
+            
+            APP.labels = configs[topic] || ['A', 'B'];
+            renderForm();
+            nav('screen-input');
+        }
+
+        function renderForm() {
+            const div = document.getElementById('dynamic-inputs');
+            div.innerHTML = '';
+            
+            APP.labels.forEach((lbl, idx) => {
+                const isLast = idx === APP.labels.length - 1;
+                // Detect type
+                let text = `Điểm ${lbl}`;
+                if (['u','v','n','a','b'].includes(lbl)) text = `Vectơ ${lbl}`;
+                
+                // Next focus ID
+                const nextId = isLast ? 'BTN_SOLVE' : `${APP.labels[idx+1]}_x`;
+
+                div.innerHTML += `
+                <div class="input-row">
+                    <div class="lbl-point">${text}</div>
+                    <input class="inp-coord" id="${lbl}_x" placeholder="x" onkeydown="smartEnter(event, '${lbl}_y')">
+                    <input class="inp-coord" id="${lbl}_y" placeholder="y" onkeydown="smartEnter(event, '${lbl}_z')">
+                    <input class="inp-coord" id="${lbl}_z" placeholder="z" onkeydown="smartEnter(event, '${nextId}')">
+                </div>`;
+            });
+            
+            // Auto focus
+            setTimeout(() => document.getElementById(`${APP.labels[0]}_x`).focus(), 300);
+        }
+
+        function smartEnter(e, nextId) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (nextId === 'BTN_SOLVE') solve();
+                else document.getElementById(nextId)?.focus();
+            }
+        }
+
+        function clearAllData() {
+            // Clear inputs
+            document.querySelectorAll('.inp-coord').forEach(el => el.value = '');
+            document.getElementById('output-content').innerHTML = '';
+            
+            // HARD RESET GEOGEBRA
+            if (window.ggbApplet) {
+                ggbApplet.reset();
+                ggbApplet.setPerspective("5");
+                ggbApplet.setAxesVisible(true, true, true);
+                ggbApplet.setGridVisible(true);
+            }
+            
+            // Focus first
+            if (APP.labels.length > 0) document.getElementById(`${APP.labels[0]}_x`).focus();
+        }
+
+        // ==========================================
+        // 3. SOLVER LOGIC (THE BRAIN)
+        // ==========================================
+        
+        function getData(lbl) {
+            const x = Frac.p(document.getElementById(`${lbl}_x`).value);
+            const y = Frac.p(document.getElementById(`${lbl}_y`).value);
+            const z = Frac.p(document.getElementById(`${lbl}_z`).value);
+            return new Vec3(x, y, z);
+        }
+
+        function solve() {
+            nav('screen-result');
+            
+            // Reset GGB canvas first
+            ggbApplet.reset();
+            ggbApplet.setPerspective("5");
+            ggbApplet.setGridVisible(true);
+            ggbApplet.setAxesVisible(true, true, true);
+
+            let html = "";
+            let P = {}; // Store point objects
+
+            try {
+                // 1. Read Inputs & Plot
+                APP.labels.forEach(lbl => {
+                    P[lbl] = getData(lbl);
+                    const vx = P[lbl].x.val(), vy = P[lbl].y.val(), vz = P[lbl].z.val();
+                    
+                    // GGB Plotting
+                    if (['u','v','n'].includes(lbl)) {
+                        ggbApplet.evalCommand(`${lbl} = Vector((${vx}, ${vy}, ${vz}))`);
+                    } else {
+                        ggbApplet.evalCommand(`${lbl} = (${vx}, ${vy}, ${vz})`);
+                    }
+                });
+
+                // 2. Logic Switch
+                switch(APP.topic) {
+                    
+                    case '2pts_vec':
+                        const AB = P['B'].sub(P['A']);
+                        const lenSq = AB.magSq();
+                        const mid = new Vec3(
+                            P['A'].x.add(P['B'].x).div(new Frac(2)),
+                            P['A'].y.add(P['B'].y).div(new Frac(2)),
+                            P['A'].z.add(P['B'].z).div(new Frac(2))
+                        );
+                        html += step("1. Tọa độ Vectơ", `$\\vec{AB} = (x_B-x_A; y_B-y_A; z_B-z_A) = ${AB.tex()}$`);
+                        html += step("2. Độ dài đoạn thẳng", `$AB = |\\vec{AB}| = \\sqrt{x^2+y^2+z^2} = ${fmtSqrt(lenSq)}$`);
+                        html += step("3. Trung điểm I", `$I = (\\frac{x_A+x_B}{2}; ... ) = ${mid.tex()}$`);
+                        ggbApplet.evalCommand("Segment(A,B)");
+                        ggbApplet.evalCommand(`I=(${mid.x.val()},${mid.y.val()},${mid.z.val()})`);
+                        break;
+
+                    case '2vec_angle':
+                        const dot = P['u'].dot(P['v']);
+                        const uSq = P['u'].magSq();
+                        const vSq = P['v'].magSq();
+                        const cross = P['u'].cross(P['v']);
+                        
+                        // Cos alpha
+                        const cosNum = dot.tex();
+                        const cosDen = `\\sqrt{${uSq.tex()}} \\cdot \\sqrt{${vSq.tex()}}`;
+                        
+                        // Approx degree
+                        const val = dot.val() / (Math.sqrt(uSq.val()) * Math.sqrt(vSq.val()));
+                        const deg = Math.acos(Math.max(-1, Math.min(1, val))) * (180/Math.PI);
+
+                        html += step("1. Tích vô hướng", `$\\vec{u}.\\vec{v} = ${dot.tex()}$`);
+                        html += step("2. Tích có hướng", `$[\\vec{u}, \\vec{v}] = ${cross.tex()}$`);
+                        html += step("3. Góc giữa 2 vectơ", `$\\cos(\\vec{u}, \\vec{v}) = \\frac{${cosNum}}{${cosDen}} \\approx ${val.toFixed(4)}$`);
+                        html += `<div class="final-ans">Góc $\\approx ${deg.toFixed(2)}^\\circ$</div>`;
+                        
+                        ggbApplet.evalCommand(`w = Vector((${cross.x.val()}, ${cross.y.val()}, ${cross.z.val()}))`);
+                        ggbApplet.setColor('w', 255, 0, 0); // Red cross vector
+                        break;
+
+                    case '3pts_area':
+                        const vAB = P['B'].sub(P['A']);
+                        const vAC = P['C'].sub(P['A']);
+                        const cp = vAB.cross(vAC);
+                        const areaSq = cp.magSq().div(new Frac(4));
+                        
+                        html += step("1. Tính vectơ", `$\\vec{AB}=${vAB.tex()}; \\vec{AC}=${vAC.tex()}$`);
+                        html += step("2. Tích có hướng", `$[\\vec{AB}, \\vec{AC}] = ${cp.tex()}$`);
+                        html += step("3. Diện tích", `$S = \\frac{1}{2} |[\\vec{AB}, \\vec{AC}]| = ${fmtSqrt(areaSq)}$`);
+                        ggbApplet.evalCommand("Polygon(A, B, C)");
+                        break;
+
+                    case 'plane_3pts':
+                        const pAB = P['B'].sub(P['A']);
+                        const pAC = P['C'].sub(P['A']);
+                        const n = pAB.cross(pAC);
+                        
+                        if(n.isZero()) {
+                            html += `<div class="warning-ans">3 điểm thẳng hàng, không lập được mặt phẳng!</div>`;
+                            ggbApplet.evalCommand("Line(A,B)");
+                        } else {
+                            // Ax + By + Cz + D = 0 => D = -(Ax0 + By0 + Cz0)
+                            // Equation passing through A
+                            const D_val = n.x.mul(P['A'].x).add(n.y.mul(P['A'].y)).add(n.z.mul(P['A'].z)); // This is -(D)
+                            // So Eq is: nx * x + ny * y + nz * z - D_val = 0
+                            
+                            html += step("1. VTPT (Tích có hướng)", `$\\vec{n} = [\\vec{AB}, \\vec{AC}] = ${n.tex()}$`);
+                            html += step("2. Phương trình", `Qua $A${P['A'].tex()}$, VTPT $\\vec{n}${n.tex()}$:<br>
+                            $${n.x.tex()}(x - ${P['A'].x.tex()}) + ${n.y.tex()}(y - ${P['A'].y.tex()}) + ${n.z.tex()}(z - ${P['A'].z.tex()}) = 0$`);
+                            
+                            // Format simplified string
+                            const fmtTerm = (c, v) => {
+                                if (c.n === 0) return "";
+                                const s = c.val() > 0 ? "+" : "-";
+                                const abs = (Math.abs(c.n) === c.d) ? "" : Math.abs(c.n) + (c.d!==1 ? "/"+c.d : "");
+                                return `${s} ${abs}${v} `;
+                            };
+                            let eqStr = `${fmtTerm(n.x, 'x')} ${fmtTerm(n.y, 'y')} ${fmtTerm(n.z, 'z')}`;
+                            // Constant term is -D_val
+                            const constTerm = new Frac(-D_val.n, D_val.d);
+                            if (constTerm.n !== 0) eqStr += `${constTerm.val() > 0 ? "+" : "-"} ${Math.abs(constTerm.n)}${constTerm.d!==1 ? "/"+constTerm.d : ""} `;
+                            if (eqStr.trim().startsWith("+")) eqStr = eqStr.trim().substring(2);
+                            
+                            html += `<div class="final-ans">PT: $${eqStr} = 0$</div>`;
+                            ggbApplet.evalCommand("Plane(A,B,C)");
+                        }
+                        break;
+
+                    case '4pts_vol':
+                        const tAB = P['B'].sub(P['A']);
+                        const tAC = P['C'].sub(P['A']);
+                        const tAD = P['D'].sub(P['A']);
+                        const tCP = tAB.cross(tAC);
+                        const mixed = tCP.dot(tAD);
+                        const vol = new Frac(Math.abs(mixed.n), Math.abs(mixed.d * 6));
+                        
+                        html += step("1. Tích có hướng [AB, AC]", `$\\vec{n} = ${tCP.tex()}$`);
+                        html += step("2. Tích hỗn tạp", `$\\vec{n}.\\vec{AD} = ${mixed.tex()}$`);
+                        
+                        if (mixed.n === 0) {
+                            html += `<div class="warning-ans">Tích hỗn tạp = 0 $\\Rightarrow$ 4 điểm ĐỒNG PHẲNG (Thể tích = 0).</div>`;
+                            ggbApplet.evalCommand("Polygon(A,B,C,D)");
+                        } else {
+                            html += step("3. Thể tích", `$V = \\frac{1}{6}|[\\vec{AB}, \\vec{AC}].\\vec{AD}| = ${vol.tex()}$`);
+                            ggbApplet.evalCommand("Pyramid(A,B,C,D)");
+                        }
+                        break;
+                        
+                    case 'dist_pt_line':
+                        // Distance M to line passing A with direction u
+                        // d = |[AM, u]| / |u|
+                        const AM = P['M'].sub(P['A']);
+                        const crossDist = AM.cross(P['u']);
+                        const numSq = crossDist.magSq(); // |[AM, u]|^2
+                        const denSq = P['u'].magSq(); // |u|^2
+                        const distSq = numSq.div(denSq); // d^2
+                        
+                        html += step("Công thức", `$d(M, \\Delta) = \\frac{|[\\vec{AM}, \\vec{u}]|}{|\\vec{u}|}$`);
+                        html += step("1. Tính vectơ", `$\\vec{AM} = ${AM.tex()}$`);
+                        html += step("2. Tích có hướng", `$[\\vec{AM}, \\vec{u}] = ${crossDist.tex()}$`);
+                        html += step("3. Kết quả", `$d = \\frac{\\sqrt{${numSq.tex()}}}{\\sqrt{${denSq.tex()}}} = ${fmtSqrt(distSq)}$`);
+                        
+                        ggbApplet.evalCommand(`Line(A, Vector((${P['u'].x.val()}, ${P['u'].y.val()}, ${P['u'].z.val()})))`);
+                        break;
+                        
+                    case 'proj_pt_plane':
+                        // Project M onto Plane(ABC).
+                        // Step 1: Normal n = [AB, AC]
+                        const nVec = P['B'].sub(P['A']).cross(P['C'].sub(P['A']));
+                        if (nVec.isZero()) { html+=`<div class="warning-ans">A,B,C thẳng hàng, không xác định mặt phẳng!</div>`; break; }
+                        
+                        // Step 2: Line d through M, direction n. Parametric: M + t*n.
+                        // Step 3: Find t such that M' = M + t*n belongs to Plane.
+                        // Plane eq: n.x(x-Ax) + n.y(y-Ay) + n.z(z-Az) = 0
+                        // Substitute x = Mx + t*nx ...
+                        // nx(Mx + t*nx - Ax) + ny(...) + nz(...) = 0
+                        // nx(AMx + t*nx) + ny(AMy + t*ny) + nz(AMz + t*nz) = 0  (With AM = M - A) -> Wait, A - M or M - A?
+                        // Let's use Plane point A. Vector AM. 
+                        // n . (M + t*n - A) = 0 => n . (AM + t*n) = 0 => n.AM + t*(n.n) = 0 => t = -(n.AM) / (n.n)
+                        // Actually let's use vector AM = M - A.
+                        // Eq: n . (X - A) = 0. Let X = M + t*n.
+                        // n . (M + t*n - A) = 0  => n . (AM_vec + t*n) = 0 where AM_vec = M - A ? No, vector A to M.
+                        // Let vector V = A - M.
+                        // t = (n . (A - M)) / |n|^2.
+                        
+                        const A_minus_M = P['A'].sub(P['M']);
+                        const numT = nVec.dot(A_minus_M);
+                        const denT = nVec.magSq();
+                        const t = numT.div(denT);
+                        
+                        // H = M + t*n
+                        const H = P['M'].add(nVec.scale(t)); // Need scale method
+                        // Implement quick scale for Frac
+                        const scaleVec = (v, k) => new Vec3(v.x.mul(k), v.y.mul(k), v.z.mul(k));
+                        const H_res = P['M'].add(scaleVec(nVec, t));
+                        
+                        html += step("1. VTPT Mặt phẳng (ABC)", `$\\vec{n} = [\\vec{AB}, \\vec{AC}] = ${nVec.tex()}$`);
+                        html += step("2. Viết PT đường thẳng", `Qua $M$ vuông góc (ABC) $\\Rightarrow$ VTCP $\\vec{u} = \\vec{n}$.`);
+                        html += step("3. Tìm giao điểm H", `Tham số $t = \\frac{\\vec{n}.\\vec{AM}}{|\\vec{n}|^2}$ (hoặc giải hệ).<br>Tọa độ hình chiếu $H${H_res.tex()}$`);
+                        
+                        ggbApplet.evalCommand("Plane(A,B,C)");
+                        ggbApplet.evalCommand(`H=(${H_res.x.val()},${H_res.y.val()},${H_res.z.val()})`);
+                        ggbApplet.evalCommand("Segment(M,H)");
+                        break;
+                        
+                    default:
+                        html = "Chức năng đang cập nhật...";
+                }
+
+            } catch (e) {
+                console.error(e);
+                html = `<div style="color:red">Lỗi tính toán: ${e.message}</div>`;
+            }
+
+            document.getElementById('output-content').innerHTML = html;
+            MathJax.typesetPromise();
+        }
+
+        // Output formatting helper
+        function step(title, tex) {
+            return `<div class="step-block"><div class="step-head"><i class="fas fa-caret-right"></i> ${title}</div><div class="step-detail">${tex}</div></div>`;
+        }
+
+        // ==========================================
+        // 4. INIT
+        // ==========================================
+        var params = {
+            "appName": "3d", "width": 800, "height": 600,
+            "showToolBar": false, "showAlgebraInput": false, "showMenuBar": false,
+            "scaleContainerClass": "res-right", "allowUpscale": true,
+            "appletOnLoad": function(api) {
+                api.setPerspective("5");
+                api.setGridVisible(true);
+            }
+        };
+        var applet = new GGBApplet(params, true);
+        window.addEventListener("load", function() { applet.inject('ggb-element'); });
+
+    </script>
+</body>
+</html>
