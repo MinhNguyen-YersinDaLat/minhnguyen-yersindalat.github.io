@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MEOW ENGLISH - IELTS MASTER PRO</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS: Framework CSS hiện đại giúp thiết kế nhanh -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Import Map cho React & Motion -->
+    <!-- Import Map: Khai báo các thư viện React, Framer Motion, Lucide Icons -->
     <script type="importmap">
     {
         "imports": {
@@ -21,34 +21,44 @@
     }
     </script>
 
-    <!-- Babel -->
+    <!-- Babel: Trình biên dịch JSX để chạy React trực tiếp trên trình duyệt -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- CSS Tùy chỉnh: Hiệu ứng 3D, Font chữ, Scrollbar -->
     <style>
+        /* Import Font chữ dễ đọc (Quicksand) và Font học thuật (Merriweather) */
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap');
 
         body {
             font-family: 'Quicksand', sans-serif;
-            background-color: #fff0f5; /* Lavender Blush */
+            background-color: #fff0f5; /* Lavender Blush - Màu nền nhẹ nhàng */
             color: #4a044e; 
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior-y: none;
             font-size: 18px; 
         }
+        
+        /* Font riêng cho phần trích dẫn học thuật (Pro/God Mode) */
+        .academic-font {
+            font-family: 'Merriweather', serif;
+        }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
+        /* Tùy chỉnh thanh cuộn cho đẹp và mượt mà */
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #f472b6; }
         
+        /* Panel hiệu ứng kính (Glassmorphism) - Đã tối ưu hiệu năng */
         .glass-panel {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
+            /* Lưu ý: Đã tắt backdrop-filter toàn màn hình để tránh lag trên thiết bị yếu */
             border: 2px solid #fff;
             box-shadow: 0 15px 35px -5px rgba(255, 182, 193, 0.4);
         }
         
+        /* Họa tiết nền chân mèo dễ thương */
         .cat-pattern {
             background-image: 
                 radial-gradient(#fbcfe8 15%, transparent 16%),
@@ -58,7 +68,7 @@
             opacity: 0.3;
         }
 
-        /* 3D Button Style */
+        /* Style nút bấm 3D (Pushable Button) - Tạo cảm giác bấm thật */
         .btn-pushable {
             position: relative;
             border: none;
@@ -107,89 +117,209 @@
         .btn-pushable:active .front { transform: translateY(-2px); }
         .btn-pushable:active .shadow { transform: translateY(2px); }
         .btn-pushable:focus:not(:focus-visible) { outline: none; }
+        
+        /* Toggle Switch Style - Nút gạt bật tắt */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #be185d;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #be185d;
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useRef } from 'react';
+        import React, { useState, useEffect, useRef, useMemo } from 'react';
         import { createRoot } from 'react-dom/client';
         import { motion, AnimatePresence } from 'framer-motion';
         import { 
             BookOpen, Brain, Save, Download, Upload, RefreshCw, 
-            Check, X, ArrowRight, Home, History, Calendar, 
+            Check, X, ArrowRight, ArrowLeft, Home, History, Calendar, 
             Zap, Copy, Play, Settings, Lightbulb, RotateCcw, 
             Cat, Star, Sparkles, Pencil, Eye, Info, Volume2, VolumeX,
-            ExternalLink, Repeat
+            ExternalLink, Repeat, SkipForward, GraduationCap, Quote, Library, Languages, Search, Bookmark, Crown
         } from 'lucide-react';
 
-        // --- CẤU HÌNH PROMPT IELTS CHUẨN ---
-        const MASTER_PROMPT = `
-ACT AS AN EXPERT IELTS EXAMINER & CAMBRIDGE LINGUIST.
-Task: Create a JSON dataset for English practice.
-Topic/Lesson Name: "{TOPIC}"
-Context/Content to analyze (if any): "{CONTENT}"
-Number of questions: {NUM}
+        // =================================================================================================
+        // PHẦN 1: HỆ THỐNG PROMPT (LOGIC CỐT LÕI - KHÔNG ĐƯỢC SAI SÓT)
+        // Đây là phần quan trọng nhất để tạo ra chất lượng câu hỏi khác biệt.
+        // =================================================================================================
 
-STRICT REQUIREMENTS:
-1. Accuracy: 100% Academic English (IELTS Standard). Use Cambridge/Oxford Dictionary definitions.
-2. Format: Pure JSON array. No markdown, no intro/outro text.
-3. Question Types: Mix of "mc" (Multiple Choice), "tf" (True/False), "fill" (Fill-in-blank), "order" (Sentence Scramble).
-4. For Multiple Choice ("mc"): The "answer" field MUST be the INDEX of the correct option (0, 1, 2, or 3).
-5. Explanations: Must be detailed, in VIETNAMESE, explaining why the answer is correct and why others are wrong.
+        // 1.1 MASTER PROMPT BASIC: Dành cho người mới, tập trung vào từ vựng cơ bản và phản xạ
+        const MASTER_PROMPT_BASIC = `
+YOU ARE A WORLD-CLASS ENGLISH TEACHER (IELTS EXAMINER).
+Your task is to generate a high-quality, academic English dataset for a learning app based on the user's topic.
 
-JSON Structure:
+### INPUT PARAMETERS:
+- **Topic**: "{TOPIC}"
+- **Target Level**: "{LEVEL}" (CEFR/IELTS Scale)
+- **Content Context**: "{CONTENT}"
+- **Quantity**: {NUM} questions.
+
+### STRICT OUTPUT RULES (DO NOT VIOLATE):
+1. **Output Format**: PURE JSON ARRAY only. Do NOT output markdown code blocks (no \`\`\`json). Do NOT output any introductory text. Just the raw array.
+2. **JSON Safety Rule**: When writing explanations or definitions in JSON strings, YOU MUST USE SINGLE QUOTES (') for emphasis or internal quoting. **NEVER** use double quotes (") inside a JSON value string as it breaks the format.
+   - *Bad Example*: "explanation": "She said "Hello"."
+   - *Good Example*: "explanation": "She said 'Hello'."
+3. **Language**: 
+   - Questions & Options: Academic English.
+   - Explanations & Vocabulary Meanings: **VIETNAMESE** (Tiếng Việt).
+4. **Vocabulary Quantity**: You must extract **3 to 5 important vocabulary words** per question. Do not just give 1 word.
+
+### QUESTION TYPES & STRUCTURE:
+1. **"mc" (Multiple Choice)**: 4 options. Randomize the correct answer position (0-3).
+2. **"tf" (True/False)**: Statement. Answer is boolean (true/false).
+3. **"fill" (Fill in the Blank)**: Sentence with one blank (___). Answer is the missing word string.
+4. **"order" (Sentence Scramble)**:
+   - Question: A list of scrambled words separated by slashes (e.g., "is / a / Earth / planet").
+   - Answer: **THE FULL CORRECT SENTENCE STRING** (e.g., "Earth is a planet"). Do NOT return an array of numbers.
+
+### JSON STRUCTURE EXAMPLE (Follow strictly):
 [
   {
     "type": "mc",
-    "question": "Question text (Academic style)",
+    "question": "Which of the following best describes...?",
     "options": ["Option A", "Option B", "Option C", "Option D"],
-    "answer": 0, // Integer 0-3
-    "explanation": "Giải thích chi tiết bằng Tiếng Việt...",
-    "vocabulary": ["Word1: Nghĩa", "Word2: Nghĩa"]
-  },
-  {
-    "type": "tf",
-    "question": "Statement...",
-    "options": [],
-    "answer": true, // or false
-    "explanation": "...",
-    "vocabulary": []
-  },
-  {
-    "type": "fill",
-    "question": "Sentence with ___ blank.",
-    "options": [],
-    "answer": "missing_word",
-    "explanation": "...",
-    "vocabulary": []
+    "answer": 2,
+    "explanation": "Giải thích chi tiết tại sao chọn đáp án này bằng tiếng Việt...",
+    "vocabulary": [
+        "Word1: Nghĩa tiếng Việt",
+        "Word2: Nghĩa tiếng Việt",
+        "Word3: Nghĩa tiếng Việt"
+    ]
   },
   {
     "type": "order",
-    "question": "Arrange these words:",
+    "question": "important / is / Vocabulary / very",
     "options": [],
-    "answer": "Complete correct sentence.",
-    "explanation": "...",
+    "answer": "Vocabulary is very important",
+    "explanation": "Giải thích cấu trúc ngữ pháp...",
+    "vocabulary": ["Vocabulary: Từ vựng"]
+  }
+]
+`;
+
+        // 1.2 MASTER PROMPT ACADEMIC (PRO): Dành cho nghiên cứu, có trích dẫn nguồn và IPA
+        const MASTER_PROMPT_ACADEMIC = `
+YOU ARE A LINGUISTICS PROFESSOR & LEXICOGRAPHER (OXFORD/CAMBRIDGE).
+Your task is to generate a DEEP ACADEMIC DATASET with CITATIONS and DETAILED LEXICAL ANALYSIS.
+
+### INPUT PARAMETERS:
+- **Topic**: "{TOPIC}"
+- **Target Level**: "{LEVEL}" (IELTS Standard)
+- **Context**: "{CONTENT}"
+- **Quantity**: {NUM} questions.
+
+### CRITICAL OUTPUT REQUIREMENTS (MUST FOLLOW):
+1. **Output Format**: PURE JSON ARRAY only. NO markdown blocks.
+2. **JSON Safety (VERY IMPORTANT)**: When providing explanations, examples, or sources in JSON strings, YOU MUST USE SINGLE QUOTES (') for emphasis or internal quoting. DO NOT use double quotes (") inside value strings to avoid breaking JSON syntax.
+3. **Citation Requirement**: You MUST fabricate or attribute a realistic academic source/context for each question (e.g., "Adapted from The Guardian", "Based on Cambridge IELTS 15", "Science Daily", "BBC Future").
+4. **Lexical Depth**: Vocabulary MUST be an Array of Objects including IPA, Word Type, and detailed definition. **EXTRACT 3-5 ADVANCED WORDS per question.**
+
+### QUESTION TYPES:
+- **"mc"**: Multiple Choice (0-3).
+- **"tf"**: True/False (boolean).
+- **"fill"**: Fill blank (string).
+- **"order"**: Sentence Scramble (Answer MUST be a complete STRING).
+
+### JSON STRUCTURE (STRICTLY FOLLOW THIS SCHEMA):
+[
+  {
+    "type": "mc",
+    "question": "The question text...",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "answer": 2, 
+    "explanation": "Analyze in VIETNAMESE. Explain why the answer fits the context and why others are wrong. Use 'single quotes' for specific terms.",
+    "academic_info": {
+        "source_ref": "Adapted from [Source Name], [Year/Context]",
+        "grammar_point": "Focus grammar point (e.g., Inversion, Passive Voice)"
+    },
+    "vocabulary": [
+      {
+        "word": "Ubiquitous",
+        "ipa": "/juːˈbɪk.wɪ.təs/",
+        "type": "adj",
+        "meaning_vn": "Phổ biến ở mọi nơi",
+        "example": "Plastic containers are 'ubiquitous' nowadays.",
+        "collocation": "become ubiquitous"
+      },
+      {
+        "word": "Detrimental",
+        "ipa": "/ˌdet.rɪˈmen.təl/",
+        "type": "adj",
+        "meaning_vn": "Có hại, gây bất lợi",
+        "example": "Smoking has a 'detrimental' effect on health.",
+        "collocation": "detrimental to"
+      }
+    ]
+  },
+  {
+    "type": "order",
+    "question": "scrambled / sentence / words / here",
+    "options": [],
+    "answer": "The correct complete sentence string here.",
+    "explanation": "Detailed Vietnamese explanation...",
+    "academic_info": { "source_ref": "Reference..." },
     "vocabulary": []
   }
 ]
 `;
 
-        // --- TTS HOOK (NEW FEATURE) ---
+        // 1.3 MASTER PROMPT EXAMINER (GOD MODE): Siêu khó, bẫy từ vựng và sắc thái, dành cho Band 9.0
+        const MASTER_PROMPT_EXAMINER = `
+YOU ARE A STRICT IELTS BAND 9.0 EXAMINER & LINGUISTICS EXPERT.
+Your task is to generate a "GOD TIER" DIFFICULTY DATASET that tests NUANCE, REGISTER, and COLLOCATION flexibility.
+
+### INPUT PARAMETERS:
+- **Topic**: "{TOPIC}"
+- **Target Level**: BAND 9.0 (Native/Expert)
+- **Context**: "{CONTENT}"
+- **Quantity**: {NUM} questions.
+
+### CRITICAL RULES FOR EXAMINER MODE:
+1. **The "Trap" (Distractors)**: For Multiple Choice ("mc"), ALL options must be GRAMMATICALLY CORRECT or very close synonyms. The user must choose the BEST fit based on *Context*, *Collocation*, or *Tone* (Formal vs Informal).
+   - *Example*: "The CEO [refuted/denied/rejected] the allegations." -> User must pick the most precise one for legal/formal contexts.
+2. **Examiner Explanation**: The explanation (in VIETNAMESE) must analyze WHY the chosen word is better than the others (e.g., "A is too informal", "B is grammatically correct but unnatural here", "C is the standard collocation").
+3. **JSON Safety**: Use SINGLE QUOTES (') inside value strings. NO double quotes.
+4. **Format**: Same detailed JSON structure as Academic Mode (include 'academic_info' and rich 'vocabulary').
+
+### JSON STRUCTURE:
+[
+  {
+    "type": "mc",
+    "question": "Despite the evidence, the suspect ______ that he had been at the scene.",
+    "options": ["refused", "denied", "rejected", "declined"],
+    "answer": 1, 
+    "explanation": "Đáp án đúng là 'denied' (phủ nhận cáo buộc). 'Refused' thường đi với to-infinitive (từ chối làm gì). 'Rejected' mang nghĩa bác bỏ đề xuất. 'Declined' là từ chối lịch sự lời mời. Đây là bẫy về Collocation và Semantic Nuance.",
+    "academic_info": { "source_ref": "Cambridge Advanced Learner's Dictionary", "grammar_point": "Reporting Verbs Nuance" },
+    "vocabulary": [ { "word": "Deny", "ipa": "/dɪˈnaɪ/", "type": "verb", "meaning_vn": "Phủ nhận", "example": "He 'denied' all responsibility.", "collocation": "strenuously deny" } ]
+  }
+]
+`;
+
+        // =================================================================================================
+        // PHẦN 2: HOOKS & UTILITIES (CÔNG CỤ HỖ TRỢ)
+        // =================================================================================================
+
+        // --- TTS HOOK (Text-to-Speech) - Đọc văn bản tiếng Anh ---
         const useTTS = () => {
             const speak = (text) => {
                 if (!window.speechSynthesis) return;
-                window.speechSynthesis.cancel(); // Stop previous
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US'; // English US
-                utterance.rate = 0.9; // Tốc độ vừa phải
+                window.speechSynthesis.cancel(); 
+                // Xử lý chuỗi trước khi đọc: thay thế gạch dưới bằng "blank", bỏ dấu gạch chéo
+                const cleanText = text.replace(/_+/g, ' blank ').replace(/\//g, '');
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'en-US'; 
+                utterance.rate = 0.9; 
                 window.speechSynthesis.speak(utterance);
             };
             return { speak };
         };
 
-        // --- SOUND MANAGER ---
+        // --- SOUND MANAGER - Quản lý âm thanh hiệu ứng ---
         const useSound = () => {
             const [isMuted, setIsMuted] = useState(false);
             const sounds = {
@@ -209,7 +339,7 @@ JSON Structure:
             return { isMuted, setIsMuted, play };
         };
 
-        // --- STORAGE MANAGER ---
+        // --- STORAGE MANAGER - Lưu trữ dữ liệu LocalStorage an toàn ---
         const useLocalStorage = (key, initialValue) => {
             const [storedValue, setStoredValue] = useState(() => {
                 try {
@@ -227,22 +357,28 @@ JSON Structure:
             return [storedValue, setValue];
         };
 
-        // --- HELPER: CHECK ANSWER ROBUSTLY ---
+        // --- HELPER: CHECK ANSWER (KIỂM TRA ĐÁP ÁN THÔNG MINH) ---
         const checkAnswer = (type, userAns, correctAns) => {
-            if (type === 'mc') {
-                return Number(userAns) === Number(correctAns);
-            }
+            // 1. MC (Trắc nghiệm): So sánh Index (0, 1, 2, 3)
+            if (type === 'mc') return Number(userAns) === Number(correctAns);
+            // 2. TF (Đúng/Sai): Xử lý cả Boolean và số 0/1 phòng khi AI trả về lạ
             if (type === 'tf') {
-                return userAns === correctAns || String(userAns).toLowerCase() === String(correctAns).toLowerCase();
+                if (typeof userAns === 'boolean') {
+                    if (typeof correctAns === 'boolean') return userAns === correctAns;
+                    if (typeof correctAns === 'number') return (userAns === true && correctAns === 1) || (userAns === false && correctAns === 0); 
+                }
+                return String(userAns).toLowerCase() === String(correctAns).toLowerCase();
             }
-            if (type === 'fill' || type === 'order') {
-                return String(userAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase();
-            }
+            // 3. Fill/Order: So sánh chuỗi (Xóa khoảng trắng thừa, không phân biệt hoa thường)
+            if (type === 'fill' || type === 'order') return String(userAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase();
             return false;
         };
 
-        // --- COMPONENTS ---
+        // =================================================================================================
+        // PHẦN 3: VISUAL COMPONENTS (GIAO DIỆN NGƯỜI DÙNG)
+        // =================================================================================================
 
+        // 3.1 Background Animation - Nền hoạt hình dễ thương
         const CuteBackground = () => (
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50 to-white">
                 <div className="absolute inset-0 cat-pattern"></div>
@@ -252,9 +388,54 @@ JSON Structure:
             </div>
         );
 
+        // 3.2 Smart Vocab Display: Hiển thị từ vựng thông minh (Xử lý cả Basic String và Pro Object)
+        const SmartVocabDisplay = ({ vocabList, speak }) => {
+            if (!vocabList || vocabList.length === 0) return null;
+
+            return (
+                <div className="bg-yellow-50 p-5 rounded-2xl border border-yellow-100 text-left mt-4">
+                    <h4 className="flex items-center gap-2 font-bold text-yellow-600 text-base mb-3"><Sparkles size={20}/> Vocabulary & Collocation:</h4>
+                    <div className="space-y-3">
+                        {vocabList.map((v, i) => {
+                            // Trường hợp 1: Basic Mode (Chuỗi "Word: Nghĩa")
+                            if (typeof v === 'string') {
+                                return (
+                                    <button key={i} onClick={() => speak(v.split(':')[0])} className="bg-white px-3 py-1.5 rounded-lg text-base font-bold text-slate-700 shadow-sm border border-yellow-200 hover:bg-yellow-100 transition flex items-center gap-1 mr-2 mb-2 inline-flex">
+                                        {v} <Volume2 size={16} className="text-yellow-500 opacity-50 hover:opacity-100"/>
+                                    </button>
+                                );
+                            } else {
+                                // Trường hợp 2: Pro/God Mode (Object chi tiết)
+                                return (
+                                    <div key={i} className="bg-white p-3 rounded-xl border border-yellow-200 shadow-sm flex flex-col md:flex-row gap-3 items-start md:items-center">
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => speak(v.word)} className="p-2 bg-yellow-100 text-yellow-600 rounded-full hover:bg-yellow-200 transition flex-shrink-0"><Volume2 size={18}/></button>
+                                            <div>
+                                                <div className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                                    {v.word} 
+                                                    {v.type && <span className="text-xs font-normal text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-mono">{v.type}</span>}
+                                                </div>
+                                                <div className="text-sm text-slate-500 font-mono">{v.ipa}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 border-l-0 md:border-l-2 border-yellow-100 md:pl-3">
+                                            <div className="font-bold text-slate-700">{v.meaning_vn}</div>
+                                            {v.example && <div className="text-xs text-slate-500 italic mt-1">Ex: "{v.example}"</div>}
+                                            {v.collocation && <div className="text-xs text-blue-500 font-bold mt-0.5">Collo: {v.collocation}</div>}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        // 3.3 Feedback Popup: Thông báo kết quả (Đã tối ưu không lag và to trên PC)
         const FeedbackPopup = ({ feedback, data, onNext, isLast, playSound }) => {
             if (!feedback) return null;
-            const { speak } = useTTS(); // Use TTS hook
+            const { speak } = useTTS();
 
             useEffect(() => {
                 if(feedback.isCorrect) playSound('correct');
@@ -262,13 +443,16 @@ JSON Structure:
             }, []);
 
             return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                // OPTIMIZATION: Tắt backdrop-blur để không lag trên máy yếu
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80">
                     <motion.div 
-                        initial={{ scale: 0.8, opacity: 0, y: 50 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.8, opacity: 0, y: 50 }}
-                        transition={{ type: "spring", damping: 15, stiffness: 300 }}
-                        className="w-full max-w-xl relative"
+                        // OPTIMIZATION: Dùng tween animation nhanh gọn, không nhún nhảy (spring) gây nặng
+                        initial={{ scale: 0.9, opacity: 0 }} 
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        // OPTIMIZATION: max-w-4xl để popup to đẹp trên PC
+                        className="w-full max-w-xl md:max-w-4xl relative"
                     >
                         <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-20">
                             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-white p-4 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-[6px] border-pink-100">
@@ -276,22 +460,36 @@ JSON Structure:
                             </motion.div>
                         </div>
 
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white pt-20 pb-8 px-8 relative">
+                        {/* INCREASED HEIGHT for PC: 90vh */}
+                        <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white pt-20 pb-8 px-8 relative max-h-[80vh] md:max-h-[90vh] flex flex-col">
                             <div className={`absolute top-0 left-0 w-full h-28 opacity-20 ${feedback.isCorrect ? 'bg-green-400' : 'bg-rose-400'}`}></div>
 
-                            <div className="text-center relative z-10">
+                            <div className="text-center relative z-10 flex-shrink-0">
                                 <h3 className={`text-4xl font-black mb-2 tracking-tight ${feedback.isCorrect ? 'text-green-600' : 'text-rose-600'}`}>
                                     {feedback.isCorrect ? 'CHÍNH XÁC!' : 'SAI RỒI!'}
                                 </h3>
                                 <p className="text-slate-400 font-bold text-sm mb-6">{feedback.isCorrect ? 'Giỏi quá đi sen ơi!' : 'Không sao, xem giải thích nào!'}</p>
                             </div>
 
-                            <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4 px-2">
+                            <div className="overflow-y-auto custom-scrollbar space-y-4 px-2 flex-1">
                                 {!feedback.isCorrect && (
                                     <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100 text-center">
                                         <div className="text-xs text-rose-400 font-bold uppercase mb-1">Đáp án đúng</div>
                                         <div className="text-2xl font-black text-rose-600">
-                                            {data.type === 'mc' ? data.options[data.answer] : String(data.answer)}
+                                            {data.type === 'mc' ? data.options[data.answer] : (
+                                                data.type === 'tf' ? (data.answer ? "TRUE" : "FALSE") : String(data.answer)
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ACADEMIC SOURCE CITATION (Hiện khi có dữ liệu nguồn - Pro/God Mode) */}
+                                {data.academic_info && data.academic_info.source_ref && (
+                                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-start gap-3">
+                                        <Quote size={20} className="text-slate-400 flex-shrink-0 mt-1"/>
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase">Nguồn trích dẫn / Reference</div>
+                                            <div className="text-sm font-serif italic text-slate-600 academic-font">{data.academic_info.source_ref}</div>
                                         </div>
                                     </div>
                                 )}
@@ -301,21 +499,10 @@ JSON Structure:
                                     <p className="text-slate-700 text-lg leading-relaxed font-medium">{data.explanation}</p>
                                 </div>
 
-                                {data.vocabulary && data.vocabulary.length > 0 && (
-                                    <div className="bg-yellow-50 p-5 rounded-2xl border border-yellow-100 text-left">
-                                        <h4 className="flex items-center gap-2 font-bold text-yellow-600 text-base mb-3"><Sparkles size={20}/> Vocabulary:</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {data.vocabulary.map((v, i) => (
-                                                <button key={i} onClick={() => speak(v.split(':')[0])} className="bg-white px-3 py-1.5 rounded-lg text-base font-bold text-slate-700 shadow-sm border border-yellow-200 hover:bg-yellow-100 transition flex items-center gap-1 group">
-                                                    {v} <Volume2 size={16} className="text-yellow-500 opacity-50 group-hover:opacity-100"/>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                <SmartVocabDisplay vocabList={data.vocabulary} speak={speak} />
                             </div>
 
-                            <div className="mt-6 pt-4 border-t border-slate-100">
+                            <div className="mt-6 pt-4 border-t border-slate-100 flex-shrink-0">
                                 <button onClick={() => { playSound('click'); onNext(); }} className="btn-pushable w-full">
                                     <span className="shadow"></span>
                                     <span className="edge"></span>
@@ -330,91 +517,266 @@ JSON Structure:
             );
         };
 
-        const Dashboard = ({ history, onStartNew, onImport, onExport, onViewHistory, onRelearn, sound }) => {
+        // 3.4 Personal Dictionary: Từ điển cá nhân (Tự động tổng hợp từ lịch sử)
+        const PersonalDictionary = ({ history, onBack, sound }) => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const { speak } = useTTS();
+
+            // Logic: Quét toàn bộ lịch sử, chuẩn hóa từ vựng, lọc trùng và sắp xếp A-Z
+            const allVocab = useMemo(() => {
+                const map = new Map();
+                
+                history.forEach(session => {
+                    if (!session.details) return;
+                    session.details.forEach(detail => {
+                        if (!detail.vocab) return;
+                        detail.vocab.forEach(v => {
+                            let item;
+                            // Chuẩn hóa dữ liệu từ 2 nguồn (Basic string và Pro object)
+                            if (typeof v === 'string') {
+                                const parts = v.split(':');
+                                const word = parts[0].trim();
+                                const meaning = parts.slice(1).join(':').trim();
+                                item = { 
+                                    word, 
+                                    meaning_vn: meaning, 
+                                    type: '', 
+                                    ipa: '', 
+                                    source: 'Basic Mode', 
+                                    isPro: false 
+                                };
+                            } else {
+                                item = { 
+                                    ...v, 
+                                    source: 'Pro Mode',
+                                    isPro: true
+                                };
+                            }
+                            
+                            const key = item.word.toLowerCase();
+                            
+                            // Logic ưu tiên: Nếu từ chưa có -> thêm vào. 
+                            // Nếu có rồi mà từ mới là Pro (chi tiết hơn) -> ghi đè từ cũ (Basic).
+                            if (!map.has(key)) {
+                                map.set(key, item);
+                            } else {
+                                const existing = map.get(key);
+                                if (!existing.isPro && item.isPro) {
+                                    map.set(key, item);
+                                }
+                            }
+                        });
+                    });
+                });
+
+                return Array.from(map.values()).sort((a, b) => a.word.localeCompare(b.word));
+            }, [history]);
+
+            // Filter logic (Tìm kiếm Anh hoặc Việt)
+            const filteredVocab = allVocab.filter(v => 
+                v.word.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                v.meaning_vn.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            return (
+                <div className="w-full max-w-5xl mx-auto p-4 md:p-8 min-h-screen flex flex-col relative z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                        <button onClick={() => { sound.play('click'); onBack(); }} className="self-start flex items-center text-slate-500 hover:text-rose-500 font-bold gap-2 bg-white px-5 py-3 rounded-full shadow-sm hover:bg-rose-50 transition">
+                            <Home size={20}/> Quay về
+                        </button>
+                        <h1 className="text-3xl md:text-4xl font-black text-rose-600 flex items-center gap-3">
+                            <Bookmark className="fill-current"/> TỪ ĐIỂN CỦA TÔI
+                        </h1>
+                        <div className="bg-white px-6 py-3 rounded-full font-bold text-slate-500 shadow-sm">
+                            Đã thuộc: <span className="text-rose-500 text-xl">{allVocab.length}</span> từ
+                        </div>
+                    </div>
+
+                    <div className="relative mb-8 group">
+                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                            <Search className="text-slate-400 group-focus-within:text-rose-500 transition"/>
+                        </div>
+                        <input 
+                            type="text" 
+                            className="block w-full pl-14 pr-6 py-5 rounded-3xl bg-white border-4 border-transparent focus:border-rose-300 text-lg font-bold text-slate-700 placeholder-slate-300 shadow-lg transition outline-none" 
+                            placeholder="Tìm kiếm từ vựng (Anh/Việt)..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 content-start overflow-y-auto pb-20 custom-scrollbar pr-2" style={{maxHeight: 'calc(100vh - 250px)'}}>
+                        {filteredVocab.length > 0 ? (
+                            filteredVocab.map((v, i) => (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: i * 0.05 > 0.5 ? 0.5 : i * 0.05 }}
+                                    key={i} 
+                                    className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:border-rose-200 hover:shadow-md transition group"
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <button onClick={() => { sound.play('click'); speak(v.word); }} className="p-3 bg-yellow-50 text-yellow-600 rounded-full hover:bg-yellow-400 hover:text-white transition shadow-sm">
+                                                <Volume2 size={20}/>
+                                            </button>
+                                            <div>
+                                                <div className="font-black text-xl text-slate-800 flex items-center gap-2">
+                                                    {v.word}
+                                                    {v.type && <span className="bg-slate-100 text-slate-400 px-2 py-0.5 rounded text-xs font-mono font-normal">{v.type}</span>}
+                                                </div>
+                                                {v.ipa && <div className="text-sm text-slate-400 font-mono font-medium">{v.ipa}</div>}
+                                            </div>
+                                        </div>
+                                        {v.isPro && <Star size={16} className="text-purple-400 fill-current opacity-50"/>}
+                                    </div>
+                                    <div className="pl-[60px]">
+                                        <div className="font-bold text-lg text-rose-600 mb-1">{v.meaning_vn}</div>
+                                        {v.example && (
+                                            <div className="text-sm text-slate-500 italic bg-slate-50 p-2 rounded-xl mt-2 border border-slate-100">
+                                                "{v.example}"
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-20 text-slate-400">
+                                <div className="text-6xl mb-4">😿</div>
+                                <div className="font-bold text-xl">Không tìm thấy từ nào sen ơi!</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // 3.5 Dashboard: Màn hình chính (Đã thêm Logo)
+        const Dashboard = ({ history, onStartNew, onImport, onExport, onViewHistory, onRelearn, sound, onOpenDictionary }) => {
             const totalSessions = history.length;
             const totalQuestions = history.reduce((acc, curr) => acc + curr.total, 0);
             const totalCorrect = history.reduce((acc, curr) => acc + curr.score, 0);
             const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
 
             return (
-                <div className="w-full max-w-4xl mx-auto p-4 md:p-8 relative z-10 pb-20">
-                    <div className="flex justify-end mb-4">
-                        <button onClick={() => sound.setIsMuted(!sound.isMuted)} className="bg-white p-3 rounded-full shadow-md text-pink-400 hover:scale-110 transition">
-                            {sound.isMuted ? <VolumeX size={24}/> : <Volume2 size={24}/>}
-                        </button>
-                    </div>
-
-                    <div className="text-center mb-10">
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="inline-block p-6 bg-white rounded-[2rem] mb-6 shadow-xl border-4 border-pink-200">
-                            <Cat size={80} className="text-rose-500" strokeWidth={2} />
-                        </motion.div>
-                        <h1 className="text-5xl md:text-7xl font-black text-rose-600 tracking-tighter drop-shadow-sm mb-2">MEOW IELTS</h1>
-                        <p className="text-slate-500 font-bold text-lg md:text-xl bg-white/60 inline-block px-4 py-1 rounded-full backdrop-blur-sm">Master IELTS with AI 😽</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                            <button onClick={() => { sound.play('click'); onStartNew(); }} className="btn-pushable h-full">
-                                <span className="shadow"></span>
-                                <span className="edge"></span>
-                                <span className="front flex flex-col items-center justify-center gap-4 py-10 h-full">
-                                    <Play size={48} fill="currentColor" className="opacity-90"/>
-                                    <span className="text-2xl md:text-3xl tracking-wide">HỌC BÀI MỚI</span>
-                                </span>
-                            </button>
-                        </motion.div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
-                             <label className="bg-white hover:bg-pink-50 cursor-pointer rounded-3xl p-6 flex flex-col items-center justify-center gap-3 shadow-sm border-2 border-pink-100 transition h-full group">
-                                <div className="bg-pink-100 p-4 rounded-full text-rose-500 group-hover:scale-110 transition"><Upload size={28}/></div>
-                                <span className="font-bold text-lg text-slate-600">Nhập File</span>
-                                <input type="file" className="hidden" accept=".json" onChange={onImport} />
-                            </label>
-                            <button onClick={onExport} className="bg-white hover:bg-pink-50 cursor-pointer rounded-3xl p-6 flex flex-col items-center justify-center gap-3 shadow-sm border-2 border-pink-100 transition h-full group">
-                                <div className="bg-blue-100 p-4 rounded-full text-blue-500 group-hover:scale-110 transition"><Download size={28}/></div>
-                                <span className="font-bold text-lg text-slate-600">Backup</span>
+                <div className="w-full max-w-4xl mx-auto p-4 md:p-8 relative z-10 pb-20 flex flex-col min-h-screen">
+                    <div className="flex-1">
+                        <div className="flex justify-end mb-4">
+                            <button onClick={() => sound.setIsMuted(!sound.isMuted)} className="bg-white p-3 rounded-full shadow-md text-pink-400 hover:scale-110 transition">
+                                {sound.isMuted ? <VolumeX size={24}/> : <Volume2 size={24}/>}
                             </button>
                         </div>
-                    </div>
 
-                    <div className="glass-panel p-6 rounded-3xl flex justify-between items-center mb-8 px-8 md:px-12">
-                        <div className="text-center"><div className="text-3xl font-black text-purple-500">{totalSessions}</div><div className="text-xs font-bold text-slate-400 uppercase">Bài học</div></div>
-                        <div className="w-px h-10 bg-slate-200"></div>
-                        <div className="text-center"><div className="text-3xl font-black text-green-500">{accuracy}%</div><div className="text-xs font-bold text-slate-400 uppercase">Điểm TB</div></div>
-                        <div className="w-px h-10 bg-slate-200"></div>
-                        <div className="text-center"><div className="text-3xl font-black text-blue-500">{totalQuestions}</div><div className="text-xs font-bold text-slate-400 uppercase">Câu hỏi</div></div>
-                    </div>
+                        <div className="text-center mb-10">
+                            {/* UPDATE: Logo hiển thị to, rõ, hiệu ứng thở, bỏ khung viền và mèo */}
+                            <motion.div 
+                                initial={{ scale: 0 }} 
+                                animate={{ scale: 1 }} 
+                                className="inline-block mb-4"
+                            >
+                                <motion.img 
+                                    src="av.png" 
+                                    alt="App Logo" 
+                                    className="w-40 h-40 md:w-52 md:h-52 object-contain filter drop-shadow-[0_0_20px_rgba(244,114,182,0.6)]"
+                                    animate={{ scale: [1, 1.05, 1], filter: ["drop-shadow(0 0 15px rgba(244,114,182,0.6))", "drop-shadow(0 0 25px rgba(244,114,182,0.9))", "drop-shadow(0 0 15px rgba(244,114,182,0.6))"] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                    onError={(e) => {
+                                        e.target.onerror = null; 
+                                        e.target.style.display = 'none'; // Ẩn nếu ảnh lỗi
+                                    }} 
+                                />
+                            </motion.div>
+                            <h1 className="text-5xl md:text-7xl font-black text-rose-600 tracking-tighter drop-shadow-sm mb-2">MEOW IELTS</h1>
+                            <p className="text-slate-500 font-bold text-lg md:text-xl bg-white/60 inline-block px-4 py-1 rounded-full backdrop-blur-sm">Master IELTS with AI 😽</p>
+                        </div>
 
-                    <div className="glass-panel rounded-[2.5rem] p-8">
-                        <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-rose-600"><Calendar size={28}/> Lịch Sử Ôn Luyện</h2>
-                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                            {history.length === 0 ? (
-                                <div className="text-center text-slate-400 py-12 text-lg">Chưa có bài học nào. Bắt đầu ngay nhé! 🐾</div>
-                            ) : (
-                                [...history].reverse().map((session, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-2xl border border-pink-50 shadow-sm transition hover:shadow-md group">
-                                        <div onClick={() => { sound.play('click'); onViewHistory(session); }} className="flex-1 flex items-center gap-4 cursor-pointer overflow-hidden">
-                                            <div className={`font-black w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-inner ${session.score/session.total >= 0.8 ? 'bg-green-100 text-green-600' : 'bg-rose-100 text-rose-500'}`}>
-                                                {session.score}/{session.total}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <button onClick={() => { sound.play('click'); onStartNew(); }} className="btn-pushable h-full">
+                                    <span className="shadow"></span>
+                                    <span className="edge"></span>
+                                    <span className="front flex flex-col items-center justify-center gap-4 py-10 h-full">
+                                        <Play size={48} fill="currentColor" className="opacity-90"/>
+                                        <span className="text-2xl md:text-3xl tracking-wide">HỌC BÀI MỚI</span>
+                                    </span>
+                                </button>
+                            </motion.div>
+                            
+                            <div className="grid grid-rows-2 gap-4 h-full">
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
+                                    <button onClick={() => { sound.play('click'); onOpenDictionary(); }} className="bg-orange-500 hover:bg-orange-600 text-white rounded-3xl w-full h-full flex items-center justify-center gap-3 shadow-lg border-b-8 border-orange-700 active:border-b-0 active:translate-y-2 transition-all">
+                                        <BookOpen size={32}/>
+                                        <span className="font-black text-2xl tracking-wide">TỪ ĐIỂN CỦA TÔI</span>
+                                    </button>
+                                </motion.div>
+                                <div className="grid grid-cols-2 gap-4 h-full">
+                                    <label className="bg-white hover:bg-pink-50 cursor-pointer rounded-3xl p-4 flex flex-col items-center justify-center gap-2 shadow-sm border-2 border-pink-100 transition h-full group">
+                                        <div className="bg-pink-100 p-3 rounded-full text-rose-500 group-hover:scale-110 transition"><Upload size={24}/></div>
+                                        <span className="font-bold text-sm text-slate-600">Nhập File</span>
+                                        <input type="file" className="hidden" accept=".json" onChange={onImport} />
+                                    </label>
+                                    <button onClick={onExport} className="bg-white hover:bg-pink-50 cursor-pointer rounded-3xl p-4 flex flex-col items-center justify-center gap-2 shadow-sm border-2 border-pink-100 transition h-full group">
+                                        <div className="bg-blue-100 p-3 rounded-full text-blue-500 group-hover:scale-110 transition"><Download size={24}/></div>
+                                        <span className="font-bold text-sm text-slate-600">Backup</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="glass-panel p-6 rounded-3xl flex justify-between items-center mb-8 px-8 md:px-12">
+                            <div className="text-center"><div className="text-3xl font-black text-purple-500">{totalSessions}</div><div className="text-xs font-bold text-slate-400 uppercase">Bài học</div></div>
+                            <div className="w-px h-10 bg-slate-200"></div>
+                            <div className="text-center"><div className="text-3xl font-black text-green-500">{accuracy}%</div><div className="text-xs font-bold text-slate-400 uppercase">Điểm TB</div></div>
+                            <div className="w-px h-10 bg-slate-200"></div>
+                            <div className="text-center"><div className="text-3xl font-black text-blue-500">{totalQuestions}</div><div className="text-xs font-bold text-slate-400 uppercase">Câu hỏi</div></div>
+                        </div>
+
+                        <div className="glass-panel rounded-[2.5rem] p-8 mb-8">
+                            <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-rose-600"><Calendar size={28}/> Lịch Sử Ôn Luyện</h2>
+                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {history.length === 0 ? (
+                                    <div className="text-center text-slate-400 py-12 text-lg">Chưa có bài học nào. Bắt đầu ngay nhé! 🐾</div>
+                                ) : (
+                                    [...history].reverse().map((session, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-2xl border border-pink-50 shadow-sm transition hover:shadow-md group">
+                                            <div onClick={() => { sound.play('click'); onViewHistory(session); }} className="flex-1 flex items-center gap-4 cursor-pointer overflow-hidden">
+                                                <div className={`font-black w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-inner ${session.score/session.total >= 0.8 ? 'bg-green-100 text-green-600' : 'bg-rose-100 text-rose-500'}`}>
+                                                    {session.score}/{session.total}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="font-bold text-slate-700 text-lg truncate group-hover:text-rose-500 transition">{session.topic || "Bài tập không tên"}</div>
+                                                    <div className="flex gap-2 text-sm text-slate-400 font-medium items-center">
+                                                        <span>{new Date(session.date).toLocaleDateString('vi-VN')}</span>
+                                                        {/* BACKWARD COMPATIBILITY: Check 'modeType' first, then fallback to 'isProMode' */}
+                                                        {session.modeType === 'god' ? (
+                                                            <span className="text-yellow-600 font-black flex items-center gap-1 bg-yellow-100 px-2 rounded-full"><Crown size={12} fill="currentColor"/> GOD MODE</span>
+                                                        ) : (session.modeType === 'pro' || session.isProMode) ? (
+                                                            <span className="text-purple-500 font-bold flex items-center gap-1"><Star size={12} fill="currentColor"/> PRO</span>
+                                                        ) : null}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="min-w-0">
-                                                <div className="font-bold text-slate-700 text-lg truncate group-hover:text-rose-500 transition">{session.topic || "Bài tập không tên"}</div>
-                                                <div className="text-sm text-slate-400 font-medium">{new Date(session.date).toLocaleDateString('vi-VN')}</div>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                             {session.questions && session.questions.length > 0 && (
-                                                <button onClick={() => { sound.play('click'); onRelearn(session); }} className="p-2 bg-blue-50 text-blue-500 rounded-full hover:bg-blue-500 hover:text-white transition" title="Học lại">
-                                                    <Repeat size={20}/>
+                                            <div className="flex gap-2">
+                                                {session.questions && session.questions.length > 0 && (
+                                                    <button onClick={() => { sound.play('click'); onRelearn(session); }} className="p-2 bg-blue-50 text-blue-500 rounded-full hover:bg-blue-500 hover:text-white transition" title="Học lại">
+                                                        <Repeat size={20}/>
+                                                    </button>
+                                                )}
+                                                <button onClick={() => { sound.play('click'); onViewHistory(session); }} className="p-2 bg-slate-50 text-slate-400 rounded-full hover:bg-rose-500 hover:text-white transition">
+                                                    <ArrowRight size={20}/>
                                                 </button>
-                                             )}
-                                            <button onClick={() => { sound.play('click'); onViewHistory(session); }} className="p-2 bg-slate-50 text-slate-400 rounded-full hover:bg-rose-500 hover:text-white transition">
-                                                <ArrowRight size={20}/>
-                                            </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
-                            )}
+                                    ))
+                                )}
+                            </div>
                         </div>
+                    </div>
+
+                    {/* --- AUTHOR FOOTER --- */}
+                    <div className="text-center py-6 text-slate-400 text-sm font-semibold tracking-wide">
+                        <p className="mb-1 text-slate-500">Thầy Thái Minh Nguyên trường TH, THCS & THPT YERSIN ĐÀ LẠT</p>
+                        <p className="text-rose-400 flex items-center justify-center gap-1">make with love for my wife <span className="animate-pulse">❤️</span></p>
                     </div>
                 </div>
             );
@@ -422,24 +784,38 @@ JSON Structure:
 
         const SetupSession = ({ onStart, onBack, sound }) => {
             const [mode, setMode] = useState('manual');
+            const [difficultyMode, setDifficultyMode] = useState('basic'); // 'basic' | 'pro' | 'god'
             const [apiKey, setApiKey] = useState('');
             const [topic, setTopic] = useState('');
             const [content, setContent] = useState('');
+            const [level, setLevel] = useState('B1'); // Default level
             const [numQuestions, setNumQuestions] = useState(10);
             const [jsonInput, setJsonInput] = useState('');
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState('');
 
-            const copyPrompt = () => {
-                sound.play('click');
-                const finalNum = numQuestions || 10;
-                let finalPrompt = MASTER_PROMPT
+            const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'IELTS Foundation (4.0-5.0)', 'IELTS Master (6.0-7.0)', 'IELTS Expert (8.0+)'];
+
+            const getPrompt = () => {
+                 let basePrompt = MASTER_PROMPT_BASIC;
+                 if (difficultyMode === 'pro') basePrompt = MASTER_PROMPT_ACADEMIC;
+                 if (difficultyMode === 'god') basePrompt = MASTER_PROMPT_EXAMINER;
+
+                 return basePrompt
                     .replace("{TOPIC}", topic || "IELTS General")
                     .replace("{CONTENT}", content || "N/A")
-                    .replace("{NUM}", finalNum);
-                
+                    .replace("{LEVEL}", level)
+                    .replace("{NUM}", numQuestions);
+            }
+
+            const copyPrompt = () => {
+                sound.play('click');
+                const finalPrompt = getPrompt();
                 navigator.clipboard.writeText(finalPrompt);
-                alert("Đã copy Prompt chuẩn IELTS! Hãy dán vào AI.");
+                let msg = "Đã copy Prompt CƠ BẢN! Nhanh và gọn.";
+                if (difficultyMode === 'pro') msg = "Đã copy Prompt HỌC THUẬT (Pro)! Chi tiết & có nguồn.";
+                if (difficultyMode === 'god') msg = "Đã copy Prompt BAND 9.0 (God Mode)! Thử thách cực đại.";
+                alert(msg);
             };
 
             const openAI = (url) => window.open(url, '_blank');
@@ -447,13 +823,15 @@ JSON Structure:
             const handleStartAI = async () => {
                 sound.play('click');
                 if (!apiKey || !topic) return setError("Thiếu Key hoặc Chủ đề!");
+                
+                // Cảnh báo nếu dùng Pro/God Mode mà số câu quá nhiều
+                if ((difficultyMode === 'pro' || difficultyMode === 'god') && numQuestions > 15) {
+                    if (!confirm(`⚠️ Chế độ ${difficultyMode === 'god' ? 'GOD MODE' : 'Pro'} tạo dữ liệu rất lớn. Với số câu > 15, AI có thể bị lỗi. Bạn có muốn tiếp tục không?`)) return;
+                }
+
                 setLoading(true); setError('');
                 try {
-                    let finalPrompt = MASTER_PROMPT
-                        .replace("{TOPIC}", topic)
-                        .replace("{CONTENT}", content || "N/A")
-                        .replace("{NUM}", numQuestions);
-                        
+                    const finalPrompt = getPrompt();
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -461,9 +839,12 @@ JSON Structure:
                     });
                     const data = await response.json();
                     if(data.error) throw new Error(data.error.message);
-                    let text = data.candidates[0].content.parts[0].text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+                    
+                    let text = data.candidates[0].content.parts[0].text;
+                    text = text.replace(/^```json/gm, '').replace(/^```/gm, '').trim(); 
+                    
                     const questions = JSON.parse(text);
-                    onStart(questions, topic);
+                    onStart(questions, topic, difficultyMode); 
                 } catch (err) { setError("Lỗi AI: " + err.message); } finally { setLoading(false); }
             };
 
@@ -473,7 +854,7 @@ JSON Structure:
                     if (!jsonInput) return setError("Chưa dán JSON kìa!");
                     const questions = JSON.parse(jsonInput);
                     if (!Array.isArray(questions)) throw new Error("JSON lỗi format");
-                    onStart(questions, topic || "Bài tập thủ công");
+                    onStart(questions, topic || "Bài tập thủ công", difficultyMode);
                 } catch (err) { setError("Lỗi JSON: " + err.message); }
             };
 
@@ -486,31 +867,71 @@ JSON Structure:
                              Tạo Bài Mới <Pencil className="animate-bounce" />
                         </h2>
 
-                        {/* AI Shortcuts */}
-                        <div className="flex gap-3 justify-center mb-8">
+                        <div className="flex gap-3 justify-center mb-6">
                             <button onClick={() => openAI('https://chatgpt.com')} className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-full font-bold hover:bg-green-100 transition"><ExternalLink size={16}/> ChatGPT</button>
                             <button onClick={() => openAI('https://gemini.google.com')} className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full font-bold hover:bg-blue-100 transition"><ExternalLink size={16}/> Gemini</button>
                             <button onClick={() => openAI('https://copilot.microsoft.com')} className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-full font-bold hover:bg-purple-100 transition"><ExternalLink size={16}/> Copilot</button>
                         </div>
 
-                        <div className="flex bg-slate-100 p-2 rounded-2xl mb-8">
+                        {/* --- MODE SWITCHER (MANUAL / AI) --- */}
+                        <div className="bg-slate-100 p-2 rounded-2xl mb-6 flex w-full">
                             <button onClick={() => { sound.play('click'); setMode('manual'); }} className={`flex-1 py-4 rounded-xl font-bold text-base md:text-lg transition-all ${mode==='manual' ? 'bg-white text-rose-600 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}>Thủ công</button>
                             <button onClick={() => { sound.play('click'); setMode('ai'); }} className={`flex-1 py-4 rounded-xl font-bold text-base md:text-lg transition-all ${mode==='ai' ? 'bg-white text-purple-600 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}>Auto AI</button>
                         </div>
 
+                        {/* --- DIFFICULTY SELECTOR (BASIC / PRO / GOD) --- */}
+                        <div className="mb-8">
+                            <label className="block text-sm font-bold text-slate-400 mb-3 uppercase ml-2">Chọn chế độ học</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                <button 
+                                    onClick={() => { sound.play('click'); setDifficultyMode('basic'); }}
+                                    className={`py-3 rounded-xl font-bold text-sm md:text-base border-2 transition-all ${difficultyMode === 'basic' ? 'bg-blue-100 border-blue-400 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white'}`}
+                                >
+                                    Cơ Bản
+                                </button>
+                                <button 
+                                    onClick={() => { sound.play('click'); setDifficultyMode('pro'); }}
+                                    className={`py-3 rounded-xl font-bold text-sm md:text-base border-2 transition-all ${difficultyMode === 'pro' ? 'bg-purple-100 border-purple-400 text-purple-700' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white'}`}
+                                >
+                                    <Star size={16} className="inline mr-1 mb-1"/> Pro Mode
+                                </button>
+                                <button 
+                                    onClick={() => { sound.play('click'); setDifficultyMode('god'); }}
+                                    className={`py-3 rounded-xl font-black text-sm md:text-base border-2 transition-all ${difficultyMode === 'god' ? 'bg-yellow-100 border-yellow-500 text-yellow-700 shadow-md' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-white'}`}
+                                >
+                                    <Crown size={16} className="inline mr-1 mb-1"/> GOD MODE
+                                </button>
+                            </div>
+                            {difficultyMode === 'god' && (
+                                <div className="mt-2 text-xs text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg text-center border border-yellow-200">
+                                    🔥 Thử thách IELTS Band 9.0: Mọi đáp án đều đúng ngữ pháp, phải chọn từ chuẩn xác nhất theo ngữ cảnh!
+                                </div>
+                            )}
+                        </div>
+
                         <div className="space-y-6 flex-1">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Tên bài học / Chủ đề</label>
-                                <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="VD: IELTS Reading Task 1, Past Tense..." className="w-full p-5 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-rose-400 rounded-2xl outline-none font-bold text-lg text-slate-700 placeholder-slate-300 transition"/>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Tên bài học / Chủ đề</label>
+                                    <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="VD: Environment..." className="w-full p-4 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-rose-400 rounded-2xl outline-none font-bold text-lg text-slate-700 placeholder-slate-300 transition"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Trình độ (Level)</label>
+                                    <div className="relative">
+                                        <select value={level} onChange={e=>setLevel(e.target.value)} className="w-full p-4 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-rose-400 rounded-2xl outline-none font-bold text-lg text-slate-700 appearance-none cursor-pointer transition">
+                                            {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-rose-400"><GraduationCap size={24}/></div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            {/* Manual Mode Fields */}
                             {mode === 'manual' && (
                                 <div className="space-y-6 animate-in fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Nội dung / Ngữ cảnh (Để tạo câu hỏi)</label>
-                                            <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder="Dán bài đọc, đoạn văn hoặc ghi chú ngữ pháp vào đây..." className="w-full p-4 h-32 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-rose-400 rounded-2xl outline-none font-medium text-sm text-slate-700 resize-none transition"></textarea>
+                                            <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Ngữ cảnh</label>
+                                            <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder="Dán bài đọc/ngữ pháp..." className="w-full p-4 h-32 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-rose-400 rounded-2xl outline-none font-medium text-sm text-slate-700 resize-none transition"></textarea>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Số câu</label>
@@ -523,7 +944,11 @@ JSON Structure:
                                             <h3 className="font-bold text-blue-700 text-lg flex items-center gap-2">Bước 1: Lấy Prompt</h3>
                                             <button onClick={copyPrompt} className="text-sm bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-lg hover:bg-blue-700 transition">COPY PROMPT</button>
                                         </div>
-                                        <p className="text-sm text-blue-800">Copy prompt này -> Dán vào AI -> Copy JSON trả về -> Dán xuống dưới.</p>
+                                        <p className="text-sm text-blue-800">
+                                            Đang dùng Prompt: <strong>
+                                                {difficultyMode === 'basic' ? "CƠ BẢN" : (difficultyMode === 'pro' ? "HỌC THUẬT (PRO)" : "BAND 9.0 (GOD MODE)")}
+                                            </strong>
+                                        </p>
                                     </div>
                                     
                                     <div>
@@ -537,11 +962,10 @@ JSON Structure:
                                 </div>
                             )}
 
-                            {/* AI Mode Fields */}
                             {mode === 'ai' && (
                                 <div className="space-y-6 animate-in fade-in">
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Nội dung bổ sung (Tùy chọn)</label>
+                                        <label className="block text-sm font-bold text-slate-400 mb-2 uppercase ml-2">Nội dung bổ sung</label>
                                         <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder="Chi tiết thêm cho AI..." className="w-full p-4 h-24 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-purple-400 rounded-2xl outline-none text-sm transition"/>
                                     </div>
                                     <div>
@@ -563,7 +987,7 @@ JSON Structure:
 
         const QuestionCard = ({ data, onAnswer, feedback, sound }) => {
             const [userAnswer, setUserAnswer] = useState(null);
-            const { speak } = useTTS(); // Use TTS hook
+            const { speak } = useTTS(); 
             
             useEffect(() => { setUserAnswer(null); }, [data]);
 
@@ -571,10 +995,7 @@ JSON Structure:
                 if (feedback) return;
                 sound.play('click');
                 setUserAnswer(ans);
-                
-                // --- STRICT ANSWER CHECKING ---
                 const isCorrect = checkAnswer(data.type, ans, data.answer);
-                
                 onAnswer(isCorrect, ans);
             };
 
@@ -621,7 +1042,9 @@ JSON Structure:
                         const [scrambleOrder, setScrambleOrder] = useState([]);
                         useEffect(() => {
                             if (data.type === 'order') {
+                                // Logic: Tách chuỗi đáp án thành từ rời rạc để tạo game sắp xếp
                                 const words = data.answer.split(' ').map((w, i) => ({ id: i, text: w }));
+                                // Thuật toán xáo trộn (Fisher-Yates)
                                 for (let i = words.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [words[i], words[j]] = [words[j], words[i]]; }
                                 setScrambleOrder(words); setCurrentOrder([]);
                             }
@@ -670,7 +1093,7 @@ JSON Structure:
             );
         };
 
-        const LearningSession = ({ questions, topic, onFinish, sound }) => {
+        const LearningSession = ({ questions, topic, onFinish, onExit, sound, isRelearning }) => {
             const [currentIdx, setCurrentIdx] = useState(0);
             const [score, setScore] = useState(0);
             const [feedback, setFeedback] = useState(null);
@@ -689,7 +1112,8 @@ JSON Structure:
                     userAns,
                     correctAns: currentQ.answer,
                     vocab: currentQ.vocabulary || [],
-                    explanation: currentQ.explanation
+                    explanation: currentQ.explanation,
+                    academic_info: currentQ.academic_info || null // Save source info
                 }]);
             };
 
@@ -702,10 +1126,32 @@ JSON Structure:
                 }
             };
 
+            const handleSkip = () => {
+                 sound.play('click');
+                 setHistory([...history, {
+                    question: currentQ.question,
+                    isCorrect: false,
+                    userAns: "SKIPPED",
+                    correctAns: currentQ.answer,
+                    vocab: currentQ.vocabulary || [],
+                    explanation: currentQ.explanation,
+                    academic_info: currentQ.academic_info || null
+                }]);
+                
+                if (currentIdx < questions.length - 1) {
+                    setCurrentIdx(c => c + 1);
+                } else {
+                    onFinish(score, questions.length, [...history]); 
+                }
+            };
+
             return (
                 <div className="min-h-screen pb-10 flex flex-col items-center justify-start pt-24 px-4 relative">
                     <div className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md z-40 px-6 py-4 flex justify-between items-center shadow-sm border-b border-white">
-                        <div className="font-bold text-rose-500 text-lg truncate max-w-[200px] md:max-w-md">{topic}</div>
+                        <div className="flex items-center gap-3">
+                            <button onClick={onExit} className="p-2 bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-500 rounded-full transition"><ArrowLeft size={24}/></button>
+                            <div className="font-bold text-rose-500 text-lg truncate max-w-[200px] md:max-w-md">{topic} {isRelearning && <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded ml-2">Học lại</span>}</div>
+                        </div>
                         <div className="flex items-center gap-4">
                             <button onClick={() => sound.setIsMuted(!sound.isMuted)} className="text-slate-400 hover:text-rose-500">{sound.isMuted ? <VolumeX size={20}/> : <Volume2 size={20}/>}</button>
                             <div className="font-black text-slate-700 bg-slate-100 px-4 py-2 rounded-full text-base">{currentIdx + 1}/{questions.length}</div>
@@ -716,6 +1162,16 @@ JSON Structure:
                     </div>
 
                     <QuestionCard key={currentIdx} data={currentQ} onAnswer={handleAnswer} feedback={feedback} sound={sound} />
+
+                    {isRelearning && !feedback && (
+                        <motion.button 
+                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                            onClick={handleSkip}
+                            className="mt-6 flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-500 rounded-full font-bold hover:bg-slate-200 hover:text-slate-700 transition shadow-sm"
+                        >
+                            Bỏ qua / Next <SkipForward size={20} />
+                        </motion.button>
+                    )}
 
                     <AnimatePresence>
                         {feedback && (
@@ -752,11 +1208,24 @@ JSON Structure:
 
         const HistoryDetailModal = ({ session, onClose, sound }) => {
             if (!session) return null;
-            const allVocab = [...new Set(session.details.flatMap(d => d.vocab))];
-            const { speak } = useTTS(); // Use TTS hook
+            // Xử lý vocab phức tạp cho cả 2 mode
+            const allVocab = [];
+            session.details.forEach(d => {
+                if (d.vocab) {
+                    d.vocab.forEach(v => {
+                        // Tránh duplicate cơ bản
+                        const key = typeof v === 'string' ? v : v.word;
+                        if (!allVocab.some(existing => (typeof existing === 'string' ? existing : existing.word) === key)) {
+                            allVocab.push(v);
+                        }
+                    })
+                }
+            });
+
+            const { speak } = useTTS(); 
 
             return (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/50 backdrop-blur-md">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/80">
                     <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} className="bg-white w-full sm:max-w-4xl h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl border-4 border-white">
                         <div className="bg-slate-50 p-6 flex justify-between items-center border-b border-slate-100">
                             <h2 className="text-2xl font-black text-rose-600 flex items-center gap-2"><BookOpen size={28}/> Chi Tiết Bài Học</h2>
@@ -764,14 +1233,25 @@ JSON Structure:
                         </div>
                         <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-white custom-scrollbar">
                             <section>
-                                <h3 className="font-bold text-rose-500 mb-4 text-lg uppercase flex items-center gap-2 tracking-wider"><Sparkles size={20}/> Từ vựng IELTS ({allVocab.length})</h3>
+                                <h3 className="font-bold text-rose-500 mb-4 text-lg uppercase flex items-center gap-2 tracking-wider"><Sparkles size={20}/> Từ vựng ({allVocab.length})</h3>
                                 {allVocab.length > 0 ? (
-                                    <div className="flex flex-wrap gap-3">
-                                        {allVocab.map((v, i) => (
-                                            <button key={i} onClick={() => speak(v.split(':')[0])} className="bg-yellow-50 px-4 py-2 rounded-xl border border-yellow-200 text-base font-bold text-slate-700 hover:bg-yellow-100 flex items-center gap-2 group transition">
-                                                {v} <Volume2 size={16} className="text-yellow-600 opacity-50 group-hover:opacity-100"/>
-                                            </button>
-                                        ))}
+                                    <div className="flex flex-col gap-3">
+                                        {/* Reuse Smart Display logic roughly but customized for list */}
+                                        {allVocab.map((v, i) => {
+                                            if (typeof v === 'string') {
+                                                 return <button key={i} onClick={() => speak(v.split(':')[0])} className="text-left bg-yellow-50 px-4 py-3 rounded-xl border border-yellow-200 font-bold text-slate-700">{v}</button>
+                                            } else {
+                                                return (
+                                                    <div key={i} className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 flex gap-4 items-center">
+                                                        <button onClick={() => speak(v.word)} className="p-3 bg-white text-yellow-600 rounded-full shadow-sm"><Volume2 size={20}/></button>
+                                                        <div>
+                                                            <div className="font-black text-lg text-slate-800">{v.word} <span className="text-sm font-normal text-slate-500">({v.type})</span></div>
+                                                            <div className="text-slate-600">{v.meaning_vn}</div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            }
+                                        })}
                                     </div>
                                 ) : <p className="text-slate-400 italic">Không có từ vựng nào.</p>}
                             </section>
@@ -782,7 +1262,12 @@ JSON Structure:
                                         <div key={idx} className={`p-6 rounded-3xl border-2 ${item.isCorrect ? 'border-green-100 bg-green-50/30' : 'border-rose-100 bg-rose-50/30'}`}>
                                             <div className="flex gap-4 mb-3 items-start">
                                                 <div className={`w-4 min-w-[16px] h-4 rounded-full mt-1.5 ${item.isCorrect ? 'bg-green-400' : 'bg-rose-400'}`}></div>
-                                                <h4 className="font-bold text-slate-800 text-lg leading-snug flex-1">{item.question}</h4>
+                                                <div className="flex-1">
+                                                    <h4 className="font-bold text-slate-800 text-lg leading-snug">{item.question}</h4>
+                                                    {item.academic_info && item.academic_info.source_ref && (
+                                                        <div className="text-xs text-slate-500 mt-1 italic font-serif">Src: {item.academic_info.source_ref}</div>
+                                                    )}
+                                                </div>
                                                 <button onClick={() => speak(item.question)} className="p-2 text-slate-400 hover:text-blue-500"><Volume2 size={20}/></button>
                                             </div>
                                             <div className="text-sm text-slate-600 pl-8 space-y-1 mb-4">
@@ -807,6 +1292,9 @@ JSON Structure:
             const [learnHistory, setLearnHistory] = useLocalStorage('english_meow_history', []);
             const [currentQuestions, setCurrentQuestions] = useState([]);
             const [currentTopic, setCurrentTopic] = useState('');
+            const [isRelearning, setIsRelearning] = useState(false); 
+            // State mới: Lưu loại chế độ hiện tại ('basic', 'pro', 'god') để gắn nhãn
+            const [currentModeType, setCurrentModeType] = useState('basic'); 
             const [sessionResult, setSessionResult] = useState(null);
             const [viewingHistory, setViewingHistory] = useState(null);
             const sound = useSound();
@@ -825,42 +1313,40 @@ JSON Structure:
                 };
             };
 
-            const startLearning = (questions, topic) => {
-                setCurrentQuestions(questions); setCurrentTopic(topic); setScreen('learning');
+            const startLearning = (questions, topic, modeType, relearn = false) => {
+                setCurrentQuestions(questions); 
+                setCurrentTopic(topic); 
+                setCurrentModeType(modeType); // Lưu chế độ để hiển thị huy hiệu sau này
+                setIsRelearning(relearn);
+                setScreen('learning');
             };
 
             const handleRelearn = (session) => {
-                // If history saved original questions (new format), use them. 
-                // If not (old format), reconstruct roughly or warn user.
                 if (session.questions) {
-                    startLearning(session.questions, session.topic);
+                    // Tương thích ngược: Nếu session cũ không có modeType, dùng isProMode để đoán
+                    let mode = 'basic';
+                    if (session.modeType) mode = session.modeType;
+                    else if (session.isProMode) mode = 'pro';
+                    
+                    startLearning(session.questions, session.topic, mode, true);
                 } else {
-                    // Fallback: Reconstruct from details (Warning: might lose some MC options if not saved)
-                    // But for now, we assume we start saving questions from now on.
                      if (session.details) {
-                        // Attempt reconstruction
-                        const reconstructed = session.details.map(d => ({
-                            type: 'mc', // Default fallback
-                            question: d.question,
-                            answer: d.correctAns,
-                            explanation: d.explanation || "N/A",
-                            vocabulary: d.vocab || [],
-                            options: [] // Lost in old format
-                        }));
                         alert("Bài học cũ này thiếu dữ liệu đầy đủ. Bạn có thể xem lại nhưng không thể học lại hoàn hảo.");
                      }
                 }
             };
 
             const finishSession = (score, total, detail) => {
-                // Save original questions to allow Re-learn
                 const newRecord = { 
                     date: new Date().toISOString(), 
                     topic: currentTopic, 
                     score, 
                     total, 
                     details: detail,
-                    questions: currentQuestions // IMPORTANT: Save questions for re-learning
+                    questions: currentQuestions,
+                    // Store new modeType for badges, keep isProMode for potential backward compat logic if needed
+                    modeType: currentModeType,
+                    isProMode: currentModeType === 'pro' || currentModeType === 'god'
                 };
                 setLearnHistory([...learnHistory, newRecord]);
                 setSessionResult({ score, total, detail });
@@ -870,9 +1356,10 @@ JSON Structure:
             return (
                 <div className="min-h-screen relative overflow-x-hidden selection:bg-rose-200 selection:text-rose-900">
                     <CuteBackground />
-                    {screen === 'dashboard' && <Dashboard history={learnHistory} onStartNew={() => setScreen('setup')} onExport={handleExport} onImport={handleImport} onViewHistory={setViewingHistory} onRelearn={handleRelearn} sound={sound} />}
-                    {screen === 'setup' && <SetupSession onBack={() => setScreen('dashboard')} onStart={startLearning} sound={sound} />}
-                    {screen === 'learning' && <LearningSession questions={currentQuestions} topic={currentTopic} onFinish={finishSession} sound={sound} />}
+                    {screen === 'dashboard' && <Dashboard history={learnHistory} onStartNew={() => setScreen('setup')} onExport={handleExport} onImport={handleImport} onViewHistory={setViewingHistory} onRelearn={handleRelearn} sound={sound} onOpenDictionary={() => setScreen('dictionary')} />}
+                    {screen === 'dictionary' && <PersonalDictionary history={learnHistory} onBack={() => setScreen('dashboard')} sound={sound} />}
+                    {screen === 'setup' && <SetupSession onBack={() => setScreen('dashboard')} onStart={(q, t, m) => startLearning(q, t, m, false)} sound={sound} />}
+                    {screen === 'learning' && <LearningSession questions={currentQuestions} topic={currentTopic} onFinish={finishSession} onExit={() => setScreen('dashboard')} sound={sound} isRelearning={isRelearning} />}
                     {screen === 'summary' && sessionResult && <Summary score={sessionResult.score} total={sessionResult.total} detailHistory={sessionResult.detail} onHome={() => setScreen('dashboard')} sound={sound} />}
                     {viewingHistory && <HistoryDetailModal session={viewingHistory} onClose={() => setViewingHistory(null)} sound={sound} />}
                 </div>
