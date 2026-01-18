@@ -917,7 +917,13 @@ CẤU TRÚC MẪU:
                         type: 'quiz'
                     });
                     alert("✅ Đã lưu thành công vào Thư viện!");
-                } catch (e) { alert("Lỗi lưu: " + e.message); } finally { setIsSaving(false); }
+                } catch (e) { 
+                    if (e.code === 'permission-denied') {
+                        alert("⚠️ LỖI QUYỀN TRUY CẬP (PERMISSION DENIED)!\n\nNguyên nhân: Bạn chưa cấu hình Security Rules trên Firebase Console.\n\nCách khắc phục:\n1. Vào Firebase Console > Firestore Database > Tab 'Rules'.\n2. Dán đoạn code sau và bấm 'Publish':\n\nrules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId}/{documents=**} {\n      allow read, write: if request.auth != null && request.auth.uid == userId;\n    }\n  }\n}");
+                    } else {
+                        alert("Lỗi lưu: " + e.message); 
+                    }
+                } finally { setIsSaving(false); }
             };
 
             const handleLoadFromLibrary = (setData) => {
