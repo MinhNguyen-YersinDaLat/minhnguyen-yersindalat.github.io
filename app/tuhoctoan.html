@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ỨNG DỤNG ÔN TẬP - PRO UI (Chuẩn GDPT 2018)</title>
+    <title>ỨNG DỤNG ÔN TẬP - PRO UI (Cloud Library Full)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,7 +27,11 @@
             "react-dom": "https://esm.sh/react-dom@18.2.0",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
             "framer-motion": "https://esm.sh/framer-motion@10.16.4?external=react,react-dom",
-            "lucide-react": "https://esm.sh/lucide-react@0.292.0?external=react"
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0?external=react",
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
+            "firebase/analytics": "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js"
         }
     }
     </script>
@@ -145,8 +149,30 @@
         import { 
             Trophy, Activity, Check, Play, Settings, RefreshCw, Calculator, 
             FlaskConical, Atom, Key, BookOpen, Users, Loader2, Edit3, Save, 
-            Trash2, ArrowRight, ArrowLeft, Dna, Target, Timer, Zap, Crown, Skull, Swords, Medal, Gift, AlertTriangle, GraduationCap, Maximize, Minimize, Send, Hand, HelpCircle, Repeat, Home, Eye, Sigma, Beaker, Shapes, Monitor, FileText, Info, Lightbulb, Download, Upload, Copy, FileJson, Grid, Shuffle, User, X, Wand2, Image as ImageIcon, Brain, Table2, List, GitBranch, BarChart3
+            Trash2, ArrowRight, ArrowLeft, Dna, Target, Timer, Zap, Crown, Skull, Swords, Medal, Gift, AlertTriangle, GraduationCap, Maximize, Minimize, Send, Hand, HelpCircle, Repeat, Home, Eye, Sigma, Beaker, Shapes, Monitor, FileText, Info, Lightbulb, Download, Upload, Copy, FileJson, Grid, Shuffle, User, X, Wand2, Image as ImageIcon, Brain, Table2, List, GitBranch, BarChart3, Cloud, LogOut, LogIn, Library, Plus
         } from 'lucide-react';
+
+        // --- FIREBASE SETUP ---
+        import { initializeApp } from "firebase/app";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth";
+        import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, orderBy } from "firebase/firestore";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUJiSbxjmyvnTR1pzNzwDw2h9xr-MzPW0",
+            authDomain: "thay-thaiminhnguyen.firebaseapp.com",
+            projectId: "thay-thaiminhnguyen",
+            storageBucket: "thay-thaiminhnguyen.firebasestorage.app",
+            messagingSenderId: "407056816096",
+            appId: "1:407056816096:web:7fd8d02ab9210a1a96fd85",
+            measurementId: "G-9F8S1P3NQF"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
         // --- HELPER: KATEX AUTO-RENDER ---
         const useKaTeXAutoRender = () => {
@@ -209,7 +235,7 @@
 
         // --- VISUAL RENDERERS ---
 
-        // 1. GraphRenderer (UPDATED: Advanced Math Parser)
+        // 1. GraphRenderer (Full Expanded Logic)
         const GraphRenderer = ({ formula }) => {
             const rootRef = useRef(null);
             useEffect(() => {
@@ -217,14 +243,14 @@
                 
                 let cleanFormula = formula.trim();
                 
-                // --- UPDATE: ROBUST FORMULA CLEANING ---
+                // Clean formula logic
                 cleanFormula = cleanFormula.replace(/^(y|f\(x\))\s*=\s*/i, "");
                 cleanFormula = cleanFormula
                     .replace(/×/g, "*").replace(/•/g, "*").replace(/⋅/g, "*")
                     .replace(/\\sin/g, "sin").replace(/\\cos/g, "cos").replace(/\\tan/g, "tan")
                     .replace(/\\ln/g, "ln").replace(/\^\{(.+?)\}/g, "^($1)").replace(/\\/g, "");
 
-                // 3. ADVANCED MATH PARSER (Translator from JS to Math)
+                // Advanced Math Parser
                 cleanFormula = cleanFormula
                     .replace(/Math\.PI/g, "PI").replace(/Math\.E/g, "E")
                     .replace(/Math\.pow\(([^,]+),\s*([^)]+)\)/g, "($1)^($2)")
@@ -248,10 +274,17 @@
                     rootRef.current.innerHTML = `<div class="text-red-500 font-bold p-4 text-center">Lỗi cú pháp: ${cleanFormula}<br/><span class="text-xs text-slate-400">${e.message}</span></div>`; 
                 }
             }, [formula]);
-            return <div className="flex flex-col items-center"><div ref={rootRef} className="rounded-lg overflow-hidden bg-white shadow-sm border border-slate-100"></div><div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-500"><Activity size={12}/> Đồ thị hàm số: {formula}</div></div>;
+            return (
+                <div className="flex flex-col items-center">
+                    <div ref={rootRef} className="rounded-lg overflow-hidden bg-white shadow-sm border border-slate-100"></div>
+                    <div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-500">
+                        <Activity size={12}/> Đồ thị hàm số: {formula}
+                    </div>
+                </div>
+            );
         };
 
-        // 2. TableRenderer
+        // 2. TableRenderer (Full Expanded Logic)
         const TableRenderer = ({ data }) => {
             if (!data) return null;
             const rows = data.trim().split(/\r?\n/).map(row => row.split(',')); 
@@ -261,19 +294,35 @@
                     <div className="overflow-x-auto w-full max-w-4xl rounded-xl border border-orange-200 shadow-sm">
                         <table className="min-w-full border-collapse bg-white">
                             <thead className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-900">
-                                <tr>{rows[0] && rows[0].map((header, i) => (<th key={i} className={`${cellClass} font-bold border-b border-orange-200 uppercase tracking-wider`}>{header.trim()}</th>))}</tr>
+                                <tr>
+                                    {rows[0] && rows[0].map((header, i) => (
+                                        <th key={i} className={`${cellClass} font-bold border-b border-orange-200 uppercase tracking-wider`}>
+                                            {header.trim()}
+                                        </th>
+                                    ))}
+                                </tr>
                             </thead>
                             <tbody className="divide-y divide-orange-100">
-                                {rows.slice(1).map((row, i) => (<tr key={i} className="hover:bg-orange-50/50 transition-colors">{row.map((cell, j) => (<td key={j} className={`${cellClass} text-center text-slate-700 font-medium ${j===0 ? 'font-bold text-orange-800 bg-orange-50/30' : ''}`}>{cell.trim()}</td>))}</tr>))}
+                                {rows.slice(1).map((row, i) => (
+                                    <tr key={i} className="hover:bg-orange-50/50 transition-colors">
+                                        {row.map((cell, j) => (
+                                            <td key={j} className={`${cellClass} text-center text-slate-700 font-medium ${j===0 ? 'font-bold text-orange-800 bg-orange-50/30' : ''}`}>
+                                                {cell.trim()}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
-                    <div className="mt-2 italic flex items-center gap-1 text-xs text-slate-500"><Sigma size={12}/> Bảng số liệu</div>
+                    <div className="mt-2 italic flex items-center gap-1 text-xs text-slate-500">
+                        <Sigma size={12}/> Bảng số liệu
+                    </div>
                 </div>
             );
         };
 
-        // 3. VariationTableRenderer
+        // 3. VariationTableRenderer (Full Expanded Logic - Complex Component)
         const VariationTableRenderer = ({ data }) => {
             if (!data) return null;
             const lines = data.trim().split(/\r?\n/);
@@ -356,7 +405,7 @@
             );
         };
 
-        // 4. ChemistryRenderer
+        // 4. ChemistryRenderer (Full Expanded Logic)
         const ChemistryRenderer = ({ structure }) => {
             const canvasRef = useRef(null);
             useEffect(() => {
@@ -370,10 +419,20 @@
                 };
                 if (window.SmilesDrawer) drawChemistry(); else setTimeout(drawChemistry, 500);
             }, [structure]);
-            return <div className="flex flex-col items-center"><div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden"><div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div><canvas ref={canvasRef} width="400" height="300" className="max-w-full h-auto"></canvas></div><div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-500"><Beaker size={12}/> Cấu trúc: {structure}</div></div>;
+            return (
+                <div className="flex flex-col items-center">
+                    <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                        <canvas ref={canvasRef} width="400" height="300" className="max-w-full h-auto"></canvas>
+                    </div>
+                    <div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-500">
+                        <Beaker size={12}/> Cấu trúc: {structure}
+                    </div>
+                </div>
+            );
         };
 
-        // 5. SVGRenderer (Cải tiến cho Biểu đồ & Hình học)
+        // 5. SVGRenderer (Full Expanded Logic)
         const SVGRenderer = ({ svgCode }) => {
             const cleanSvg = useMemo(() => {
                 if (!svgCode) return "";
@@ -382,10 +441,19 @@
                 if (!code.includes('class="')) { code = code.replace('<svg', '<svg class="w-full h-full"'); }
                 return code;
             }, [svgCode]);
-            return <div className="flex flex-col items-center w-full"><div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-center items-center min-w-[300px] min-h-[200px]"><div dangerouslySetInnerHTML={{ __html: cleanSvg }} className="w-full flex justify-center" /></div><div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-500"><Shapes size={12}/> Hình minh họa (Vector/Biểu đồ)</div></div>;
+            return (
+                <div className="flex flex-col items-center w-full">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-center items-center min-w-[300px] min-h-[200px]">
+                        <div dangerouslySetInnerHTML={{ __html: cleanSvg }} className="w-full flex justify-center" />
+                    </div>
+                    <div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-500">
+                        <Shapes size={12}/> Hình minh họa (Vector/Biểu đồ)
+                    </div>
+                </div>
+            );
         };
 
-        // 6. MermaidRenderer (NEW FOR BIOLOGY/HISTORY)
+        // 6. MermaidRenderer (Full Expanded Logic)
         const MermaidRenderer = ({ chart }) => {
             const [svg, setSvg] = useState('');
             useEffect(() => {
@@ -532,46 +600,22 @@
                 let prompt = "";
                 switch (selectedType) {
                     case 'graph':
-                        prompt = `Hãy viết biểu thức toán học Javascript (vế phải của y=) mô tả đồ thị: "${description}".
-YÊU CẦU:
-- Chỉ trả về chuỗi công thức (ví dụ: x^3 - 3*x + 1).
-- Không trả về JSON, không viết "y=", không thêm lời dẫn.`;
+                        prompt = `Hãy viết biểu thức toán học Javascript (vế phải của y=) mô tả đồ thị: "${description}".\nYÊU CẦU:\n- Chỉ trả về chuỗi công thức (ví dụ: x^3 - 3*x + 1).\n- Không trả về JSON, không viết "y=", không thêm lời dẫn.`;
                         break;
                     case 'variation_table':
-                        prompt = `Hãy tạo dữ liệu cho Bảng Biến Thiên của hàm số: "${description}".
-YÊU CẦU CHÍNH XÁC:
-- Trả về đúng 3 dòng dữ liệu, định dạng Text đơn giản.
-- Dòng 1: x: giá_trị_1, giá_trị_2, ... (Dùng -inf, +inf cho vô cực).
-- Dòng 2: y': +, 0, -, 0, + (Xen kẽ giữa các khoảng và điểm).
-- Dòng 3: y: giá trị tương ứng (Dùng -inf, +inf cho vô cực, dùng || cho điểm gián đoạn).`;
+                        prompt = `Hãy tạo dữ liệu cho Bảng Biến Thiên của hàm số: "${description}".\nYÊU CẦU CHÍNH XÁC:\n- Trả về đúng 3 dòng dữ liệu, định dạng Text đơn giản.\n- Dòng 1: x: giá_trị_1, giá_trị_2, ... (Dùng -inf, +inf cho vô cực).\n- Dòng 2: y': +, 0, -, 0, + (Xen kẽ giữa các khoảng và điểm).\n- Dòng 3: y: giá trị tương ứng (Dùng -inf, +inf cho vô cực, dùng || cho điểm gián đoạn).`;
                         break;
                     case 'chemistry':
-                        prompt = `Hãy cung cấp chuỗi SMILES chính xác cho chất hóa học: "${description}".
-YÊU CẦU:
-- Chỉ trả về duy nhất chuỗi SMILES (ví dụ: c1ccccc1).
-- Không thêm lời dẫn hay giải thích.`;
+                        prompt = `Hãy cung cấp chuỗi SMILES chính xác cho chất hóa học: "${description}".\nYÊU CẦU:\n- Chỉ trả về duy nhất chuỗi SMILES (ví dụ: c1ccccc1).\n- Không thêm lời dẫn hay giải thích.`;
                         break;
                     case 'mermaid':
-                        prompt = `Hãy viết code Mermaid để vẽ sơ đồ: "${description}".
-YÊU CẦU:
-- Trả về code Mermaid thuần túy.
-- Dùng 'graph TD' (trên xuống) hoặc 'graph LR' (trái sang phải).
-- KHÔNG bọc trong markdown code block.`;
+                        prompt = `Hãy viết code Mermaid để vẽ sơ đồ: "${description}".\nYÊU CẦU:\n- Trả về code Mermaid thuần túy.\n- Dùng 'graph TD' (trên xuống) hoặc 'graph LR' (trái sang phải).\n- KHÔNG bọc trong markdown code block.`;
                         break;
                     case 'chart':
-                        prompt = `Hãy viết code SVG để vẽ biểu đồ cho: "${description}".
-YÊU CẦU:
-- Kích thước viewBox="0 0 500 300".
-- Sử dụng thẻ <rect> (biểu đồ cột), <circle> (biểu đồ tròn), <line> (trục).
-- Có chú thích trục tung, trục hoành, số liệu cụ thể.
-- Màu sắc: Dùng màu cam (#ea580c) chủ đạo.`;
+                        prompt = `Hãy viết code SVG để vẽ biểu đồ cho: "${description}".\nYÊU CẦU:\n- Kích thước viewBox="0 0 500 300".\n- Sử dụng thẻ <rect> (biểu đồ cột), <circle> (biểu đồ tròn), <line> (trục).\n- Có chú thích trục tung, trục hoành, số liệu cụ thể.\n- Màu sắc: Dùng màu cam (#ea580c) chủ đạo.`;
                         break;
                     case 'svg':
-                        prompt = `Hãy viết mã SVG hoàn chỉnh để vẽ hình minh họa: "${description}".
-YÊU CẦU:
-- Kích thước viewBox="0 0 500 300".
-- Phong cách: Nét vẽ màu đen (stroke="black"), nền trắng/trong suốt, đơn giản, sư phạm.
-- Chỉ trả về duy nhất thẻ <svg>...</svg>.`;
+                        prompt = `Hãy viết mã SVG hoàn chỉnh để vẽ hình minh họa: "${description}".\nYÊU CẦU:\n- Kích thước viewBox="0 0 500 300".\n- Phong cách: Nét vẽ màu đen (stroke="black"), nền trắng/trong suốt, đơn giản, sư phạm.\n- Chỉ trả về duy nhất thẻ <svg>...</svg>.`;
                         break;
                 }
                 setGeneratedPrompt(prompt);
@@ -644,8 +688,6 @@ YÊU CẦU:
         };
 
         // --- API GEMINI & PARSING FIX ---
-        // New robust cleaner: Finds the first '[' and last ']' to extract JSON array
-        // UPDATED: Smart cleaning logic preserved
         const cleanGeminiJson = (text) => {
             const startIndex = text.indexOf('[');
             const endIndex = text.lastIndexOf(']');
@@ -653,11 +695,7 @@ YÊU CẦU:
             if (startIndex !== -1 && endIndex !== -1) {
                 cleaned = text.substring(startIndex, endIndex + 1);
             }
-
-            // --- STEP 1: FIX DOUBLE QUOTES ---
             cleaned = cleaned.replace(/""([^"]*)""/g, '"$1"');
-
-            // --- STEP 2: SMART ESCAPE FIX ---
             const placeholder = "___DOUBLE_BACKSLASH_PLACEHOLDER___";
             cleaned = cleaned.split("\\\\").join(placeholder);
             cleaned = cleaned.replace(/\\u(?![0-9a-fA-F]{4})/g, "\\\\u");
@@ -665,12 +703,10 @@ YÊU CẦU:
             const regex = new RegExp(pattern, "g");
             cleaned = cleaned.replace(regex, "\\\\$1");
             cleaned = cleaned.split(placeholder).join("\\\\");
-
             return cleaned;
         };
 
         const generateQuestionsWithGemini = async (apiKey, topic, numQuestions, bloomLevels) => {
-            // --- BLOOM TAXONOMY LOGIC ---
             let bloomInstruction = "Phân bổ độ khó ngẫu nhiên, phù hợp năng lực học sinh.";
             const selectedBlooms = [];
             if(bloomLevels.recall) selectedBlooms.push("Nhận biết (Recall)");
@@ -682,7 +718,6 @@ YÊU CẦU:
                 bloomInstruction = `Tập trung vào các mức độ nhận thức sau: ${selectedBlooms.join(', ')}. Hãy phân bổ câu hỏi hợp lý theo các mức độ này.`;
             }
 
-            // --- SUPER PROMPT (ALL SUBJECTS) ---
             const prompt = `
 ĐÓNG VAI:
 Bạn là TỔ TRƯỞNG CHUYÊN MÔN, đồng thời là chuyên gia tạo dữ liệu JSON cho phần mềm giáo dục. Bạn am hiểu sâu sắc chương trình GDPT 2018 (Việt Nam).
@@ -775,6 +810,128 @@ CẤU TRÚC MẪU:
 
         const Confetti = () => { const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899']; return (<div className="absolute inset-0 overflow-hidden pointer-events-none z-0">{[...Array(50)].map((_, i) => (<motion.div key={i} className="absolute w-3 h-3 rounded-sm" style={{ backgroundColor: colors[Math.floor(Math.random() * colors.length)], left: `${Math.random() * 100}%`, top: -20 }} animate={{ top: '110%', rotate: [0, 360], x: [0, Math.random() * 100 - 50] }} transition={{ duration: Math.random() * 2 + 3, repeat: Infinity, ease: "linear", delay: Math.random() * 2 }} />))}</div>); };
 
+        // --- NEW COMPONENT: SaveModal (POPUP LƯU TRỮ) ---
+        const SaveModal = ({ isOpen, onClose, onSave, defaultTopic }) => {
+            const [topicName, setTopicName] = useState(defaultTopic || "");
+            const [subject, setSubject] = useState('Toán học');
+            const [isCustomSubject, setIsCustomSubject] = useState(false);
+            const [customSubjectText, setCustomSubjectText] = useState('');
+
+            useEffect(() => {
+                if (isOpen && defaultTopic) setTopicName(defaultTopic);
+            }, [isOpen, defaultTopic]);
+
+            const subjects = [
+                "Toán học", "Vật lý", "Hóa học", "Sinh học", "Lịch sử", "Địa lý", 
+                "Tiếng Anh", "GDCD", "Tin học", "Công nghệ", "Ngữ văn"
+            ];
+
+            const handleSave = () => {
+                const finalSubject = isCustomSubject ? customSubjectText.trim() : subject;
+                if (!topicName.trim()) return alert("Vui lòng nhập tên chủ đề!");
+                if (isCustomSubject && !finalSubject) return alert("Vui lòng nhập tên môn học!");
+                
+                onSave(topicName, finalSubject);
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-white font-bold text-lg flex justify-between items-center">
+                            <span className="flex items-center gap-2"><Upload size={20}/> Lưu trữ Đám mây</span>
+                            <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full"><X size={20}/></button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">Tên chủ đề</label>
+                                <input type="text" value={topicName} onChange={e => setTopicName(e.target.value)} className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="VD: Ôn tập chương 1..." autoFocus/>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">Môn học</label>
+                                {!isCustomSubject ? (
+                                    <div className="flex gap-2">
+                                        <select value={subject} onChange={e => setSubject(e.target.value)} className="flex-1 p-3 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none bg-white">
+                                            {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                        <button onClick={() => setIsCustomSubject(true)} className="px-3 py-2 border rounded-xl hover:bg-slate-50 text-slate-500 font-bold text-sm flex items-center gap-1" title="Thêm môn khác"><Plus size={16}/> Khác</button>
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <input type="text" value={customSubjectText} onChange={e => setCustomSubjectText(e.target.value)} className="flex-1 p-3 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="Nhập tên môn..."/>
+                                        <button onClick={() => setIsCustomSubject(false)} className="px-4 py-2 border rounded-xl hover:bg-slate-50 text-slate-500 font-bold text-xs">Danh sách</button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button onClick={onClose} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition">Hủy</button>
+                                <button onClick={handleSave} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-lg transition">Lưu Ngay</button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        // --- NEW COMPONENT: CloudLibraryModal ---
+        const CloudLibraryModal = ({ user, onClose, onLoad }) => {
+            const [sets, setSets] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const fetchSets = async () => {
+                    if (!user) return;
+                    try {
+                        const q = query(collection(db, "users", user.uid, "content"), orderBy("createdAt", "desc"));
+                        const snap = await getDocs(q);
+                        setSets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                    } catch (e) { console.error(e); } finally { setLoading(false); }
+                };
+                fetchSets();
+            }, [user]);
+
+            const handleDelete = async (id, e) => {
+                e.stopPropagation();
+                if(!confirm("Bạn có chắc muốn xóa bộ câu hỏi này?")) return;
+                try { await deleteDoc(doc(db, "users", user.uid, "content", id)); setSets(sets.filter(s => s.id !== id)); } catch(err) { alert("Lỗi xóa: " + err.message); }
+            };
+
+            return (
+                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white glass-panel max-w-5xl w-full rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 flex justify-between items-center text-white">
+                            <h2 className="text-xl font-bold flex items-center gap-2"><Library/> THƯ VIỆN CỦA TÔI</h2>
+                            <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-full"><X size={24}/></button>
+                        </div>
+                        <div className="p-6 overflow-y-auto bg-slate-50 flex-1">
+                            {loading ? <div className="flex justify-center p-10"><Loader2 className="animate-spin text-blue-500" size={40}/></div> : (
+                                sets.length === 0 ? <div className="text-center text-slate-400 p-10">Chưa có dữ liệu đã lưu.</div> : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {sets.map(s => (
+                                            <div key={s.id} onClick={() => onLoad(s)} className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-blue-400 cursor-pointer shadow-sm hover:shadow-lg transition group relative flex flex-col h-full">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded bg-slate-100 text-slate-500`}>{s.subject || "Chung"}</span>
+                                                    <div className="text-[10px] text-slate-400 font-mono">{s.createdAt?.seconds ? new Date(s.createdAt.seconds * 1000).toLocaleDateString('vi-VN') : ''}</div>
+                                                </div>
+                                                <h3 className="font-bold text-slate-800 text-lg mb-2 line-clamp-2 flex-1">{s.topic || "Chủ đề không tên"}</h3>
+                                                <div className="text-xs text-slate-500 flex gap-2 items-center mt-2 border-t pt-2 border-slate-100">
+                                                    <FileText size={14}/> {s.questions ? JSON.parse(s.questions).length : 0} câu hỏi
+                                                </div>
+                                                <button onClick={(e) => handleDelete(s.id, e)} className="absolute bottom-4 right-4 text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition"><Trash2 size={18}/></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+
         // --- MAIN APP ---
         const App = () => {
             const [wizardStep, setWizardStep] = useState(0); 
@@ -807,6 +964,67 @@ CẤU TRÚC MẪU:
             const [isFullscreen, setIsFullscreen] = useState(false);
             const [showTutorial, setShowTutorial] = useState(false);
             const [jsonInput, setJsonInput] = useState(''); 
+
+            // --- FIREBASE STATE ---
+            const [user, setUser] = useState(null);
+            const [showLibrary, setShowLibrary] = useState(false);
+            const [isSaving, setIsSaving] = useState(false);
+            
+            // --- NEW: SAVE MODAL STATE ---
+            const [showSaveModal, setShowSaveModal] = useState(false);
+
+            useEffect(() => {
+                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                    setUser(currentUser);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            const handleLogin = async () => {
+                try { await signInWithPopup(auth, provider); } catch (error) { alert("Lỗi đăng nhập: " + error.message); }
+            };
+
+            const handleLogout = async () => { await signOut(auth); };
+
+            // CLICK "LƯU CLOUD" -> OPEN POPUP
+            const handleOpenSaveModal = () => {
+                if (!user) return alert("Vui lòng đăng nhập để lưu!");
+                if (questions.length === 0) return alert("Chưa có câu hỏi nào để lưu.");
+                setShowSaveModal(true);
+            };
+
+            // CONFIRM SAVE (INSIDE POPUP)
+            const handleConfirmSave = async (finalTopicName, finalSubject) => {
+                setIsSaving(true);
+                setShowSaveModal(false);
+                try {
+                    await addDoc(collection(db, "users", user.uid, "content"), {
+                        topic: finalTopicName,
+                        subject: finalSubject, // NEW FIELD
+                        questions: JSON.stringify(questions),
+                        createdAt: serverTimestamp(),
+                        type: 'quiz'
+                    });
+                    alert("✅ Đã lưu thành công vào Thư viện!");
+                } catch (e) { 
+                    if (e.code === 'permission-denied') {
+                        alert("⚠️ LỖI QUYỀN TRUY CẬP! Hãy cấu hình Rules trên Firebase.");
+                    } else {
+                        alert("Lỗi lưu: " + e.message); 
+                    }
+                } finally { setIsSaving(false); }
+            };
+
+            const handleLoadFromLibrary = (setData) => {
+                try {
+                    const parsedQs = JSON.parse(setData.questions);
+                    setQuestions(parsedQs);
+                    setTopic(setData.topic);
+                    setWizardStep(4);
+                    setActiveEditId(0);
+                    setShowLibrary(false);
+                } catch (e) { alert("Dữ liệu lỗi, không thể tải."); }
+            };
 
             const toggleFullscreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); setIsFullscreen(true); } else { if (document.exitFullscreen) { document.exitFullscreen(); setIsFullscreen(false); } } };
 
@@ -866,16 +1084,13 @@ CẤU TRÚC MẪU:
             };
             const validateImportedQuestions = (data) => { if (!Array.isArray(data)) throw new Error("Dữ liệu phải là mảng []"); return data.map((q, i) => ({ ...q, id: i, uId: `q-imp-${i}`, visualType: q.visualType||'none', visualData: q.visualData||'' })); };
             
-            // --- CẬP NHẬT QUAN TRỌNG: ÁP DỤNG CLEAN CHO NHẬP THỦ CÔNG ---
             const handleJsonImport = () => { 
                 try {
-                    // Layer 1: Thử parse nguyên bản trước (Ưu tiên)
                     const p = JSON.parse(jsonInput);
                     setQuestions(validateImportedQuestions(p));
                     setWizardStep(4);
                     setActiveEditId(0);
                 } catch (e1) {
-                    // Layer 2: Nếu lỗi, thử dùng bộ lọc thông minh (Cứu hộ)
                     console.warn("Parse trực tiếp thất bại, đang thử Cleaning Mode...", e1);
                     try {
                         const cleaned = cleanGeminiJson(jsonInput);
@@ -884,7 +1099,6 @@ CẤU TRÚC MẪU:
                         setWizardStep(4);
                         setActiveEditId(0);
                     } catch (e2) {
-                        // Nếu vẫn lỗi thì báo lỗi chi tiết
                         setErrorMsg("Lỗi cú pháp JSON: " + e2.message + ". Hãy kiểm tra lại dấu ngoặc hoặc dấu phẩy.");
                     }
                 }
@@ -898,7 +1112,6 @@ CẤU TRÚC MẪU:
                 const a = document.createElement('a'); a.href = d; a.download = fileName; a.click(); 
             };
             
-            // --- CẬP NHẬT LOGIC COPY PROMPT (SUPER PROMPT - ĐA MÔN) ---
             const handleCopyPrompt = () => { 
                 const currentTopic = topic.trim() || "[ĐIỀN CHỦ ĐỀ CỦA BẠN VÀO ĐÂY]";
                 
@@ -986,6 +1199,19 @@ CẤU TRÚC MẪU:
             // --- RENDERERS ---
             const renderIntro = () => (
                 <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                    {/* NEW: LOGIN BUTTON HEADER */}
+                    <div className="absolute top-4 right-4 z-50">
+                        {user ? (
+                            <div className="flex items-center gap-2 bg-white/90 p-2 rounded-full shadow-md border border-slate-200 backdrop-blur-sm">
+                                <img src={user.photoURL} className="w-8 h-8 rounded-full border border-orange-200" />
+                                <span className="text-sm font-bold text-slate-700 hidden md:block">{user.displayName}</span>
+                                <button onClick={handleLogout} className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-500 rounded-full transition" title="Đăng xuất"><LogOut size={16}/></button>
+                            </div>
+                        ) : (
+                            <button onClick={handleLogin} className="flex items-center gap-2 bg-white hover:bg-slate-50 px-4 py-2 rounded-full shadow-md text-sm font-bold text-blue-600 border border-blue-100 transition hover:shadow-lg transform hover:-translate-y-0.5"><LogIn size={16}/> Đăng nhập Google</button>
+                        )}
+                    </div>
+
                     <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white/80 glass-panel p-8 rounded-2xl shadow-2xl max-w-lg w-full text-center">
                         <img src="logo.png" onError={(e) => e.target.style.display = 'none'} className="w-24 h-24 object-contain mx-auto mb-4" />
                         <h1 className="text-3xl font-black mb-1 text-orange-600 uppercase tracking-tight">ỨNG DỤNG ÔN TẬP</h1>
@@ -1007,27 +1233,35 @@ CẤU TRÚC MẪU:
                 </div>
             );
 
-            // --- STEP 0.5: MODE SELECT ---
+            // --- STEP 0.5: MODE SELECT (UPDATED WITH LIBRARY BUTTON) ---
             const renderModeSelection = () => (
                 <div className="fixed inset-0 z-40 overflow-y-auto flex py-10 px-4">
                     <motion.div 
                         initial={{opacity:0, scale:0.95}} 
                         animate={{opacity:1, scale:1}} 
-                        className="m-auto bg-white/95 glass-panel p-10 rounded-3xl shadow-2xl max-w-4xl w-full border-4 border-white/50 relative"
+                        className="m-auto bg-white/95 glass-panel p-10 rounded-3xl shadow-2xl max-w-6xl w-full border-4 border-white/50 relative"
                     >
                         <h2 className="text-3xl font-black text-center mb-10 text-orange-600 uppercase">Chọn Chế Độ Dữ Liệu</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <button onClick={() => { setInputMode('ai'); setWizardStep(1); }} className="group relative bg-orange-50/50 hover:bg-orange-100/50 border-2 border-orange-200 p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-lg">
                                 <div className="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">Cần Key</div>
                                 <Zap size={60} className="text-orange-500 mb-4 mx-auto group-hover:scale-110 transition"/>
                                 <h3 className="text-2xl font-bold text-orange-700 mb-2 text-center">AI Tự Động</h3>
-                                <p className="text-orange-600 text-center text-sm">Nhập chủ đề, AI sẽ tự soạn câu hỏi và đáp án cho bạn.</p>
+                                <p className="text-orange-600 text-center text-sm">Nhập chủ đề, AI sẽ tự soạn câu hỏi.</p>
                             </button>
                             <button onClick={() => { setInputMode('manual'); setWizardStep(2); }} className="group relative bg-slate-50/50 hover:bg-slate-100/50 border-2 border-slate-200 p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-lg">
                                 <div className="absolute top-4 right-4 bg-slate-500 text-white text-xs font-bold px-2 py-1 rounded">Miễn Phí</div>
                                 <FileJson size={60} className="text-slate-500 mb-4 mx-auto group-hover:scale-110 transition"/>
                                 <h3 className="text-2xl font-bold text-slate-700 mb-2 text-center">Thủ Công / File</h3>
-                                <p className="text-slate-600 text-center text-sm">Tự nhập JSON hoặc tải file câu hỏi đã soạn sẵn.</p>
+                                <p className="text-slate-600 text-center text-sm">Tự nhập JSON hoặc tải file có sẵn.</p>
+                            </button>
+                            
+                            {/* NEW: LIBRARY BUTTON */}
+                            <button onClick={() => { if(user) setShowLibrary(true); else alert("Vui lòng đăng nhập để xem thư viện!"); }} className="group relative bg-blue-50/50 hover:bg-blue-100/50 border-2 border-blue-200 p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-lg">
+                                <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">Cloud</div>
+                                <Library size={60} className="text-blue-500 mb-4 mx-auto group-hover:scale-110 transition"/>
+                                <h3 className="text-2xl font-bold text-blue-700 mb-2 text-center">Thư Viện Của Tôi</h3>
+                                <p className="text-blue-600 text-center text-sm">Mở các bộ câu hỏi đã lưu trên đám mây.</p>
                             </button>
                         </div>
                         <button onClick={() => setWizardStep(0)} className="mt-8 w-full py-3 text-slate-400 font-bold hover:text-orange-600 text-center transition-colors">Quay lại màn hình chính</button>
@@ -1194,7 +1428,23 @@ CẤU TRÚC MẪU:
                             </div>
 
                             <div className="flex gap-2">
-                                <button onClick={handleExportQuestions} className="bg-white border-2 border-slate-200 hover:border-orange-400 text-slate-700 hover:text-orange-600 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm">
+                                {/* NEW: FIREBASE ACTIONS */}
+                                {user ? (
+                                    <>
+                                        <button onClick={() => setShowLibrary(true)} className="bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm">
+                                            <BookOpen size={18}/> Thư viện
+                                        </button>
+                                        <button onClick={handleOpenSaveModal} disabled={isSaving} className="bg-green-50 border border-green-200 hover:bg-green-100 text-green-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm">
+                                            {isSaving ? <Loader2 size={18} className="animate-spin"/> : <Upload size={18}/>} Lưu Cloud
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button onClick={handleLogin} className="text-xs bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 px-3 py-2 rounded-lg font-bold flex items-center gap-1">
+                                        <LogIn size={14}/> Đăng nhập để Lưu
+                                    </button>
+                                )}
+
+                                <button onClick={handleExportQuestions} className="bg-white border-2 border-slate-200 hover:border-orange-400 text-slate-700 hover:text-orange-600 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2">
                                     <Download size={18}/> Lưu JSON
                                 </button>
                                 <button onClick={handleStartGame} className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-6 py-2 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg transition transform hover:-translate-y-0.5">
@@ -1507,6 +1757,9 @@ CẤU TRÚC MẪU:
             return (
                 <div className="min-h-screen font-sans text-slate-800 bg-orange-50 selection:bg-orange-200">
                     {showTutorial && <InstructionModal onClose={() => setShowTutorial(false)} />}
+                    {showLibrary && user && <CloudLibraryModal user={user} onClose={() => setShowLibrary(false)} onLoad={handleLoadFromLibrary} />}
+                    {showSaveModal && <SaveModal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)} onSave={handleConfirmSave} defaultTopic={topic} />}
+                    
                     {wizardStep === 0 && renderIntro()}
                     
                     {/* STEP 0.5: MODE SELECTION */}
