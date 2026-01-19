@@ -91,7 +91,8 @@
             font-weight: 600;
             user-select: none;
             will-change: transform, opacity;
-            text-shadow: 0 0 10px var(--accent-glow);
+            /* OPTIMIZATION: Removed heavy text-shadow for performance */
+            /* text-shadow: 0 0 10px var(--accent-glow); */
         }
         
         [data-theme="dark"] .math-symbol {
@@ -237,6 +238,21 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 10px; opacity: 0.3; }
         ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+
+        /* OPTIMIZATION: Mouse Trail Style with GPU acceleration */
+        #mouse-trail {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            will-change: transform;
+            transform: translate3d(-100px, -100px, 0);
+        }
     </style>
 </head>
 <body>
@@ -259,8 +275,8 @@
 
         function updateTrail() {
             if(trail) {
-                trail.style.left = mouseX + 'px';
-                trail.style.top = mouseY + 'px';
+                // OPTIMIZATION: Use transform translate3d for GPU acceleration instead of top/left
+                trail.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
             }
             isMoving = false;
         }
@@ -357,16 +373,16 @@
         const FloatingMathBackground = () => {
             const symbols = ["∫", "∑", "∂", "∆", "π", "∞", "√", "θ", "λ", "Ω", "μ", "σ", "φ", "∀", "∃", "∈"];
             const particles = useMemo(() => {
-                // OPTIMIZATION: Reduced particles from 25 to 12 to improve performance
-                return [...Array(12)].map((_, i) => ({
+                // OPTIMIZATION: Reduced particles to 10 and removed blur
+                return [...Array(10)].map((_, i) => ({
                     id: i,
                     symbol: symbols[Math.floor(Math.random() * symbols.length)],
                     left: Math.random() * 95,
                     duration: 20 + Math.random() * 30,
                     delay: Math.random() * -30,
                     size: Math.random() * 2 + 1, 
-                    blur: Math.random() * 3,
-                    opacity: Math.random() * 0.4 + 0.1
+                    // blur: Math.random() * 3, // REMOVED BLUR for performance
+                    opacity: Math.random() * 0.3 + 0.1
                 }));
             }, []);
 
@@ -379,7 +395,7 @@
                             fontSize: `${p.size}rem`,
                             animation: `floatRotate ${p.duration}s linear infinite`, 
                             animationDelay: `${p.delay}s`,
-                            filter: `blur(${p.blur}px)`,
+                            // filter: `blur(${p.blur}px)`, // REMOVED BLUR for performance
                             opacity: p.opacity
                         }}>
                             {p.symbol}
