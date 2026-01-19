@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ỨNG DỤNG ÔN TẬP - PRO UI (Cloud Library Full)</title>
+    <title>ỨNG DỤNG ÔN TẬP - PRO UI (Cloud Library Full + Export DOCX Tabs)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,6 +18,11 @@
     <script src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js"></script>
     <!-- 3. Mermaid.js: Vẽ sơ đồ Sinh học/Quy trình/Sử/Văn -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+
+    <!-- [NEW] 4. DOCX.js: Xuất file Word (Phiên bản 7.1.0 ổn định cho Browser) -->
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <!-- [NEW] 5. FileSaver.js: Hỗ trợ lưu file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <!-- Import Map -->
     <script type="importmap">
@@ -149,7 +154,7 @@
         import { 
             Trophy, Activity, Check, Play, Settings, RefreshCw, Calculator, 
             FlaskConical, Atom, Key, BookOpen, Users, Loader2, Edit3, Save, 
-            Trash2, ArrowRight, ArrowLeft, Dna, Target, Timer, Zap, Crown, Skull, Swords, Medal, Gift, AlertTriangle, GraduationCap, Maximize, Minimize, Send, Hand, HelpCircle, Repeat, Home, Eye, Sigma, Beaker, Shapes, Monitor, FileText, Info, Lightbulb, Download, Upload, Copy, FileJson, Grid, Shuffle, User, X, Wand2, Image as ImageIcon, Brain, Table2, List, GitBranch, BarChart3, Cloud, LogOut, LogIn, Library, Plus
+            Trash2, ArrowRight, ArrowLeft, Dna, Target, Timer, Zap, Crown, Skull, Swords, Medal, Gift, AlertTriangle, GraduationCap, Maximize, Minimize, Send, Hand, HelpCircle, Repeat, Home, Eye, Sigma, Beaker, Shapes, Monitor, FileText, Info, Lightbulb, Download, Upload, Copy, FileJson, Grid, Shuffle, User, X, Wand2, Image as ImageIcon, Brain, Table2, List, GitBranch, BarChart3, Cloud, LogOut, LogIn, Library, Plus, FileType2
         } from 'lucide-react';
 
         // --- FIREBASE SETUP ---
@@ -173,6 +178,24 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
+
+        // --- CUSTOM DOWNLOAD FUNCTION (FALLBACK) ---
+        // Hàm này đảm bảo file luôn tải được kể cả khi FileSaver bị chặn
+        const safeSaveAs = (blob, filename) => {
+            if (window.saveAs) {
+                window.saveAs(blob, filename);
+            } else {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            }
+        };
 
         // --- HELPER: KATEX AUTO-RENDER ---
         const useKaTeXAutoRender = () => {
@@ -235,7 +258,7 @@
 
         // --- VISUAL RENDERERS ---
 
-        // 1. GraphRenderer (Full Expanded Logic)
+        // 1. GraphRenderer
         const GraphRenderer = ({ formula }) => {
             const rootRef = useRef(null);
             useEffect(() => {
@@ -284,7 +307,7 @@
             );
         };
 
-        // 2. TableRenderer (Full Expanded Logic)
+        // 2. TableRenderer
         const TableRenderer = ({ data }) => {
             if (!data) return null;
             const rows = data.trim().split(/\r?\n/).map(row => row.split(',')); 
@@ -322,7 +345,7 @@
             );
         };
 
-        // 3. VariationTableRenderer (Full Expanded Logic - Complex Component)
+        // 3. VariationTableRenderer
         const VariationTableRenderer = ({ data }) => {
             if (!data) return null;
             const lines = data.trim().split(/\r?\n/);
@@ -405,7 +428,7 @@
             );
         };
 
-        // 4. ChemistryRenderer (Full Expanded Logic)
+        // 4. ChemistryRenderer
         const ChemistryRenderer = ({ structure }) => {
             const canvasRef = useRef(null);
             useEffect(() => {
@@ -432,7 +455,7 @@
             );
         };
 
-        // 5. SVGRenderer (Full Expanded Logic)
+        // 5. SVGRenderer
         const SVGRenderer = ({ svgCode }) => {
             const cleanSvg = useMemo(() => {
                 if (!svgCode) return "";
@@ -453,7 +476,7 @@
             );
         };
 
-        // 6. MermaidRenderer (Full Expanded Logic)
+        // 6. MermaidRenderer
         const MermaidRenderer = ({ chart }) => {
             const [svg, setSvg] = useState('');
             useEffect(() => {
@@ -1026,6 +1049,167 @@ CẤU TRÚC MẪU:
                 } catch (e) { alert("Dữ liệu lỗi, không thể tải."); }
             };
 
+            // --- NEW FEATURE: EXPORT DOCX (WITH TABS - NO TABLE) ---
+            const handleExportDocx = async () => {
+                if (!window.docx) return alert("Đang tải thư viện DOCX... Vui lòng đợi 5 giây rồi thử lại!");
+                if (!questions || questions.length === 0) return alert("Chưa có câu hỏi nào để xuất!");
+
+                try {
+                    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, PageBreak, AlignmentType, TabStopType } = window.docx;
+
+                    const docChildren = [];
+
+                    // HEADER
+                    docChildren.push(
+                        new Paragraph({
+                            children: [new TextRun({ text: `ĐỀ ÔN TẬP: ${topic.toUpperCase() || "CHỦ ĐỀ MỚI"}`, bold: true, size: 28 })],
+                            heading: HeadingLevel.HEADING_1,
+                            alignment: AlignmentType.CENTER,
+                            spacing: { after: 200 }
+                        }),
+                        new Paragraph({
+                            children: [new TextRun({ text: "GV: Thái Minh Nguyên", italics: true, size: 24 })],
+                            alignment: AlignmentType.CENTER,
+                            spacing: { after: 400 }
+                        })
+                    );
+
+                    // SECTION 1: CÂU HỎI
+                    questions.forEach((q, idx) => {
+                        // Câu hỏi
+                        docChildren.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `Câu ${idx + 1}: `, bold: true, size: 24 }),
+                                    new TextRun({ text: q.question, size: 24 })
+                                ],
+                                spacing: { before: 200, after: 100 }
+                            })
+                        );
+
+                        // Visual note
+                        if (q.visualType !== 'none') {
+                             docChildren.push(
+                                new Paragraph({
+                                    children: [new TextRun({ text: `[Hình minh họa: ${q.visualType} - Xem trên ứng dụng]`, italics: true, color: "888888", size: 20 })],
+                                    spacing: { after: 100 }
+                                })
+                            );
+                        }
+
+                        // --- OPTIONS USING TABS (NO TABLE) ---
+                        // Tính toán Tab Stop: Khoảng 1/2 trang A4 (~4500 twips)
+                        const tabPosition = 4500;
+
+                        // Dòng 1: Đáp án A và B
+                        docChildren.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `A. ${q.options[0]}` }),
+                                    new TextRun({ text: `\tB. ${q.options[1]}` })
+                                ],
+                                tabStops: [
+                                    { type: "left", position: tabPosition } // Canh Tab trái tại vị trí 4500
+                                ],
+                                spacing: { after: 50 }
+                            })
+                        );
+
+                        // Dòng 2: Đáp án C và D
+                        docChildren.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `C. ${q.options[2]}` }),
+                                    new TextRun({ text: `\tD. ${q.options[3]}` })
+                                ],
+                                tabStops: [
+                                    { type: "left", position: tabPosition }
+                                ],
+                                spacing: { after: 200 } // Cách câu tiếp theo
+                            })
+                        );
+                        
+                    });
+
+                    // SECTION 2: ANSWER KEY (Trang mới)
+                    docChildren.push(new Paragraph({ children: [new PageBreak()] }));
+                    
+                    docChildren.push(
+                        new Paragraph({
+                            children: [new TextRun({ text: "LỜI GIẢI CHI TIẾT", bold: true, size: 28, color: "EA580C" })],
+                            heading: HeadingLevel.HEADING_1,
+                            alignment: AlignmentType.CENTER,
+                            spacing: { after: 300 }
+                        })
+                    );
+
+                    docChildren.push(new Paragraph({ text: "BẢNG ĐÁP ÁN:", bold: true }));
+                    
+                    // Grid Answer Key (Giữ lại bảng cho phần đáp án nhanh vì nó gọn)
+                    const gridRows = [];
+                    let currentRow = [];
+                    questions.forEach((q, idx) => {
+                        currentRow.push(`${idx+1}.${String.fromCharCode(65+q.correctAnswer)}`);
+                        if (currentRow.length === 5 || idx === questions.length - 1) {
+                            gridRows.push(currentRow);
+                            currentRow = [];
+                        }
+                    });
+
+                    docChildren.push(
+                        new Table({
+                            width: { size: 100, type: WidthType.PERCENTAGE },
+                             rows: gridRows.map(rowItems => 
+                                new TableRow({
+                                    children: rowItems.map(txt => new TableCell({
+                                        children: [new Paragraph({text: txt, alignment: AlignmentType.CENTER})],
+                                        borders: { top: {style: BorderStyle.SINGLE}, bottom: {style: BorderStyle.SINGLE}, left: {style: BorderStyle.SINGLE}, right: {style: BorderStyle.SINGLE} },
+                                        width: { size: 20, type: WidthType.PERCENTAGE }
+                                    })).concat(
+                                        Array(5 - rowItems.length).fill(null).map(() => new TableCell({ children: [], width: { size: 20, type: WidthType.PERCENTAGE } }))
+                                    )
+                                })
+                             )
+                        })
+                    );
+                    docChildren.push(new Paragraph({ text: "", spacing: { after: 200 } }));
+
+                    // Detailed Explanations
+                    questions.forEach((q, idx) => {
+                        docChildren.push(
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `Câu ${idx + 1}: `, bold: true, color: "EA580C" }),
+                                    new TextRun({ text: `Đáp án ${String.fromCharCode(65 + q.correctAnswer)}`, bold: true })
+                                ],
+                                spacing: { before: 100 }
+                            }),
+                            new Paragraph({
+                                children: [new TextRun({ text: "Giải thích: ", italics: true }), new TextRun(q.explanation)],
+                                spacing: { after: 200 }
+                            })
+                        );
+                    });
+
+                    const doc = new Document({
+                        sections: [{
+                            properties: {},
+                            children: docChildren
+                        }]
+                    });
+
+                    const blob = await Packer.toBlob(doc);
+                    const fileName = `De_On_Tap_${topic ? topic.replace(/\s+/g, '_') : "Moi"}.docx`;
+                    
+                    // Call fallback save
+                    safeSaveAs(blob, fileName);
+
+                } catch (e) {
+                    console.error(e);
+                    alert("Lỗi xuất file: " + e.message);
+                }
+            };
+
             const toggleFullscreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); setIsFullscreen(true); } else { if (document.exitFullscreen) { document.exitFullscreen(); setIsFullscreen(false); } } };
 
             // --- HANDLERS ---
@@ -1443,6 +1627,11 @@ CẤU TRÚC MẪU:
                                         <LogIn size={14}/> Đăng nhập để Lưu
                                     </button>
                                 )}
+
+                                {/* NEW: EXPORT DOCX BUTTON */}
+                                <button onClick={handleExportDocx} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2">
+                                    <FileType2 size={18}/> Xuất Word
+                                </button>
 
                                 <button onClick={handleExportQuestions} className="bg-white border-2 border-slate-200 hover:border-orange-400 text-slate-700 hover:text-orange-600 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2">
                                     <Download size={18}/> Lưu JSON
