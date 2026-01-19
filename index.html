@@ -106,7 +106,7 @@
         /* --- GLASS CARD ULTRA --- */
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border); 
             box-shadow: 0 4px 20px var(--glass-shadow);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -244,13 +244,26 @@
     <div id="mouse-trail"></div>
 
     <script>
+        const trail = document.getElementById('mouse-trail');
+        let mouseX = 0, mouseY = 0;
+        let isMoving = false;
+
         document.addEventListener('mousemove', (e) => {
-            const trail = document.getElementById('mouse-trail');
-            if(trail) {
-                trail.style.left = e.clientX + 'px';
-                trail.style.top = e.clientY + 'px';
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (!isMoving) {
+                requestAnimationFrame(updateTrail);
+                isMoving = true;
             }
         });
+
+        function updateTrail() {
+            if(trail) {
+                trail.style.left = mouseX + 'px';
+                trail.style.top = mouseY + 'px';
+            }
+            isMoving = false;
+        }
     </script>
 
     <script type="text/babel">
@@ -283,6 +296,8 @@
                 { filename: "gameoxyz.html", title: "Oxyz Joyride", category: "Giải cứu Toán học", iconType: "GameJoyride", color: "from-blue-500 to-cyan-500", plays: "New" },
             ],
             tools: [
+                // NEW HOT TOOL - ADDED AT THE TOP
+                { filename: "taode.html", path: "app/", title: "Hỗ Trợ Tạo Đề", desc: "Soạn thảo và trộn đề thi trắc nghiệm", iconType: "ToolExam", color: "from-rose-500 to-orange-500", highlight: true },
                 { filename: "tkb.html", title: "Trích Xuất TKB", desc: "Xem thời khóa biểu", iconType: "ToolCalendar", color: "text-rose-400" },
                 { filename: "congcu.html", title: "Công Cụ Tạo Prompt", desc: "Hỗ trợ giáo viên tạo prompt AI", iconType: "ToolPrompt", color: "text-pink-400" },
                 { filename: "quanlihocsinh.html", title: "Theo Dõi Hạnh Kiểm", desc: "Công cụ quản lý nề nếp", iconType: "ToolConduct", color: "text-blue-500" },
@@ -301,6 +316,7 @@
                 { filename: "vectokg.html", path: "app/", title: "Tọa độ Oxyz", desc: "Tính toán và trực quan hóa vectơ", iconType: "ToolVector", color: "text-cyan-500" },
             ],
             selfStudy: [
+                { filename: "giasu.html", path: "game/", title: "Gia Sư AI Toán", desc: "Học toán cùng trợ lý AI thông minh", iconType: "StudyTutor", color: "from-cyan-500 to-blue-500" },
                 { filename: "tuhoctienganh.html", path: "app/", title: "Học Từ Vựng Thông Minh", desc: "Mở rộng vốn từ vựng tiếng Anh mỗi ngày", iconType: "StudyEnglish", color: "from-blue-500 to-indigo-500" },
                 { filename: "toantienganh.html", path: "app/", title: "Từ Vựng Toán Tiếng Anh", desc: "Chinh phục thuật ngữ Toán học", iconType: "StudyMathEng", color: "from-violet-500 to-fuchsia-500" },
                 { filename: "tuhoctoan.html", path: "app/", title: "Tự Học", desc: "Rèn luyện tư duy tự học môn BẤT KÌ", iconType: "StudyMath", color: "from-emerald-500 to-teal-500" }
@@ -341,7 +357,8 @@
         const FloatingMathBackground = () => {
             const symbols = ["∫", "∑", "∂", "∆", "π", "∞", "√", "θ", "λ", "Ω", "μ", "σ", "φ", "∀", "∃", "∈"];
             const particles = useMemo(() => {
-                return [...Array(25)].map((_, i) => ({
+                // OPTIMIZATION: Reduced particles from 25 to 12 to improve performance
+                return [...Array(12)].map((_, i) => ({
                     id: i,
                     symbol: symbols[Math.floor(Math.random() * symbols.length)],
                     left: Math.random() * 95,
@@ -464,26 +481,82 @@
                      </path>
                 </svg>
             ),
-            // NEW ICONS FOR SELF STUDY
+            // NEW ICONS FOR SELF STUDY - UPDATED ANIMATIONS
             StudyEnglish: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <rect x="15" y="20" width="70" height="60" rx="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-                    <path d="M15 20 L50 45 L85 20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                    <text x="50" y="65" textAnchor="middle" fill="currentColor" fontSize="30" fontWeight="bold">AZ</text>
+                    <text x="30" y="70" fontSize="30" fontWeight="bold" fill="currentColor" opacity="0.7">
+                        A
+                        <animate attributeName="y" values="70;40;70" dur="3s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
+                    </text>
+                    <text x="60" y="50" fontSize="25" fontWeight="bold" fill="currentColor" opacity="0.7">
+                        B
+                        <animate attributeName="y" values="50;30;50" dur="4s" begin="1s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="4s" begin="1s" repeatCount="indefinite" />
+                    </text>
+                    <text x="70" y="80" fontSize="30" fontWeight="bold" fill="currentColor" opacity="0.7">
+                        C
+                        <animate attributeName="y" values="80;50;80" dur="3.5s" begin="0.5s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="3.5s" begin="0.5s" repeatCount="indefinite" />
+                    </text>
+                    <path d="M10 90 Q50 100 90 90" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.5"/>
                 </svg>
             ),
             StudyMathEng: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                     <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="3" fill="none"/>
-                     <text x="35" y="55" textAnchor="middle" fill="currentColor" fontSize="24" fontWeight="bold">∑</text>
-                     <text x="65" y="55" textAnchor="middle" fill="currentColor" fontSize="24" fontWeight="bold">A</text>
+                     <circle cx="50" cy="50" r="15" fill="currentColor" opacity="0.2">
+                        <animate attributeName="r" values="15;18;15" dur="2s" repeatCount="indefinite"/>
+                     </circle>
+                     <text x="50" y="55" textAnchor="middle" fill="currentColor" fontSize="14" fontWeight="bold">EN</text>
+                     <g>
+                        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="8s" repeatCount="indefinite"/>
+                        <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" opacity="0.5"/>
+                        <text x="50" y="15" textAnchor="middle" fill="currentColor" fontSize="14" fontWeight="bold">∑</text>
+                        <text x="50" y="95" textAnchor="middle" fill="currentColor" fontSize="14" fontWeight="bold">π</text>
+                        <text x="10" y="55" textAnchor="middle" fill="currentColor" fontSize="14" fontWeight="bold">√</text>
+                        <text x="90" y="55" textAnchor="middle" fill="currentColor" fontSize="14" fontWeight="bold">x</text>
+                     </g>
                 </svg>
             ),
             StudyMath: ({ size = 48, className }) => (
                 <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
-                    <path d="M20 50 Q35 20 50 50 T80 50" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round"/>
-                    <path d="M20 30 L80 30" stroke="currentColor" strokeWidth="3" strokeDasharray="5,5"/>
-                    <path d="M50 20 L50 80" stroke="currentColor" strokeWidth="3" strokeDasharray="5,5"/>
+                    <path stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                        <animate attributeName="d" 
+                            values="M25,25 L75,25 L75,75 L25,75 Z; M50,20 L80,50 L50,80 L20,50 Z; M25,25 L75,25 L75,75 L25,75 Z" 
+                            dur="5s" 
+                            repeatCount="indefinite"/>
+                    </path>
+                    <circle cx="50" cy="50" r="4" fill="currentColor">
+                        <animate attributeName="opacity" values="1;0.2;1" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                    <path d="M10 50 L90 50 M50 10 L50 90" stroke="currentColor" strokeWidth="1" opacity="0.3"/>
+                </svg>
+            ),
+            // NEW ICON: ToolExam (Exam Creation)
+            ToolExam: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <rect x="20" y="15" width="60" height="70" rx="5" stroke="currentColor" strokeWidth="3" fill="none" />
+                    <path d="M30 30 H70 M30 45 H70 M30 60 H50" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    <circle cx="75" cy="75" r="15" fill="currentColor" opacity="0.2" />
+                    <path d="M70 70 L80 80 M80 70 L70 80" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    <circle cx="75" cy="75" r="18" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4">
+                        <animateTransform attributeName="transform" type="rotate" from="0 75 75" to="360 75 75" dur="10s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            ),
+            // NEW ICON: StudyTutor (AI Tutor)
+            StudyTutor: ({ size = 48, className }) => (
+                <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none">
+                    <rect x="25" y="25" width="50" height="45" rx="8" stroke="currentColor" strokeWidth="3" fill="none"/>
+                    <path d="M25 45 H20 M75 45 H80 M50 25 V15" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                    <circle cx="50" cy="12" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <circle cx="40" cy="42" r="5" fill="currentColor">
+                        <animate attributeName="r" values="5;3;5" dur="1.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="60" cy="42" r="5" fill="currentColor">
+                        <animate attributeName="r" values="5;3;5" dur="1.5s" begin="0.2s" repeatCount="indefinite"/>
+                    </circle>
+                    <path d="M35 58 Q50 65 65 58" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
                 </svg>
             ),
             // --- NEW TEACHING TOOLS ICONS ---
@@ -563,7 +636,9 @@
             StudyEnglish: (p) => <CustomIcons.StudyEnglish {...p} />,
             StudyMathEng: (p) => <CustomIcons.StudyMathEng {...p} />,
             StudyMath: (p) => <CustomIcons.StudyMath {...p} />,
+            ToolExam: (p) => <CustomIcons.ToolExam {...p} />,
             // Add new icons to the map
+            StudyTutor: (p) => <CustomIcons.StudyTutor {...p} />,
             ToolIntegral: (p) => <CustomIcons.ToolIntegral {...p} />,
             ToolCurve: (p) => <CustomIcons.ToolCurve {...p} />,
             ToolVector: (p) => <CustomIcons.ToolVector {...p} />,
@@ -833,17 +908,20 @@
                         </h2>
                         <p className="text-[var(--text-secondary)] mt-1 text-xs md:text-sm">Phát triển năng lực lãnh đạo bản thân và thấu cảm.</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    {/* OPTIMIZED: Reduced grid gap and padding */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                         {filtered.map((item, i) => {
                             const ItemIcon = CustomIcons[item.iconType] || Icons.Gamepad2;
                             return (
-                                <div key={i} onClick={() => openViewer({...item, category: 'tool'})} className="glass-card p-6 rounded-2xl flex flex-col gap-4 group cursor-pointer hover:bg-indigo-900/10 border border-indigo-500/20">
-                                    <div className={`icon-box w-14 h-14 bg-[var(--glass-bg)] ${item.color} border border-white/10 shadow-lg group-hover:border-current p-2`}>
-                                        <ItemIcon size={36} />
+                                /* OPTIMIZED: Reduced padding from p-6 to p-4 */
+                                <div key={i} onClick={() => openViewer({...item, category: 'tool'})} className="glass-card p-4 rounded-2xl flex flex-col gap-3 group cursor-pointer hover:bg-indigo-900/10 border border-indigo-500/20">
+                                    {/* OPTIMIZED: Reduced icon box size */}
+                                    <div className={`icon-box w-12 h-12 bg-[var(--glass-bg)] ${item.color} border border-white/10 shadow-lg group-hover:border-current p-2`}>
+                                        <ItemIcon size={32} />
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-indigo-300 transition-colors">{item.title}</h3>
-                                        <p className="text-[var(--text-secondary)] text-xs mb-4 leading-relaxed font-medium">{item.desc}</p>
+                                        <p className="text-[var(--text-secondary)] text-xs mb-3 leading-relaxed font-medium">{item.desc}</p>
                                         <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
                                             <div className={`h-full w-1/3 bg-current ${item.color} group-hover:w-full transition-all duration-700`}></div>
                                         </div>
@@ -865,24 +943,27 @@
                         </h2>
                         <p className="text-[var(--text-secondary)] text-xs md:text-sm">Nâng cao kiến thức với các công cụ hỗ trợ tự học hiệu quả.</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                         {allData.selfStudy.map((item, i) => {
                             const ItemIcon = CustomIcons[item.iconType] || Icons.BookOpen;
+                            const textColor = item.color.split(' ')[0].replace('from-', 'text-');
+                            
                             return (
+                                /* OPTIMIZED: Reduced padding from p-6 to p-5 */
                                 <div key={i} onClick={() => openViewer({...item, category: 'tool'})} 
                                      className="group relative overflow-hidden rounded-2xl p-1 cursor-pointer hover:-translate-y-2 transition-transform duration-300">
-                                    {/* Gradient Border/Glow */}
                                     <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-30 group-hover:opacity-100 blur-sm transition-opacity`}></div>
                                     
-                                    <div className="relative h-full bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl p-6 flex flex-col items-center text-center border border-white/10 group-hover:border-transparent transition-colors">
-                                        <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${item.color} p-0.5 mb-4 shadow-lg`}>
+                                    <div className="relative h-full bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl p-5 flex flex-col items-center text-center border border-white/10 group-hover:border-transparent transition-colors">
+                                        {/* OPTIMIZED: Reduced icon size w-20 -> w-16 */}
+                                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${item.color} p-0.5 mb-3 shadow-lg`}>
                                             <div className="w-full h-full bg-[var(--bg-deep)] rounded-full flex items-center justify-center">
-                                                 <ItemIcon size={40} className={`text-transparent bg-clip-text bg-gradient-to-br ${item.color}`} />
+                                                 <ItemIcon size={32} className={textColor} />
                                             </div>
                                         </div>
-                                        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-white transition-colors">{item.title}</h3>
-                                        <p className="text-sm text-[var(--text-secondary)] mb-6">{item.desc}</p>
-                                        <button className={`px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider bg-gradient-to-r ${item.color} text-white shadow-lg opacity-90 group-hover:opacity-100 transform group-hover:scale-105 transition-all`}>
+                                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 group-hover:text-white transition-colors">{item.title}</h3>
+                                        <p className="text-xs text-[var(--text-secondary)] mb-4">{item.desc}</p>
+                                        <button className={`px-5 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider bg-gradient-to-r ${item.color} text-white shadow-lg opacity-90 group-hover:opacity-100 transform group-hover:scale-105 transition-all`}>
                                             Bắt đầu ngay
                                         </button>
                                     </div>
@@ -907,19 +988,21 @@
                         </h2>
                         <p className="text-[var(--text-secondary)] text-xs md:text-sm">Các dự án và trò chơi giáo dục giúp trang bị kỹ năng cần thiết.</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {displayProjects.map((proj, i) => {
                             const ProjIcon = CustomIcons[proj.iconType] || Icons.Gamepad2;
                             return (
-                                <div key={i} onClick={() => openViewer({...proj, category: 'project'})} className="glass-card p-5 rounded-2xl flex items-center gap-5 group cursor-pointer hover:bg-rose-900/10 border border-rose-500/20">
-                                    <div className={`icon-box w-16 h-16 bg-[var(--glass-bg)] text-rose-500 border border-white/10 shadow-lg group-hover:scale-110 p-2`}>
-                                        <ProjIcon size={40} />
+                                /* OPTIMIZED: Reduced padding p-5 -> p-4 */
+                                <div key={i} onClick={() => openViewer({...proj, category: 'project'})} className="glass-card p-4 rounded-2xl flex items-center gap-4 group cursor-pointer hover:bg-rose-900/10 border border-rose-500/20">
+                                    {/* OPTIMIZED: Reduced icon box w-16 -> w-12 */}
+                                    <div className={`icon-box w-12 h-12 bg-[var(--glass-bg)] text-rose-500 border border-white/10 shadow-lg group-hover:scale-110 p-2`}>
+                                        <ProjIcon size={32} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-rose-400 transition-colors">{proj.title}</h3>
-                                        <p className="text-[var(--text-secondary)] text-xs font-medium">{proj.desc}</p>
-                                        <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest group-hover:gap-3 transition-all">
-                                            KHÁM PHÁ <Icons.ArrowRight size={12}/>
+                                        <h3 className="text-base font-bold text-[var(--text-primary)] mb-1 group-hover:text-rose-400 transition-colors">{proj.title}</h3>
+                                        <p className="text-[var(--text-secondary)] text-[10px] font-medium">{proj.desc}</p>
+                                        <div className="mt-2 flex items-center gap-2 text-[9px] font-bold text-rose-500 uppercase tracking-widest group-hover:gap-3 transition-all">
+                                            KHÁM PHÁ <Icons.ArrowRight size={10}/>
                                         </div>
                                     </div>
                                 </div>
@@ -943,17 +1026,18 @@
                         </h2>
                         <p className="text-[var(--text-secondary)] mt-1 text-xs md:text-sm">Kiến thức Toán học được mô hình hóa trực quan.</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {displayInfos.map((info, i) => (
-                            <div key={i} onClick={() => openViewer({...info, category: 'infographic'})} className="glass-card p-4 rounded-2xl cursor-pointer group hover:bg-amber-900/10 border-amber-500/10 hover:border-amber-500/30">
+                            /* OPTIMIZED: Reduced padding p-4 -> p-3 */
+                            <div key={i} onClick={() => openViewer({...info, category: 'infographic'})} className="glass-card p-3 rounded-2xl cursor-pointer group hover:bg-amber-900/10 border-amber-500/10 hover:border-amber-500/30">
                                 <div className="aspect-w-16 aspect-h-9 bg-[var(--bg-deep)] rounded-xl overflow-hidden mb-3 border border-white/5 group-hover:border-amber-500/30 relative">
                                     <div className="absolute inset-0 flex items-center justify-center text-slate-500">
-                                        <Icons.Image size={40} />
+                                        <Icons.Image size={32} />
                                     </div>
                                     <img src={`infographic/${info.filename}`} alt={info.title} className="object-cover w-full h-full relative z-10 transition-transform duration-700 group-hover:scale-110" onError={(e) => e.target.style.opacity = 0} />
                                 </div>
-                                <h3 className="text-base font-bold text-[var(--text-primary)] mb-1 group-hover:text-amber-400 transition-colors">{info.title}</h3>
-                                <p className="text-xs text-[var(--text-secondary)]">{info.desc}</p>
+                                <h3 className="text-sm font-bold text-[var(--text-primary)] mb-1 group-hover:text-amber-400 transition-colors">{info.title}</h3>
+                                <p className="text-[10px] text-[var(--text-secondary)]">{info.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -968,19 +1052,20 @@
                     <div className="glass-card rounded-2xl p-1">
                         <table className="w-full text-left">
                             <thead className="bg-white/5 text-[var(--text-secondary)] uppercase font-bold text-xs tracking-wider border-b border-white/10 hidden md:table-header-group">
-                                <tr><th className="px-6 py-4">Tài liệu</th><th className="px-6 py-4">Loại</th><th className="px-6 py-4">Tag</th><th className="px-6 py-4 text-right"></th></tr>
+                                {/* OPTIMIZED: Reduced table padding */}
+                                <tr><th className="px-4 py-3">Tài liệu</th><th className="px-4 py-3">Loại</th><th className="px-4 py-3">Tag</th><th className="px-4 py-3 text-right"></th></tr>
                             </thead>
                             <tbody className="divide-y divide-white/5 block md:table-row-group">
                                 {filtered.length > 0 ? filtered.map((doc, i) => {
                                     const ext = doc.filename.split('.').pop().toUpperCase();
                                     return (
                                         <tr key={i} className="hover:bg-white/5 transition-colors group cursor-pointer block md:table-row p-4 md:p-0 border-b border-white/5 md:border-none" onClick={() => openViewer({...doc, category: 'doc'})}>
-                                            <td className="md:px-6 md:py-4 block md:table-cell mb-2 md:mb-0"><div className="flex items-center gap-3"><div className="icon-box w-10 h-10 bg-[var(--bg-deep)] text-cyan-400 border border-white/10 group-hover:border-cyan-500/50">
-                                                {ext === 'PDF' ? <Icons.DocPDF size={20}/> : <Icons.DocWord size={20}/>}
-                                            </div><span className="font-bold text-[var(--text-primary)] text-sm md:text-base group-hover:text-cyan-300 transition-colors">{doc.title}</span></div></td>
-                                            <td className="md:px-6 md:py-4 block md:table-cell text-xs md:text-sm mb-1 md:mb-0"><span className="font-mono text-[var(--text-secondary)] bg-white/5 px-2 py-1 rounded">{ext}</span></td>
-                                            <td className="md:px-6 md:py-4 block md:table-cell text-xs md:text-sm mb-2 md:mb-0"><span className={`px-2 py-1 rounded text-[10px] font-bold border ${doc.tag === 'Hot' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}>{doc.tag}</span></td>
-                                            <td className="md:px-6 md:py-4 text-right block md:table-cell"><button className="p-2 hover:bg-cyan-500 hover:text-black rounded-lg transition-all text-[var(--text-secondary)]"><Icons.BookOpen size={18} /></button></td>
+                                            <td className="md:px-4 md:py-3 block md:table-cell mb-2 md:mb-0"><div className="flex items-center gap-3"><div className="icon-box w-8 h-8 bg-[var(--bg-deep)] text-cyan-400 border border-white/10 group-hover:border-cyan-500/50">
+                                                {ext === 'PDF' ? <Icons.DocPDF size={16}/> : <Icons.DocWord size={16}/>}
+                                            </div><span className="font-bold text-[var(--text-primary)] text-sm md:text-sm group-hover:text-cyan-300 transition-colors">{doc.title}</span></div></td>
+                                            <td className="md:px-4 md:py-3 block md:table-cell text-xs md:text-sm mb-1 md:mb-0"><span className="font-mono text-[var(--text-secondary)] bg-white/5 px-2 py-1 rounded">{ext}</span></td>
+                                            <td className="md:px-4 md:py-3 block md:table-cell text-xs md:text-sm mb-2 md:mb-0"><span className={`px-2 py-1 rounded text-[10px] font-bold border ${doc.tag === 'Hot' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}>{doc.tag}</span></td>
+                                            <td className="md:px-4 md:py-3 text-right block md:table-cell"><button className="p-1.5 hover:bg-cyan-500 hover:text-black rounded-lg transition-all text-[var(--text-secondary)]"><Icons.BookOpen size={16} /></button></td>
                                         </tr>
                                     )
                                 }) : <tr><td colSpan="4" className="px-6 py-6 text-center text-slate-500">Không tìm thấy tài liệu.</td></tr>}
@@ -1001,14 +1086,17 @@
                             return (
                                 <div key={i} onClick={() => openViewer({...game, category: 'game'})} className="group relative rounded-2xl p-1 overflow-hidden hover:-translate-y-2 transition-transform duration-500 cursor-pointer">
                                     <div className={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md`}></div>
-                                    <div className="relative h-full bg-[var(--glass-bg)] rounded-xl p-4 md:p-6 flex flex-col items-center text-center overflow-hidden border border-white/10 group-hover:border-transparent">
-                                        <div className="w-12 h-12 md:w-20 md:h-20 mb-3 md:mb-4 relative flex items-center justify-center">
+                                    {/* OPTIMIZED: Reduced padding p-4 md:p-6 -> p-3 md:p-4 */}
+                                    <div className="relative h-full bg-[var(--glass-bg)] rounded-xl p-3 md:p-4 flex flex-col items-center text-center overflow-hidden border border-white/10 group-hover:border-transparent">
+                                        {/* OPTIMIZED: Reduced icon size md:w-20 -> md:w-16 */}
+                                        <div className="w-12 h-12 md:w-16 md:h-16 mb-2 md:mb-3 relative flex items-center justify-center">
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-20 blur-xl rounded-full group-hover:opacity-40 transition-opacity`}></div>
-                                            <GameIcon size={48} className="relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] md:scale-125"/>
+                                            <GameIcon size={40} className="relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] md:scale-110"/>
                                         </div>
-                                        <h3 className="text-sm md:text-xl font-bold text-[var(--text-primary)] mb-1 relative z-10">{game.title}</h3>
-                                        <span className="text-[10px] md:text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-3 md:mb-6 relative z-10 px-2 py-0.5 rounded border border-white/10">{game.category}</span>
-                                        <button className="mt-auto w-full py-2 md:py-3 rounded-lg bg-white/5 hover:bg-white text-[var(--text-primary)] hover:text-black font-bold text-[10px] md:text-xs transition-all border border-white/10 flex items-center justify-center gap-2 relative z-10 shadow-lg"><Icons.Play size={12} fill="currentColor"/> CHƠI NGAY</button>
+                                        {/* OPTIMIZED: Text size md:text-xl -> md:text-lg */}
+                                        <h3 className="text-sm md:text-lg font-bold text-[var(--text-primary)] mb-1 relative z-10">{game.title}</h3>
+                                        <span className="text-[10px] md:text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-3 md:mb-4 relative z-10 px-2 py-0.5 rounded border border-white/10">{game.category}</span>
+                                        <button className="mt-auto w-full py-2 md:py-2 rounded-lg bg-white/5 hover:bg-white text-[var(--text-primary)] hover:text-black font-bold text-[10px] md:text-xs transition-all border border-white/10 flex items-center justify-center gap-2 relative z-10 shadow-lg"><Icons.Play size={12} fill="currentColor"/> CHƠI NGAY</button>
                                     </div>
                                 </div>
                             )
@@ -1025,19 +1113,27 @@
             // Phân loại công cụ
             const managementFiles = ['tkb.html', 'quanlihocsinh.html', 'sodiem.html', 'tkbgv.html', 'tkbvnedu.html'];
             
+            // Logic: Files in management list -> Management. ALL OTHERS -> Teaching (includes the new tool)
             const managementTools = filtered.filter(t => managementFiles.includes(t.filename));
             const teachingTools = filtered.filter(t => !managementFiles.includes(t.filename));
 
             const renderToolCard = (tool, i) => {
                 const ToolIcon = CustomIcons[tool.iconType] || Icons.Calculator;
+                const isHighlight = tool.highlight;
+
                 return (
-                    <div key={i} onClick={() => openViewer({...tool, category: 'tool'})} className="glass-card p-4 md:p-6 rounded-2xl flex flex-col gap-3 group cursor-pointer hover:bg-white/5 border border-white/10 animate-fade-in fade-in-up">
-                        <div className={`icon-box w-10 h-10 md:w-16 md:h-16 bg-[var(--glass-bg)] ${tool.color} border border-white/10 shadow-lg group-hover:border-current p-2 md:p-3`}>
-                            <ToolIcon size={32} />
+                    /* OPTIMIZED: Reduced padding p-4 md:p-6 -> p-3 md:p-4 */
+                    <div key={i} onClick={() => openViewer({...tool, category: 'tool'})} 
+                         className={`glass-card p-3 md:p-4 rounded-2xl flex flex-col gap-3 group cursor-pointer hover:bg-white/5 border animate-fade-in fade-in-up ${isHighlight ? 'border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.2)]' : 'border-white/10'}`}>
+                        {/* OPTIMIZED: Reduced icon size w-16 -> w-14 */}
+                        <div className={`icon-box w-10 h-10 md:w-14 md:h-14 bg-[var(--glass-bg)] ${tool.color} border border-white/10 shadow-lg group-hover:border-current p-2 md:p-2.5 relative`}>
+                            <ToolIcon size={isHighlight ? 36 : 28} />
+                            {isHighlight && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span></span>}
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-sm md:text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-purple-300 transition-colors">{tool.title}</h3>
-                            <p className="text-[var(--text-secondary)] text-[10px] md:text-xs mb-2 md:mb-4 leading-relaxed font-medium line-clamp-2">{tool.desc}</p>
+                            {/* OPTIMIZED: Text size md:text-lg -> md:text-base */}
+                            <h3 className={`text-sm md:text-base font-bold mb-1 transition-colors ${isHighlight ? 'text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400' : 'text-[var(--text-primary)] group-hover:text-purple-300'}`}>{tool.title}</h3>
+                            <p className="text-[var(--text-secondary)] text-[10px] md:text-[11px] mb-2 md:mb-3 leading-relaxed font-medium line-clamp-2">{tool.desc}</p>
                             <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden group-hover:h-1.5 transition-all">
                                 <div className={`h-full w-1/3 bg-current ${tool.color} group-hover:w-full transition-all duration-700`}></div>
                             </div>
