@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CÔNG CỤ TẠO ĐỀ THẦY THÁI MINH NGUYÊN</title>
+    <title>CÔNG CỤ HỖ TRỢ TẠO ĐỀ NHANH - PRO UI</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,9 +11,12 @@
     <!-- KaTeX CSS (Cho công thức Toán) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 
-    <!-- THƯ VIỆN VISUALIZATION -->
-    <!-- 1. Function Plot: Vẽ đồ thị toán học -->
+    <!-- 1. DESMOS API (Ưu tiên) -->
+    <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=a1735c30f6c846ba86e18eae22e68fd0"></script>
+
+    <!-- 2. Function Plot (Dự phòng - Fallback) -->
     <script src="https://unpkg.com/function-plot/dist/function-plot.js"></script>
+    
     <!-- 2. Smiles Drawer: Vẽ công thức hóa học -->
     <script src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js"></script>
     <!-- 3. Mermaid.js: Vẽ sơ đồ Sinh học/Quy trình/Sử/Văn -->
@@ -257,17 +260,19 @@
 
         // --- VISUAL RENDERERS ---
 
-        // 1. GraphRenderer
-        const GraphRenderer = ({ formula }) => {
+        // 1a. FunctionPlotRenderer (Renderer Cũ - Dự phòng)
+        const FunctionPlotRenderer = ({ formula }) => {
             const rootRef = useRef(null);
             useEffect(() => {
-                if (!rootRef.current || !formula) return;
+                if (!rootRef.current || !formula || !window.functionPlot) return;
+                
                 let cleanFormula = formula.trim();
                 cleanFormula = cleanFormula.replace(/^(y|f\(x\))\s*=\s*/i, "");
                 cleanFormula = cleanFormula
                     .replace(/×/g, "*").replace(/•/g, "*").replace(/⋅/g, "*")
                     .replace(/\\sin/g, "sin").replace(/\\cos/g, "cos").replace(/\\tan/g, "tan")
                     .replace(/\\ln/g, "ln").replace(/\^\{(.+?)\}/g, "^($1)").replace(/\\/g, "");
+
                 cleanFormula = cleanFormula
                     .replace(/Math\.PI/g, "PI").replace(/Math\.E/g, "E")
                     .replace(/Math\.pow\(([^,]+),\s*([^)]+)\)/g, "($1)^($2)")
@@ -275,6 +280,7 @@
                     .replace(/Math\.sin/g, "sin").replace(/Math\.cos/g, "cos")
                     .replace(/Math\.tan/g, "tan").replace(/Math\.log/g, "ln")
                     .replace(/Math\.exp/g, "exp").replace(/Math\./g, "");
+
                 try {
                     rootRef.current.innerHTML = '';
                     window.functionPlot({
@@ -287,17 +293,108 @@
                         data: [{ fn: cleanFormula, color: '#ea580c', graphType: 'polyline' }]
                     });
                 } catch (e) { 
-                    rootRef.current.innerHTML = `<div class="text-red-500 font-bold p-4 text-center">Lỗi cú pháp: ${cleanFormula}<br/><span class="text-xs text-slate-400">${e.message}</span></div>`; 
+                    rootRef.current.innerHTML = `<div class="text-red-500 font-bold p-4 text-center">Lỗi FunctionPlot: ${cleanFormula}</div>`; 
                 }
             }, [formula]);
             return (
                 <div className="flex flex-col items-center">
                     <div ref={rootRef} className="rounded-lg overflow-hidden bg-white shadow-sm border border-slate-100"></div>
-                    <div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-500">
-                        <Activity size={12}/> Đồ thị hàm số: {formula}
+                    <div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-slate-400">
+                        <Activity size={12}/> (Chế độ dự phòng)
                     </div>
                 </div>
             );
+        };
+
+        // 1b. DesmosRenderer (Renderer Mới - Đẹp hơn & Resizable)
+        const DesmosRenderer = ({ formula }) => {
+            const eltRef = useRef(null);
+            const calculatorRef = useRef(null);
+
+            // Effect khởi tạo Desmos
+            useEffect(() => {
+                if (!eltRef.current || !window.Desmos) return;
+
+                if (!calculatorRef.current) {
+                    calculatorRef.current = window.Desmos.GraphingCalculator(eltRef.current, {
+                        keypad: false, expressions: false, settingsMenu: false,
+                        zoomButtons: true, lockViewport: false, border: false,
+                        autosize: true
+                    });
+                }
+
+                let expression = formula.trim();
+                if (!expression.includes('=') && !expression.includes('f(x)')) {
+                    expression = `y=${expression}`;
+                }
+                
+                calculatorRef.current.setExpression({ id: 'graph1', latex: expression, color: '#ea580c' });
+
+                return () => {
+                    if (calculatorRef.current) {
+                        calculatorRef.current.destroy();
+                        calculatorRef.current = null;
+                    }
+                };
+            }, [formula]);
+
+            // Effect lắng nghe thay đổi kích thước thẻ div cha để resize Desmos
+            useEffect(() => {
+                if (!eltRef.current || !calculatorRef.current) return;
+                
+                const resizeObserver = new ResizeObserver(() => {
+                    calculatorRef.current.resize();
+                });
+                
+                resizeObserver.observe(eltRef.current);
+                
+                return () => resizeObserver.disconnect();
+            }, []);
+
+            return (
+                <div className="flex flex-col items-center w-full">
+                    {/* Container có thể kéo giãn (resize) */}
+                    <div 
+                        className="rounded-lg overflow-hidden bg-white shadow-sm border border-slate-100 relative group"
+                        style={{ 
+                            width: '100%', 
+                            minHeight: '400px',
+                            resize: 'both', 
+                            overflow: 'hidden',
+                            maxWidth: '100%'
+                        }}
+                    >
+                        {/* Desmos Element */}
+                        <div ref={eltRef} className="w-full h-full absolute inset-0"></div>
+                        
+                        {/* Hint kéo giãn */}
+                        <div className="absolute bottom-0 right-0 p-1 cursor-nwse-resize pointer-events-none z-10 opacity-50 group-hover:opacity-100 transition-opacity">
+                            <Maximize size={16} className="text-slate-400 rotate-90"/>
+                        </div>
+                    </div>
+                    
+                    <div className="mt-2 italic font-mono flex items-center gap-1 text-xs text-orange-600 font-bold">
+                        <Activity size={12}/> Desmos Pro (Kéo góc dưới bên phải để chỉnh kích thước)
+                    </div>
+                </div>
+            );
+        };
+
+        // 1c. GraphRenderer (Bộ điều khiển thông minh)
+        const GraphRenderer = ({ formula }) => {
+            const [hasDesmos, setHasDesmos] = useState(true);
+
+            useEffect(() => {
+                if (typeof window.Desmos === 'undefined') {
+                    console.warn("Desmos không tải được, chuyển sang FunctionPlot.");
+                    setHasDesmos(false);
+                }
+            }, []);
+
+            if (hasDesmos) {
+                return <DesmosRenderer formula={formula} />;
+            }
+            return <FunctionPlotRenderer formula={formula} />;
         };
 
         // 2. TableRenderer
@@ -498,6 +595,74 @@
             );
         };
 
+        // --- INSTRUCTION MODAL ---
+        const InstructionModal = ({ onClose }) => (
+            <div className="fixed inset-0 z-[130] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white glass-panel max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                    <div className="bg-gradient-to-r from-orange-500 to-amber-600 p-6 flex justify-between items-center text-white">
+                        <h2 className="text-2xl font-black flex items-center gap-2"><Info/> HƯỚNG DẪN SỬ DỤNG - CÔNG CỤ TẠO ĐỀ 2025</h2>
+                        <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-full"><Trash2 size={24} className="rotate-45"/></button>
+                    </div>
+                    <div className="p-8 overflow-y-auto bg-slate-50/50 space-y-6 text-slate-800 text-sm leading-relaxed">
+                        <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
+                            <h3 className="text-lg font-bold text-blue-800 mb-3 flex items-center gap-2"><Zap size={20}/> 1. Tạo Đề Tự Động Với AI</h3>
+                            <p className="mb-2">Hệ thống hỗ trợ tạo đề chuẩn cấu trúc thi Tốt nghiệp THPT 2025:</p>
+                            <ul className="list-disc pl-5 space-y-2 text-slate-700">
+                                <li><strong>Phần I - Trắc nghiệm (4 chọn 1):</strong> AI sẽ tạo câu hỏi với 4 đáp án A, B, C, D.</li>
+                                <li><strong>Phần II - Đúng/Sai:</strong> Câu hỏi chùm. Mỗi câu hỏi lớn sẽ có 4 ý nhỏ (a, b, c, d). Phần mềm tự động tách thành 4 dòng để thầy cô dễ dàng chỉnh sửa đáp án Đúng/Sai cho từng ý.</li>
+                                <li><strong>Phần III - Trả lời ngắn:</strong> Dạng câu hỏi điền số hoặc kết quả ngắn.</li>
+                            </ul>
+                            <div className="mt-3 bg-blue-100 p-3 rounded-lg text-blue-800 text-xs font-bold">Lưu ý: Thầy cô cần nhập API Key của Google Gemini (miễn phí) để sử dụng tính năng này.</div>
+                        </div>
+                        <div className="bg-green-50 p-5 rounded-xl border border-green-100">
+                            <h3 className="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><FileJson size={20}/> 2. Nhập Liệu Thủ Công & Prompt</h3>
+                            <ul className="list-disc pl-5 space-y-2 text-slate-700">
+                                <li><strong>Bước 1:</strong> Tại màn hình "Thủ Công", nhập số lượng câu hỏi cho từng phần (Trắc nghiệm, Đúng/Sai, Điền khuyết).</li>
+                                <li><strong>Bước 2:</strong> Bấm nút <strong>"Sao chép Prompt mẫu"</strong>. Hệ thống sẽ tạo một câu lệnh chi tiết chứa đúng cấu trúc đề thầy cô mong muốn.</li>
+                                <li><strong>Bước 3:</strong> Dán lệnh vào ChatGPT hoặc Gemini. AI sẽ trả về mã JSON.</li>
+                                <li><strong>Bước 4:</strong> Copy mã JSON đó dán ngược lại vào ô nhập liệu của ứng dụng để tiến hành biên tập.</li>
+                            </ul>
+                        </div>
+                        <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+                            <h3 className="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2"><Edit3 size={20}/> 3. Biên Tập & Xuất File Word</h3>
+                            <ul className="list-disc pl-5 space-y-2 text-slate-700">
+                                <li><strong>Chỉnh sửa trực quan:</strong> Sửa nội dung, công thức Toán (LaTeX), và hình ảnh minh họa ngay trên màn hình.</li>
+                                <li><strong>Hỗ trợ hình ảnh:</strong> Dùng công cụ "Trợ lý AI" để vẽ đồ thị hàm số, bảng biến thiên, sơ đồ tư duy (Mermaid) hoặc hình học phẳng.</li>
+                                <li><strong>Xuất Word:</strong> Bấm "Xuất Word" để tải file .docx được định dạng đẹp, canh lề chuẩn, kèm lời giải chi tiết phía sau (rất tiện để in ấn phát cho học sinh).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="p-4 border-t bg-white flex justify-end gap-3">
+                        <button onClick={onClose} className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-all">Đã Hiểu & Bắt Đầu</button>
+                    </div>
+                </motion.div>
+            </div>
+        );
+
+        // --- EXPLANATION MODAL ---
+        const ExplanationModal = ({ content, onClose }) => {
+            return (
+                <div className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                    <motion.div initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} className="glass-panel w-full max-w-[90%] md:max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col border-4 border-orange-500 max-h-[90vh]">
+                        <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-6 font-bold text-2xl flex items-center gap-3 shadow-md">
+                            <Activity size={32}/>
+                            <span>Giải Thích Chi Tiết</span>
+                        </div>
+                        <div className="p-8 overflow-y-auto flex-1 bg-orange-50/80">
+                            <div className="text-2xl text-slate-900 leading-relaxed font-medium bg-white/60 p-6 rounded-2xl shadow-sm border border-orange-100">
+                                <MathContent content={content} className="whitespace-pre-wrap" />
+                            </div>
+                        </div>
+                        <div className="p-6 bg-white border-t border-orange-100 flex justify-end">
+                            <button onClick={onClose} className="bg-green-600 hover:bg-green-700 text-white py-3 px-8 rounded-full font-bold text-xl shadow-lg flex items-center gap-2 transform hover:-translate-y-1 transition-all">
+                                Tiếp tục <ArrowRight size={24}/>
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+
         // --- IMAGE CODE GENERATOR ---
         const ImageCodeGenerator = () => {
             const [input, setInput] = useState('');
@@ -678,7 +843,7 @@
             return cleaned;
         };
 
-        const generateQuestionsWithGemini = async (apiKey, topic, counts, bloomLevels) => {
+        const generateQuestionsWithGemini = async (apiKey, topic, counts, bloomLevels, matrix = []) => {
             let bloomInstruction = "Phân bổ độ khó ngẫu nhiên, phù hợp năng lực học sinh.";
             const selectedBlooms = [];
             if(bloomLevels.recall) selectedBlooms.push("Nhận biết (Recall)");
@@ -688,6 +853,16 @@
             
             if(selectedBlooms.length > 0) {
                 bloomInstruction = `Tập trung vào các mức độ nhận thức sau: ${selectedBlooms.join(', ')}. Hãy phân bổ câu hỏi hợp lý theo các mức độ này.`;
+            }
+
+            // Tạo đoạn văn bản mô tả ma trận
+            let matrixInstruction = "";
+            if (matrix && matrix.length > 0) {
+                matrixInstruction = "\nCẤU TRÚC MA TRẬN ĐỀ THI (HÃY TUÂN THỦ NGHIÊM NGẶT):\n";
+                matrix.forEach((item, index) => {
+                    matrixInstruction += `${index + 1}. Chủ đề: "${item.topic}". Phân bổ: ${item.mc} câu Trắc nghiệm, ${item.tf} câu Đúng/Sai, ${item.sa} câu Trả lời ngắn.\n`;
+                });
+                matrixInstruction += "Hãy đảm bảo tổng số câu hỏi của mỗi loại khớp với yêu cầu tổng thể bên dưới.\n";
             }
 
             const totalQ = counts.mc + counts.tf + counts.sa;
@@ -701,6 +876,8 @@ Soạn thảo bộ đề thi về chủ đề: "${topic}" gồm các phần sau:
 1. ${counts.mc} câu TRẮC NGHIỆM (4 lựa chọn A, B, C, D). Type: "mc".
 2. ${counts.tf} câu ĐÚNG/SAI LỚN (Mỗi câu lớn GỒM 4 Ý NHỎ a, b, c, d độc lập để xét đúng sai). Type: "tf".
 3. ${counts.sa} câu TRẢ LỜI NGẮN/TỰ LUẬN (Điền đáp án). Type: "sa".
+
+${matrixInstruction}
 
 CÁC NGUYÊN TẮC VÀNG:
 1. NỘI DUNG:
@@ -776,6 +953,7 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
                 
                 let rawText = data.candidates[0].content.parts[0].text;
                 
+                // Dùng hàm cleanGeminiJson đã nâng cấp để xử lý
                 let fixedText = cleanGeminiJson(rawText);
                 let parsedData = JSON.parse(fixedText);
                 
@@ -927,6 +1105,9 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
                 tf: 0,  // Đúng sai
                 sa: 0   // Trả lời ngắn
             });
+
+            // CẬP NHẬT: State Matrix cho Ma trận đặc tả
+            const [matrix, setMatrix] = useState([]);
             
             const [bloomLevels, setBloomLevels] = useState({
                 recall: true,
@@ -947,6 +1128,12 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
             const [isFullscreen, setIsFullscreen] = useState(false);
             const [showTutorial, setShowTutorial] = useState(false);
 
+            // --- CẬP NHẬT: STATE CHO CHẾ ĐỘ TRÌNH CHIẾU ---
+            const [isPresentationMode, setIsPresentationMode] = useState(false);
+            const [currentSlide, setCurrentSlide] = useState(0);
+            const [showSlideAns, setShowSlideAns] = useState(false);
+            const [showSlideExpl, setShowSlideExpl] = useState(false);
+
             // --- FIREBASE STATE ---
             const [user, setUser] = useState(null);
             const [showLibrary, setShowLibrary] = useState(false);
@@ -961,6 +1148,56 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
                 });
                 return () => unsubscribe();
             }, []);
+
+            // --- CẬP NHẬT: XỬ LÝ PHÍM TẮT TRÌNH CHIẾU ---
+            useEffect(() => {
+                if (!isPresentationMode) return;
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'Space') {
+                        if (currentSlide < questions.length - 1) {
+                            setCurrentSlide(p => p + 1);
+                            setShowSlideAns(false);
+                            setShowSlideExpl(false);
+                        }
+                    } else if (e.key === 'ArrowLeft') {
+                        if (currentSlide > 0) {
+                            setCurrentSlide(p => p - 1);
+                            setShowSlideAns(false);
+                            setShowSlideExpl(false);
+                        }
+                    } else if (e.key === 'Escape') {
+                        setIsPresentationMode(false);
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [isPresentationMode, currentSlide, questions.length]);
+
+            // --- CẬP NHẬT: CÁC HÀM XỬ LÝ MA TRẬN ---
+            const addMatrixRow = () => {
+                setMatrix([...matrix, { topic: "", mc: 0, tf: 0, sa: 0 }]);
+            };
+
+            const removeMatrixRow = (index) => {
+                const newMatrix = [...matrix];
+                newMatrix.splice(index, 1);
+                setMatrix(newMatrix);
+                updateTotalCounts(newMatrix);
+            };
+
+            const updateMatrixRow = (index, field, value) => {
+                const newMatrix = [...matrix];
+                newMatrix[index][field] = field === 'topic' ? value : Number(value);
+                setMatrix(newMatrix);
+                updateTotalCounts(newMatrix);
+            };
+
+            const updateTotalCounts = (currentMatrix) => {
+                const totalMC = currentMatrix.reduce((acc, row) => acc + row.mc, 0);
+                const totalTF = currentMatrix.reduce((acc, row) => acc + row.tf, 0);
+                const totalSA = currentMatrix.reduce((acc, row) => acc + row.sa, 0);
+                setQuestionCounts({ mc: totalMC, tf: totalTF, sa: totalSA });
+            };
 
             const handleLogin = async () => {
                 try { await signInWithPopup(auth, provider); } catch (error) { alert("Lỗi đăng nhập: " + error.message); }
@@ -1178,7 +1415,8 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
 
                     setWizardStep(3); setLoadingMsg(`AI đang soạn ${total} câu hỏi "${topic}"...`);
                     try {
-                        const qData = await generateQuestionsWithGemini(apiKey, topic, questionCounts, bloomLevels);
+                        // CẬP NHẬT: Truyền matrix vào hàm sinh câu hỏi
+                        const qData = await generateQuestionsWithGemini(apiKey, topic, questionCounts, bloomLevels, matrix);
                         setQuestions(qData.map((q, i) => ({ ...q, id: i, uId: `q-${i}` }))); setWizardStep(4); setActiveEditId(0);
                     } catch (err) { 
                         setWizardStep(2); 
@@ -1211,7 +1449,109 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
             };
             
             const handleFileUpload = (e) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload=(ev)=>{ try{ setQuestions(validateImportedQuestions(JSON.parse(ev.target.result))); setWizardStep(4); setActiveEditId(0); }catch(err){setErrorMsg(err.message)} }; r.readAsText(f); };
-            const handleDownloadTemplate = () => { const t = [{"question": "1+1=?", "options": ["1","2","3","4"], "correctAnswer": 1, "explanation": "..."}]; const d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(t, null, 2)); const a = document.createElement('a'); a.href = d; a.download = "mau.json"; a.click(); };
+            const handleDownloadTemplate = () => {
+                // Đây là bộ dữ liệu mẫu đa môn học chuẩn 2025
+                const templateData = [
+                    {
+                        "type": "mc",
+                        "topic": "Hàm số và Đồ thị",
+                        "level": "NB",
+                        "question": "Cho hàm số $y=f(x)$ có bảng biến thiên như hình vẽ. Hàm số đồng biến trên khoảng nào?",
+                        "options": ["$(0; 2)$", "$(-\\infty; 1)$", "$(1; +\\infty)$", "$(2; +\\infty)$"],
+                        "correctAnswer": 3,
+                        "explanation": "Dựa vào dòng $y'$, ta thấy $y' > 0$ trên khoảng $(2; +\\infty)$. Do đó hàm số đồng biến trên khoảng này.",
+                        "visualType": "variation_table",
+                        "visualData": "x: -inf, 0, 2, +inf\ny': -, 0, +, 0, -\ny: +inf, -1, 3, -inf"
+                    },
+                    {
+                        "type": "mc",
+                        "topic": "Vật lí - Mạch điện",
+                        "level": "TH",
+                        "question": "Cho mạch điện gồm điện trở $R=10\\Omega$ mắc nối tiếp với tụ điện có điện dung $C$. Hình vẽ nào dưới đây mô tả đúng ký hiệu của tụ điện trong sơ đồ?",
+                        "options": ["Hình A", "Hình B", "Hình C", "Hình D"],
+                        "correctAnswer": 0,
+                        "explanation": "Ký hiệu tụ điện trong sơ đồ mạch điện là hai vạch song song có độ dài bằng nhau.",
+                        "visualType": "svg",
+                        "visualData": "<svg viewBox='0 0 500 200'>\n<line x1='150' y1='100' x2='230' y2='100' stroke='black' stroke-width='3'/>\n<line x1='230' y1='60' x2='230' y2='140' stroke='black' stroke-width='3'/>\n<line x1='250' y1='60' x2='250' y2='140' stroke='black' stroke-width='3'/>\n<line x1='250' y1='100' x2='330' y2='100' stroke='black' stroke-width='3'/>\n<text x='215' y='50' font-size='20'>C</text>\n</svg>"
+                    },
+                    {
+                        "type": "mc",
+                        "topic": "Hóa học hữu cơ",
+                        "level": "TH",
+                        "question": "Hợp chất có công thức cấu tạo dưới đây có tên gọi là gì?",
+                        "options": ["Axit Axetic", "Rượu Etylic", "Andehit Fomic", "Axeton"],
+                        "correctAnswer": 0,
+                        "explanation": "Đây là công thức của Axit Axetic ($CH_3COOH$).",
+                        "visualType": "chemistry",
+                        "visualData": "CC(=O)O"
+                    },
+                    {
+                        "type": "mc",
+                        "topic": "Lịch sử Việt Nam",
+                        "level": "NB",
+                        "question": "Sự kiện nào đánh dấu bước ngoặt vĩ đại của lịch sử cách mạng Việt Nam, chấm dứt cuộc khủng hoảng về đường lối cứu nước?",
+                        "options": ["Khởi nghĩa Yên Bái (1930)", "Thành lập Đảng Cộng sản Việt Nam (1930)", "Xô viết Nghệ Tĩnh (1930-1931)", "Cách mạng tháng Tám (1945)"],
+                        "correctAnswer": 1,
+                        "explanation": "Đảng Cộng sản Việt Nam ra đời đầu năm 1930 đã chấm dứt thời kỳ khủng hoảng về đường lối và giai cấp lãnh đạo cách mạng.",
+                        "visualType": "mermaid",
+                        "visualData": "graph LR\n  A[Khủng hoảng đường lối] --> B{3/2/1930}\n  B --> C[Đảng ra đời]\n  C --> D[Kỷ nguyên mới]"
+                    },
+                    {
+                        "type": "tf",
+                        "topic": "Hình học không gian",
+                        "level": "VD",
+                        "question": "Câu 1: Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình vuông cạnh $a$, $SA \\perp (ABCD)$. Ý a: Thể tích khối chóp là $V = \\frac{1}{3} a^2 \\cdot SA$?",
+                        "options": ["Đúng", "Sai"],
+                        "correctAnswer": 0,
+                        "explanation": "Công thức tính thể tích khối chóp là $V = \\frac{1}{3} B \\cdot h$. Ở đây $B = a^2$ và $h = SA$.",
+                        "visualType": "none",
+                        "visualData": ""
+                    },
+                    {
+                        "type": "tf",
+                        "topic": "Hình học không gian",
+                        "level": "VD",
+                        "question": "Câu 1: Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình vuông cạnh $a$, $SA \\perp (ABCD)$. Ý b: Góc giữa $SC$ và đáy là góc $\\widehat{SCA}$?",
+                        "options": ["Đúng", "Sai"],
+                        "correctAnswer": 0,
+                        "explanation": "Vì $SA \\perp (ABCD)$ nên $AC$ là hình chiếu của $SC$ trên mặt đáy. Vậy góc cần tìm là $\\widehat{SCA}$.",
+                        "visualType": "none",
+                        "visualData": ""
+                    },
+                    {
+                        "type": "sa",
+                        "topic": "Sinh học phân tử",
+                        "level": "NB",
+                        "question": "Trong phân tử ADN, loại bazơ nitơ nào liên kết với A (Ađênin) bằng 2 liên kết hiđrô?",
+                        "options": [],
+                        "correctAnswer": "T",
+                        "explanation": "Theo nguyên tắc bổ sung, A liên kết với T (Timin) bằng 2 liên kết hiđrô, G liên kết với X bằng 3 liên kết hiđrô.",
+                        "visualType": "none",
+                        "visualData": ""
+                    },
+                    {
+                        "type": "sa",
+                        "topic": "Địa lí kinh tế",
+                        "level": "TH",
+                        "question": "Dựa vào biểu đồ, hãy cho biết năm nào kim ngạch xuất khẩu của nước ta đạt giá trị cao nhất?",
+                        "options": [],
+                        "correctAnswer": "2022",
+                        "explanation": "Quan sát cột cao nhất trong biểu đồ SVG bên dưới ứng với mốc năm 2022.",
+                        "visualType": "svg",
+                        "visualData": "<svg viewBox='0 0 500 300'>\n<rect x='50' y='200' width='40' height='50' fill='#ea580c'/>\n<text x='50' y='270' font-size='12'>2019</text>\n<rect x='150' y='180' width='40' height='70' fill='#ea580c'/>\n<text x='150' y='270' font-size='12'>2020</text>\n<rect x='250' y='100' width='40' height='150' fill='#ea580c'/>\n<text x='250' y='270' font-size='12'>2021</text>\n<rect x='350' y='50' width='40' height='200' fill='#ea580c'/>\n<text x='350' y='270' font-size='12'>2022</text>\n<line x1='40' y1='250' x2='450' y2='250' stroke='black'/>\n</svg>"
+                    }
+                ];
+                
+                const blob = new Blob([JSON.stringify(templateData, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "mau_de_thi_da_mon_2025.json";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
             const handleExportQuestions = () => { 
                 const fileName = `bo-cau-hoi-${topic ? topic.replace(/\s+/g, '-').toLowerCase() : 'moi'}.json`;
                 const d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(questions, null, 2)); 
@@ -1253,6 +1593,18 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
                     bloomInstruction = `Tập trung vào các mức độ nhận thức sau: ${selectedBlooms.join(', ')}. Hãy phân bổ câu hỏi hợp lý theo các mức độ này.`;
                 }
 
+                // CẬP NHẬT: Thêm thông tin matrix vào prompt copy
+                let matrixInstruction = "";
+                if (matrix && matrix.length > 0) {
+                    matrixInstruction = "\nCẤU TRÚC MA TRẬN ĐỀ THI CHI TIẾT (HÃY TUÂN THỦ NGHIÊM NGẶT):\n";
+                    matrix.forEach((item, index) => {
+                        if(item.topic.trim()) {
+                            matrixInstruction += `${index + 1}. Chủ đề: "${item.topic}". Yêu cầu: ${item.mc} câu Trắc nghiệm, ${item.tf} câu Đúng/Sai, ${item.sa} câu Trả lời ngắn.\n`;
+                        }
+                    });
+                    matrixInstruction += "Hãy đảm bảo tổng số câu hỏi của mỗi loại khớp với yêu cầu tổng thể bên dưới.\n";
+                }
+
                 const promptText = `
 ĐÓNG VAI:
 Bạn là TỔ TRƯỞNG CHUYÊN MÔN, đồng thời là chuyên gia tạo dữ liệu JSON cho phần mềm giáo dục. Bạn am hiểu sâu sắc chương trình GDPT 2018 (Việt Nam).
@@ -1262,6 +1614,8 @@ Soạn thảo CHÍNH XÁC bộ câu hỏi trắc nghiệm về chủ đề: "${c
 1. ${questionCounts.mc} câu TRẮC NGHIỆM (4 lựa chọn A, B, C, D). Type: "mc".
 2. ${questionCounts.tf} câu ĐÚNG/SAI LỚN (Mỗi câu lớn GỒM 4 Ý NHỎ a, b, c, d độc lập để xét đúng sai). Type: "tf".
 3. ${questionCounts.sa} câu TRẢ LỜI NGẮN/TỰ LUẬN (Điền đáp án). Type: "sa".
+
+${matrixInstruction}
 
 CÁC NGUYÊN TẮC VÀNG (BẮT BUỘC):
 1. NỘI DUNG:
@@ -1349,12 +1703,11 @@ CẤU TRÚC MẪU:
 `;
                 
                 navigator.clipboard.writeText(promptText); 
-                alert("Đã copy PROMPT SIÊU CẤP (Kết hợp Sư phạm & SVG & Mermaid)! Hãy dán vào ChatGPT/Gemini để tạo câu hỏi."); 
+                alert("Đã copy PROMPT SIÊU CẤP (Kèm Ma trận Đặc tả)! Hãy dán vào ChatGPT/Gemini để tạo câu hỏi."); 
             };
 
             const countVisuals = (qs) => qs.filter(q => q.visualType !== 'none').length;
 
-            // --- RENDERERS ---
             const renderIntro = () => (
                 <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
                     {/* NEW: LOGIN BUTTON HEADER */}
@@ -1372,8 +1725,10 @@ CẤU TRÚC MẪU:
 
                     <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white/80 glass-panel p-8 rounded-2xl shadow-2xl max-w-lg w-full text-center">
                         <img src="logo.png" onError={(e) => e.target.style.display = 'none'} className="w-24 h-24 object-contain mx-auto mb-4" />
-                        <h1 className="text-3xl font-black mb-1 text-orange-600 uppercase tracking-tight">ỨNG DỤNG HỖ TRỢ TẠO ĐỀ</h1>
-                        <h2 className="text-lg font-bold text-slate-500 mb-6">CÔNG CỤ HỖ TRỢ GIÁO VIÊN THỜI ĐẠI MỚI</h2>
+                        
+                        {/* UPDATED: APP NAME */}
+                        <h1 className="text-3xl font-black mb-1 text-orange-600 uppercase tracking-tight">CÔNG CỤ HỖ TRỢ TẠO ĐỀ NHANH</h1>
+                        <h2 className="text-lg font-bold text-slate-500 mb-6">Hỗ trợ giáo viên thời đại mới</h2>
                         
                         <div className="bg-white/60 p-4 rounded-xl mb-6 border border-slate-200 flex items-center gap-3 text-left shadow-inner">
                             <div className="bg-orange-50 p-2 rounded-full text-orange-500 shadow-sm"><GraduationCap size={24} /></div>
@@ -1385,7 +1740,7 @@ CẤU TRÚC MẪU:
 
                         <div className="space-y-3">
                             <button onClick={() => setWizardStep(0.5)} className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"><Play size={20} fill="currentColor"/> BẮT ĐẦU</button>
-                            <button onClick={() => setShowTutorial(true)} className="w-full bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 text-sm font-bold py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all"><Info size={18}/> Hướng Dẫn</button>
+                            <button onClick={() => setShowTutorial(true)} className="w-full bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 text-sm font-bold py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all"><Info size={18}/> Hướng Dẫn Chi Tiết</button>
                         </div>
                     </motion.div>
                 </div>
@@ -1461,26 +1816,45 @@ CẤU TRÚC MẪU:
                                     <div className="bg-orange-50/50 p-6 rounded-2xl border border-orange-200 shadow-sm">
                                         <h3 className="font-bold text-orange-700 text-xl mb-4 flex items-center gap-2"><Zap size={24}/> Cấu hình AI Tự Động</h3>
                                         
-                                        {/* CẬP NHẬT 4: Giao diện nhập số lượng 3 loại câu hỏi */}
                                         <div className="mb-6">
                                             <div className="flex flex-col gap-2 mb-4">
                                                 <label className="block text-xs font-bold text-orange-600 uppercase">Chủ đề ôn tập</label>
                                                 <input type="text" value={topic} onChange={e => setTopic(e.target.value)} className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-lg bg-white shadow-inner" placeholder="VD: Lịch sử VN, Hàm số lượng giác..." />
                                             </div>
 
-                                            <label className="block text-xs font-bold text-orange-600 uppercase mb-2">Cơ cấu đề thi (Số lượng câu)</label>
+                                            {/* CẬP NHẬT: Bảng nhập Ma trận Đặc tả (AI Mode) */}
+                                            <div className="bg-white p-4 rounded-xl border border-orange-200 mb-4 shadow-sm">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <label className="text-xs font-bold text-orange-700 uppercase flex items-center gap-1"><Table2 size={16}/> Ma trận Đặc tả chi tiết (Tùy chọn)</label>
+                                                    <button onClick={addMatrixRow} className="text-[10px] bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-100 font-bold flex items-center gap-1">+ Thêm dòng</button>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {matrix.length === 0 && <div className="text-center text-xs text-slate-400 italic py-2">Chưa có nội dung. Bấm + để thêm các chủ đề con.</div>}
+                                                    {matrix.map((row, idx) => (
+                                                        <div key={idx} className="flex gap-2 items-center">
+                                                            <input type="text" value={row.topic} onChange={(e) => updateMatrixRow(idx, 'topic', e.target.value)} placeholder="Tên chủ đề con..." className="flex-1 p-2 text-xs border rounded outline-none focus:border-orange-400"/>
+                                                            <input type="number" min="0" value={row.mc} onChange={(e) => updateMatrixRow(idx, 'mc', e.target.value)} placeholder="TN" title="Số câu Trắc nghiệm" className="w-12 p-2 text-xs border rounded outline-none text-center bg-slate-50"/>
+                                                            <input type="number" min="0" value={row.tf} onChange={(e) => updateMatrixRow(idx, 'tf', e.target.value)} placeholder="Đ/S" title="Số câu Đúng/Sai" className="w-12 p-2 text-xs border rounded outline-none text-center bg-slate-50"/>
+                                                            <input type="number" min="0" value={row.sa} onChange={(e) => updateMatrixRow(idx, 'sa', e.target.value)} placeholder="TL" title="Số câu Trả lời ngắn" className="w-12 p-2 text-xs border rounded outline-none text-center bg-slate-50"/>
+                                                            <button onClick={() => removeMatrixRow(idx)} className="text-red-400 hover:text-red-600"><X size={14}/></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <label className="block text-xs font-bold text-orange-600 uppercase mb-2">Tổng hợp cơ cấu đề thi</label>
                                             <div className="grid grid-cols-3 gap-4">
                                                 <div>
                                                     <label className="block text-[10px] font-bold text-slate-500 mb-1">Trắc nghiệm (4 chọn 1)</label>
-                                                    <input type="number" min="0" max="50" value={questionCounts.mc} onChange={e => setQuestionCounts({...questionCounts, mc: Number(e.target.value)})} className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-white shadow-inner font-bold text-orange-600" />
+                                                    <input type="number" min="0" max="50" value={questionCounts.mc} readOnly className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-slate-50 shadow-inner font-bold text-orange-600" />
                                                 </div>
                                                 <div>
                                                     <label className="block text-[10px] font-bold text-slate-500 mb-1">Đúng / Sai</label>
-                                                    <input type="number" min="0" max="50" value={questionCounts.tf} onChange={e => setQuestionCounts({...questionCounts, tf: Number(e.target.value)})} className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-white shadow-inner font-bold text-blue-600" />
+                                                    <input type="number" min="0" max="50" value={questionCounts.tf} readOnly className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-slate-50 shadow-inner font-bold text-blue-600" />
                                                 </div>
                                                 <div>
                                                     <label className="block text-[10px] font-bold text-slate-500 mb-1">Điền khuyết / Ngắn</label>
-                                                    <input type="number" min="0" max="50" value={questionCounts.sa} onChange={e => setQuestionCounts({...questionCounts, sa: Number(e.target.value)})} className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-white shadow-inner font-bold text-green-600" />
+                                                    <input type="number" min="0" max="50" value={questionCounts.sa} readOnly className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-slate-50 shadow-inner font-bold text-green-600" />
                                                 </div>
                                             </div>
                                             <div className="text-center mt-2 text-sm text-slate-500 font-bold">Tổng cộng: {questionCounts.mc + questionCounts.tf + questionCounts.sa} câu hỏi</div>
@@ -1520,20 +1894,40 @@ CẤU TRÚC MẪU:
                                                     <input type="text" value={topic} onChange={e => setTopic(e.target.value)} className="w-full p-3 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none bg-white" placeholder="Nhập chủ đề..." />
                                                 </div>
                                                 
+                                                {/* ADDED: MATRIX INPUT TABLE FOR MANUAL MODE */}
+                                                <div className="bg-white p-4 rounded-xl border border-orange-200 mb-4 shadow-sm">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <label className="text-xs font-bold text-orange-700 uppercase flex items-center gap-1"><Table2 size={16}/> Ma trận Đặc tả chi tiết (Tùy chọn)</label>
+                                                        <button onClick={addMatrixRow} className="text-[10px] bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-100 font-bold flex items-center gap-1">+ Thêm dòng</button>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        {matrix.length === 0 && <div className="text-center text-xs text-slate-400 italic py-2">Chưa có nội dung. Bấm + để thêm các chủ đề con.</div>}
+                                                        {matrix.map((row, idx) => (
+                                                            <div key={idx} className="flex gap-2 items-center">
+                                                                <input type="text" value={row.topic} onChange={(e) => updateMatrixRow(idx, 'topic', e.target.value)} placeholder="Tên chủ đề con..." className="flex-1 p-2 text-xs border rounded outline-none focus:border-orange-400"/>
+                                                                <input type="number" min="0" value={row.mc} onChange={(e) => updateMatrixRow(idx, 'mc', e.target.value)} placeholder="TN" title="Số câu Trắc nghiệm" className="w-12 p-2 text-xs border rounded outline-none text-center bg-slate-50"/>
+                                                                <input type="number" min="0" value={row.tf} onChange={(e) => updateMatrixRow(idx, 'tf', e.target.value)} placeholder="Đ/S" title="Số câu Đúng/Sai" className="w-12 p-2 text-xs border rounded outline-none text-center bg-slate-50"/>
+                                                                <input type="number" min="0" value={row.sa} onChange={(e) => updateMatrixRow(idx, 'sa', e.target.value)} placeholder="TL" title="Số câu Trả lời ngắn" className="w-12 p-2 text-xs border rounded outline-none text-center bg-slate-50"/>
+                                                                <button onClick={() => removeMatrixRow(idx)} className="text-red-400 hover:text-red-600"><X size={14}/></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
                                                 <div className="bg-white p-3 rounded-xl border border-orange-100">
-                                                    <label className="block text-xs font-bold text-orange-600 uppercase mb-2">Cơ cấu đề thi</label>
+                                                    <label className="block text-xs font-bold text-orange-600 uppercase mb-2">Cơ cấu đề thi (Tự động tính từ bảng trên)</label>
                                                     <div className="grid grid-cols-3 gap-2">
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-500 mb-1 text-center">Trắc nghiệm</label>
-                                                            <input type="number" min="0" max="50" value={questionCounts.mc} onChange={e => setQuestionCounts({...questionCounts, mc: Number(e.target.value)})} className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-orange-600" />
+                                                            <input type="number" min="0" max="50" value={questionCounts.mc} readOnly className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-orange-600" />
                                                         </div>
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-500 mb-1 text-center">Đúng / Sai</label>
-                                                            <input type="number" min="0" max="50" value={questionCounts.tf} onChange={e => setQuestionCounts({...questionCounts, tf: Number(e.target.value)})} className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-blue-600" />
+                                                            <input type="number" min="0" max="50" value={questionCounts.tf} readOnly className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-blue-600" />
                                                         </div>
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-500 mb-1 text-center">Điền khuyết</label>
-                                                            <input type="number" min="0" max="50" value={questionCounts.sa} onChange={e => setQuestionCounts({...questionCounts, sa: Number(e.target.value)})} className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-green-600" />
+                                                            <input type="number" min="0" max="50" value={questionCounts.sa} readOnly className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-green-600" />
                                                         </div>
                                                     </div>
                                                     <div className="text-center mt-2 text-xs text-slate-400 font-bold">Tổng: {questionCounts.mc + questionCounts.tf + questionCounts.sa} câu</div>
@@ -1636,6 +2030,14 @@ CẤU TRÚC MẪU:
                                 {/* NEW: EXPORT DOCX BUTTON */}
                                 <button onClick={handleExportDocx} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2">
                                     <FileType2 size={18}/> Xuất Word
+                                </button>
+                                
+                                {/* CẬP NHẬT: NÚT TRÌNH CHIẾU */}
+                                <button 
+                                    onClick={() => { setCurrentSlide(0); setIsPresentationMode(true); }} 
+                                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2"
+                                >
+                                    <Monitor size={18}/> Trình Chiếu
                                 </button>
 
                                 <button onClick={handleExportQuestions} className="bg-white border-2 border-slate-200 hover:border-orange-400 text-slate-700 hover:text-orange-600 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2">
@@ -1847,7 +2249,7 @@ CẤU TRÚC MẪU:
                             <span className="font-bold text-sm">Trợ lý AI</span>
                         </button>
 
-                        {/* Helper Modal (RESTORED) */}
+                        {/* Helper Modal */}
                         {showHelperTools && (
                             <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
                                 <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="bg-slate-100 max-w-6xl w-full rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
@@ -1866,17 +2268,148 @@ CẤU TRÚC MẪU:
                 );
             };
 
+            // --- CẬP NHẬT: HÀM RENDER CHẾ ĐỘ TRÌNH CHIẾU ---
+            const renderPresentation = () => {
+                const q = questions[currentSlide];
+                if (!q) return null;
+
+                return (
+                    <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-hidden">
+                        {/* Header Slide */}
+                        <div className="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md shrink-0">
+                            <div className="flex items-center gap-4">
+                                <span className="bg-orange-600 px-3 py-1 rounded font-bold text-lg">Câu {currentSlide + 1}</span>
+                                <span className="text-slate-400 text-sm hidden sm:inline">/ {questions.length}</span>
+                            </div>
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowSlideAns(!showSlideAns)} className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${showSlideAns ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                    {showSlideAns ? <><Eye size={18}/> Ẩn Đáp Án</> : <><Eye size={18}/> Hiện Đáp Án</>}
+                                </button>
+                                <button onClick={() => setShowSlideExpl(!showSlideExpl)} className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${showSlideExpl ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                    {showSlideExpl ? <><Lightbulb size={18}/> Ẩn Lời Giải</> : <><Lightbulb size={18}/> Hiện Lời Giải</>}
+                                </button>
+                                <div className="w-px h-8 bg-slate-700 mx-2"></div>
+                                <button onClick={() => setIsPresentationMode(false)} className="text-slate-400 hover:text-white transition flex items-center gap-1 font-bold">
+                                    <LogOut size={18}/> Thoát
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Body Slide */}
+                        <div className="flex-1 overflow-y-auto p-8 bg-slate-100 flex justify-center">
+                            <div className="max-w-7xl w-full bg-white rounded-3xl shadow-lg border border-slate-200 p-10 min-h-full flex flex-col">
+                                <div className="flex-1 flex flex-col lg:flex-row gap-12">
+                                    <div className="flex-1 space-y-8">
+                                        <div className="text-3xl md:text-4xl leading-relaxed font-medium text-slate-800">
+                                            <MathContent content={q.question} />
+                                        </div>
+                                        
+                                        {/* Options Area */}
+                                        {q.type !== 'sa' && (
+                                            <div className="grid grid-cols-1 gap-4 mt-8">
+                                                {q.options.map((opt, idx) => {
+                                                    const isCorrect = idx === Number(q.correctAnswer);
+                                                    let cardClass = "border-2 border-slate-200 bg-slate-50 text-slate-600";
+                                                    if (showSlideAns) {
+                                                        if (isCorrect) cardClass = "border-green-500 bg-green-100 text-green-900 shadow-md ring-2 ring-green-400";
+                                                        else cardClass = "border-slate-100 bg-slate-50 opacity-40";
+                                                    }
+                                                    
+                                                    return (
+                                                        <div key={idx} className={`p-5 rounded-2xl text-xl transition-all flex items-center gap-5 ${cardClass}`}>
+                                                            <span className={`w-12 h-12 rounded-full flex items-center justify-center font-bold border-2 text-lg shrink-0 ${showSlideAns && isCorrect ? 'border-green-600 bg-green-600 text-white' : 'border-slate-300 bg-white'}`}>
+                                                                {q.type === 'tf' ? (idx===0?'Đ':'S') : String.fromCharCode(65 + idx)}
+                                                            </span>
+                                                            <div className="font-medium"><MathContent content={opt}/></div>
+                                                            {showSlideAns && isCorrect && <Check className="text-green-600 ml-auto" size={32}/>}
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                        
+                                        {/* Short Answer */}
+                                        {q.type === 'sa' && showSlideAns && (
+                                            <div className="mt-8 p-8 bg-green-50 border-l-8 border-green-500 rounded-r-2xl shadow-sm">
+                                                <div className="text-green-800 font-bold text-lg mb-2 uppercase tracking-wider">Đáp án đúng:</div>
+                                                <div className="text-4xl font-black text-green-700"><MathContent content={q.correctAnswer}/></div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Visual Area */}
+                                    {q.visualType !== 'none' && (
+                                        <div className="lg:w-1/2 flex items-start justify-center">
+                                            <div className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-xl w-full">
+                                                <VisualContent type={q.visualType} data={q.visualData} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Explanation */}
+                                {showSlideExpl && (
+                                    <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="mt-10 pt-10 border-t-2 border-dashed border-slate-300">
+                                        <h3 className="text-2xl font-bold text-blue-700 mb-4 flex items-center gap-2"><Lightbulb size={28}/> Lời giải chi tiết:</h3>
+                                        <div className="text-xl text-slate-700 leading-relaxed bg-blue-50 p-8 rounded-3xl border border-blue-100 shadow-inner">
+                                            <MathContent content={q.explanation} className="whitespace-pre-wrap"/>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer Controls */}
+                        <div className="bg-white border-t border-slate-200 p-4 flex justify-center items-center gap-8 shrink-0 relative">
+                            <button 
+                                onClick={() => { if(currentSlide > 0) { setCurrentSlide(c => c-1); setShowSlideAns(false); setShowSlideExpl(false); }}} 
+                                disabled={currentSlide === 0}
+                                className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center gap-2 disabled:opacity-30 transition"
+                            >
+                                <ArrowLeft size={20}/> Câu Trước
+                            </button>
+                            
+                            <div className="flex gap-1 overflow-x-auto max-w-[50%] py-2 scrollbar-hide">
+                                {questions.map((_, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        onClick={() => { setCurrentSlide(idx); setShowSlideAns(false); setShowSlideExpl(false); }}
+                                        className={`h-2 rounded-full cursor-pointer transition-all ${idx === currentSlide ? 'bg-orange-500 w-8' : 'bg-slate-300 w-2 hover:bg-slate-400'}`}
+                                    ></div>
+                                ))}
+                            </div>
+
+                            <button 
+                                onClick={() => { if(currentSlide < questions.length - 1) { setCurrentSlide(c => c+1); setShowSlideAns(false); setShowSlideExpl(false); }}} 
+                                disabled={currentSlide === questions.length - 1}
+                                className="px-6 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-700 font-bold flex items-center gap-2 disabled:opacity-30 transition shadow-lg"
+                            >
+                                Câu Sau <ArrowRight size={20}/>
+                            </button>
+                            
+                            <div className="absolute right-6 text-xs text-slate-400 hidden lg:block">
+                                Phím tắt: ← (Trước) | → (Sau) | ESC (Thoát)
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
             return (
                 <div className="min-h-screen font-sans text-slate-800 bg-orange-50 selection:bg-orange-200">
+                    {showTutorial && <InstructionModal onClose={() => setShowTutorial(false)} />}
                     {showLibrary && user && <CloudLibraryModal user={user} onClose={() => setShowLibrary(false)} onLoad={handleLoadFromLibrary} />}
                     {showSaveModal && <SaveModal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)} onSave={handleConfirmSave} defaultTopic={topic} />}
                     
-                    {wizardStep === 0 && renderIntro()}
+                    {/* CẬP NHẬT: HIỂN THỊ CHẾ ĐỘ TRÌNH CHIẾU */}
+                    {isPresentationMode && renderPresentation()}
+
+                    {!isPresentationMode && wizardStep === 0 && renderIntro()}
                     
                     {/* STEP 0.5: MODE SELECTION */}
-                    {wizardStep === 0.5 && renderModeSelection()}
+                    {!isPresentationMode && wizardStep === 0.5 && renderModeSelection()}
 
-                    {wizardStep > 0 && wizardStep < 5 && (
+                    {!isPresentationMode && wizardStep > 0 && wizardStep < 5 && (
                         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-orange-400 to-amber-600">
                             {wizardStep === 1 && renderStep1_Key()}
                             {wizardStep === 2 && renderStep2_Config()}
