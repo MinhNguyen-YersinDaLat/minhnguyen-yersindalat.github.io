@@ -1306,13 +1306,14 @@ y: -inf, y1, y2, +inf"
             
             // --- NEW: SAVE MODAL STATE ---
             const [showSaveModal, setShowSaveModal] = useState(false);
-
-            useEffect(() => {
-                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-                    setUser(currentUser);
-                });
-                return () => unsubscribe();
-            }, []);
+const [showMixModal, setShowMixModal] = useState(false);
+// --- FIX: THÊM ĐOẠN NÀY ĐỂ LẮNG NGHE ĐĂNG NHẬP ---
+useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+    });
+    return () => unsubscribe();
+}, []);
 // --- LOGIC ĐỒNG HỒ (CÓ NHẬP SỐ PHÚT) ---
             const [timer, setTimer] = useState(0);
             const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -2670,4 +2671,3 @@ CẤU TRÚC MẪU:
     </script>
 </body>
 </html>
-
