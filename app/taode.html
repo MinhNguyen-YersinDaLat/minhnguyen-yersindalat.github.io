@@ -163,7 +163,7 @@
 
         // --- FIREBASE SETUP ---
         import { initializeApp } from "firebase/app";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth";
+        import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth";
         import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, orderBy } from "firebase/firestore";
 
         // Firebase Configuration
@@ -1379,8 +1379,13 @@ const [showMixModal, setShowMixModal] = useState(false);
             };
 
             const handleLogin = async () => {
-                try { await signInWithPopup(auth, provider); } catch (error) { alert("Lỗi đăng nhập: " + error.message); }
-            };
+            try { 
+                // Dùng Redirect thay cho Popup để tránh bị chặn bởi Desmos/Browser
+                await signInWithRedirect(auth, provider);
+            } catch (error) { 
+                alert("Lỗi khởi tạo đăng nhập: " + error.message); 
+            }
+        };
 
             const handleLogout = async () => { await signOut(auth); };
 
@@ -2664,4 +2669,5 @@ CẤU TRÚC MẪU:
     </script>
 </body>
 </html>
+
 
