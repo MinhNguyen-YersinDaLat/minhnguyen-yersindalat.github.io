@@ -825,6 +825,7 @@
         };
 
         // --- API GEMINI & PARSING FIX ---
+        // --- API GEMINI & PARSING FIX (ĐÃ SỬA LỖI LATEX) ---
         const cleanGeminiJson = (text) => {
             const startIndex = text.indexOf('[');
             const endIndex = text.lastIndexOf(']');
@@ -832,11 +833,19 @@
             if (startIndex !== -1 && endIndex !== -1) {
                 cleaned = text.substring(startIndex, endIndex + 1);
             }
+            // Xóa markdown json tag nếu AI lỡ thêm vào
+            cleaned = cleaned.replace(/```json/g, "").replace(/```/g, "").trim();
+
             cleaned = cleaned.replace(/""([^"]*)""/g, '"$1"');
             const placeholder = "___DOUBLE_BACKSLASH_PLACEHOLDER___";
             cleaned = cleaned.split("\\\\").join(placeholder);
             cleaned = cleaned.replace(/\\u(?![0-9a-fA-F]{4})/g, "\\\\u");
-            const pattern = "\\\\([^\"\\\\/bfnrtu])";
+            
+            // --- ĐÂY LÀ DÒNG QUAN TRỌNG ĐÃ SỬA ---
+            // Chỉ escape n (xuống dòng), u (unicode) và " (ngoặc kép).
+            // GIỮ NGUYÊN b, f, r, t để các lệnh \frac, \beta, \right, \times hoạt động.
+            const pattern = "\\\\([^\"\\\\nu])"; 
+            
             const regex = new RegExp(pattern, "g");
             cleaned = cleaned.replace(regex, "\\\\$1");
             cleaned = cleaned.split(placeholder).join("\\\\");
@@ -1845,16 +1854,31 @@ CẤU TRÚC MẪU:
                                             <label className="block text-xs font-bold text-orange-600 uppercase mb-2">Tổng hợp cơ cấu đề thi</label>
                                             <div className="grid grid-cols-3 gap-4">
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">Trắc nghiệm (4 chọn 1)</label>
-                                                    <input type="number" min="0" max="50" value={questionCounts.mc} readOnly className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-slate-50 shadow-inner font-bold text-orange-600" />
+                                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">Trắc nghiệm</label>
+                                                    <input 
+                                                        type="number" min="0" 
+                                                        value={questionCounts.mc} 
+                                                        onChange={(e) => setQuestionCounts({...questionCounts, mc: parseInt(e.target.value) || 0})}
+                                                        className="w-full p-4 border border-orange-200 rounded-xl outline-none text-xl text-center bg-white shadow-inner font-bold text-orange-600" 
+                                                    />
                                                 </div>
                                                 <div>
                                                     <label className="block text-[10px] font-bold text-slate-500 mb-1">Đúng / Sai</label>
-                                                    <input type="number" min="0" max="50" value={questionCounts.tf} readOnly className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-slate-50 shadow-inner font-bold text-blue-600" />
+                                                    <input 
+                                                        type="number" min="0" 
+                                                        value={questionCounts.tf} 
+                                                        onChange={(e) => setQuestionCounts({...questionCounts, tf: parseInt(e.target.value) || 0})}
+                                                        className="w-full p-4 border border-orange-200 rounded-xl outline-none text-xl text-center bg-white shadow-inner font-bold text-blue-600" 
+                                                    />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">Điền khuyết / Ngắn</label>
-                                                    <input type="number" min="0" max="50" value={questionCounts.sa} readOnly className="w-full p-4 border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none text-xl text-center bg-slate-50 shadow-inner font-bold text-green-600" />
+                                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">Điền khuyết</label>
+                                                    <input 
+                                                        type="number" min="0" 
+                                                        value={questionCounts.sa} 
+                                                        onChange={(e) => setQuestionCounts({...questionCounts, sa: parseInt(e.target.value) || 0})}
+                                                        className="w-full p-4 border border-orange-200 rounded-xl outline-none text-xl text-center bg-white shadow-inner font-bold text-green-600" 
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="text-center mt-2 text-sm text-slate-500 font-bold">Tổng cộng: {questionCounts.mc + questionCounts.tf + questionCounts.sa} câu hỏi</div>
@@ -1919,15 +1943,30 @@ CẤU TRÚC MẪU:
                                                     <div className="grid grid-cols-3 gap-2">
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-500 mb-1 text-center">Trắc nghiệm</label>
-                                                            <input type="number" min="0" max="50" value={questionCounts.mc} readOnly className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-orange-600" />
+                                                            <input 
+                                                                type="number" min="0" 
+                                                                value={questionCounts.mc} 
+                                                                onChange={(e) => setQuestionCounts({...questionCounts, mc: parseInt(e.target.value) || 0})}
+                                                                className="w-full p-2 border border-orange-200 rounded-lg outline-none text-center bg-white font-bold text-orange-600" 
+                                                            />
                                                         </div>
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-500 mb-1 text-center">Đúng / Sai</label>
-                                                            <input type="number" min="0" max="50" value={questionCounts.tf} readOnly className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-blue-600" />
+                                                            <input 
+                                                                type="number" min="0" 
+                                                                value={questionCounts.tf} 
+                                                                onChange={(e) => setQuestionCounts({...questionCounts, tf: parseInt(e.target.value) || 0})}
+                                                                className="w-full p-2 border border-orange-200 rounded-lg outline-none text-center bg-white font-bold text-blue-600" 
+                                                            />
                                                         </div>
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-500 mb-1 text-center">Điền khuyết</label>
-                                                            <input type="number" min="0" max="50" value={questionCounts.sa} readOnly className="w-full p-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-center bg-slate-50 font-bold text-green-600" />
+                                                            <input 
+                                                                type="number" min="0" 
+                                                                value={questionCounts.sa} 
+                                                                onChange={(e) => setQuestionCounts({...questionCounts, sa: parseInt(e.target.value) || 0})}
+                                                                className="w-full p-2 border border-orange-200 rounded-lg outline-none text-center bg-white font-bold text-green-600" 
+                                                            />
                                                         </div>
                                                     </div>
                                                     <div className="text-center mt-2 text-xs text-slate-400 font-bold">Tổng: {questionCounts.mc + questionCounts.tf + questionCounts.sa} câu</div>
