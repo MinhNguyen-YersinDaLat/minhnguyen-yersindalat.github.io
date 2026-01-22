@@ -16,7 +16,8 @@
 
     <!-- 2. Function Plot (Dự phòng - Fallback) -->
     <script src="https://unpkg.com/function-plot/dist/function-plot.js"></script>
-    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- 2. Smiles Drawer: Vẽ công thức hóa học -->
     <script src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js"></script>
     <!-- 3. Mermaid.js: Vẽ sơ đồ Sinh học/Quy trình/Sử/Văn -->
@@ -435,87 +436,159 @@
             );
         };
 
-        // 3. VariationTableRenderer
+// --- 3. VariationTableRenderer (PHIÊN BẢN COMPACT: THU NHỎ ĐỂ VỪA KHUNG) ---
         const VariationTableRenderer = ({ data }) => {
             if (!data) return null;
-            const lines = data.trim().split(/\r?\n/);
-            let xRow = [], ypRow = [], yRow = [];
-            lines.forEach(line => {
-                const lowerLine = line.toLowerCase();
-                if (lowerLine.startsWith('x:')) xRow = line.substring(2).split(',').map(s => s.trim());
-                else if (lowerLine.startsWith("y':") || lowerLine.startsWith("y’:")) ypRow = line.substring(3).split(',').map(s => s.trim());
-                else if (lowerLine.startsWith('y:')) yRow = line.substring(2).split(',').map(s => s.trim());
-            });
-            if (xRow.length === 0) return <div className="text-red-500 text-xs">Dữ liệu bảng biến thiên không hợp lệ.</div>;
+            const arrowId = "arrow-" + Math.random().toString(36).substr(2, 9);
 
-            const getHeight = (val) => {
-                if(!val) return 50;
-                const v = val.toLowerCase().replace(/\s/g, '');
-                if (v.includes('-inf') || v.includes('-vc') || v.includes('amvo')) return 90; 
-                if (v.includes('+inf') || v.includes('+vc') || v.includes('duongvo')) return 10;
-                const nums = yRow.filter(n => {
-                    const clean = n.toLowerCase().replace(/\s/g, '');
-                    return !clean.includes('inf') && !clean.includes('vc') && !isNaN(parseFloat(clean));
-                }).map(n => parseFloat(n));
-                if (nums.length === 0) return 50;
-                const min = Math.min(...nums);
-                const max = Math.max(...nums);
-                if (min === max) return 50;
-                const current = parseFloat(val);
-                if (isNaN(current)) return 50;
-                return 70 - ((current - min) / (max - min)) * 40; 
+            // 1. Render Toán (Size chữ nhỏ hơn để vừa khung)
+            const renderMathSafe = (latex) => {
+                if (!latex) return <span>&nbsp;</span>;
+                // Nếu chưa phải Latex chuẩn, render text thường
+                if (!window.katex) return <span className="font-serif text-xs">{latex}</span>;
+                try {
+                    return <span dangerouslySetInnerHTML={{ __html: window.katex.renderToString(latex, { throwOnError: false, displayMode: false }) }} />;
+                } catch (e) { return <span className="text-red-500 text-xs">{latex}</span>; }
             };
 
-            const formatLatex = (val) => {
-                if(!val) return "";
-                let text = val.replace(/\s*-\s*(inf|vc|vo\s*cung)\s*/gi, '-\\infty').replace(/\s*\+\s*(inf|vc|vo\s*cung)\s*/gi, '+\\infty').replace(/\s*(inf|vc|vo\s*cung)\s*/gi, '\\infty');
-                if (!text.includes('$')) return `$${text}$`;
-                return text;
+            // 2. Chuẩn hóa (Giữ nguyên logic thông minh cũ)
+            const fmt = (s) => {
+                if (!s) return "";
+                let str = s.toString().trim();
+                str = str.replace(/(-?)(inf|vc|vo\s*cung|infinity)/gi, "$1\\infty");
+                str = str.replace(/sqrt\s*\(([^)]+)\)/gi, "\\sqrt{$1}").replace(/sqrt([0-9a-zA-Z]+)/gi, "\\sqrt{$1}");
+                if (str.includes('/') && !str.includes('{')) str = str.replace(/([0-9a-zA-Z\\sqrt{}]+)\/([0-9a-zA-Z]+)/g, "\\dfrac{$1}{$2}");
+                return str;
             };
 
-            return (
-                <div className="flex flex-col items-center w-full my-4">
-                    <div className="w-full max-w-4xl border border-slate-900 rounded bg-white shadow-lg overflow-hidden text-base select-none">
-                        <div className="flex border-b border-slate-900">
-                            <div className="w-16 border-r border-slate-900 flex items-center justify-center font-bold bg-slate-50 italic font-serif py-3 text-lg">$x$</div>
-                            <div className="flex-1 flex justify-between px-10 py-3 items-center">
-                                {xRow.map((val, i) => (<div key={i} className="font-bold text-slate-900 text-lg"><MathContent content={formatLatex(val)}/></div>))}
-                            </div>
-                        </div>
-                        <div className="flex border-b border-slate-900">
-                            <div className="w-16 border-r border-slate-900 flex items-center justify-center font-bold bg-slate-50 italic font-serif py-3 text-lg">$y'$</div>
-                            <div className="flex-1 flex justify-between items-center px-4 h-12">
-                                {ypRow.map((val, i) => {
-                                    const isDoubleBar = val === '||';
-                                    return (<div key={i} className="text-center font-bold text-lg w-full flex justify-center">{isDoubleBar ? (<div className="border-l-2 border-r-2 border-slate-900 h-12 w-1"></div>) : (<MathContent content={formatLatex(val)}/>)}</div>);
+            try {
+                const lines = data.trim().split(/\r?\n/).filter(l => l.trim());
+                let xRaw = [], ypRaw = [], yRaw = [];
+                
+                lines.forEach(line => {
+                    const parts = line.match(/^([a-zA-Z0-9']+\s*):(.*)/);
+                    if (!parts) return;
+                    const head = parts[1].toLowerCase().replace(/\s/g, ''); 
+                    const content = parts[2].replace(/;/g, ',').trim();
+                    if (head === 'x') xRaw = content.split(',').map(s => s.trim());
+                    else if (head.includes("y'")) ypRaw = content.split(',').map(s => s.trim());
+                    else if (head === 'y') yRaw = content.split(',').map(s => s.trim());
+                });
+
+                if (xRaw.length === 0) return null;
+
+                const totalCols = xRaw.length * 2 - 1;
+                let finalYP = new Array(totalCols).fill("");
+                if (ypRaw.length > 0 && ypRaw.length <= totalCols - 2) {
+                    for(let i=0; i<ypRaw.length; i++) finalYP[i+1] = ypRaw[i];
+                } else {
+                    for(let i=0; i<Math.min(ypRaw.length, totalCols); i++) finalYP[i] = ypRaw[i];
+                }
+
+                let finalY_Nodes = new Array(xRaw.length).fill("");
+                xRaw.forEach((_, i) => { if (yRaw[i]) finalY_Nodes[i] = yRaw[i]; });
+
+                return (
+                    <div className="flex flex-col items-center w-full my-2">
+                        {/* Container giới hạn max-width và có thanh cuộn nếu tràn */}
+                        <div className="bg-white rounded-lg border border-slate-400 shadow-sm overflow-x-auto w-full max-w-full">
+                            <div className="inline-grid border-collapse min-w-full" 
+                                 style={{
+                                     fontFamily: '"Times New Roman", serif',
+                                     // THU NHỎ: Cột tiêu đề giảm còn 30px, cột nội dung tối thiểu 40px
+                                     gridTemplateColumns: `35px repeat(${xRaw.length - 1}, auto minmax(40px, 1fr)) auto`,
+                                     // THU NHỎ: Chiều cao dòng giảm xuống
+                                     gridTemplateRows: '35px 35px minmax(100px, auto)' 
+                                 }}>
+
+                                {/* === HÀNG 1: X === */}
+                                <div className="border-r border-b border-black flex items-center justify-center font-bold italic bg-slate-50 text-sm">x</div>
+                                {xRaw.map((val, i) => (
+                                    <React.Fragment key={`x-${i}`}>
+                                        <div className="border-b border-black flex items-center justify-center px-2 font-bold text-slate-900 text-sm whitespace-nowrap">
+                                            {renderMathSafe(fmt(val))}
+                                        </div>
+                                        {i < xRaw.length - 1 && <div className="border-b border-black"></div>}
+                                    </React.Fragment>
+                                ))}
+
+                                {/* === HÀNG 2: Y' === */}
+                                <div className="border-r border-b border-black flex items-center justify-center font-bold italic bg-slate-50 text-sm">y'</div>
+                                {xRaw.map((_, i) => {
+                                    const nodeVal = finalYP[i * 2]; 
+                                    const intervalVal = finalYP[i * 2 + 1];
+                                    const isDoubleBar = nodeVal === '||';
+                                    return (
+                                        <React.Fragment key={`yp-${i}`}>
+                                            <div className="border-b border-black flex items-center justify-center relative min-w-[20px]">
+                                                {isDoubleBar ? (
+                                                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] border-l border-r border-black bg-white h-full"></div>
+                                                ) : (
+                                                    <span className="font-bold text-sm">{renderMathSafe(fmt(nodeVal))}</span>
+                                                )}
+                                            </div>
+                                            {i < xRaw.length - 1 && (
+                                                <div className="border-b border-black flex items-center justify-center text-slate-900 font-bold text-sm">
+                                                    {renderMathSafe(fmt(intervalVal))}
+                                                </div>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+
+                                {/* === HÀNG 3: Y === */}
+                                <div className="border-r border-black flex items-center justify-center font-bold italic bg-slate-50 text-sm">y</div>
+                                {xRaw.map((_, i) => {
+                                    const val = finalY_Nodes[i];
+                                    const prevSign = i > 0 ? finalYP[(i-1)*2 + 1] : "";
+                                    const nextSign = i < xRaw.length - 1 ? finalYP[i*2 + 1] : "";
+                                    
+                                    let isHigh = false;
+                                    const sVal = String(val || "").toLowerCase();
+                                    if (prevSign.includes('+') || prevSign.includes('u')) isHigh = true; 
+                                    if (nextSign.includes('-') || nextSign.includes('d')) isHigh = true; 
+                                    if (sVal.includes('+inf') || sVal.includes('duongvo')) isHigh = true;
+                                    if (sVal.includes('-inf') || sVal.includes('amvo')) isHigh = false;
+
+                                    const isDoubleBar = finalYP[i * 2] === '||';
+
+                                    return (
+                                        <React.Fragment key={`y-${i}`}>
+                                            <div className="relative p-1 min-w-[40px] z-10 h-full">
+                                                {isDoubleBar && <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] border-l border-r border-black bg-white h-full z-20"></div>}
+                                                <div className={`h-full flex flex-col items-center ${isHigh ? 'justify-start' : 'justify-end'}`}>
+                                                    <span className="font-bold z-10 bg-white px-1 rounded text-slate-900 text-sm whitespace-nowrap">
+                                                        {renderMathSafe(fmt(val))}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* MŨI TÊN (SVG) */}
+                                            {i < xRaw.length - 1 && (
+                                                <div className="relative w-full h-full z-0">
+                                                    <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                                                        <defs>
+                                                            <marker id={arrowId} markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                                                <path d="M0,0 L0,6 L9,3 z" fill="black" />
+                                                            </marker>
+                                                        </defs>
+                                                        {finalYP[i*2+1].includes('+') && <line x1="15%" y1="80%" x2="85%" y2="20%" stroke="black" strokeWidth="1.2" markerEnd={`url(#${arrowId})`} />}
+                                                        {finalYP[i*2+1].includes('-') && <line x1="15%" y1="20%" x2="85%" y2="80%" stroke="black" strokeWidth="1.2" markerEnd={`url(#${arrowId})`} />}
+                                                        {(finalYP[i*2+1].includes('u') || finalYP[i*2+1].includes('/')) && <line x1="15%" y1="80%" x2="85%" y2="20%" stroke="black" strokeWidth="1.2" markerEnd={`url(#${arrowId})`} />}
+                                                        {(finalYP[i*2+1].includes('d') || finalYP[i*2+1].includes('\\')) && <line x1="15%" y1="20%" x2="85%" y2="80%" stroke="black" strokeWidth="1.2" markerEnd={`url(#${arrowId})`} />}
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </React.Fragment>
+                                    );
                                 })}
                             </div>
                         </div>
-                        <div className="flex h-48">
-                            <div className="w-16 border-r border-slate-900 flex items-center justify-center font-bold bg-slate-50 italic font-serif text-lg">$y$</div>
-                            <div className="flex-1 relative p-0 w-full bg-white">
-                                <svg className="absolute inset-0 w-full h-full z-0">
-                                    <defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0f172a" /></marker></defs>
-                                    {yRow.map((val, i) => {
-                                        if (i === yRow.length - 1) return null;
-                                        const valNext = yRow[i+1];
-                                        if (val === '||' || valNext === '||') return null; 
-                                        const x1Perc = (i / (yRow.length - 1)) * 100;
-                                        const x2Perc = ((i + 1) / (yRow.length - 1)) * 100;
-                                        return (<line key={i} x1={`${x1Perc + 4}%`} y1={`${getHeight(val)}%`} x2={`${x2Perc - 4}%`} y2={`${getHeight(valNext)}%`} stroke="#0f172a" strokeWidth="2" markerEnd="url(#arrowhead)" />);
-                                    })}
-                                </svg>
-                                <div className="absolute inset-0 w-full h-full z-10 pointer-events-none flex justify-between px-10">
-                                     {yRow.map((val, i) => {
-                                        return (<div key={i} className="relative flex flex-col items-center justify-start w-10 h-full"><div className="absolute transform -translate-y-1/2 flex justify-center items-center bg-white/90 px-1 rounded z-20" style={{top: `${getHeight(val)}%`}}>{val === '||' ? (<div className="h-48 w-1 border-l-2 border-r-2 border-slate-900 -mt-[100px]"></div>) : (<MathContent content={formatLatex(val)} className="font-bold text-slate-900 text-lg shadow-sm"/>)}</div></div>);
-                                    })}
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                    <div className="mt-3 italic flex items-center gap-1 text-sm text-slate-600 font-bold"><Table2 size={16}/> Bảng biến thiên (Chuẩn SGK)</div>
-                </div>
-            );
+                );
+            } catch (e) {
+                return <div className="text-red-500 p-2 text-xs">Lỗi BBT: {e.message}</div>;
+            }
         };
 
         // 4. ChemistryRenderer
@@ -809,17 +882,27 @@
             );
         };
 
-        // --- VISUAL CONTENT CONTROLLER ---
+        // --- VISUAL CONTENT ROUTER (ĐÃ KẾT NỐI CHUẨN) ---
         const VisualContent = ({ type, data }) => {
             if (!type || type === 'none' || !data) return null;
             return (
-                <div className="visual-container">
+                <div className="visual-container w-full flex justify-center">
+                    {/* 1. Đồ thị: Dùng 'graph' để gọi Desmos Renderer có sẵn */}
                     {type === 'graph' && <GraphRenderer formula={data} />}
+                    
+                    {/* 2. Bảng biến thiên: Gọi cái mới vừa thay ở Bước 1 */}
                     {type === 'variation_table' && <VariationTableRenderer data={data} />}
+                    
+                    {/* 3. Các Visual khác giữ nguyên */}
                     {type === 'table' && <TableRenderer data={data} />}
                     {type === 'chemistry' && <ChemistryRenderer structure={data} />}
                     {type === 'svg' && <SVGRenderer svgCode={data} />}
                     {type === 'mermaid' && <MermaidRenderer chart={data} />}
+                    
+                    {/* 4. Ảnh URL */}
+                    {type === 'image_url' && (
+                        <img src={data} className="max-h-64 rounded-lg shadow-sm border border-slate-200" alt="Minh họa"/>
+                    )}
                 </div>
             );
         };
@@ -907,8 +990,29 @@ Trong JSON output, hãy TÁCH MỖI Ý NHỎ a, b, c, d THÀNH 1 ĐỐI TƯỢNG
 Ví dụ: Nếu yêu cầu 1 câu Đ/S -> Hãy sinh ra 4 items trong mảng JSON (Câu 1 - Ý a, Câu 1 - Ý b, Câu 1 - Ý c, Câu 1 - Ý d).
 Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý a]".
 
-3. QUY TẮC VISUAL (GIỮ NGUYÊN):
-- Tự động chọn "visualType" (graph, variation_table, chemistry, mermaid, svg, none) phù hợp nội dung.
+3. QUY TẮC VISUAL (TỰ ĐỘNG CHỌN THÔNG MINH):
+Dựa vào nội dung câu hỏi, hãy TỰ ĐỘNG chọn visualType phù hợp nhất (Chỉ chọn 1):
+- TOÁN (Đồ thị): "visualType": "graph", "visualData": "x^3 - 3*x" (Chỉ ghi biểu thức Javascript Math theo biến x).
+- TOÁN (BBT): "visualType": "variation_table", "visualData":BẮT BUỘC là text 3 dòng:
+"x: -inf, x1, x2, +inf
+y': +, 0, -, 0, +
+y: -inf, y1, y2, +inf"
+- HÓA (Cấu trúc): "visualType": "chemistry", "visualData": "CC(=O)O" (Chuỗi SMILES chuẩn).
+- SINH/SỬ/ĐỊA/VĂN (Sơ đồ - Mermaid): "visualType": "mermaid"
+  + Yêu cầu: Trả về code Mermaid thuần túy.
+  + Sơ đồ quy trình/phả hệ: Dùng 'graph TD'.
+  + Dòng thời gian (Timeline): Dùng 'graph LR'.
+  + Ví dụ: "graph LR; A[1945: CMT8] --> B[1954: Điện Biên Phủ]"
+- ĐỊA LÝ/THỐNG KÊ (Biểu đồ - SVG): "visualType": "svg"
+  + Nếu cần vẽ biểu đồ cột/tròn/đường, hãy TỰ CODE SVG.
+  + Yêu cầu: viewBox="0 0 500 300". Dùng <rect>, <circle>, <line>. Có chú thích trục và số liệu.
+- HÌNH HỌC/VẬT LÝ (Hình vẽ - SVG): "visualType": "svg"
+  + Yêu cầu bắt buộc: viewBox="0 0 500 300".
+  + Thẩm mỹ: Nét vẽ màu đen (stroke="black", stroke-width="2"). Tô màu nhạt hoặc không tô (fill="none").
+  + Font chữ: font-family="sans-serif" font-size="12".
+  + Nhãn: Các điểm A, B, C, lực F, v... phải có text rõ ràng.
+- Bảng số liệu: "visualType": "table", "visualData": "Cột 1,Cột 2\\nDòng 1,Dữ liệu 1" (Định dạng CSV).
+- Không hình: "visualType": "none", "visualData": "".
 
 ĐỊNH DẠNG ĐẦU RA (JSON STRICT):
 [
@@ -1043,7 +1147,59 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
                 </div>
             );
         };
+// --- NEW COMPONENT: MIX EXAM MODAL (POPUP TRỘN ĐỀ) ---
+        // --- NEW COMPONENT: MIX EXAM MODAL (ĐÃ NÂNG CẤP ZIP & ĐÁP ÁN) ---
+        const MixExamModal = ({ isOpen, onClose, onMix }) => {
+            const [config, setConfig] = useState({
+                mixMC: true,       // Trộn trắc nghiệm
+                mixTF_Question: true, // Trộn câu lớn Đ/S
+                mixTF_Items: true,    // Trộn ý nhỏ a,b,c,d
+                mixSA: true,       // Trộn trả lời ngắn
+                numVariants: 1,    // Số lượng đề
+                exportKey: true,   // Tùy chọn: Xuất đáp án riêng
+                useZip: true       // Tùy chọn: Nén Zip
+            });
 
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+                        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 text-white font-bold text-lg flex justify-between items-center">
+                            <span className="flex items-center gap-2"><Shuffle size={20}/> Cấu Hình Trộn & Xuất Đề</span>
+                            <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full"><X size={20}/></button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 space-y-2">
+                                <h3 className="font-bold text-purple-800 text-sm uppercase">1. Cấu hình trộn:</h3>
+                                <label className="flex items-center gap-2"><input type="checkbox" checked={config.mixMC} onChange={e=>setConfig({...config, mixMC: e.target.checked})} className="accent-purple-600 w-4 h-4"/> Trộn Trắc nghiệm</label>
+                                <label className="flex items-center gap-2"><input type="checkbox" checked={config.mixTF_Question} onChange={e=>setConfig({...config, mixTF_Question: e.target.checked})} className="accent-purple-600 w-4 h-4"/> Đảo vị trí các câu Đúng/Sai lớn</label>
+                                <label className="flex items-center gap-2 ml-6"><input type="checkbox" checked={config.mixTF_Items} onChange={e=>setConfig({...config, mixTF_Items: e.target.checked})} className="accent-purple-600 w-4 h-4"/> Đảo thứ tự a,b,c,d bên trong</label>
+                                <label className="flex items-center gap-2"><input type="checkbox" checked={config.mixSA} onChange={e=>setConfig({...config, mixSA: e.target.checked})} className="accent-purple-600 w-4 h-4"/> Trộn Trả lời ngắn</label>
+                            </div>
+
+                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-2">
+                                <h3 className="font-bold text-blue-800 text-sm uppercase">2. Tùy chọn xuất:</h3>
+                                <label className="flex items-center gap-2 cursor-pointer hover:text-blue-600"><input type="checkbox" checked={config.exportKey} onChange={e=>setConfig({...config, exportKey: e.target.checked})} className="accent-blue-600 w-4 h-4"/> <b>Xuất kèm File Đáp Án Riêng</b></label>
+                                <label className="flex items-center gap-2 cursor-pointer hover:text-blue-600"><input type="checkbox" checked={config.useZip} onChange={e=>setConfig({...config, useZip: e.target.checked})} className="accent-blue-600 w-4 h-4"/> <b>Nén tất cả vào 1 file ZIP</b> (Gọn gàng)</label>
+                            </div>
+
+                            <div>
+                                <h3 className="font-bold text-slate-700 text-sm uppercase mb-1">3. Số lượng mã đề:</h3>
+                                <input type="number" min="1" max="10" value={config.numVariants} onChange={e=>setConfig({...config, numVariants: parseInt(e.target.value)})} className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-bold text-center text-xl"/>
+                            </div>
+
+                            <div className="pt-2 flex gap-3">
+                                <button onClick={onClose} className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition">Hủy</button>
+                                <button onClick={() => onMix(config)} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2">
+                                    <Download size={18}/> Xuất Đề Ngay
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
         // --- NEW COMPONENT: CloudLibraryModal ---
         const CloudLibraryModal = ({ user, onClose, onLoad }) => {
             const [sets, setSets] = useState([]);
@@ -1150,13 +1306,27 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
             
             // --- NEW: SAVE MODAL STATE ---
             const [showSaveModal, setShowSaveModal] = useState(false);
+const [showMixModal, setShowMixModal] = useState(false);
+// --- LOGIC ĐỒNG HỒ (CÓ NHẬP SỐ PHÚT) ---
+            const [timer, setTimer] = useState(0);
+            const [isTimerRunning, setIsTimerRunning] = useState(false);
+            const [inputMin, setInputMin] = useState(5); // Mặc định 5 phút
 
             useEffect(() => {
-                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-                    setUser(currentUser);
-                });
-                return () => unsubscribe();
-            }, []);
+                let interval = null;
+                if (isTimerRunning && timer > 0) {
+                    interval = setInterval(() => setTimer(t => t - 1), 1000);
+                } else if (timer === 0) {
+                    setIsTimerRunning(false);
+                }
+                return () => clearInterval(interval);
+            }, [isTimerRunning, timer]);
+
+            const formatTime = (s) => {
+                const m = Math.floor(s / 60);
+                const sec = s % 60;
+                return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+            };
 
             // --- CẬP NHẬT: XỬ LÝ PHÍM TẮT TRÌNH CHIẾU ---
             useEffect(() => {
@@ -1255,162 +1425,172 @@ Nội dung câu hỏi ghi rõ: "Câu 1: [Đề bài chung]. Ý a: [Nội dung ý
             };
 
             // --- NEW FEATURE: EXPORT DOCX (WITH TABS - NO TABLE) ---
-            const handleExportDocx = async () => {
-                if (!window.docx) return alert("Đang tải thư viện DOCX... Vui lòng đợi 5 giây rồi thử lại!");
-                if (!questions || questions.length === 0) return alert("Chưa có câu hỏi nào để xuất!");
+            // --- HÀM XUẤT DOCX (ĐÃ NÂNG CẤP) ---
+            // --- HÀM TẠO FILE DOCX (LOGIC KÉP: ĐỀ HOẶC ĐÁP ÁN) ---
+            const generateDocxBlob = async (dataToExport, titleSuffix, isKey = false) => {
+                if (!window.docx) throw new Error("Thư viện DOCX chưa tải xong.");
+                const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel, PageBreak, AlignmentType } = window.docx;
+                const docChildren = [];
+
+                // HEADER
+                docChildren.push(
+                    new Paragraph({ children: [new TextRun({ text: isKey ? `BẢNG ĐÁP ÁN: ${titleSuffix}` : `ĐỀ THI: ${topic.toUpperCase()} ${titleSuffix}`, bold: true, size: 28 })], heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER, spacing: { after: 200 } }),
+                    new Paragraph({ children: [new TextRun({ text: "GV: Thái Minh Nguyên", italics: true, size: 24 })], alignment: AlignmentType.CENTER, spacing: { after: 400 } })
+                );
+
+                if (isKey) {
+                    // === CHẾ ĐỘ 1: FILE ĐÁP ÁN (BẢNG RÚT GỌN) ===
+                    const rows = [new TableRow({ children: [
+                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Câu", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Đáp án", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 85, type: WidthType.PERCENTAGE } }),
+                    ]})];
+
+                    dataToExport.forEach((q, idx) => {
+                        let ansText = "";
+                        if (q.type === 'sa') {
+                            ansText = q.correctAnswer; // Tự luận: Hiện đáp án text
+                        } else if (q.type === 'tf') {
+                             ansText = q.correctAnswer === 0 ? "Đúng" : "Sai"; // Đ/S: Hiện chữ
+                        } else {
+                            // Trắc nghiệm: Hiện A, B, C, D
+                            ansText = String.fromCharCode(65 + parseInt(q.correctAnswer || 0));
+                        }
+                        
+                        rows.push(new TableRow({ children: [
+                            new TableCell({ children: [new Paragraph({ text: `${idx + 1}`, alignment: AlignmentType.CENTER })] }),
+                            new TableCell({ children: [new Paragraph({ text: ansText, alignment: AlignmentType.CENTER })] }),
+                        ]}));
+                    });
+                    docChildren.push(new Table({ rows: rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+
+                } else {
+                    // === CHẾ ĐỘ 2: FILE ĐỀ THI (CÓ CÂU HỎI + LỜI GIẢI CUỐI) ===
+                    // 1. Phần câu hỏi
+                    dataToExport.forEach((q, idx) => {
+                        let label = q.type === 'tf' ? " (Đ/S)" : (q.type === 'sa' ? " (TL)" : "");
+                        docChildren.push(new Paragraph({ children: [ new TextRun({ text: `Câu ${idx + 1}${label}: `, bold: true, size: 24 }), new TextRun({ text: q.question, size: 24 }) ], spacing: { before: 200, after: 100 } }));
+                        
+                        if (q.visualType !== 'none') docChildren.push(new Paragraph({ children: [new TextRun({ text: `[Hình minh họa: ${q.visualType}]`, italics: true, color: "888888", size: 20 })], spacing: { after: 100 } }));
+
+                        if (q.type === 'sa') docChildren.push(new Paragraph({ children: [new TextRun({ text: "Trả lời: ...........................................................", size: 24 })], spacing: { after: 200 } }));
+                        else if (q.type === 'tf') docChildren.push(new Paragraph({ children: [ new TextRun({ text: `A. Đúng` }), new TextRun({ text: `\tB. Sai` }) ], tabStops: [{ type: "left", position: 4500 }], spacing: { after: 200 } }));
+                        else {
+                            docChildren.push(new Paragraph({ children: [ new TextRun({ text: `A. ${q.options[0]}` }), new TextRun({ text: `\tB. ${q.options[1]}` }) ], tabStops: [ { type: "left", position: 4500 } ], spacing: { after: 50 } }));
+                            docChildren.push(new Paragraph({ children: [ new TextRun({ text: `C. ${q.options[2]}` }), new TextRun({ text: `\tD. ${q.options[3]}` }) ], tabStops: [ { type: "left", position: 4500 } ], spacing: { after: 200 } }));
+                        }
+                    });
+
+                    // 2. Phần lời giải chi tiết (Trang mới)
+                    docChildren.push(new Paragraph({ children: [new PageBreak()] }));
+                    docChildren.push(new Paragraph({ children: [new TextRun({ text: "LỜI GIẢI CHI TIẾT", bold: true, size: 28, color: "EA580C" })], heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER, spacing: { after: 300 } }));
+                    
+                    dataToExport.forEach((q, idx) => {
+                        let ansText = q.type === 'sa' ? q.correctAnswer : (q.type === 'tf' ? (q.correctAnswer === 0 ? "Đúng" : "Sai") : String.fromCharCode(65 + parseInt(q.correctAnswer || 0)));
+                        docChildren.push(new Paragraph({ children: [ new TextRun({ text: `Câu ${idx + 1}: `, bold: true, color: "EA580C" }), new TextRun({ text: `Đáp án: ${ansText}`, bold: true }) ], spacing: { before: 100 } }), new Paragraph({ children: [new TextRun({ text: "Giải thích: ", italics: true }), new TextRun(q.explanation)], spacing: { after: 200 } }));
+                    });
+                }
+                const doc = new Document({ sections: [{ children: docChildren }] });
+                return await Packer.toBlob(doc);
+            };
+
+            // --- HÀM XỬ LÝ TRỘN VÀ NÉN ZIP ---
+            // --- HÀM XỬ LÝ TRỘN + ZIP + EXCEL TỔNG HỢP ---
+            const processMixing = async (config) => {
+                if (config.useZip && !window.JSZip) return alert("Chưa tải xong thư viện ZIP!");
+                if (!window.XLSX) return alert("Chưa tải xong thư viện Excel!"); // Kiểm tra thư viện mới
+
+                setShowMixModal(false);
+                setLoadingMsg("Đang trộn đề, tạo Word và Excel...");
+                setWizardStep(3); // Hiện màn hình loading
 
                 try {
-                    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, PageBreak, AlignmentType, TabStopType } = window.docx;
-
-                    const docChildren = [];
-
-                    // HEADER
-                    docChildren.push(
-                        new Paragraph({
-                            children: [new TextRun({ text: `ĐỀ ÔN TẬP: ${topic.toUpperCase() || "CHỦ ĐỀ MỚI"}`, bold: true, size: 28 })],
-                            heading: HeadingLevel.HEADING_1,
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 200 }
-                        }),
-                        new Paragraph({
-                            children: [new TextRun({ text: "GV: Thái Minh Nguyên", italics: true, size: 24 })],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 400 }
-                        })
-                    );
-
-                    // SECTION 1: CÂU HỎI
-                    questions.forEach((q, idx) => {
-                        // CẬP NHẬT 3: Logic hiển thị câu hỏi theo loại trong DOCX
-                        let typeLabel = "";
-                        if (q.type === 'tf') typeLabel = " (Đúng/Sai)";
-                        if (q.type === 'sa') typeLabel = " (Trả lời ngắn)";
-
-                        // Câu hỏi
-                        docChildren.push(
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: `Câu ${idx + 1}${typeLabel}: `, bold: true, size: 24 }),
-                                    new TextRun({ text: q.question, size: 24 })
-                                ],
-                                spacing: { before: 200, after: 100 }
-                            })
-                        );
-
-                        // Visual note
-                        if (q.visualType !== 'none') {
-                             docChildren.push(
-                                new Paragraph({
-                                    children: [new TextRun({ text: `[Hình minh họa: ${q.visualType} - Xem trên ứng dụng]`, italics: true, color: "888888", size: 20 })],
-                                    spacing: { after: 100 }
-                                })
-                            );
-                        }
-
-                        // --- OPTIONS ---
-                        if (q.type === 'sa') {
-                            // Trả lời ngắn: Chừa dòng trống
-                             docChildren.push(
-                                new Paragraph({
-                                    children: [new TextRun({ text: "Trả lời: .......................................................................................................", size: 24 })],
-                                    spacing: { after: 200 }
-                                })
-                            );
-                        } else if (q.type === 'tf') {
-                            // Đúng sai: Hiển thị A. Đúng  B. Sai
-                             const tabPosition = 4500;
-                             docChildren.push(
-                                new Paragraph({
-                                    children: [
-                                        new TextRun({ text: `A. Đúng` }),
-                                        new TextRun({ text: `\tB. Sai` })
-                                    ],
-                                    tabStops: [{ type: "left", position: tabPosition }],
-                                    spacing: { after: 200 }
-                                })
-                            );
-                        } else {
-                            // Trắc nghiệm: 4 options như cũ
-                            const tabPosition = 4500;
-                            docChildren.push(
-                                new Paragraph({
-                                    children: [
-                                        new TextRun({ text: `A. ${q.options[0]}` }),
-                                        new TextRun({ text: `\tB. ${q.options[1]}` })
-                                    ],
-                                    tabStops: [
-                                        { type: "left", position: tabPosition } 
-                                    ],
-                                    spacing: { after: 50 }
-                                })
-                            );
-                            docChildren.push(
-                                new Paragraph({
-                                    children: [
-                                        new TextRun({ text: `C. ${q.options[2]}` }),
-                                        new TextRun({ text: `\tD. ${q.options[3]}` })
-                                    ],
-                                    tabStops: [
-                                        { type: "left", position: tabPosition }
-                                    ],
-                                    spacing: { after: 200 } 
-                                })
-                            );
-                        }
-                    });
-
-                    // SECTION 2: ANSWER KEY (Trang mới)
-                    docChildren.push(new Paragraph({ children: [new PageBreak()] }));
+                    const zip = config.useZip ? new window.JSZip() : null;
+                    const folderName = `Bo_De_${topic ? topic.replace(/\s+/g, '_') : 'Moi'}`;
+                    const folder = zip ? zip.folder(folderName) : null;
+                    const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
                     
-                    docChildren.push(
-                        new Paragraph({
-                            children: [new TextRun({ text: "LỜI GIẢI CHI TIẾT", bold: true, size: 28, color: "EA580C" })],
-                            heading: HeadingLevel.HEADING_1,
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 300 }
-                        })
-                    );
+                    // Logic gom nhóm Đ/S
+                    const groupTF = (list) => {
+                        const g = {};
+                        list.forEach(q => { const k = (q.question.match(/Câu\s+(\d+)/i)||[])[1] || "r_"+Math.random(); if(!g[k]) g[k]=[]; g[k].push(q); });
+                        return Object.values(g);
+                    };
 
-                    // Detailed Explanations
-                    questions.forEach((q, idx) => {
-                        // Format đáp án đúng
-                        let ansText = "";
-                        if (q.type === 'sa') ansText = q.correctAnswer;
-                        else if (q.type === 'tf') ansText = q.correctAnswer === 0 ? "Đúng" : "Sai";
-                        else ansText = String.fromCharCode(65 + parseInt(q.correctAnswer || 0));
-
-                        docChildren.push(
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: `Câu ${idx + 1}: `, bold: true, color: "EA580C" }),
-                                    new TextRun({ text: `Đáp án: ${ansText}`, bold: true })
-                                ],
-                                spacing: { before: 100 }
-                            }),
-                            new Paragraph({
-                                children: [new TextRun({ text: "Giải thích: ", italics: true }), new TextRun(q.explanation)],
-                                spacing: { after: 200 }
-                            })
-                        );
-                    });
-
-                    const doc = new Document({
-                        sections: [{
-                            properties: {},
-                            children: docChildren
-                        }]
-                    });
-
-                    const blob = await Packer.toBlob(doc);
-                    const fileName = `De_On_Tap_${topic ? topic.replace(/\s+/g, '_') : "Moi"}.docx`;
+                    const mc = questions.filter(q=>q.type==='mc');
+                    const sa = questions.filter(q=>q.type==='sa');
+                    const tf = questions.filter(q=>q.type==='tf');
                     
-                    // Call fallback save
-                    safeSaveAs(blob, fileName);
+                    // --- MẢNG CHỨA DỮ LIỆU ĐỂ XUẤT EXCEL ---
+                    const allAnswersData = [];
 
-                } catch (e) {
-                    console.error(e);
-                    alert("Lỗi xuất file: " + e.message);
-                }
+                    for(let i=0; i<config.numVariants; i++) {
+                        // 1. Trộn đề
+                        let fMC = config.mixMC ? shuffle(mc) : [...mc];
+                        let fSA = config.mixSA ? shuffle(sa) : [...sa];
+                        let fTF = [];
+                        if(config.mixTF_Question || config.mixTF_Items) {
+                            let grp = groupTF(tf);
+                            if(config.mixTF_Question) grp = shuffle(grp);
+                            if(config.mixTF_Items) grp = grp.map(x=>shuffle(x));
+                            fTF = grp.flat();
+                        } else fTF = [...tf];
+
+                        const mixed = [...fMC, ...fTF, ...fSA];
+                        const code = 101 + i;
+                        
+                        // 2. Thu thập đáp án vào bảng Excel tổng hợp
+                        const rowData = { "Mã Đề": code };
+                        mixed.forEach((q, idx) => {
+                             let ansVal = "";
+                             if (q.type === 'sa') ansVal = q.correctAnswer;
+                             else if (q.type === 'tf') ansVal = q.correctAnswer === 0 ? "Đ" : "S";
+                             else ansVal = String.fromCharCode(65 + parseInt(q.correctAnswer || 0));
+                             
+                             // Tạo cột: Câu 01, Câu 02...
+                             const colName = `Câu ${String(idx + 1).padStart(2, '0')}`;
+                             rowData[colName] = ansVal;
+                        });
+                        allAnswersData.push(rowData);
+                        
+                        // 3. Tạo file Word Đề Thi
+                        const examBlob = await generateDocxBlob(mixed, `(Mã ${code})`, false);
+                        const examName = `De_Ma_${code}.docx`;
+                        if(zip) folder.file(examName, examBlob);
+                        else safeSaveAs(examBlob, examName);
+
+                        // 4. Tạo file Word Đáp Án (Nếu chọn)
+                        if(config.exportKey) {
+                            const keyBlob = await generateDocxBlob(mixed, `(Mã ${code})`, true);
+                            const keyName = `DapAn_Ma_${code}.docx`;
+                            if(zip) folder.file(keyName, keyBlob);
+                            else safeSaveAs(keyBlob, keyName);
+                        }
+                        if(!zip) await new Promise(r=>setTimeout(r, 200));
+                    }
+
+                    // --- 5. TẠO FILE EXCEL TỔNG HỢP VÀO ZIP ---
+                    if (zip && allAnswersData.length > 0) {
+                        const worksheet = window.XLSX.utils.json_to_sheet(allAnswersData);
+                        const workbook = window.XLSX.utils.book_new();
+                        window.XLSX.utils.book_append_sheet(workbook, worksheet, "Dap_An_Tong_Hop");
+                        const excelBuffer = window.XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                        folder.file(`Tong_Hop_Dap_An.xlsx`, excelBuffer);
+                    }
+
+                    if(zip) {
+                        const content = await zip.generateAsync({type:"blob"});
+                        safeSaveAs(content, `${folderName}.zip`);
+                        alert("✅ Đã xuất xong: Các file Word và 1 file Excel tổng hợp!");
+                    } else alert("✅ Đã tải xong các file!");
+
+                } catch(e) { console.error(e); alert("Lỗi: " + e.message); }
+                setWizardStep(4);
+            };
+
+            // Hàm tương thích cho nút Xuất Word cũ (nếu còn dùng)
+            const handleExportDocx = async () => {
+                const blob = await generateDocxBlob(questions, "", false);
+                safeSaveAs(blob, `De_Goc_${topic ? topic.replace(/\s+/g, '_') : 'Moi'}.docx`);
             };
 
             const toggleFullscreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); setIsFullscreen(true); } else { if (document.exitFullscreen) { document.exitFullscreen(); setIsFullscreen(false); } } };
@@ -2070,7 +2250,9 @@ CẤU TRÚC MẪU:
                                 <button onClick={handleExportDocx} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2">
                                     <FileType2 size={18}/> Xuất Word
                                 </button>
-                                
+                                <button onClick={() => setShowMixModal(true)} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-sm ml-2">
+                                    <Shuffle size={18}/> Trộn & Xuất Đề
+                                </button>
                                 {/* CẬP NHẬT: NÚT TRÌNH CHIẾU */}
                                 <button 
                                     onClick={() => { setCurrentSlide(0); setIsPresentationMode(true); }} 
@@ -2308,89 +2490,127 @@ CẤU TRÚC MẪU:
             };
 
             // --- CẬP NHẬT: HÀM RENDER CHẾ ĐỘ TRÌNH CHIẾU ---
+            // --- GIAO DIỆN TRÌNH CHIẾU (CÓ Ô NHẬP PHÚT) ---
             const renderPresentation = () => {
                 const q = questions[currentSlide];
                 if (!q) return null;
 
                 return (
-                    <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-hidden">
-                        {/* Header Slide */}
-                        <div className="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md shrink-0">
+                    <div className="fixed inset-0 z-[200] bg-slate-100 flex flex-col overflow-hidden font-sans">
+                        {/* 1. Header Slide */}
+                        <div className="bg-slate-900 text-white px-4 py-2 flex justify-between items-center shadow-md shrink-0 z-20 h-16">
                             <div className="flex items-center gap-4">
                                 <span className="bg-orange-600 px-3 py-1 rounded font-bold text-lg">Câu {currentSlide + 1}</span>
                                 <span className="text-slate-400 text-sm hidden sm:inline">/ {questions.length}</span>
                             </div>
-                            <div className="flex gap-3">
-                                <button onClick={() => setShowSlideAns(!showSlideAns)} className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${showSlideAns ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
-                                    {showSlideAns ? <><Eye size={18}/> Ẩn Đáp Án</> : <><Eye size={18}/> Hiện Đáp Án</>}
+
+                            {/* --- ĐỒNG HỒ ĐẾM NGƯỢC CẢI TIẾN --- */}
+                            <div className="hidden md:flex items-center gap-3 bg-slate-800 rounded-xl px-2 py-1 border border-slate-700 mx-4 shadow-inner">
+                                <div className="relative pl-2">
+                                    <Timer className={timer < 10 && isTimerRunning && timer > 0 ? "text-red-500 animate-bounce" : "text-orange-500"} size={20}/>
+                                    {isTimerRunning && <span className="absolute -top-1 -right-0 flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>}
+                                </div>
+                                
+                                {/* Số hiển thị giờ */}
+                                <span className={`font-mono text-3xl font-black tracking-widest min-w-[100px] text-center ${timer < 10 && isTimerRunning && timer > 0 ? "text-red-500 animate-pulse" : "text-white"}`}>
+                                    {formatTime(timer)}
+                                </span>
+                                
+                                {/* Khu vực điều khiển & Nhập phút */}
+                                <div className="flex flex-col justify-center gap-1 border-l border-slate-600 pl-3 pr-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-slate-400 uppercase font-bold">Phút:</span>
+                                        <input 
+                                            type="number" 
+                                            min="1" max="180" 
+                                            value={inputMin} 
+                                            onChange={(e) => setInputMin(Number(e.target.value))}
+                                            className="w-10 h-5 text-center text-xs font-bold text-slate-900 rounded bg-white outline-none focus:ring-2 focus:ring-orange-500"
+                                        />
+                                        <button 
+                                            onClick={() => { setTimer(inputMin * 60); setIsTimerRunning(true); }}
+                                            className="text-[10px] bg-blue-600 hover:bg-blue-500 px-2 py-0.5 rounded text-white font-bold transition whitespace-nowrap"
+                                        >
+                                            ĐẶT & CHẠY
+                                        </button>
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={() => setIsTimerRunning(!isTimerRunning)} 
+                                        className={`text-[10px] px-2 py-0.5 rounded text-white font-bold w-full transition shadow-sm ${isTimerRunning ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}
+                                    >
+                                        {isTimerRunning ? "TẠM DỪNG" : "TIẾP TỤC"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowSlideAns(!showSlideAns)} className={`px-3 py-2 rounded-lg font-bold text-sm transition flex items-center gap-2 ${showSlideAns ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                    {showSlideAns ? <><Eye size={16}/> Ẩn Đ.Án</> : <><Eye size={16}/> Hiện Đ.Án</>}
                                 </button>
-                                <button onClick={() => setShowSlideExpl(!showSlideExpl)} className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${showSlideExpl ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
-                                    {showSlideExpl ? <><Lightbulb size={18}/> Ẩn Lời Giải</> : <><Lightbulb size={18}/> Hiện Lời Giải</>}
+                                <button onClick={() => setShowSlideExpl(!showSlideExpl)} className={`px-3 py-2 rounded-lg font-bold text-sm transition flex items-center gap-2 ${showSlideExpl ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                    {showSlideExpl ? <><Lightbulb size={16}/> Ẩn Giải</> : <><Lightbulb size={16}/> Hiện Giải</>}
                                 </button>
-                                <div className="w-px h-8 bg-slate-700 mx-2"></div>
-                                <button onClick={() => setIsPresentationMode(false)} className="text-slate-400 hover:text-white transition flex items-center gap-1 font-bold">
-                                    <LogOut size={18}/> Thoát
+                                <div className="w-px h-6 bg-slate-700 mx-1"></div>
+                                <button onClick={() => setIsPresentationMode(false)} className="text-slate-400 hover:text-white transition flex items-center gap-1 font-bold text-sm">
+                                    <LogOut size={16}/> Thoát
                                 </button>
                             </div>
                         </div>
 
-                        {/* Body Slide */}
-                        <div className="flex-1 overflow-y-auto p-8 bg-slate-100 flex justify-center">
-                            <div className="max-w-7xl w-full bg-white rounded-3xl shadow-lg border border-slate-200 p-10 min-h-full flex flex-col">
-                                <div className="flex-1 flex flex-col lg:flex-row gap-12">
-                                    <div className="flex-1 space-y-8">
-                                        <div className="text-3xl md:text-4xl leading-relaxed font-medium text-slate-800">
+                        {/* 2. Body Slide */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 flex justify-center bg-slate-100">
+                            <div className="max-w-7xl w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 min-h-fit flex flex-col">
+                                <div className="flex-1 flex flex-col lg:flex-row gap-8">
+                                    <div className="flex-1 flex flex-col">
+                                        <div className="text-2xl md:text-3xl leading-snug font-medium text-slate-800 mb-6">
                                             <MathContent content={q.question} />
                                         </div>
                                         
-                                        {/* Options Area */}
                                         {q.type !== 'sa' && (
-                                            <div className="grid grid-cols-1 gap-4 mt-8">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto">
                                                 {q.options.map((opt, idx) => {
                                                     const isCorrect = idx === Number(q.correctAnswer);
-                                                    let cardClass = "border-2 border-slate-200 bg-slate-50 text-slate-600";
+                                                    let cardClass = "border-2 border-slate-100 bg-slate-50 text-slate-600 hover:border-slate-300";
                                                     if (showSlideAns) {
-                                                        if (isCorrect) cardClass = "border-green-500 bg-green-100 text-green-900 shadow-md ring-2 ring-green-400";
+                                                        if (isCorrect) cardClass = "border-green-500 bg-green-50 text-green-900 shadow-sm ring-1 ring-green-400";
                                                         else cardClass = "border-slate-100 bg-slate-50 opacity-40";
                                                     }
                                                     
                                                     return (
-                                                        <div key={idx} className={`p-5 rounded-2xl text-xl transition-all flex items-center gap-5 ${cardClass}`}>
-                                                            <span className={`w-12 h-12 rounded-full flex items-center justify-center font-bold border-2 text-lg shrink-0 ${showSlideAns && isCorrect ? 'border-green-600 bg-green-600 text-white' : 'border-slate-300 bg-white'}`}>
+                                                        <div key={idx} className={`p-4 rounded-xl text-3xl transition-all flex items-start gap-3 ${cardClass}`}>
+                                                            <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold border text-sm shrink-0 ${showSlideAns && isCorrect ? 'border-green-600 bg-green-600 text-white' : 'border-slate-300 bg-white'}`}>
                                                                 {q.type === 'tf' ? (idx===0?'Đ':'S') : String.fromCharCode(65 + idx)}
                                                             </span>
-                                                            <div className="font-medium"><MathContent content={opt}/></div>
-                                                            {showSlideAns && isCorrect && <Check className="text-green-600 ml-auto" size={32}/>}
+                                                            <div className="font-medium pt-0.5"><MathContent content={opt}/></div>
+                                                            {showSlideAns && isCorrect && <Check className="text-green-600 ml-auto" size={24}/>}
                                                         </div>
                                                     )
                                                 })}
                                             </div>
                                         )}
                                         
-                                        {/* Short Answer */}
                                         {q.type === 'sa' && showSlideAns && (
-                                            <div className="mt-8 p-8 bg-green-50 border-l-8 border-green-500 rounded-r-2xl shadow-sm">
-                                                <div className="text-green-800 font-bold text-lg mb-2 uppercase tracking-wider">Đáp án đúng:</div>
-                                                <div className="text-4xl font-black text-green-700"><MathContent content={q.correctAnswer}/></div>
+                                            <div className="mt-6 p-6 bg-green-50 border-l-4 border-green-500 rounded-r-xl shadow-sm">
+                                                <div className="text-green-800 font-bold text-sm mb-1 uppercase tracking-wider">Đáp án đúng:</div>
+                                                <div className="text-3xl font-black text-green-700"><MathContent content={q.correctAnswer}/></div>
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Visual Area */}
                                     {q.visualType !== 'none' && (
-                                        <div className="lg:w-1/2 flex items-start justify-center">
-                                            <div className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-xl w-full">
+                                        <div className="lg:w-5/12 flex items-start justify-center border-l border-slate-100 pl-8">
+                                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 w-full shadow-inner">
                                                 <VisualContent type={q.visualType} data={q.visualData} />
                                             </div>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Explanation */}
                                 {showSlideExpl && (
-                                    <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="mt-10 pt-10 border-t-2 border-dashed border-slate-300">
-                                        <h3 className="text-2xl font-bold text-blue-700 mb-4 flex items-center gap-2"><Lightbulb size={28}/> Lời giải chi tiết:</h3>
-                                        <div className="text-xl text-slate-700 leading-relaxed bg-blue-50 p-8 rounded-3xl border border-blue-100 shadow-inner">
+                                    <motion.div initial={{opacity:0, height:0}} animate={{opacity:1, height:'auto'}} className="mt-8 pt-6 border-t border-dashed border-slate-300">
+                                        <h3 className="text-lg font-bold text-blue-700 mb-2 flex items-center gap-2"><Lightbulb size={20}/> Lời giải chi tiết:</h3>
+                                        <div className="text-lg text-slate-700 leading-relaxed bg-blue-50/50 p-6 rounded-xl border border-blue-100">
                                             <MathContent content={q.explanation} className="whitespace-pre-wrap"/>
                                         </div>
                                     </motion.div>
@@ -2398,37 +2618,15 @@ CẤU TRÚC MẪU:
                             </div>
                         </div>
 
-                        {/* Footer Controls */}
-                        <div className="bg-white border-t border-slate-200 p-4 flex justify-center items-center gap-8 shrink-0 relative">
-                            <button 
-                                onClick={() => { if(currentSlide > 0) { setCurrentSlide(c => c-1); setShowSlideAns(false); setShowSlideExpl(false); }}} 
-                                disabled={currentSlide === 0}
-                                className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center gap-2 disabled:opacity-30 transition"
-                            >
-                                <ArrowLeft size={20}/> Câu Trước
-                            </button>
-                            
-                            <div className="flex gap-1 overflow-x-auto max-w-[50%] py-2 scrollbar-hide">
+                        {/* 3. Footer Controls */}
+                        <div className="bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center shrink-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                            <button onClick={() => { if(currentSlide > 0) { setCurrentSlide(c => c-1); setShowSlideAns(false); setShowSlideExpl(false); }}} disabled={currentSlide === 0} className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center gap-2 disabled:opacity-30 transition"><ArrowLeft size={18}/> Câu Trước</button>
+                            <div className="flex gap-1 overflow-x-auto max-w-[50%] py-2 scrollbar-hide px-4">
                                 {questions.map((_, idx) => (
-                                    <div 
-                                        key={idx} 
-                                        onClick={() => { setCurrentSlide(idx); setShowSlideAns(false); setShowSlideExpl(false); }}
-                                        className={`h-2 rounded-full cursor-pointer transition-all ${idx === currentSlide ? 'bg-orange-500 w-8' : 'bg-slate-300 w-2 hover:bg-slate-400'}`}
-                                    ></div>
+                                    <div key={idx} onClick={() => { setCurrentSlide(idx); setShowSlideAns(false); setShowSlideExpl(false); }} className={`h-2 rounded-full cursor-pointer transition-all ${idx === currentSlide ? 'bg-orange-500 w-8' : 'bg-slate-300 w-2 hover:bg-slate-400'}`}></div>
                                 ))}
                             </div>
-
-                            <button 
-                                onClick={() => { if(currentSlide < questions.length - 1) { setCurrentSlide(c => c+1); setShowSlideAns(false); setShowSlideExpl(false); }}} 
-                                disabled={currentSlide === questions.length - 1}
-                                className="px-6 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-700 font-bold flex items-center gap-2 disabled:opacity-30 transition shadow-lg"
-                            >
-                                Câu Sau <ArrowRight size={20}/>
-                            </button>
-                            
-                            <div className="absolute right-6 text-xs text-slate-400 hidden lg:block">
-                                Phím tắt: ← (Trước) | → (Sau) | ESC (Thoát)
-                            </div>
+                            <button onClick={() => { if(currentSlide < questions.length - 1) { setCurrentSlide(c => c+1); setShowSlideAns(false); setShowSlideExpl(false); }}} disabled={currentSlide === questions.length - 1} className="px-5 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-700 font-bold flex items-center gap-2 disabled:opacity-30 transition shadow-lg">Câu Sau <ArrowRight size={18}/></button>
                         </div>
                     </div>
                 );
@@ -2439,7 +2637,7 @@ CẤU TRÚC MẪU:
                     {showTutorial && <InstructionModal onClose={() => setShowTutorial(false)} />}
                     {showLibrary && user && <CloudLibraryModal user={user} onClose={() => setShowLibrary(false)} onLoad={handleLoadFromLibrary} />}
                     {showSaveModal && <SaveModal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)} onSave={handleConfirmSave} defaultTopic={topic} />}
-                    
+                    {showMixModal && <MixExamModal isOpen={showMixModal} onClose={() => setShowMixModal(false)} onMix={processMixing} />}
                     {/* CẬP NHẬT: HIỂN THỊ CHẾ ĐỘ TRÌNH CHIẾU */}
                     {isPresentationMode && renderPresentation()}
 
