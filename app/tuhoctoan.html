@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Import Map for React -->
     <script type="importmap">
@@ -56,7 +56,8 @@
             Zap, FileText, Download, Monitor, 
             Brain, BarChart3, ChevronRight, 
             CheckCircle2, ArrowRight, Menu, X,
-            Layout, Image as ImageIcon, Sparkles, GraduationCap
+            Layout, Image as ImageIcon, Sparkles, GraduationCap,
+            LogOut, Lock, Phone, CheckCircle, Copy, CreditCard 
         } from 'lucide-react';
 
         const APP_LINK = "https://tao-de.web.app";
@@ -88,7 +89,7 @@
                         <div className="hidden md:flex items-center gap-8">
                             <a href="#tinh-nang" className="text-sm font-medium text-slate-600 hover:text-orange-600 transition">Tính năng</a>
                             <a href="#quy-trinh" className="text-sm font-medium text-slate-600 hover:text-orange-600 transition">Quy trình</a>
-                            <a href="#tac-gia" className="text-sm font-medium text-slate-600 hover:text-orange-600 transition">Tác giả</a>
+                            <a href="#bang-gia" className="text-sm font-bold text-orange-600 hover:text-orange-700 transition flex items-center gap-1"><Sparkles size={14}/> Nâng cấp Pro</a>
                             <a 
                                 href={APP_LINK} 
                                 target="_blank"
@@ -110,6 +111,7 @@
                             <div className="p-4 flex flex-col gap-4">
                                 <a href="#tinh-nang" onClick={() => setMobileMenu(false)} className="text-sm font-medium text-slate-600">Tính năng</a>
                                 <a href="#quy-trinh" onClick={() => setMobileMenu(false)} className="text-sm font-medium text-slate-600">Quy trình</a>
+                                <a href="#bang-gia" onClick={() => setMobileMenu(false)} className="text-sm font-bold text-orange-600">Nâng cấp Pro</a>
                                 <a href={APP_LINK} className="bg-orange-600 text-white p-3 rounded-lg text-center font-bold">Mở Ứng Dụng</a>
                             </div>
                         </div>
@@ -164,7 +166,7 @@
                                 </div>
                             </motion.div>
 
-                            {/* Right Mockup - Recreating the App UI in CSS */}
+                            {/* Right Mockup */}
                             <motion.div 
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -368,6 +370,142 @@
             );
         };
 
+        const PricingSection = () => {
+            const [copied, setCopied] = useState(false);
+
+            // BANK INFO CONSTANTS (Từ file Paywall.tsx)
+            const BANK_INFO = {
+                BANK_ID: 'VIETCOMBANK', 
+                ACCOUNT_NO: '0561000544968',
+                ACCOUNT_NAME: 'THÁI MINH NGUYÊN',
+                AMOUNT: 50000, 
+                // Default content for generic QR
+                CONTENT_DISPLAY: 'KH [Email_Của_Bạn]',
+                CONTENT_QR: 'TAODE_PRO' 
+            };
+
+            const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.BANK_ID}-${BANK_INFO.ACCOUNT_NO}-compact2.png?amount=${BANK_INFO.AMOUNT}&addInfo=${encodeURIComponent(BANK_INFO.CONTENT_QR)}&accountName=${encodeURIComponent(BANK_INFO.ACCOUNT_NAME)}`;
+
+            const handleCopy = (text) => {
+                navigator.clipboard.writeText(text);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            };
+
+            const benefits = [
+                "Soạn đề và trình chiếu nhanh chóng tự động hoặc bán tự động",
+                "Trình chiếu kết hợp mini game (Đua thú, Gắp quà...)",
+                "Xuất đề file word và đáp án chi tiết",
+                "Lưu trữ qua tài khoản google",
+                "Hỗ trợ kỹ thuật qua zalo 0924.336.827"
+            ];
+
+            return (
+                <section id="bang-gia" className="py-24 bg-slate-900 relative overflow-hidden">
+                     {/* Background decoration */}
+                    <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none text-white"><Lock size={400}/></div>
+                    
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                        <motion.div 
+                            initial={{scale: 0.95, opacity: 0}} 
+                            whileInView={{scale: 1, opacity: 1}}
+                            viewport={{ once: true }}
+                            className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]"
+                        >
+                            {/* CỘT TRÁI: GIÁ TRỊ SẢN PHẨM (SALES) */}
+                            <div className="md:w-5/12 bg-slate-50 p-8 md:p-12 flex flex-col justify-center border-r border-slate-100">
+                                <div className="mb-8">
+                                    <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-4 inline-block border border-orange-200">
+                                        Thành viên Premium
+                                    </span>
+                                    <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-2 leading-tight">
+                                        Nâng cấp lên <span className="text-orange-600">PRO</span>
+                                    </h2>
+                                    <p className="text-slate-500 text-lg">ỦNG HỘ TÁC GIẢ.</p>
+                                </div>
+
+                                <div className="space-y-5 mb-8">
+                                    {benefits.map((item, idx) => (
+                                        <div key={idx} className="flex items-start gap-3 text-slate-700 font-medium">
+                                            <div className="p-1 bg-green-100 rounded-full text-green-600 mt-0.5"><CheckCircle size={16}/></div>
+                                            <span className="text-sm md:text-base">{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="mt-auto pt-6 border-t border-slate-200">
+                                    <a 
+                                        href={APP_LINK}
+                                        className="text-slate-500 hover:text-orange-600 font-bold text-sm flex items-center gap-2 transition"
+                                    >
+                                        <LogOut size={16} className="rotate-180"/> Quay lại ứng dụng
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* CỘT PHẢI: THANH TOÁN (PAYMENT) */}
+                            <div className="md:w-7/12 p-8 md:p-12 flex flex-col items-center justify-center bg-white relative">
+                                <div className="text-center mb-6 relative z-10">
+                                    <h3 className="text-xl font-bold text-slate-800 uppercase flex items-center justify-center gap-2">
+                                        <CreditCard size={20} className="text-blue-600"/> Thông tin chuyển khoản
+                                    </h3>
+                                    <p className="text-sm text-slate-500 mt-1">Quét mã QR để kích hoạt (nếu chưa liên hệ zalo 0924.336.827)</p>
+                                </div>
+
+                                {/* QR CODE & BANK INFO */}
+                                <div className="bg-white p-6 rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-100 w-full max-w-sm relative z-10">
+                                    {/* Ảnh QR tự sinh */}
+                                    <div className="aspect-square bg-slate-100 rounded-xl mb-6 overflow-hidden relative group">
+                                        <img src={qrUrl} alt="VietQR" className="w-full h-full object-contain mix-blend-multiply" />
+                                        <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="bg-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">Quét bằng App Ngân hàng</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Thông tin Text */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                            <div className="text-left">
+                                                <div className="text-[10px] text-slate-400 uppercase font-bold">Số tài khoản</div>
+                                                <div className="font-mono font-bold text-lg text-slate-800">{BANK_INFO.ACCOUNT_NO}</div>
+                                            </div>
+                                            <button onClick={() => handleCopy(BANK_INFO.ACCOUNT_NO)} className="p-2 hover:bg-white rounded-lg text-blue-600 transition">
+                                                {copied ? <CheckCircle size={20}/> : <Copy size={20}/>}
+                                            </button>
+                                        </div>
+
+                                        <div className="flex justify-between items-center px-2">
+                                            <span className="text-sm text-slate-500">Chủ TK:</span>
+                                            <span className="font-bold text-slate-800 uppercase">{BANK_INFO.ACCOUNT_NAME}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center px-2">
+                                            <span className="text-sm text-slate-500">Nội dung:</span>
+                                            <span className="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded text-xs md:text-sm">{BANK_INFO.CONTENT_DISPLAY}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* NÚT LIÊN HỆ */}
+                                <div className="mt-8 w-full max-w-sm relative z-10">
+                                    <a 
+                                        href="https://zalo.me/0924336827" 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-1"
+                                    >
+                                        <Phone size={20}/> Xác nhận qua Zalo (0924.336.827)
+                                    </a>
+                                    <p className="text-center text-xs text-slate-400 mt-3">
+                                        <span className="text-red-500">*</span> Liên hệ zalo 0924.336.827 để được hỗ trợ nhanh nhất.
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+            );
+        };
+
         const Footer = () => (
             <footer id="tac-gia" className="bg-slate-900 text-white py-12 border-t border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -402,6 +540,7 @@
                     <Hero />
                     <Features />
                     <HowItWorks />
+                    <PricingSection />
                     <Footer />
                 </div>
             );
