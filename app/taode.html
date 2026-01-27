@@ -2,17 +2,17 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trợ Lý Soạn Đề Thi 2025 - Công Cụ Hỗ Trợ Giáo Viên</title>
-    <meta name="description" content="Công cụ hỗ trợ giáo viên soạn đề thi chuẩn cấu trúc 2025, tích hợp AI, vẽ đồ thị tự động và xuất file Word chuyên nghiệp.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tạo Đề Nhanh - Công Cụ Cho Giáo Viên 4.0</title>
+    <meta name="description" content="Hệ thống soạn đề thi thông minh, tổ chức thi trực tuyến và xuất bản tài liệu chuẩn GDPT 2025.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Import Map for React -->
     <script type="importmap">
     {
         "imports": {
@@ -25,42 +25,100 @@
     </script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <style>
-        body { font-family: 'Be Vietnam Pro', sans-serif; }
-        
-        .bg-grid-subtle {
-            background-size: 40px 40px;
-            background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'blob': 'blob 7s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
         }
+    </script>
+
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; -webkit-font-smoothing: antialiased; }
         
-        .glass-header {
+        .glass-nav {
             background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
-        .feature-card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px -10px rgba(234, 88, 12, 0.15);
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #ea580c 0%, #db2777 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased overflow-x-hidden">
+<body class="bg-slate-50 text-slate-800 antialiased overflow-x-hidden selection:bg-orange-100 selection:text-orange-900">
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
-        import { motion } from 'framer-motion';
+        import { motion, AnimatePresence } from 'framer-motion';
         import { 
-            Zap, FileText, Download, Monitor, 
-            Brain, BarChart3, ChevronRight, 
-            CheckCircle2, ArrowRight, Menu, X,
-            Layout, Image as ImageIcon, Sparkles, GraduationCap,
-            LogOut, Lock, Phone, CheckCircle, Copy, CreditCard 
+            Zap, FileText, Download, Monitor, Brain, ChevronRight, 
+            CheckCircle2, ArrowRight, Menu, X, Layout, Image as ImageIcon, 
+            Sparkles, GraduationCap, LogOut, Phone, Copy, CreditCard, 
+            Activity, Users, Clock, BookOpen, Calculator, PenTool, Award,
+            Gamepad2, Star, ShieldCheck
         } from 'lucide-react';
 
         const APP_LINK = "https://tao-de.web.app";
+
+        // --- BACKGROUND EFFECT: FLOATING ICONS ---
+        const FloatingIcons = () => (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {/* Blobs */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-200 rounded-full mix-blend-multiply filter blur-[80px] opacity-30 animate-blob"></div>
+                <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-200 rounded-full mix-blend-multiply filter blur-[80px] opacity-30 animate-blob" style={{animationDelay: '2s'}}></div>
+                <div className="absolute -bottom-32 left-20 w-[500px] h-[500px] bg-pink-200 rounded-full mix-blend-multiply filter blur-[80px] opacity-30 animate-blob" style={{animationDelay: '4s'}}></div>
+
+                {/* Icons */}
+                <div className="absolute top-[10%] left-[5%] text-slate-300 animate-float" style={{animationDelay: '0s'}}><BookOpen size={48}/></div>
+                <div className="absolute top-[15%] right-[10%] text-orange-200 animate-float" style={{animationDelay: '1.5s'}}><Calculator size={64}/></div>
+                <div className="absolute bottom-[20%] left-[10%] text-blue-200 animate-float" style={{animationDelay: '2.5s'}}><PenTool size={56}/></div>
+                <div className="absolute bottom-[30%] right-[5%] text-green-200 animate-float" style={{animationDelay: '1s'}}><Award size={72}/></div>
+            </div>
+        );
 
         const Navbar = () => {
             const [isScrolled, setIsScrolled] = useState(false);
@@ -73,432 +131,93 @@
             }, []);
 
             return (
-                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass-header py-3' : 'bg-transparent py-5'}`}>
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass-nav py-3 shadow-sm' : 'bg-transparent py-5'}`}>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-orange-500/30">
+                        <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 bg-gradient-to-tr from-orange-500 to-pink-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-500/30">
                                 TĐ
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-slate-900 leading-none">Tạo Đề Nhanh</h1>
-                                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Education Tools</span>
+                                <h1 className="text-xl font-black text-slate-900 leading-none">Tạo Đề Nhanh</h1>
+                                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Giáo viên 4.0</span>
                             </div>
                         </div>
 
-                        {/* Desktop Menu */}
                         <div className="hidden md:flex items-center gap-8">
-                            <a href="#tinh-nang" className="text-sm font-medium text-slate-600 hover:text-orange-600 transition">Tính năng</a>
-                            <a href="#quy-trinh" className="text-sm font-medium text-slate-600 hover:text-orange-600 transition">Quy trình</a>
-                            <a href="#bang-gia" className="text-sm font-bold text-orange-600 hover:text-orange-700 transition flex items-center gap-1"><Sparkles size={14}/> Nâng cấp Pro</a>
+                            <a href="#tinh-nang" className="text-base font-semibold text-slate-600 hover:text-orange-600 transition">Tính năng</a>
+                            <a href="#bang-gia" className="text-base font-semibold text-slate-600 hover:text-orange-600 transition">Bảng giá</a>
                             <a 
                                 href={APP_LINK} 
                                 target="_blank"
-                                className="bg-slate-900 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg hover:shadow-orange-500/25 flex items-center gap-2"
+                                className="bg-slate-900 hover:bg-orange-600 text-white px-7 py-3 rounded-full font-bold text-sm transition-all shadow-xl hover:shadow-orange-500/25 flex items-center gap-2 group hover:-translate-y-0.5"
                             >
-                                Sử dụng ngay <ArrowRight size={16}/>
+                                Truy cập App <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform"/>
                             </a>
                         </div>
 
-                        {/* Mobile Toggle */}
-                        <button className="md:hidden text-slate-600" onClick={() => setMobileMenu(!mobileMenu)}>
-                            {mobileMenu ? <X /> : <Menu />}
+                        <button className="md:hidden p-2 text-slate-700" onClick={() => setMobileMenu(!mobileMenu)}>
+                            {mobileMenu ? <X size={28} /> : <Menu size={28} />}
                         </button>
                     </div>
 
                     {/* Mobile Menu */}
-                    {mobileMenu && (
-                        <div className="md:hidden bg-white border-t border-slate-100 absolute w-full left-0 top-full shadow-xl">
-                            <div className="p-4 flex flex-col gap-4">
-                                <a href="#tinh-nang" onClick={() => setMobileMenu(false)} className="text-sm font-medium text-slate-600">Tính năng</a>
-                                <a href="#quy-trinh" onClick={() => setMobileMenu(false)} className="text-sm font-medium text-slate-600">Quy trình</a>
-                                <a href="#bang-gia" onClick={() => setMobileMenu(false)} className="text-sm font-bold text-orange-600">Nâng cấp Pro</a>
-                                <a href={APP_LINK} className="bg-orange-600 text-white p-3 rounded-lg text-center font-bold">Mở Ứng Dụng</a>
-                            </div>
-                        </div>
-                    )}
+                    <AnimatePresence>
+                        {mobileMenu && (
+                            <motion.div 
+                                initial={{opacity: 0, height: 0}}
+                                animate={{opacity: 1, height: 'auto'}}
+                                exit={{opacity: 0, height: 0}}
+                                className="md:hidden bg-white border-t border-slate-100 overflow-hidden shadow-2xl"
+                            >
+                                <div className="p-6 flex flex-col gap-4">
+                                    <a href="#tinh-nang" onClick={()=>setMobileMenu(false)} className="text-lg font-bold text-slate-700 py-2 border-b border-slate-50">Tính năng</a>
+                                    <a href="#bang-gia" onClick={()=>setMobileMenu(false)} className="text-lg font-bold text-slate-700 py-2 border-b border-slate-50">Bảng giá</a>
+                                    <a href={APP_LINK} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white p-4 rounded-xl text-center font-bold text-lg shadow-lg">🚀 Mở Ứng Dụng Ngay</a>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </nav>
             );
         };
 
         const Hero = () => {
             return (
-                <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
-                    <div className="absolute inset-0 bg-grid-subtle opacity-60 z-0"></div>
+                <section className="relative pt-36 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                    <FloatingIcons />
                     
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <div className="grid lg:grid-cols-2 gap-12 items-center">
-                            
-                            {/* Left Content */}
-                            <motion.div 
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.6 }}
-                            >
-                                <div className="inline-flex items-center gap-2 bg-orange-100 border border-orange-200 text-orange-800 px-3 py-1 rounded-full text-xs font-bold mb-6">
-                                    <Sparkles size={14} /> Chuẩn cấu trúc GDPT 2018
-                                </div>
-                                <h1 className="text-4xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
-                                    Giải phóng sức lao động <br/>
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">trong việc soạn đề</span>
-                                </h1>
-                                <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                                    Công cụ hỗ trợ giáo viên tạo đề Trắc nghiệm, Đúng/Sai và Tự luận. 
-                                    Tích hợp AI để sinh câu hỏi, tự động vẽ hình minh họa và xuất bản in Word chuẩn format.
-                                </p>
-                                
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <a 
-                                        href={APP_LINK}
-                                        target="_blank"
-                                        className="px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-lg shadow-xl shadow-orange-500/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-1"
-                                    >
-                                        <Zap size={20} fill="currentColor"/>
-                                        Bắt đầu sử dụng
-                                    </a>
-                                    <a href="#tinh-nang" className="px-8 py-4 bg-white border border-slate-200 hover:border-orange-200 hover:bg-orange-50 text-slate-700 rounded-xl font-bold text-lg transition-all flex items-center justify-center">
-                                        Tìm hiểu thêm
-                                    </a>
-                                </div>
-                                <div className="mt-8 flex items-center gap-4 text-sm text-slate-500">
-                                    <div className="flex items-center gap-1"><CheckCircle2 size={16} className="text-green-500"/> Miễn phí</div>
-                                    <div className="flex items-center gap-1"><CheckCircle2 size={16} className="text-green-500"/> Không cần cài đặt</div>
-                                    <div className="flex items-center gap-1"><CheckCircle2 size={16} className="text-green-500"/> Xuất Word/Excel</div>
-                                </div>
-                            </motion.div>
-
-                            {/* Right Mockup */}
-                            <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.2 }}
-                                className="relative"
-                            >
-                                <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur opacity-20"></div>
-                                <div className="relative bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
-                                    {/* App Header Mockup */}
-                                    <div className="bg-white border-b border-slate-200 p-3 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                                            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                                            <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                                            <div className="ml-4 h-6 w-px bg-slate-200"></div>
-                                            <span className="text-xs font-bold text-slate-500">Bộ đề: Hàm Số Lượng Giác</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold">Xuất Word</div>
-                                            <div className="px-3 py-1 bg-purple-50 text-purple-600 rounded text-[10px] font-bold">Trình chiếu</div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* App Body Mockup */}
-                                    <div className="flex h-[350px]">
-                                        {/* Sidebar */}
-                                        <div className="w-16 bg-slate-50 border-r border-slate-200 flex flex-col items-center py-4 gap-2">
-                                            {[1,2,3].map(n => (
-                                                <div key={n} className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold ${n===1 ? 'bg-orange-500 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-400'}`}>
-                                                    {n}
-                                                </div>
-                                            ))}
-                                            <div className="mt-auto w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center"><Zap size={14}/></div>
-                                        </div>
-
-                                        {/* Main Area */}
-                                        <div className="flex-1 p-6">
-                                            <div className="bg-white border border-orange-100 rounded-lg p-4 shadow-sm mb-4">
-                                                <div className="flex justify-between mb-2">
-                                                    <span className="text-xs font-bold text-orange-600 uppercase">Câu 1 (Trắc nghiệm)</span>
-                                                    <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500">NB</span>
-                                                </div>
-                                                <p className="text-sm text-slate-800 font-medium mb-3">Hàm số nào sau đây đồng biến trên R?</p>
-                                                
-                                                {/* Visual Mockup */}
-                                                <div className="bg-slate-50 border border-slate-200 rounded h-24 mb-3 flex items-center justify-center relative overflow-hidden">
-                                                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:8px_8px]"></div>
-                                                    <svg viewBox="0 0 100 40" className="w-32 stroke-orange-500 fill-none stroke-2">
-                                                        <path d="M 0 40 Q 50 40 50 20 T 100 0" />
-                                                    </svg>
-                                                    <span className="absolute bottom-1 right-2 text-[8px] text-slate-400">Visual: Desmos API</span>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div className="border p-2 rounded text-xs text-slate-500">A. y = x²</div>
-                                                    <div className="border border-green-500 bg-green-50 p-2 rounded text-xs text-green-700 font-bold flex justify-between">
-                                                        B. y = x³ + x <CheckCircle2 size={12}/>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
-                    </div>
-                </section>
-            );
-        };
-
-        const FeatureCard = ({ icon: Icon, title, desc, color }) => (
-            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm feature-card-hover transition-all h-full">
-                <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center mb-6`}>
-                    <Icon size={24} className="text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3">{title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
-            </div>
-        );
-
-        const Features = () => {
-            const features = [
-                {
-                    icon: Brain,
-                    color: "bg-gradient-to-br from-purple-500 to-indigo-600",
-                    title: "AI Soạn Đề Tự Động",
-                    desc: "Nhập chủ đề và AI Gemini sẽ tạo câu hỏi theo chuẩn Bloom (NB, TH, VD, VDC) và định dạng JSON để xử lý."
-                },
-                {
-                    icon: ImageIcon,
-                    color: "bg-gradient-to-br from-orange-500 to-red-500",
-                    title: "Visual Hóa Tự Động",
-                    desc: "Điểm đặc biệt nhất: Tự động vẽ Đồ thị (Desmos), Bảng biến thiên, Cấu trúc Hóa học và Sơ đồ tư duy ngay trong đề."
-                },
-                {
-                    icon: FileText,
-                    color: "bg-gradient-to-br from-blue-500 to-cyan-500",
-                    title: "Xuất Word Chuyên Nghiệp",
-                    desc: "Xuất file .docx với format chuẩn để in ấn. Tách riêng đề thi và phần lời giải chi tiết phía sau."
-                },
-                {
-                    icon: Monitor,
-                    color: "bg-gradient-to-br from-emerald-500 to-teal-500",
-                    title: "Chế Độ Trình Chiếu",
-                    desc: "Biến bộ đề thành Slide bài giảng với công cụ che/hiện đáp án, kính lúp phóng to hình ảnh và đồng hồ đếm ngược."
-                },
-                {
-                    icon: Layout,
-                    color: "bg-gradient-to-br from-pink-500 to-rose-500",
-                    title: "Đa Dạng Loại Câu Hỏi",
-                    desc: "Hỗ trợ đầy đủ 3 dạng thức thi 2025: Trắc nghiệm 4 lựa chọn, Đúng/Sai (Câu chùm) và Trả lời ngắn."
-                },
-                {
-                    icon: Download,
-                    color: "bg-gradient-to-br from-slate-600 to-slate-800",
-                    title: "Trộn Đề & Xuất Excel",
-                    desc: "Tự động đảo câu hỏi để tạo nhiều mã đề. Xuất file Excel tổng hợp đáp án (Key) để chấm thi nhanh."
-                }
-            ];
-
-            return (
-                <section id="tinh-nang" className="py-24 bg-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center mb-16">
-                            <span className="text-orange-600 font-bold tracking-wider text-sm uppercase">Tính năng nổi bật</span>
-                            <h2 className="text-3xl font-bold text-slate-900 mt-2">Mọi công cụ giáo viên cần</h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {features.map((f, i) => <FeatureCard key={i} {...f} />)}
-                        </div>
-                    </div>
-                </section>
-            );
-        };
-
-        const HowItWorks = () => {
-            return (
-                <section id="quy-trinh" className="py-24 bg-slate-50 border-t border-slate-200">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid lg:grid-cols-2 gap-16 items-center">
-                            <div>
-                                <h2 className="text-3xl font-bold text-slate-900 mb-6">Quy trình đơn giản hóa</h2>
-                                <div className="space-y-8">
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold shrink-0">1</div>
-                                        <div>
-                                            <h3 className="font-bold text-slate-900 mb-1">Nhập chủ đề hoặc Prompt</h3>
-                                            <p className="text-sm text-slate-600">Sử dụng AI để sinh câu hỏi hoặc nhập thủ công từ file JSON có sẵn.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold shrink-0">2</div>
-                                        <div>
-                                            <h3 className="font-bold text-slate-900 mb-1">Biên tập & Visual hóa</h3>
-                                            <p className="text-sm text-slate-600">Chỉnh sửa nội dung. Hệ thống tự động nhận diện công thức Toán (LaTeX) và vẽ hình tương ứng.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold shrink-0">3</div>
-                                        <div>
-                                            <h3 className="font-bold text-slate-900 mb-1">Xuất bản</h3>
-                                            <p className="text-sm text-slate-600">Tải về file Word (.docx) để in ấn hoặc sử dụng chế độ Trình chiếu trên lớp.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-10">
-                                    <a href={APP_LINK} target="_blank" className="text-orange-600 font-bold hover:text-orange-700 inline-flex items-center gap-2">
-                                        Thử ngay bây giờ <ArrowRight size={16}/>
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            {/* Graphic Right */}
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-tr from-orange-200 to-amber-100 rounded-3xl transform rotate-3"></div>
-                                <div className="relative bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
-                                    <div className="space-y-4">
-                                        {/* Fake Prompt UI */}
-                                        <div className="flex gap-3">
-                                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600"><Zap size={16}/></div>
-                                            <div className="bg-slate-100 p-3 rounded-2xl rounded-tl-none text-xs text-slate-600 w-3/4">
-                                                Tạo 5 câu trắc nghiệm về "Hàm số mũ" mức độ Vận dụng. Kèm đồ thị.
-                                            </div>
-                                        </div>
-                                        {/* Fake Response UI */}
-                                        <div className="flex gap-3 flex-row-reverse">
-                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><Brain size={16}/></div>
-                                            <div className="bg-blue-50 p-3 rounded-2xl rounded-tr-none text-xs text-slate-700 w-3/4 border border-blue-100">
-                                                Đã tạo xong! Dữ liệu bao gồm 5 câu hỏi và mã vẽ đồ thị Desmos tương ứng.
-                                                <div className="mt-2 bg-white p-2 rounded border border-blue-200 flex items-center gap-2 text-blue-600 font-bold">
-                                                    <Download size={14}/> Download_De_Thi.docx
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            );
-        };
-
-        const PricingSection = () => {
-            const [copied, setCopied] = useState(false);
-
-            // BANK INFO CONSTANTS (Từ file Paywall.tsx)
-            const BANK_INFO = {
-                BANK_ID: 'VIETCOMBANK', 
-                ACCOUNT_NO: '0561000544968',
-                ACCOUNT_NAME: 'THÁI MINH NGUYÊN',
-                AMOUNT: 50000, 
-                // Default content for generic QR
-                CONTENT_DISPLAY: 'KH [Email_Của_Bạn]',
-                CONTENT_QR: 'TAODE_PRO' 
-            };
-
-            const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.BANK_ID}-${BANK_INFO.ACCOUNT_NO}-compact2.png?amount=${BANK_INFO.AMOUNT}&addInfo=${encodeURIComponent(BANK_INFO.CONTENT_QR)}&accountName=${encodeURIComponent(BANK_INFO.ACCOUNT_NAME)}`;
-
-            const handleCopy = (text) => {
-                navigator.clipboard.writeText(text);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-            };
-
-            const benefits = [
-                "Soạn đề và trình chiếu nhanh chóng tự động hoặc bán tự động",
-                "Trình chiếu kết hợp mini game (Đua thú, Gắp quà...)",
-                "Xuất đề file word và đáp án chi tiết",
-                "Lưu trữ qua tài khoản google",
-                "Hỗ trợ kỹ thuật qua zalo 0924.336.827"
-            ];
-
-            return (
-                <section id="bang-gia" className="py-24 bg-slate-900 relative overflow-hidden">
-                     {/* Background decoration */}
-                    <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none text-white"><Lock size={400}/></div>
-                    
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="max-w-5xl mx-auto px-4 text-center relative z-10">
                         <motion.div 
-                            initial={{scale: 0.95, opacity: 0}} 
-                            whileInView={{scale: 1, opacity: 1}}
-                            viewport={{ once: true }}
-                            className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]"
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.7 }}
                         >
-                            {/* CỘT TRÁI: GIÁ TRỊ SẢN PHẨM (SALES) */}
-                            <div className="md:w-5/12 bg-slate-50 p-8 md:p-12 flex flex-col justify-center border-r border-slate-100">
-                                <div className="mb-8">
-                                    <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-4 inline-block border border-orange-200">
-                                        Thành viên Premium
-                                    </span>
-                                    <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-2 leading-tight">
-                                        Nâng cấp lên <span className="text-orange-600">PRO</span>
-                                    </h2>
-                                    <p className="text-slate-500 text-lg">ỦNG HỘ TÁC GIẢ.</p>
-                                </div>
-
-                                <div className="space-y-5 mb-8">
-                                    {benefits.map((item, idx) => (
-                                        <div key={idx} className="flex items-start gap-3 text-slate-700 font-medium">
-                                            <div className="p-1 bg-green-100 rounded-full text-green-600 mt-0.5"><CheckCircle size={16}/></div>
-                                            <span className="text-sm md:text-base">{item}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-auto pt-6 border-t border-slate-200">
-                                    <a 
-                                        href={APP_LINK}
-                                        className="text-slate-500 hover:text-orange-600 font-bold text-sm flex items-center gap-2 transition"
-                                    >
-                                        <LogOut size={16} className="rotate-180"/> Quay lại ứng dụng
-                                    </a>
-                                </div>
+                            <div className="inline-flex items-center gap-2 bg-white border border-slate-200 px-5 py-2 rounded-full text-sm font-bold text-slate-600 mb-8 shadow-sm animate-bounce" style={{animationDuration: '3s'}}>
+                                <span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]"></span>
+                                Phiên bản 2025: Chuẩn GDPT Mới
                             </div>
-
-                            {/* CỘT PHẢI: THANH TOÁN (PAYMENT) */}
-                            <div className="md:w-7/12 p-8 md:p-12 flex flex-col items-center justify-center bg-white relative">
-                                <div className="text-center mb-6 relative z-10">
-                                    <h3 className="text-xl font-bold text-slate-800 uppercase flex items-center justify-center gap-2">
-                                        <CreditCard size={20} className="text-blue-600"/> Thông tin chuyển khoản
-                                    </h3>
-                                    <p className="text-sm text-slate-500 mt-1">Quét mã QR để kích hoạt (nếu chưa liên hệ zalo 0924.336.827)</p>
-                                </div>
-
-                                {/* QR CODE & BANK INFO */}
-                                <div className="bg-white p-6 rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-100 w-full max-w-sm relative z-10">
-                                    {/* Ảnh QR tự sinh */}
-                                    <div className="aspect-square bg-slate-100 rounded-xl mb-6 overflow-hidden relative group">
-                                        <img src={qrUrl} alt="VietQR" className="w-full h-full object-contain mix-blend-multiply" />
-                                        <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="bg-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">Quét bằng App Ngân hàng</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Thông tin Text */}
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
-                                            <div className="text-left">
-                                                <div className="text-[10px] text-slate-400 uppercase font-bold">Số tài khoản</div>
-                                                <div className="font-mono font-bold text-lg text-slate-800">{BANK_INFO.ACCOUNT_NO}</div>
-                                            </div>
-                                            <button onClick={() => handleCopy(BANK_INFO.ACCOUNT_NO)} className="p-2 hover:bg-white rounded-lg text-blue-600 transition">
-                                                {copied ? <CheckCircle size={20}/> : <Copy size={20}/>}
-                                            </button>
-                                        </div>
-
-                                        <div className="flex justify-between items-center px-2">
-                                            <span className="text-sm text-slate-500">Chủ TK:</span>
-                                            <span className="font-bold text-slate-800 uppercase">{BANK_INFO.ACCOUNT_NAME}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center px-2">
-                                            <span className="text-sm text-slate-500">Nội dung:</span>
-                                            <span className="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded text-xs md:text-sm">{BANK_INFO.CONTENT_DISPLAY}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* NÚT LIÊN HỆ */}
-                                <div className="mt-8 w-full max-w-sm relative z-10">
-                                    <a 
-                                        href="https://zalo.me/0924336827" 
-                                        target="_blank" 
-                                        rel="noreferrer" 
-                                        className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-1"
-                                    >
-                                        <Phone size={20}/> Xác nhận qua Zalo (0924.336.827)
-                                    </a>
-                                    <p className="text-center text-xs text-slate-400 mt-3">
-                                        <span className="text-red-500">*</span> Liên hệ zalo 0924.336.827 để được hỗ trợ nhanh nhất.
-                                    </p>
-                                </div>
+                            
+                            <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tight">
+                                Trợ lý Soạn đề & <br/>
+                                <span className="text-gradient">Tổ chức thi 4.0</span>
+                            </h1>
+                            
+                            <p className="text-xl md:text-2xl text-slate-600 mb-12 leading-relaxed max-w-3xl mx-auto font-medium">
+                                Giải pháp "All-in-one" cho giáo viên: Từ soạn đề tự động bằng AI, xuất bản in Word, đến tổ chức phòng thi trực tuyến Real-time.
+                            </p>
+                            
+                            <div className="flex flex-col sm:flex-row justify-center gap-4 px-4">
+                                <a 
+                                    href={APP_LINK} 
+                                    target="_blank"
+                                    className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:scale-95"
+                                >
+                                    <Zap size={24} fill="currentColor" className="text-yellow-300"/> Bắt đầu miễn phí
+                                </a>
+                                <a href="#tinh-nang" className="px-8 py-4 bg-white border-2 border-slate-200 hover:border-orange-200 hover:text-orange-600 text-slate-600 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2">
+                                    Tìm hiểu thêm <ChevronRight size={20}/>
+                                </a>
                             </div>
                         </motion.div>
                     </div>
@@ -506,41 +225,239 @@
             );
         };
 
+        // --- SMART TABS SECTION ---
+        const SmartTabs = () => {
+            const [activeTab, setActiveTab] = useState('create');
+
+            const tabs = [
+                { id: 'create', label: 'Soạn Thảo AI', icon: Brain },
+                { id: 'exam', label: 'Phòng Thi 4.0', icon: Activity },
+                { id: 'tools', label: 'Tiện Ích', icon: Layout },
+            ];
+
+            const content = {
+                create: {
+                    title: "AI Soạn Đề Tốc Độ Cao",
+                    desc: "Không còn mất hàng giờ tìm kiếm câu hỏi. Chỉ cần nhập chủ đề, AI sẽ làm phần còn lại.",
+                    features: [
+                        { icon: CheckCircle2, text: "Sinh câu hỏi trắc nghiệm, đúng sai, tự luận" },
+                        { icon: CheckCircle2, text: "Chuẩn Bloom: Nhận biết - Vận dụng cao" },
+                        { icon: CheckCircle2, text: "Tự động vẽ đồ thị hàm số & hình học" },
+                    ],
+                    color: "bg-purple-100 text-purple-600",
+                    imgColor: "bg-purple-500",
+                    gradient: "from-purple-500 to-indigo-600"
+                },
+                exam: {
+                    title: "Tổ Chức Thi Real-time",
+                    desc: "Biến lớp học thành trường thi chuyên nghiệp chỉ trong 30 giây.",
+                    features: [
+                        { icon: Users, text: "Học sinh quét mã QR để vào thi ngay" },
+                        { icon: Activity, text: "Giám sát điểm số & tiến độ thời gian thực" },
+                        { icon: ShieldCheck, text: "Cảnh báo gian lận khi rời khỏi màn hình" },
+                    ],
+                    color: "bg-orange-100 text-orange-600",
+                    imgColor: "bg-orange-500",
+                    gradient: "from-orange-500 to-red-500"
+                },
+                tools: {
+                    title: "Xuất Bản & Trình Chiếu",
+                    desc: "Tối ưu hóa bài giảng với các công cụ hỗ trợ mạnh mẽ.",
+                    features: [
+                        { icon: FileText, text: "Xuất file Word (.docx) chuẩn in ấn" },
+                        { icon: Gamepad2, text: "Chế độ trình chiếu tích hợp Mini Game" },
+                        { icon: Download, text: "Xuất kết quả thi ra Excel để nhập điểm" },
+                    ],
+                    color: "bg-blue-100 text-blue-600",
+                    imgColor: "bg-blue-500",
+                    gradient: "from-blue-500 to-cyan-500"
+                }
+            };
+
+            const ActiveContent = content[activeTab];
+
+            return (
+                <section id="tinh-nang" className="py-24 bg-white relative">
+                    <div className="max-w-6xl mx-auto px-4">
+                        <div className="text-center mb-12">
+                            <span className="text-orange-600 font-extrabold tracking-widest text-sm uppercase bg-orange-50 px-4 py-2 rounded-full border border-orange-100">Tính năng cốt lõi</span>
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mt-6 mb-4">Mọi thứ giáo viên cần</h2>
+                            <p className="text-lg text-slate-500 max-w-2xl mx-auto">Được thiết kế riêng cho giáo viên Việt Nam, đơn giản hóa mọi thao tác phức tạp.</p>
+                        </div>
+
+                        {/* Tab Headers - Scrollable on Mobile */}
+                        <div className="flex justify-start md:justify-center overflow-x-auto hide-scrollbar gap-3 mb-8 px-4 md:px-0 pb-4">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-6 py-4 rounded-2xl font-bold text-sm md:text-base flex items-center gap-3 transition-all whitespace-nowrap border-2 ${
+                                        activeTab === tab.id 
+                                        ? 'bg-slate-900 text-white border-slate-900 shadow-xl scale-105' 
+                                        : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    <tab.icon size={20} className={activeTab === tab.id ? 'text-yellow-400' : 'text-slate-400'}/> {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tab Content */}
+                        <div className="bg-slate-50 rounded-[2.5rem] p-8 md:p-14 border border-slate-100 relative overflow-hidden shadow-2xl">
+                            {/* Abstract Shapes */}
+                            <div className={`absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br ${ActiveContent.gradient} opacity-10 blur-3xl`}></div>
+                            
+                            <AnimatePresence mode='wait'>
+                                <motion.div 
+                                    key={activeTab}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="grid md:grid-cols-2 gap-12 items-center relative z-10"
+                                >
+                                    <div className="space-y-8">
+                                        <div className={`inline-flex items-center justify-center p-4 rounded-3xl ${ActiveContent.color} shadow-sm`}>
+                                            <Sparkles size={28}/>
+                                        </div>
+                                        <h3 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">{ActiveContent.title}</h3>
+                                        <p className="text-lg md:text-xl text-slate-600 leading-relaxed font-medium">{ActiveContent.desc}</p>
+                                        <div className="space-y-4">
+                                            {ActiveContent.features.map((f, i) => (
+                                                <div key={i} className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                                    <div className={`p-2 rounded-full bg-slate-50 text-green-500`}><f.icon size={20}/></div>
+                                                    <span className="font-bold text-slate-700">{f.text}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Visual Representation */}
+                                    <div className={`aspect-square rounded-[3rem] bg-gradient-to-br ${ActiveContent.gradient} p-8 flex items-center justify-center relative shadow-2xl overflow-hidden group`}>
+                                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay"></div>
+                                        <div className="relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2rem] shadow-inner transform group-hover:scale-105 transition-transform duration-500">
+                                            {activeTab === 'create' && <Brain size={100} className="text-white drop-shadow-md"/>}
+                                            {activeTab === 'exam' && <Activity size={100} className="text-white drop-shadow-md"/>}
+                                            {activeTab === 'tools' && <Layout size={100} className="text-white drop-shadow-md"/>}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const Pricing = () => {
+            const [copied, setCopied] = useState(false);
+
+            // BANK INFO - Updated Price & Content
+            const BANK_INFO = {
+                BANK_ID: 'VIETCOMBANK', 
+                ACCOUNT_NO: '0561000544968',
+                ACCOUNT_NAME: 'THÁI MINH NGUYÊN',
+                AMOUNT: 50000, 
+                CONTENT: 'TAODE VIP 1NAM' 
+            };
+
+            const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.BANK_ID}-${BANK_INFO.ACCOUNT_NO}-compact2.png?amount=${BANK_INFO.AMOUNT}&addInfo=${encodeURIComponent(BANK_INFO.CONTENT)}&accountName=${encodeURIComponent(BANK_INFO.ACCOUNT_NAME)}`;
+
+            const handleCopy = () => {
+                navigator.clipboard.writeText(BANK_INFO.ACCOUNT_NO);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            };
+
+            return (
+                <section id="bang-gia" className="py-24 bg-slate-900 relative overflow-hidden">
+                    {/* Deco */}
+                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600 rounded-full mix-blend-screen filter blur-[120px] opacity-10"></div>
+                    <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-600 rounded-full mix-blend-screen filter blur-[100px] opacity-10"></div>
+                    
+                    <div className="max-w-5xl mx-auto px-4 relative z-10">
+                        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[3rem] overflow-hidden flex flex-col md:flex-row shadow-2xl">
+                            
+                            {/* Left: Value Prop */}
+                            <div className="md:w-1/2 p-10 md:p-14 border-b md:border-b-0 md:border-r border-white/10 flex flex-col justify-center">
+                                <div>
+                                    <span className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2 rounded-full text-xs font-black uppercase tracking-wider mb-8 inline-block shadow-lg shadow-orange-500/20">
+                                        Gói Trải Nghiệm
+                                    </span>
+                                    <h2 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
+                                        50.000đ<br/>
+                                        <span className="text-slate-400 text-2xl font-medium tracking-normal">/ 1 năm sử dụng</span>
+                                    </h2>
+                                    <p className="text-slate-300 mb-10 text-lg">Chi phí chỉ bằng một ly trà sữa để đổi lấy 1 năm thảnh thơi soạn đề.</p>
+                                    
+                                    <ul className="space-y-5">
+                                        <li className="flex gap-4 items-center text-white font-medium text-lg"><div className="bg-green-500/20 p-1.5 rounded-full text-green-400"><CheckCircle2 size={20}/></div> Sử dụng Full tính năng AI</li>
+                                        <li className="flex gap-4 items-center text-white font-medium text-lg"><div className="bg-green-500/20 p-1.5 rounded-full text-green-400"><CheckCircle2 size={20}/></div> Lưu trữ đề thi không giới hạn</li>
+                                        <li className="flex gap-4 items-center text-white font-medium text-lg"><div className="bg-green-500/20 p-1.5 rounded-full text-green-400"><CheckCircle2 size={20}/></div> Mở khóa Mini Game lớp học</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Right: Payment */}
+                            <div className="md:w-1/2 p-10 md:p-14 bg-white text-slate-900 flex flex-col items-center justify-center text-center">
+                                <h3 className="font-bold text-2xl mb-8 flex items-center gap-3 text-slate-800">
+                                    <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><CreditCard size={28}/></div>
+                                    Quét mã kích hoạt
+                                </h3>
+                                
+                                <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xl mb-8 w-64 transform hover:scale-105 transition-transform duration-300">
+                                    <img src={qrUrl} alt="QR Code" className="w-full h-full object-contain rounded-xl"/>
+                                </div>
+
+                                <div className="w-full max-w-xs space-y-4">
+                                    <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                        <span className="text-slate-500 font-bold text-xs uppercase tracking-wider">Vietcombank</span>
+                                        <div className="flex items-center gap-2 font-mono font-bold text-lg text-slate-900">
+                                            {BANK_INFO.ACCOUNT_NO}
+                                            <button onClick={handleCopy} className="text-blue-600 hover:bg-blue-100 p-2 rounded-lg transition-colors">
+                                                {copied ? <CheckCircle2 size={18}/> : <Copy size={18}/>}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="text-sm font-bold text-slate-500">
+                                        Chủ TK: <strong className="text-slate-900 text-base uppercase">{BANK_INFO.ACCOUNT_NAME}</strong>
+                                    </div>
+                                </div>
+
+                                <a href="https://zalo.me/0924336827" target="_blank" className="mt-8 text-blue-600 font-bold hover:text-blue-800 flex items-center gap-2 text-base transition-colors bg-blue-50 px-6 py-3 rounded-xl">
+                                    <Phone size={20}/> Hỗ trợ Zalo: 0924.336.827
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
         const Footer = () => (
-            <footer id="tac-gia" className="bg-slate-900 text-white py-12 border-t border-slate-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center font-bold">TĐ</div>
-                                <span className="font-bold text-lg">Tạo Đề Nhanh</span>
-                            </div>
-                            <p className="text-slate-400 text-sm">Công cụ hỗ trợ giáo viên 4.0</p>
-                        </div>
-                        
-                        <div className="text-center md:text-right">
-                            <div className="flex items-center justify-center md:justify-end gap-2 text-orange-400 font-bold mb-1">
-                                <GraduationCap size={20}/>
-                                <span>Thầy Thái Minh Nguyên</span>
-                            </div>
-                            <p className="text-slate-500 text-sm">Trường TH, THCS & THPT Yersin Đà Lạt</p>
-                        </div>
+            <footer className="bg-white border-t border-slate-200 py-16">
+                <div className="max-w-6xl mx-auto px-4 text-center">
+                    <div className="flex justify-center items-center gap-3 mb-6">
+                        <div className="bg-slate-900 text-white font-bold rounded-xl w-10 h-10 flex items-center justify-center text-lg">TĐ</div>
+                        <span className="font-black text-2xl text-slate-900 tracking-tight">Tạo Đề Nhanh</span>
                     </div>
-                    <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-600 text-xs">
-                        &copy; 2025 Tao De Nhanh. All rights reserved.
+                    <div className="flex justify-center items-center gap-2 text-slate-600 font-bold mb-2 text-lg">
+                        <GraduationCap size={24} className="text-orange-500"/>
+                        <span>Thầy Thái Minh Nguyên</span>
                     </div>
+                    <p className="text-slate-500 font-medium">Trường TH, THCS & THPT Yersin Đà Lạt</p>
+                    <p className="text-slate-400 text-xs mt-10 font-bold uppercase tracking-widest">© 2025 All rights reserved.</p>
                 </div>
             </footer>
         );
 
         const LandingPage = () => {
             return (
-                <div className="antialiased">
+                <div className="antialiased scroll-smooth">
                     <Navbar />
                     <Hero />
-                    <Features />
-                    <HowItWorks />
-                    <PricingSection />
+                    <SmartTabs />
+                    <Pricing />
                     <Footer />
                 </div>
             );
