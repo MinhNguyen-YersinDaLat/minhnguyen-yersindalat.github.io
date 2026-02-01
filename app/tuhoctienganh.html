@@ -20,21 +20,6 @@
     </script>
 
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <script>
-        // Đăng ký một preset thủ công tên là 'env-fix'
-        // Mục đích: Ép buộc targets.esmodules = true (Boolean) và không cho Babel chuyển đổi import/export
-        window.Babel.registerPreset("env-fix", {
-            presets: [
-                [Babel.availablePresets["env"], {
-                    "targets": { "esmodules": true }, // Fix lỗi "must be boolean"
-                    "modules": false // Quan trọng: Giữ nguyên import để browser dùng Import Map
-                }],
-                Babel.availablePresets["react"]
-            ]
-        });
-    </script>
-
     <style>
         /* ... (Giữ nguyên CSS cũ của bạn ở đây) ... */
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&display=swap');
@@ -59,7 +44,7 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" data-presets="env-fix">
+    <script type="text/babel" data-type="module" data-presets="react">
         import React, { useState, useEffect, useRef, useMemo } from 'react';
         import { createRoot } from 'react-dom/client';
         // ... (Phần code React của bạn giữ nguyên từ đây trở xuống) ...
@@ -1310,5 +1295,6 @@ const questions = JSON.parse(text);
     </script>
 </body>
 </html>
+
 
 
