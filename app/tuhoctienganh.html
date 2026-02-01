@@ -44,7 +44,7 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module" data-presets="react">
+    <script id="main-code" type="text/plain">
         import React, { useState, useEffect, useRef, useMemo } from 'react';
         import { createRoot } from 'react-dom/client';
         // ... (Phần code React của bạn giữ nguyên từ đây trở xuống) ...
@@ -1290,11 +1290,32 @@ const questions = JSON.parse(text);
             );
         };
 
-        const root = createRoot(document.getElementById('root'));
+       const root = createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+
+    <script>
+        try {
+            // 1. Lấy code thô từ thẻ script bên trên
+            const rawCode = document.getElementById('main-code').textContent;
+            
+            // 2. Dùng Babel dịch thủ công (Chỉ dịch React, bỏ qua Env để tránh lỗi targets)
+            const compiled = Babel.transform(rawCode, {
+                presets: ['react']
+            }).code;
+
+            // 3. Tạo thẻ script mới chuẩn Module để trình duyệt hiểu Import
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.textContent = compiled;
+            
+            // 4. Chèn vào trang để chạy
+            document.body.appendChild(script);
+        } catch (err) {
+            console.error("Lỗi khởi tạo:", err);
+            alert("Lỗi: " + err.message);
+        }
+    </script>
+
 </body>
 </html>
-
-
-
