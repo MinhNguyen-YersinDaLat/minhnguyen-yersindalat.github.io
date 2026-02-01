@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MEOW ENGLISH - IELTS MASTER PRO</title>
     
-    <!-- Tailwind CSS: Framework CSS hiện đại giúp thiết kế nhanh -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Import Map: Khai báo các thư viện React, Framer Motion, Lucide Icons -->
     <script type="importmap">
     {
         "imports": {
@@ -21,126 +19,50 @@
     }
     </script>
 
-    <!-- Babel: Trình biên dịch JSX để chạy React trực tiếp trên trình duyệt -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script>
-    // Cấu hình thủ công cho Babel Standalone để tránh lỗi targets
-    window.Babel.registerPreset("env", {
-        presets: [[Babel.availablePresets["env"], { 
-            targets: { esmodules: true } // <-- Sửa lỗi tại đây: ép kiểu Boolean chuẩn
-        }]]
-    });
-</script>
-    <!-- CSS Tùy chỉnh: Hiệu ứng 3D, Font chữ, Scrollbar -->
+
+    <script>
+        // Đăng ký một preset thủ công tên là 'env-fix'
+        // Mục đích: Ép buộc targets.esmodules = true (Boolean) và không cho Babel chuyển đổi import/export
+        window.Babel.registerPreset("env-fix", {
+            presets: [
+                [Babel.availablePresets["env"], {
+                    "targets": { "esmodules": true }, // Fix lỗi "must be boolean"
+                    "modules": false // Quan trọng: Giữ nguyên import để browser dùng Import Map
+                }],
+                Babel.availablePresets["react"]
+            ]
+        });
+    </script>
+
     <style>
-        /* Import Font chữ dễ đọc (Quicksand) và Font học thuật (Merriweather) */
+        /* ... (Giữ nguyên CSS cũ của bạn ở đây) ... */
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap');
-
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background-color: #fff0f5; /* Lavender Blush - Màu nền nhẹ nhàng */
-            color: #4a044e; 
-            -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: none;
-            font-size: 18px; 
-        }
-        
-        /* Font riêng cho phần trích dẫn học thuật (Pro/God Mode) */
-        .academic-font {
-            font-family: 'Merriweather', serif;
-        }
-
-        /* Tùy chỉnh thanh cuộn cho đẹp và mượt mà */
+        body { font-family: 'Quicksand', sans-serif; background-color: #fff0f5; color: #4a044e; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; font-size: 18px; }
+        .academic-font { font-family: 'Merriweather', serif; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #f472b6; }
-        
-        /* Panel hiệu ứng kính (Glassmorphism) - Đã tối ưu hiệu năng */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            /* Lưu ý: Đã tắt backdrop-filter toàn màn hình để tránh lag trên thiết bị yếu */
-            border: 2px solid #fff;
-            box-shadow: 0 15px 35px -5px rgba(255, 182, 193, 0.4);
-        }
-        
-        /* Họa tiết nền chân mèo dễ thương */
-        .cat-pattern {
-            background-image: 
-                radial-gradient(#fbcfe8 15%, transparent 16%),
-                radial-gradient(#fbcfe8 15%, transparent 16%);
-            background-size: 50px 50px;
-            background-position: 0 0, 25px 25px;
-            opacity: 0.3;
-        }
-
-        /* Style nút bấm 3D (Pushable Button) - Tạo cảm giác bấm thật */
-        .btn-pushable {
-            position: relative;
-            border: none;
-            background: transparent;
-            padding: 0;
-            cursor: pointer;
-            outline-offset: 4px;
-            transition: filter 250ms;
-            width: 100%;
-            touch-action: manipulation;
-        }
-        .shadow {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 1.5rem;
-            background: rgba(0,0,0,0.2);
-            transform: translateY(6px);
-            transition: transform 600ms cubic-bezier(.3, .7, .4, 1);
-        }
-        .edge {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 1.5rem;
-            background: linear-gradient(to left, #be185d 0%, #db2777 8%, #db2777 92%, #be185d 100%);
-        }
-        .front {
-            display: block;
-            position: relative;
-            padding: 18px 24px;
-            border-radius: 1.5rem;
-            font-size: 1.25rem;
-            color: white;
-            background: #ec4899;
-            will-change: transform;
-            transform: translateY(-6px);
-            transition: transform 600ms cubic-bezier(.3, .7, .4, 1);
-            font-weight: 900;
-            letter-spacing: 0.5px;
-        }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); border: 2px solid #fff; box-shadow: 0 15px 35px -5px rgba(255, 182, 193, 0.4); }
+        .cat-pattern { background-image: radial-gradient(#fbcfe8 15%, transparent 16%), radial-gradient(#fbcfe8 15%, transparent 16%); background-size: 50px 50px; background-position: 0 0, 25px 25px; opacity: 0.3; }
+        .btn-pushable { position: relative; border: none; background: transparent; padding: 0; cursor: pointer; outline-offset: 4px; transition: filter 250ms; width: 100%; touch-action: manipulation; }
+        .shadow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 1.5rem; background: rgba(0,0,0,0.2); transform: translateY(6px); transition: transform 600ms cubic-bezier(.3, .7, .4, 1); }
+        .edge { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 1.5rem; background: linear-gradient(to left, #be185d 0%, #db2777 8%, #db2777 92%, #be185d 100%); }
+        .front { display: block; position: relative; padding: 18px 24px; border-radius: 1.5rem; font-size: 1.25rem; color: white; background: #ec4899; will-change: transform; transform: translateY(-6px); transition: transform 600ms cubic-bezier(.3, .7, .4, 1); font-weight: 900; letter-spacing: 0.5px; }
         .btn-pushable:active .front { transform: translateY(-2px); }
         .btn-pushable:active .shadow { transform: translateY(2px); }
         .btn-pushable:focus:not(:focus-visible) { outline: none; }
-        
-        /* Toggle Switch Style - Nút gạt bật tắt */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #be185d;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #be185d;
-        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module">
+    <script type="text/babel" data-presets="env-fix">
         import React, { useState, useEffect, useRef, useMemo } from 'react';
         import { createRoot } from 'react-dom/client';
+        // ... (Phần code React của bạn giữ nguyên từ đây trở xuống) ...
         import { motion, AnimatePresence } from 'framer-motion';
         import { 
             BookOpen, Brain, Save, Download, Upload, RefreshCw, 
@@ -1388,4 +1310,5 @@ const questions = JSON.parse(text);
     </script>
 </body>
 </html>
+
 
