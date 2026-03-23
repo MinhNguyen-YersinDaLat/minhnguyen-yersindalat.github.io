@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Giảng Tương Tác - EduNexus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; overflow: hidden; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // 1. CHUYỂN ĐỔI ICON TỪ LUCIDE SANG FONTAWESOME ĐỂ CHẠY TRÊN HTML
+        const Play = (p) => <i className={`fa-solid fa-play ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Pause = (p) => <i className={`fa-solid fa-pause ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const CheckCircle = (p) => <i className={`fa-solid fa-circle-check ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const X = (p) => <i className={`fa-solid fa-xmark ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Download = (p) => <i className={`fa-solid fa-download ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Upload = (p) => <i className={`fa-solid fa-upload ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Video = (p) => <i className={`fa-solid fa-video ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const MonitorPlay = (p) => <i className={`fa-solid fa-desktop ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const ArrowLeft = (p) => <i className={`fa-solid fa-arrow-left ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const MapPin = (p) => <i className={`fa-solid fa-location-dot ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Edit3 = (p) => <i className={`fa-solid fa-pen-to-square ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const RotateCcw = (p) => <i className={`fa-solid fa-rotate-left ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Clapperboard = (p) => <i className={`fa-solid fa-clapperboard ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Award = (p) => <i className={`fa-solid fa-trophy ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Plus = (p) => <i className={`fa-solid fa-plus ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Save = (p) => <i className={`fa-solid fa-floppy-disk ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const List = (p) => <i className={`fa-solid fa-list ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Info = (p) => <i className={`fa-solid fa-circle-info ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Trash2 = (p) => <i className={`fa-solid fa-trash ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Zap = (p) => <i className={`fa-solid fa-bolt ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const FileJson = (p) => <i className={`fa-solid fa-file-code ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Library = (p) => <i className={`fa-solid fa-book ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Users = (p) => <i className={`fa-solid fa-users ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Sparkles = (p) => <i className={`fa-solid fa-wand-magic-sparkles ${p.className||''}`} style={{fontSize: p.size}}/>;
+        const Gift = (p) => <i className={`fa-solid fa-gift ${p.className||''}`} style={{fontSize: p.size}}/>;
+
+        // 2. MÔ PHỎNG ENGINE RENDER ĐỂ FILE CHẠY ĐỘC LẬP
+        const MathContent = ({ content }) => <span dangerouslySetInnerHTML={{__html: content.replace(/\n/g, '<br/>')}}></span>;
+        const VisualContent = ({ type, data }) => {
+            if(type === 'none') return null;
+            if(type === 'image_url') return <img src={data} alt="visual" className="max-h-full object-contain" />;
+            return <div className="p-4 bg-slate-100 text-slate-500 text-sm font-bold border-2 border-dashed border-slate-300 rounded-xl text-center w-full">Khu vực hiển thị Hình ảnh: {type}</div>;
+        };
+
+        // 3. DỮ LIỆU BẢO TỒN ĐỘNG VẬT MẪU
+        const sampleData = [
+            { "id": 1, "type": "mc", "question": "Up to _______ elephants are killed every year", "options": ["50.000", "30.000", "10.000", "20.000"], "correctAnswer": 0, "explanation": "Mỗi năm có khoảng 50.000 con voi bị thợ săn trộm giết hại để lấy ngà.", "visualType": "none", "visualData": "", "videoTime": "24" },
+            { "id": 2, "type": "mc", "question": "_____ rhinos are killed every day", "options": ["2", "3", "4", "5"], "correctAnswer": 1, "explanation": "Trung bình mỗi ngày có 3 con tê giác bị giết hại trái phép.", "visualType": "none", "visualData": "", "videoTime": "40" },
+            { "id": 3, "type": "mc", "question": "What did the hunter steal from the rhinoceros, the tiger, and the elephant?", "options": ["The horn, the fur, and the tusks", "The teeth, the claws, and the tail", "The skin, the eyes, and the ears", "The legs, the nose, and the hair"], "correctAnswer": 0, "explanation": "Thợ săn thường cướp đi sừng (tê giác), bộ lông/da (hổ) và ngà (voi).", "visualType": "none", "visualData": "", "videoTime": "63" },
+            { "id": 4, "type": "mc", "question": "Is this legal or illegal hunting?", "options": ["Legal hunting", "Illegal hunting", "Seasonal hunting", "Controlled hunting"], "correctAnswer": 1, "explanation": "Hành vi tàn sát động vật hoang dã quý hiếm này hoàn toàn là săn bắn trái phép (Illegal hunting).", "visualType": "none", "visualData": "", "videoTime": "121" },
+            { "id": 5, "type": "mc", "question": "How can we protect wildlife?", "options": ["By hunting animals for their body parts", "By destroying their natural habitats", "By raising awareness and enforcing wildlife protection laws", "By keeping wild animals as pets"], "correctAnswer": 2, "explanation": "Cách tốt nhất để bảo vệ chúng là Nâng cao nhận thức cộng đồng và thực thi nghiêm ngặt luật bảo vệ động vật hoang dã.", "visualType": "none", "visualData": "", "videoTime": "154" }
+        ];
+
+        // 4. TOÀN BỘ LOGIC 100% TỪ REACT APP (KÈM GIAO DIỆN TỰ ĐỘNG CO GIÃN)
+        const InteractiveVideo = () => {
+            // KHỞI TẠO MẶC ĐỊNH LÀ CHẾ ĐỘ HỌC SINH + DỮ LIỆU MẪU ĐỂ VÀO LÀ CHẠY NGAY
+            const [mode, setMode] = useState('student');
+            const [videoUrl, setVideoUrl] = useState('https://www.youtube.com/watch?v=cJoo8dUp2eM');
+            const [videoType, setVideoType] = useState(null);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [videoEnded, setVideoEnded] = useState(false);
+            const [questions, setQuestions] = useState(sampleData);
+            
+            const [activeQuestion, setActiveQuestion] = useState(null);
+            const [feedback, setFeedback] = useState(null);
+            const [isReviewing, setIsReviewing] = useState(false); 
+            
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [modalTime, setModalTime] = useState(0);
+            const [qText, setQText] = useState('');
+            const [opts, setOpts] = useState(['', '', '', '']);
+            const [correctIdx, setCorrectIdx] = useState(0);
+            const [quickJson, setQuickJson] = useState(''); 
+            
+            const [answeredIds, setAnsweredIds] = useState([]);
+
+            const ytPlayerRef = useRef(null);
+            const html5PlayerRef = useRef(null);
+            const playerContainerRef = useRef(null);
+            const lastTimeRef = useRef(0);
+
+            const stateRef = useRef({ mode, isPlaying, questions, videoType, activeQuestion, isReviewing, answeredIds });
+            useEffect(() => {
+                stateRef.current = { mode, isPlaying, questions, videoType, activeQuestion, isReviewing, answeredIds };
+            }, [mode, isPlaying, questions, videoType, activeQuestion, isReviewing, answeredIds]);
+
+            const requestFullscreen = () => {
+                const elem = playerContainerRef.current;
+                if (elem) {
+                    if (elem.requestFullscreen) elem.requestFullscreen();
+                    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+                    else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+                }
+            };
+
+            const exitFullscreen = () => {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                }
+            };
+
+            useEffect(() => {
+                const handleFullscreenChange = () => {
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement && mode === 'student' && stateRef.current.isPlaying) pauseGlobal();
+                };
+                document.addEventListener('fullscreenchange', handleFullscreenChange);
+                document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+                return () => {
+                    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+                    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+                };
+            }, [mode]);
+
+            // Vòng lặp kiểm tra thời gian Video (100% Logic cũ)
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const current = stateRef.current;
+                    
+                    if (current.mode === 'student' && current.isPlaying && !current.activeQuestion && !current.isReviewing) {
+                        let currentTime = 0;
+                        if (current.videoType === 'youtube' && ytPlayerRef.current?.getCurrentTime) {
+                            currentTime = ytPlayerRef.current.getCurrentTime();
+                        } else if (current.videoType === 'html5' && html5PlayerRef.current) {
+                            currentTime = html5PlayerRef.current.currentTime;
+                        }
+
+                        if (currentTime < lastTimeRef.current - 1.5) {
+                            setAnsweredIds(prev => prev.filter(id => {
+                                const q = current.questions.find(x => x.id === id);
+                                if (!q || !q.videoTime) return false;
+                                return Number(q.videoTime) <= currentTime; 
+                            }));
+                        }
+                        lastTimeRef.current = currentTime;
+
+                        const pendingQuestions = current.questions.filter(q => 
+                            q.videoTime !== undefined && 
+                            q.videoTime !== '' &&
+                            !current.answeredIds.includes(q.id)
+                        );
+
+                        const qToAsk = pendingQuestions
+                            .filter(q => currentTime >= Number(q.videoTime))
+                            .sort((a, b) => Number(a.videoTime) - Number(b.videoTime))[0]; 
+                        
+                        if (qToAsk) {
+                            pauseGlobal();
+                            setActiveQuestion(qToAsk);
+                            setFeedback(null);
+                        }
+                    } else if (current.isPlaying) {
+                        let t = 0;
+                        if (current.videoType === 'youtube' && ytPlayerRef.current?.getCurrentTime) t = ytPlayerRef.current.getCurrentTime();
+                        else if (current.videoType === 'html5' && html5PlayerRef.current) t = html5PlayerRef.current.currentTime;
+                        lastTimeRef.current = t;
+                    }
+                }, 300); 
+                return () => clearInterval(interval);
+            }, []);
+
+            const extractYouTubeID = (url) => {
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/|live\/)([^#\&\?]*).*/;
+                const match = url.match(regExp);
+                return (match && match[2].length === 11) ? match[2] : null;
+            };
+
+            const handleVideoEnd = () => {
+                setIsPlaying(false);
+                setVideoEnded(true);
+                exitFullscreen();
+            };
+
+            const loadVideo = (autoPlay = false) => {
+                setVideoEnded(false);
+                setAnsweredIds([]); 
+                lastTimeRef.current = 0; 
+                
+                const ytId = extractYouTubeID(videoUrl);
+                if (ytId) {
+                    setVideoType('youtube');
+                    if (html5PlayerRef.current) html5PlayerRef.current.pause();
+                    
+                    if (ytPlayerRef.current && typeof ytPlayerRef.current.destroy === 'function') {
+                        ytPlayerRef.current.destroy();
+                        ytPlayerRef.current = null;
+                    }
+
+                    const wrapper = document.getElementById('yt-wrapper');
+                    if (wrapper) wrapper.innerHTML = '<div id="yt-player-container" style="width: 100%; height: 100%;"></div>';
+
+                    const initPlayer = () => {
+                        ytPlayerRef.current = new window.YT.Player('yt-player-container', {
+                            height: '100%', width: '100%', videoId: ytId,
+                            playerVars: { 'playsinline': 1, 'rel': 0, 'origin': window.location.origin, 'controls': mode === 'teacher' ? 1 : 0, 'autoplay': autoPlay ? 1 : 0 },
+                            events: {
+                                'onReady': (e) => { if(autoPlay) { e.target.playVideo(); requestFullscreen(); } },
+                                'onStateChange': (e) => {
+                                    if (e.data === window.YT.PlayerState.PLAYING) setIsPlaying(true);
+                                    if (e.data === window.YT.PlayerState.PAUSED) setIsPlaying(false);
+                                    if (e.data === window.YT.PlayerState.ENDED) handleVideoEnd();
+                                }
+                            }
+                        });
+                    };
+
+                    if (window.YT && window.YT.Player) initPlayer();
+                    else window.onYouTubeIframeAPIReady = () => initPlayer();
+                } else {
+                    setVideoType('html5');
+                    let finalUrl = videoUrl;
+                    if(videoUrl.includes('drive.google.com/file/d/')) {
+                        const driveId = videoUrl.split('/d/')[1].split('/')[0];
+                        finalUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+                    }
+                    if (html5PlayerRef.current) {
+                        html5PlayerRef.current.src = finalUrl;
+                        html5PlayerRef.current.controls = mode === 'teacher';
+                        if(autoPlay) html5PlayerRef.current.play().then(requestFullscreen).catch(e => console.warn("Autoplay blocked"));
+                    }
+                }
+            };
+
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    if (videoUrl) {
+                        const isValidYT = extractYouTubeID(videoUrl);
+                        const isDriveOrMp4 = videoUrl.includes('drive.google.com') || videoUrl.endsWith('.mp4');
+                        if (isValidYT || isDriveOrMp4) {
+                            loadVideo(false);
+                        }
+                    }
+                }, 800); 
+                return () => clearTimeout(timer);
+            }, [videoUrl]); 
+
+            const getCurrentTime = () => {
+                const current = stateRef.current;
+                if (current.videoType === 'youtube' && ytPlayerRef.current?.getCurrentTime) return ytPlayerRef.current.getCurrentTime();
+                if (current.videoType === 'html5' && html5PlayerRef.current) return html5PlayerRef.current.currentTime;
+                return 0;
+            };
+
+            const pauseGlobal = () => {
+                const current = stateRef.current;
+                if (current.videoType === 'youtube' && ytPlayerRef.current?.pauseVideo) ytPlayerRef.current.pauseVideo();
+                if (current.videoType === 'html5' && html5PlayerRef.current) html5PlayerRef.current.pause();
+                setIsPlaying(false);
+            };
+
+            const playGlobal = () => {
+                const current = stateRef.current;
+                if (current.videoType === 'youtube' && ytPlayerRef.current?.playVideo) ytPlayerRef.current.playVideo();
+                if (current.videoType === 'html5' && html5PlayerRef.current) html5PlayerRef.current.play();
+                setIsPlaying(true);
+            };
+
+            const seekGlobal = (time) => {
+                const current = stateRef.current;
+                if (current.videoType === 'youtube' && ytPlayerRef.current?.seekTo) ytPlayerRef.current.seekTo(time, true);
+                if (current.videoType === 'html5' && html5PlayerRef.current) html5PlayerRef.current.currentTime = time;
+            };
+
+            const reviewTenSeconds = () => {
+                if (!activeQuestion) return;
+                const backTime = Math.max(0, Number(activeQuestion.videoTime) - 10);
+                setActiveQuestion(null); setFeedback(null);
+                seekGlobal(backTime);
+                setIsReviewing(true);
+                playGlobal();
+                setTimeout(() => setIsReviewing(false), 1000); 
+            };
+
+            const formatTime = (sec) => {
+                if (isNaN(sec) || sec === null || sec === undefined) return "--:--";
+                const m = Math.floor(sec / 60);
+                const s = Math.floor(sec % 60);
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+            };
+
+            const answerStudentQuestion = (idx) => {
+                let isCorrect = false;
+                if (activeQuestion.type === 'sa') {
+                    isCorrect = String(idx).trim().toLowerCase() === String(activeQuestion.correctAnswer).trim().toLowerCase();
+                } else {
+                    isCorrect = idx === Number(activeQuestion.correctAnswer);
+                }
+                
+                setFeedback({ isCorrect, show: true });
+                setAnsweredIds(prev => [...prev, activeQuestion.id]);
+            };
+
+            const assignTimeToQuestion = (id, timeStr) => {
+                setQuestions(prev => prev.map(q => q.id === id ? { ...q, videoTime: timeStr } : q));
+            };
+
+            const pinCurrentTime = (id) => {
+                if(!videoType) return alert("Thầy hãy tải video trước nhé!");
+                const t = Math.floor(getCurrentTime());
+                assignTimeToQuestion(id, t.toString());
+            };
+
+            const handleParseQuickJson = () => {
+                try {
+                    if(!quickJson.trim()) return alert("Thầy hãy dán mã JSON vào trước nhé!");
+                    let rawJson = quickJson.trim();
+                    if (rawJson.startsWith('```json')) rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
+                    else if (rawJson.startsWith('```')) rawJson = rawJson.replace(/```/g, '').trim();
+
+                    let data = JSON.parse(rawJson);
+                    const newQuestions = [];
+                    const baseId = Date.now();
+
+                    const processItem = (item, index) => ({
+                        id: baseId + index,
+                        uId: `q-vid-${baseId}-${index}`,
+                        type: item.type || 'mc',
+                        question: item.question || item.text || "Câu hỏi trống",
+                        options: Array.isArray(item.options) ? item.options : ["A", "B", "C", "D"],
+                        correctAnswer: item.correctAnswer !== undefined ? Number(item.correctAnswer) : (item.correctIndex !== undefined ? Number(item.correctIndex) : 0),
+                        explanation: item.explanation || "Chưa có lời giải chi tiết",
+                        visualType: item.visualType || 'none',
+                        visualData: item.visualData || '',
+                        videoTime: item.videoTime !== undefined ? String(item.videoTime) : (item.time !== undefined ? String(item.time) : modalTime.toString())
+                    });
+
+                    if (Array.isArray(data)) data.forEach((item, index) => newQuestions.push(processItem(item, index)));
+                    else if (typeof data === 'object') newQuestions.push(processItem(data, 0));
+
+                    if (newQuestions.length > 0) {
+                        setQuestions(prev => [...prev, ...newQuestions].sort((a, b) => Number(a.videoTime) - Number(b.videoTime)));
+                        alert(`✅ Đã nạp thành công ${newQuestions.length} câu hỏi vào Kịch Bản!`);
+                        setQuickJson(''); setShowAddModal(false);
+                    } else alert("❌ Không nhận diện được cấu trúc câu hỏi nào.");
+                } catch (error) {
+                    alert("❌ Lỗi Cú pháp JSON!");
+                }
+            };
+
+            const handleSaveNewQuestion = () => {
+                if (!qText.trim() || opts.some(o => !o.trim())) return alert("Vui lòng điền đủ câu hỏi và 4 đáp án");
+                const newId = Date.now();
+                const newQ = { id: newId, uId: `q-vid-${newId}`, type: 'mc', question: qText, options: opts, correctAnswer: correctIdx, explanation: "Chưa có lời giải chi tiết", visualType: 'none', visualData: '', videoTime: modalTime.toString() };
+                setQuestions(prev => [...prev, newQ].sort((a, b) => Number(a.videoTime) - Number(b.videoTime)));
+                setShowAddModal(false);
+            };
+
+            const handleDeleteQuestion = (id) => {
+                if(confirm("Xóa câu hỏi này khỏi danh sách?")) setQuestions(prev => prev.filter(q => q.id !== id));
+            };
+
+            const handleCopyAIPrompt = () => {
+                const promptText = `ĐÓNG VAI: Chuyên gia giáo dục và lập trình viên...\n\n(Tương tự như trong app gốc của EduNexus)`;
+                navigator.clipboard.writeText(promptText);
+                alert("✅ ĐÃ COPY PROMPT THÀNH CÔNG!");
+            };
+
+            const handleLoadSample = () => {
+                if(confirm("Tải video và câu hỏi mẫu?")) {
+                    setVideoUrl("[https://www.youtube.com/watch?v=cJoo8dUp2eM](https://www.youtube.com/watch?v=cJoo8dUp2eM)");
+                    setQuestions(sampleData);
+                }
+            };
+
+            // HTML JSX TRẢ VỀ: SỬ DỤNG CLASS ĐÃ FIX LỖI CO GIÃN MƯỢT MÀ TỪ REACT APP
+            return (
+                <div className="fixed inset-0 z-[40] bg-[#f8fafc] flex flex-col font-sans h-[100dvh] w-screen overflow-hidden text-slate-900 box-border">
+                    <div className="h-[clamp(60px,8vh,80px)] bg-white border-b border-slate-100 flex justify-between items-center px-[clamp(16px,3vw,32px)] shrink-0 shadow-sm z-10">
+                        <div className="flex items-center gap-[clamp(12px,2vw,24px)]">
+                            <h2 className="font-black text-[clamp(16px,2vw,24px)] text-slate-900 flex items-center gap-2 md:gap-3 uppercase tracking-tighter">
+                                <div className="p-1.5 md:p-2.5 rounded-xl bg-indigo-50 text-indigo-600 shadow-inner"><MonitorPlay className="w-5 h-5 md:w-6 md:h-6"/></div>
+                                Bài Học <span className="hidden lg:inline">Tương Tác</span>
+                            </h2>
+                        </div>
+                        <div className="flex bg-slate-100 p-1 md:p-1.5 rounded-full border border-slate-200 shadow-inner overflow-hidden">
+                            <button onClick={() => {setMode('teacher'); setActiveQuestion(null); exitFullscreen();}} className={`px-[clamp(12px,2vw,24px)] py-2 text-[clamp(10px,1.2vw,14px)] font-black rounded-full transition-all flex items-center gap-2 ${mode === 'teacher' ? 'bg-white text-indigo-700 shadow-md' : 'text-slate-500 hover:text-slate-800'}`}>
+                                <Edit3 size={16}/> <span className="hidden md:inline">Giáo Viên</span>
+                            </button>
+                            <button onClick={() => {
+                                const invalidQ = questions.some(q => q.videoTime === undefined || q.videoTime === '');
+                                if(invalidQ && questions.length > 0) alert("Cảnh báo: Có câu hỏi chưa cài thời gian.");
+                                setMode('student'); setAnsweredIds([]); setActiveQuestion(null); lastTimeRef.current = 0;
+                            }} className={`px-[clamp(12px,2vw,24px)] py-2 text-[clamp(10px,1.2vw,14px)] font-black rounded-full transition-all flex items-center gap-2 ${mode === 'student' ? 'bg-white text-rose-600 shadow-md' : 'text-slate-500 hover:text-slate-800'}`}>
+                                <Award size={16}/> <span className="hidden md:inline">Học Sinh</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col lg:flex-row gap-[clamp(16px,2vw,32px)] p-[clamp(16px,2vw,32px)] overflow-hidden max-w-[1800px] w-full mx-auto min-h-0">
+                        <div className="flex-1 flex flex-col gap-[clamp(12px,2vh,24px)] min-w-0 h-full">
+                            {mode === 'teacher' && (
+                                <div className="bg-white p-[clamp(16px,2vw,24px)] rounded-[clamp(16px,2vw,24px)] shadow-sm border border-slate-100 flex flex-col gap-3 md:gap-4 shrink-0 transition hover:shadow-indigo-50">
+                                    <div className="flex flex-col xl:flex-row gap-3 md:gap-4 items-start xl:items-end">
+                                        <div className="flex-1 w-full">
+                                            <label className="block text-[clamp(10px,1.2vw,12px)] font-black text-indigo-900 uppercase tracking-widest mb-1.5 md:mb-2 px-1">Link nguồn Video (YouTube, MP4...)</label>
+                                            <input type="text" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} placeholder="Dán link..." className="w-full bg-slate-50 border border-slate-200 rounded-[clamp(12px,1.5vw,16px)] px-[clamp(12px,1.5vw,20px)] py-[clamp(10px,1.5vh,16px)] outline-none focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition font-medium text-[clamp(14px,1.5vw,18px)]" />
+                                        </div>
+                                        <button onClick={() => loadVideo(false)} className="w-full xl:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-[clamp(20px,3vw,32px)] py-[clamp(10px,1.5vh,16px)] rounded-[clamp(12px,1.5vw,16px)] font-black shadow-lg shadow-indigo-200 flex justify-center items-center gap-2 transition active:scale-95 shrink-0 text-[clamp(14px,1.5vw,18px)]">
+                                            <Video size={20}/> Tải Video
+                                        </button>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-2 border-t border-slate-100">
+                                        <button onClick={handleLoadSample} className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2 md:py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-sm text-[clamp(11px,1.2vw,14px)] border border-emerald-200">
+                                            <Gift size={16}/> 🎁 Dùng Thử Đề Mẫu Bảo Tồn Động Vật
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div ref={playerContainerRef} className="flex-1 min-h-0 bg-black rounded-[clamp(16px,3vh,40px)] overflow-hidden relative shadow-xl md:shadow-2xl border-2 md:border-4 border-slate-100 flex items-center justify-center group z-10">
+                                <div className="w-full h-full max-h-full aspect-video relative flex items-center justify-center">
+                                    <div id="yt-wrapper" className={`absolute inset-0 w-full h-full ${videoType === 'youtube' ? 'block' : 'hidden'}`}>
+                                        <div id="yt-player-container" className="w-full h-full"></div>
+                                    </div>
+
+                                    <video ref={html5PlayerRef} className={`absolute inset-0 w-full h-full object-contain ${videoType === 'html5' ? 'block' : 'hidden'}`} onEnded={handleVideoEnd} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} playsInline></video>
+                                    
+                                    {!videoType && (
+                                        <div className="absolute inset-0 flex items-center justify-center text-slate-500 font-bold text-[clamp(14px,2vw,18px)] flex-col gap-4 md:gap-6 bg-slate-900 text-center px-4">
+                                            <Clapperboard className="w-[60px] h-[60px] opacity-20 animate-pulse text-indigo-300"/> 
+                                            {mode === 'teacher' ? "Hãy dán link video, hệ thống sẽ tự tải" : "Video chưa sẵn sàng"}
+                                        </div>
+                                    )}
+
+                                    {mode === 'student' && videoEnded && (
+                                        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex flex-col items-center justify-center gap-3 md:gap-4 animate-in fade-in p-4 text-center">
+                                            <Award className="w-[48px] h-[48px] text-amber-400"/>
+                                            <h2 className="text-[clamp(20px,3vw,36px)] font-black text-white leading-tight">Chúc mừng em hoàn thành bài học!</h2>
+                                            <button onClick={() => loadVideo(true)} className="mt-2 bg-white text-slate-900 px-[clamp(16px,2vw,24px)] py-[clamp(8px,1.5vh,12px)] rounded-full font-bold flex items-center gap-2 text-[clamp(12px,1.5vw,16px)] hover:bg-slate-200 transition"><RotateCcw size={16}/> Học lại từ đầu</button>
+                                        </div>
+                                    )}
+
+                                    {mode === 'student' && videoType && !isPlaying && !activeQuestion && !videoEnded && (
+                                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => { requestFullscreen(); playGlobal(); }} className="bg-rose-600 hover:bg-rose-700 text-white w-[clamp(60px,10vw,96px)] aspect-square rounded-full font-black shadow-2xl flex items-center justify-center transition hover:scale-110 active:scale-95">
+                                                <Play className="w-[40%] h-[40%]" fill="white"/>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {mode === 'student' && activeQuestion && (
+                                        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-[clamp(10px,2vw,40px)] z-50 overflow-y-auto">
+                                            <div className="bg-white/95 max-w-4xl w-full h-auto max-h-full rounded-[clamp(16px,3vw,40px)] p-[clamp(16px,3vw,40px)] shadow-2xl flex flex-col overflow-y-auto custom-scrollbar">
+                                                <div className="flex justify-between items-center mb-[clamp(16px,2vh,24px)] shrink-0">
+                                                    <h3 className="text-[clamp(18px,2.5vw,30px)] font-black text-slate-800 tracking-tight">Hỏi nhanh đáp gọn!</h3>
+                                                    <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">Đã tạm dừng</span>
+                                                </div>
+                                                <div className="text-[clamp(16px,2vw,24px)] font-bold text-slate-800 mb-[clamp(16px,2vh,24px)] shrink-0">
+                                                    <MathContent content={activeQuestion.question} />
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[clamp(8px,1.5vh,16px)] mb-[clamp(16px,2vh,32px)] shrink-0">
+                                                    {activeQuestion.options.map((opt, idx) => {
+                                                        let btnClass = "bg-slate-50 border-2 border-slate-200 text-slate-700 hover:border-indigo-400 hover:bg-indigo-50";
+                                                        let iconClass = "bg-white border-slate-300 text-slate-500";
+                                                        if (feedback) {
+                                                            if (idx === Number(activeQuestion.correctAnswer)) {
+                                                                btnClass = "bg-emerald-50 border-2 border-emerald-500 text-emerald-900 scale-[1.02] z-10";
+                                                                iconClass = "bg-emerald-500 border-emerald-500 text-white";
+                                                            } else if (!feedback.isCorrect) {
+                                                                btnClass = "bg-red-50 border-2 border-red-200 text-red-500 opacity-60";
+                                                            } else { btnClass = "bg-slate-50 border-2 border-slate-100 text-slate-400 opacity-50"; }
+                                                        }
+                                                        return (
+                                                            <button key={idx} disabled={!!feedback} onClick={() => answerStudentQuestion(idx)} className={`p-[clamp(12px,1.5vh,20px)] rounded-xl font-bold text-left transition-all flex items-center gap-3 text-[clamp(14px,1.5vw,20px)] ${btnClass}`}>
+                                                                <span className={`w-[clamp(32px,4vh,40px)] aspect-square rounded-full border-2 flex items-center justify-center shrink-0 shadow-sm transition-colors ${iconClass}`}>
+                                                                    {String.fromCharCode(65+idx)}
+                                                                </span>
+                                                                <div className="flex-1"><MathContent content={opt}/></div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <div className="mt-auto pt-[clamp(12px,2vh,24px)] border-t border-slate-100 shrink-0">
+                                                    {feedback ? (
+                                                        <div className="flex justify-between items-center gap-4">
+                                                            <div className={`font-black text-[clamp(16px,2vw,24px)] flex items-center gap-2 ${feedback.isCorrect ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                                {feedback.isCorrect ? "Chính xác!" : "Chưa đúng rồi."}
+                                                            </div>
+                                                            <button onClick={() => { setActiveQuestion(null); playGlobal(); }} className="bg-indigo-600 text-white px-[clamp(20px,3vw,32px)] py-[clamp(10px,1.5vh,14px)] rounded-xl font-black shadow-lg">Xem tiếp</button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex justify-center">
+                                                            <button onClick={reviewTenSeconds} className="text-slate-500 hover:text-indigo-600 px-[clamp(16px,2vw,24px)] py-[clamp(8px,1vh,12px)] rounded-xl font-bold transition flex items-center justify-center bg-slate-50 border border-slate-200 text-[clamp(10px,1.2vw,14px)]">
+                                                                <RotateCcw size={16} className="shrink-0 mr-2"/> Xem lại 10s trước!
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {mode === 'teacher' && (
+                            <div className="w-full lg:w-[clamp(300px,30vw,450px)] bg-white rounded-[clamp(20px,3vh,32px)] shadow-sm border border-slate-100 flex flex-col shrink-0 overflow-hidden h-[50vh] lg:h-full">
+                                <div className="bg-indigo-600 p-[clamp(16px,2vh,24px)] border-b border-indigo-700 flex justify-between items-center shadow-md shrink-0">
+                                    <h3 className="font-black text-[clamp(16px,1.5vw,20px)] text-white uppercase flex items-center gap-2"><List size={18}/> Kịch bản Video</h3>
+                                    <span className="bg-indigo-900/50 text-indigo-100 px-3 py-1 rounded-full text-xs font-black border border-indigo-800">{questions.length} câu</span>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-3 bg-slate-50/50 min-h-0 space-y-3 custom-scrollbar">
+                                    {questions.map((q, i) => {
+                                        const hasTime = q.videoTime !== undefined && q.videoTime !== '';
+                                        return (
+                                            <div key={q.id} className={`bg-white border-2 p-3 rounded-xl shadow-sm relative ${hasTime ? 'border-emerald-200' : 'border-slate-200'}`}>
+                                                <div className="font-bold text-slate-700 text-xs mb-3">Câu {i+1}: {q.question}</div>
+                                                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                                    <div className="bg-white border border-slate-200 rounded-md flex items-center flex-1 shadow-inner overflow-hidden">
+                                                        <span className="text-[9px] font-black text-slate-400 bg-slate-100 px-2 py-1.5 uppercase border-r border-slate-200">Giây</span>
+                                                        <input type="number" value={q.videoTime !== undefined ? q.videoTime : ''} onChange={(e) => assignTimeToQuestion(q.id, e.target.value)} className="w-full bg-transparent px-2 py-1.5 font-black text-indigo-700 outline-none text-sm"/>
+                                                    </div>
+                                                    <button onClick={() => pinCurrentTime(q.id)} className="bg-indigo-100 text-indigo-600 p-1.5 rounded-md"><MapPin size={16}/></button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="p-3 border-t border-slate-200 bg-slate-50 flex gap-2 shrink-0">
+                                    <button onClick={() => {
+                                        const d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({videoUrl, questions}, null, 2)); 
+                                        const a = document.createElement('a'); a.href = d; a.download = `video_bai_giang.json`; a.click();
+                                    }} className="w-full bg-slate-900 text-white font-black py-2 rounded-xl text-xs flex items-center justify-center gap-2">
+                                        <Download size={14}/> Tải JSON
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<InteractiveVideo />);
+    </script>
+</body>
+</html>
